@@ -1,0 +1,27 @@
+const fs=require('node:fs');const path=require('node:path');const assert=require('node:assert/strict');
+const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+module.exports=async function smokeActions({win,hub,handle,terminals}){
+ const root=path.join(process.cwd(),'.sunny-dev','fixture-project');fs.mkdirSync(root,{recursive:true});fs.writeFileSync(path.join(root,'hello.txt'),'Hello Sunny\n');const project={id:'sunny-smoke-fixture',name:'Sunny verification fixture',path:root,category:'development'};hub.state.projects.unshift(project);hub.changed();
+ try{
+  const read=await handle('files:read',{projectId:project.id,path:'hello.txt'});assert.equal(read.text,'Hello Sunny\n');
+  const saved=await handle('files:write',{projectId:project.id,path:'hello.txt',text:'Verified save\n',hash:read.hash});assert.equal(saved.text,'Verified save\n');
+  await assert.rejects(()=>handle('files:read',{projectId:project.id,path:'../outside.txt'}),/outside/);
+  const {execFile}=require('node:child_process');const run=require('node:util').promisify(execFile);const git=async args=>(await run('git.exe',args,{cwd:root,windowsHide:true})).stdout;
+  if(!fs.existsSync(path.join(root,'.git')))await git(['init']);await git(['config','user.name','Sunny Verification']);await git(['config','user.email','sunny-verification@localhost']);fs.writeFileSync(path.join(root,'other.txt'),'Unrelated staged '+Date.now());await git(['add','other.txt']);fs.appendFileSync(path.join(root,'hello.txt'),'Git smoke '+Date.now()+'\n');await handle('git:commit',{projectId:project.id,paths:['hello.txt'],message:'Verify selected-file commit'});assert.equal((await git(['diff','--cached','--name-only'])).trim(),'other.txt');
+  const session=await handle('terminal:create',{projectId:project.id});const terminal=terminals.get(session.id);
+  const output=await new Promise((resolve,reject)=>{let data='';const timer=setTimeout(()=>reject(Error('Terminal smoke timed out')),10000);const sub=terminal.onData(chunk=>{data+=chunk;if(data.includes('SUNNY_PTY_OK')){clearTimeout(timer);sub.dispose();resolve(data);}});terminal.write("Write-Output ('SUNNY_' + 'PTY_OK')\r");});assert.match(output,/SUNNY_PTY_OK/);await handle('terminal:close',{id:session.id});
+  const pages=[];for(const label of ['Projects','Crew','Missions','Library','Tools','Inbox','Settings','The Sunny']){await win.webContents.executeJavaScript(`Array.from(document.querySelectorAll('.sidebar button')).find(b=>b.textContent.trim()===${JSON.stringify(label)})?.click()`);await pause(160);const heading=await win.webContents.executeJavaScript('document.querySelector(".topbar")?.innerText || document.body.innerText.slice(0,120)');pages.push({label,heading});}
+  await win.webContents.executeJavaScript(`Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim()==='Talk to Luffy')?.click()`);await pause(200);await win.webContents.executeJavaScript(`document.querySelector('.deck-dialog .open-workspace').click()`);await pause(1400);
+  const workbench=await win.webContents.executeJavaScript('Boolean(document.querySelector(".workbench"))');assert.ok(workbench,'Workbench opens');
+  await win.webContents.executeJavaScript(`Array.from(document.querySelectorAll('button')).find(b=>b.textContent.includes('hello.txt'))?.click()`);await pause(2200);
+  const editor=await win.webContents.executeJavaScript('Boolean(document.querySelector(".monaco-editor"))');assert.ok(editor,'Local Monaco editor loads');
+  fs.writeFileSync(path.join(process.cwd(),'.sunny-dev','workbench-smoke.png'),(await win.webContents.capturePage()).toPNG());
+  await win.webContents.executeJavaScript('document.querySelector(".workbench-head .round-button")?.click()');await pause(300);
+  const characters=await win.webContents.executeJavaScript('document.querySelectorAll(".deck-crew").length');assert.equal(characters,10);const keyed=await win.webContents.executeJavaScript('getComputedStyle(document.querySelector(".deck-sprite.pet-sprite,.deck-sprite.walk-sprite")).backgroundImage.includes("data:image/png")');assert.ok(keyed,'Crew texture uses the transparent runtime render');const layout=await win.webContents.executeJavaScript('({ship:document.querySelector(".ship-art").getBoundingClientRect().toJSON(),crew:Array.from(document.querySelectorAll(".deck-crew")).map(c=>c.getBoundingClientRect().toJSON())})');assert.ok(layout.crew.every(c=>c.x>=layout.ship.x-10&&c.y>=layout.ship.y-10&&c.right<=layout.ship.right+10&&c.bottom<=layout.ship.bottom+10),'Every character is positioned within the ship scene');await win.webContents.executeJavaScript('document.querySelector(".deck-crew-6")?.click()');await pause(250);const dialogue=await win.webContents.executeJavaScript('document.querySelector(".deck-dialog h3")?.textContent');assert.match(dialogue,/Chopper/);const petAnimation=await win.webContents.executeJavaScript('getComputedStyle(document.querySelector(".chopper-pet")).animationName');assert.match(petAnimation,/pet-four/);fs.writeFileSync(path.join(process.cwd(),'.sunny-dev','crew-dialogue-smoke.png'),(await win.webContents.capturePage()).toPNG());
+  await win.webContents.executeJavaScript('document.querySelector(".deck-dialog header>button:last-child")?.click()');await pause(100);
+  console.log('SUNNY_ACTIONS '+JSON.stringify({files:true,pathGuard:true,terminal:true,gitSelectedCommit:true,workbench,editor,pages,characters,dialogue,petAnimation,keyed}));
+ }finally{hub.state.projects=hub.state.projects.filter(p=>p.id!==project.id);hub.changed();}
+};
+
+
+

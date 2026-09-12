@@ -1,0 +1,9 @@
+const {test}=require('node:test');const assert=require('node:assert/strict');
+const {selectExecution,routingContext}=require('../desktop/model-routing.cjs');
+const models=[{id:'fast-id',model:'fast-model',description:'Fast compact tasks',isDefault:true,supportedReasoningEfforts:[{reasoningEffort:'low'},{reasoningEffort:'medium'}],defaultReasoningEffort:'medium'},{id:'deep-id',model:'deep-model',description:'Demanding reasoning tasks',supportedReasoningEfforts:[{reasoningEffort:'medium'},{reasoningEffort:'high'}],defaultReasoningEffort:'high'}];
+test('canonical model and supported effort follow Luffy’s explicit selection',()=>assert.deepEqual(selectExecution(models,{model:'deep-id',effort:'high'}),{model:'deep-model',effort:'high'}));
+test('unknown models and incompatible reasoning fail before dispatch',()=>{assert.throws(()=>selectExecution(models,{model:'invented'}),/available/);assert.throws(()=>selectExecution(models,{model:'fast-model',effort:'ultra'}),/support/);});
+test('token saver starts with lower supported effort without guessing model prices',()=>assert.deepEqual(selectExecution(models,{},'efficient'),{model:'fast-model',effort:'low'}));
+test('deep work and balanced preferences use only supported options',()=>{assert.equal(selectExecution(models,{},'thorough').effort,'medium');assert.equal(selectExecution(models,{},'balanced').effort,'medium');});
+test('missing catalogs preserve provider defaults but cannot validate invented settings',()=>{assert.deepEqual(selectExecution([],{}),{});assert.throws(()=>selectExecution([],{model:'fake'}),/available/);assert.throws(()=>selectExecution([],{effort:'high'}),/catalog/);});
+test('routing context exposes capabilities and the efficiency policy without claiming prices',()=>{const text=routingContext(models,'efficient');assert.match(text,/fast-model/);assert.match(text,/Demanding reasoning/);assert.match(text,/supported/);assert.match(text,/Token saver/);assert.match(text,/not.*prices/);});

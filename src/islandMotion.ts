@@ -1,0 +1,13 @@
+import {useEffect,useRef,useState} from 'react';
+import type {Crew,Snapshot} from './shared';
+import type {Walker} from './deckMotion';
+import {crewStatus} from './useDeckMotion';
+export const DISTRICTS=[{id:'harbor',name:'Sunny harbor',x:27,y:50,description:'Operations, mission planning and the desktop ship.'},{id:'research',name:'Observatory',x:36,y:34,description:'Research, diagnosis and useful evidence.'},{id:'engineering',name:'The forge',x:64,y:34,description:'Products, prototypes and tested software.'},{id:'creative',name:'Creative house',x:69,y:47,description:'Writing, artwork and editorial quality.'},{id:'market',name:'Market square',x:64,y:64,description:'Customer problems and reviewable product offers.'},{id:'garden',name:'Growth garden',x:43,y:63,description:'Repeatable jobs and steady improvements.'}];
+const homes:Record<string,string>={luffy:'harbor',zoro:'engineering',nami:'market',usopp:'engineering',sanji:'creative',chopper:'garden',robin:'research',franky:'engineering',brook:'creative',jinbe:'harbor'};
+const plaza={x:50,y:46};
+export function useIslandMotion(crew:Crew[],snapshot:Snapshot,paused:boolean,held:string|null){
+ const [positions,setPositions]=useState<Walker[]>([]),live=useRef({crew,snapshot,paused,held});live.current={crew,snapshot,paused,held};
+ useEffect(()=>{let previous=performance.now();const timer=setInterval(()=>{const now=performance.now(),dt=Math.min(.1,(now-previous)/1000);previous=now;const s=live.current;if(document.hidden)return;const quiet=s.paused||s.snapshot.settings.reducedMotion||matchMedia('(prefers-reduced-motion: reduce)').matches;
+  setPositions(old=>s.crew.map((c,i)=>{const district=DISTRICTS.find(d=>d.id===(s.snapshot.world?.residents.find(r=>r.id===c.id)?.district||homes[c.id]))||DISTRICTS[0];const home={x:district.x+(i%3-1)*2,y:district.y+(i%2)*2};let w=old.find(w=>w.id===c.id);if(!w)w={id:c.id,...home,node:district.id,target:'home',path:[],facing:1,moving:false,mode:'idle',rest:2+i*.4,visits:0};w={...w};const status=crewStatus(s.snapshot,c.id);w.moving=false;if(quiet||s.held===c.id)return w;if(['waiting','attention'].includes(status)){w.mode=status;return w;}if(status==='working'){w.target='home';w.mode='working';}else{w.rest-=dt;if(w.rest<=0){w.target=w.target==='home'?'plaza':'home';w.rest=12+(i%4)*2;}w.mode='chore';}const end=w.target==='home'?home:{x:plaza.x+(i%5-2)*2,y:plaza.y+(i%3-1)*2};const dx=end.x-w.x,dy=end.y-w.y,d=Math.hypot(dx,dy),step=dt*3.5;if(d>.2){w.moving=true;w.facing=dx<0?-1:1;w.x+=dx/d*Math.min(d,step);w.y+=dy/d*Math.min(d,step);}return w;}));
+ },60);return()=>clearInterval(timer);},[]);return positions;
+}

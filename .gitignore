@@ -1,0 +1,13 @@
+node_modules/
+dist/
+release/
+release-morgans/
+.sunny-dev/
+.superpowers/
+*.log
+.env
+.env.*
+!.env.example
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm

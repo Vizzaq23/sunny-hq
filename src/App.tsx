@@ -1,15 +1,21 @@
 import './island.css';
-import {MorgansView} from './views/MorgansView';
 import {lazy,Suspense,useEffect,useMemo,useState} from 'react';
 import {FolderPlus,Plus} from 'lucide-react';
 import type {CrewId,Project} from './shared';
 import {useSunny} from './useSunny';
 import {Sidebar,Toasts,Topbar,type ViewId} from './components/Chrome';
-import {CrewView,InboxView,MissionsView,ProjectsView,ShipView} from './views/DashboardViews';
-import {IslandView} from './views/IslandView';
-import {LibraryView,SettingsView,ToolsView} from './views/OpsViews';
 
 const Workbench=lazy(()=>import('./views/Workbench').then(module=>({default:module.Workbench})));
+const MorgansView=lazy(()=>import('./views/MorgansView').then(module=>({default:module.MorgansView})));
+const IslandView=lazy(()=>import('./views/IslandView').then(module=>({default:module.IslandView})));
+const ShipView=lazy(()=>import('./views/DashboardViews').then(module=>({default:module.ShipView})));
+const CrewView=lazy(()=>import('./views/DashboardViews').then(module=>({default:module.CrewView})));
+const InboxView=lazy(()=>import('./views/DashboardViews').then(module=>({default:module.InboxView})));
+const MissionsView=lazy(()=>import('./views/DashboardViews').then(module=>({default:module.MissionsView})));
+const ProjectsView=lazy(()=>import('./views/DashboardViews').then(module=>({default:module.ProjectsView})));
+const LibraryView=lazy(()=>import('./views/OpsViews').then(module=>({default:module.LibraryView})));
+const ToolsView=lazy(()=>import('./views/OpsViews').then(module=>({default:module.ToolsView})));
+const SettingsView=lazy(()=>import('./views/OpsViews').then(module=>({default:module.SettingsView})));
 type WorkspaceInit={taskId?:string;projectId?:string;crewId?:CrewId;prompt?:string};
 const viewTitles:Record<ViewId,{title:string;subtitle:string}>={news:{title:'Morgans’ blimp',subtitle:'The flying press'},island:{title:'The Island',subtitle:'Your growing AI world'},ship:{title:'The Sunny',subtitle:'Command deck'},projects:{title:'Projects',subtitle:'Local cargo'},crew:{title:'Crew',subtitle:'Your specialists'},missions:{title:'Missions',subtitle:'Templates & routes'},library:{title:'Library',subtitle:'Obsidian knowledge'},tools:{title:'Tools',subtitle:'Workshop'},inbox:{title:'Inbox',subtitle:'Mission signals'},settings:{title:'Settings',subtitle:'Captain’s quarters'}};
 
@@ -33,7 +39,7 @@ export default function App(){
     {sunny.desktop?<button className="float-ship-button" onClick={()=>void invoke('companion:show').catch(()=>{})}>↗ Ship on desktop</button>:null}
     <Sidebar view={view} onView={navigate} projects={snapshot.projects} tasks={snapshot.tasks} activeProjectId={activeProjectId} onProject={id=>openWorkspace({projectId:id})} open={menu} onToggle={()=>setMenu(value=>!value)}/>
     {menu?<button className="mobile-scrim" onClick={()=>setMenu(false)} aria-label="Close navigation"/>:null}
-    <div className="main-shell"><Topbar title={titles.title} subtitle={titles.subtitle} desktop={sunny.desktop} codexStatus={snapshot.codex.status} onMenu={()=>setMenu(true)} actions={topActions}/><div className="page-scroll">
+    <div className="main-shell"><Topbar title={titles.title} subtitle={titles.subtitle} desktop={sunny.desktop} codexStatus={snapshot.codex.status} onMenu={()=>setMenu(true)} actions={topActions}/><Suspense fallback={<div className="page-scroll"><div className="loading-deck"><span/><h2>Loading the deck…</h2></div></div>}><div className="page-scroll">
       {view==='island'?<IslandView snapshot={snapshot} invoke={invoke} onWorkspace={openWorkspace} onShip={()=>navigate('ship')} onNews={()=>navigate('news')}/>:null}
       {view==='news'?<MorgansView snapshot={snapshot} invoke={invoke} onWorkspace={openWorkspace} onBack={()=>navigate('island')}/>:null}
       {view==='ship'?<ShipView snapshot={snapshot} onWorkspace={openWorkspace} onNavigate={navigate} onImport={()=>void importProject()} invoke={invoke} toast={toast}/>:null}
@@ -44,6 +50,6 @@ export default function App(){
       {view==='tools'?<ToolsView tools={snapshot.tools} projects={snapshot.projects} desktop={sunny.desktop} invoke={invoke} toast={toast}/>:null}
       {view==='inbox'?<InboxView tasks={snapshot.tasks} automations={snapshot.automations} desktop={sunny.desktop} invoke={invoke} onOpen={taskId=>openWorkspace({taskId})}/>:null}
       {view==='settings'?<SettingsView snapshot={snapshot} invoke={invoke} mergeSnapshot={sunny.mergeSnapshot} toast={toast}/>:null}
-    </div></div><Toasts items={sunny.toasts}/>
+    </div></Suspense></div><Toasts items={sunny.toasts}/>
   </div>;
 }

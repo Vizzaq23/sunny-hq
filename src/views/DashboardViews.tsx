@@ -1,4 +1,4 @@
-import {useEffect,useState} from 'react';
+import {useEffect,useMemo,useState} from 'react';
 import {ArrowRight,BookOpen,Box,BriefcaseBusiness,Braces,ChevronRight,Clock3,FolderPlus,History,Layers3,Plus,Search,Send,ShipWheel,Sparkles,Target,Users,X} from 'lucide-react';
 import type {CrewId,Project,Snapshot,Task} from '../shared';
 import {ALL_CREW,CREW,CREW_BY_ID,MISSIONS,shortPath} from '../data';
@@ -22,15 +22,15 @@ export function ShipView({snapshot,onWorkspace,onNavigate,onImport,compact=false
   const walkTexture=useCrewTexture(new URL(`${import.meta.env.BASE_URL}assets/crew-walk.png`,window.location.href).href,'walk');
   const petTexture=useCrewTexture(new URL(`${import.meta.env.BASE_URL}assets/crew-pet-states.png`,window.location.href).href,'states');
   const [hoveredCrew,setHoveredCrew]=useState<CrewId|null>(null);
-  const active=snapshot.tasks.filter(t=>['working','in-progress','running'].includes(t.status));
-  const recent=[...snapshot.tasks].sort((a,b)=>b.updatedAt-a.updatedAt).slice(0,4);
+  const active=useMemo(()=>snapshot.tasks.filter(t=>['working','in-progress','running'].includes(t.status)),[snapshot.tasks]);
+  const recent=useMemo(()=>[...snapshot.tasks].sort((a,b)=>b.updatedAt-a.updatedAt).slice(0,4),[snapshot.tasks]);
   const [selectedCrew,setSelectedCrew]=useState<CrewId|null>(null),[dialogProject,setDialogProject]=useState(snapshot.projects[0]?.id??''),[dialogText,setDialogText]=useState(''),[sending,setSending]=useState(false),[localTaskId,setLocalTaskId]=useState<string>();
   const walkers=useDeckMotion(snapshot,life.moment,paused,selectedCrew,hoveredCrew);
   const spriteUrl=new URL(`${import.meta.env.BASE_URL}assets/crew-deck-sprites.png`,window.location.href).href;
   const chopperPetUrl=new URL(`${import.meta.env.BASE_URL}assets/chopper-pet.webp`,window.location.href).href;
   const crewTexture=useCrewTexture(spriteUrl);
   const selected=selectedCrew?CREW_BY_ID.get(selectedCrew):undefined;
-  const crewTasks=selectedCrew?snapshot.tasks.filter(task=>task.crewId===selectedCrew&&!task.external).sort((a,b)=>b.updatedAt-a.updatedAt):[];
+  const crewTasks=useMemo(()=>selectedCrew?snapshot.tasks.filter(task=>task.crewId===selectedCrew&&!task.external).sort((a,b)=>b.updatedAt-a.updatedAt):[],[selectedCrew,snapshot.tasks]);
   const localTask=localTaskId?snapshot.tasks.find(task=>task.id===localTaskId):undefined;
   const latest=(localTask?.crewId===selectedCrew&&localTask.projectId===dialogProject?localTask:undefined)??crewTasks.find(task=>task.projectId===dialogProject);
   const latestAssistant=[...(latest?.messages??[])].reverse().find(message=>message.role==='assistant');
@@ -61,8 +61,9 @@ export function ShipView({snapshot,onWorkspace,onNavigate,onImport,compact=false
 }
 
 export function ProjectsView({projects,tasks,onImport,onOpen,onRemove}:{projects:Project[];tasks:Task[];onImport:()=>void;onOpen:(id:string)=>void;onRemove:(id:string)=>void}){
+  const tasksByProject=useMemo(()=>{const grouped=new Map<string,Task[]>();for(const task of tasks){const projectTasks=grouped.get(task.projectId);if(projectTasks)projectTasks.push(task);else grouped.set(task.projectId,[task]);}return grouped;},[tasks]);
   return <div className="page"><section className="page-intro"><div><span className="eyebrow">The cargo hold</span><h2>Projects aboard</h2><p>Local folders stay on your machine. Sunny HQ gives each one a crew, logbook, editor, terminal, and preview.</p></div><button className="primary-button" onClick={onImport}><FolderPlus size={18}/> Import folder</button></section>
-    {projects.length?<div className="project-grid">{projects.map((project,index)=>{const projectTasks=tasks.filter(t=>t.projectId===project.id);return <article className="project-card" key={project.id}><div className={`project-cover cover-${index%5}`}><span>{project.name.charAt(0)}</span><em>{project.category||'Local project'}</em></div><div className="project-body"><h3>{project.name}</h3><p className="path">{shortPath(project.path)}</p><div className="project-meta"><span><Clock3 size={14}/>{projectTasks.length?`${projectTasks.length} mission${projectTasks.length===1?'':'s'}`:'No missions yet'}</span><span><Users size={14}/>{new Set(projectTasks.map(t=>t.crewId)).size||'—'} crew</span></div><div className="card-actions"><button className="small-button" onClick={()=>onOpen(project.id)}>Open workspace</button><button className="ghost-button danger" onClick={()=>onRemove(project.id)}>Remove</button></div></div></article>})}</div>:<div className="large-empty"><div className="empty-illustration"><Box/><span/><i/></div><h3>Bring your first project aboard</h3><p>Choose any local folder. Sunny HQ will never invent project activity; your files and Codex missions appear as they happen.</p><button className="primary-button" onClick={onImport}><FolderPlus size={18}/> Choose a folder</button></div>}
+    {projects.length?<div className="project-grid">{projects.map((project,index)=>{const projectTasks=tasksByProject.get(project.id)??[];return <article className="project-card" key={project.id}><div className={`project-cover cover-${index%5}`}><span>{project.name.charAt(0)}</span><em>{project.category||'Local project'}</em></div><div className="project-body"><h3>{project.name}</h3><p className="path">{shortPath(project.path)}</p><div className="project-meta"><span><Clock3 size={14}/>{projectTasks.length?`${projectTasks.length} mission${projectTasks.length===1?'':'s'}`:'No missions yet'}</span><span><Users size={14}/>{new Set(projectTasks.map(t=>t.crewId)).size||'—'} crew</span></div><div className="card-actions"><button className="small-button" onClick={()=>onOpen(project.id)}>Open workspace</button><button className="ghost-button danger" onClick={()=>onRemove(project.id)}>Remove</button></div></div></article>})}</div>:<div className="large-empty"><div className="empty-illustration"><Box/><span/><i/></div><h3>Bring your first project aboard</h3><p>Choose any local folder. Sunny HQ will never invent project activity; your files and Codex missions appear as they happen.</p><button className="primary-button" onClick={onImport}><FolderPlus size={18}/> Choose a folder</button></div>}
   </div>;
 }
 
@@ -77,15 +78,13 @@ export function MissionsView({onStart,automations}:{onStart:(crewId:CrewId,promp
 }
 
 export function InboxView({tasks,onOpen,automations,desktop,invoke}:{tasks:Task[];onOpen:(id:string)=>void;automations:any[];desktop:boolean;invoke:Invoke}){
-  const needs=tasks.filter(t=>t.status==='failed'||t.status==='awaiting-approval'||Boolean(t.error));
-  const running=tasks.filter(t=>['working','running','in-progress'].includes(t.status));
-  const done=tasks.filter(t=>!needs.includes(t)&&!running.includes(t)).sort((a,b)=>b.updatedAt-a.updatedAt);
+  const {needs,running,done}=useMemo(()=>{const needs:Task[]=[],running:Task[]=[],done:Task[]=[];for(const task of tasks){if(task.status==='failed'||task.status==='awaiting-approval'||Boolean(task.error))needs.push(task);else if(['working','running','in-progress'].includes(task.status))running.push(task);else done.push(task);}done.sort((a,b)=>b.updatedAt-a.updatedAt);return{needs,running,done};},[tasks]);
   const [history,setHistory]=useState<any[]>([]),[external,setExternal]=useState<any|null>(null),[loadingHistory,setLoadingHistory]=useState(desktop);
   const [historyQuery,setHistoryQuery]=useState('');
   useEffect(()=>{if(!desktop)return;invoke<any[]>('task:history',{}).then(value=>setHistory(Array.isArray(value)?value:[])).finally(()=>setLoadingHistory(false));},[desktop,invoke]);
   const readExternal=async(item:any)=>setExternal({summary:item,detail:await invoke('task:readExternal',{threadId:item.threadId??item.id})});
   const group=(title:string,items:Task[])=><section className="inbox-group"><header><h3>{title}</h3><span>{items.length}</span></header>{items.length?items.map(task=><TaskRow key={task.id} task={task} crew={CREW_BY_ID.get(task.crewId)} onClick={()=>onOpen(task.id)}/>):<p className="inbox-clear">Nothing here right now.</p>}</section>;
-  const visibleHistory=history.filter(item=>`${item.title??''} ${item.name??''} ${item.summary??''} ${item.projectName??''} ${item.workspace??''}`.toLowerCase().includes(historyQuery.trim().toLowerCase()));
+  const visibleHistory=useMemo(()=>{const query=historyQuery.trim().toLowerCase();return history.filter(item=>`${item.title??''} ${item.name??''} ${item.summary??''} ${item.projectName??''} ${item.workspace??''}`.toLowerCase().includes(query));},[history,historyQuery]);
   return <div className="page"><section className="page-intro compact"><div><span className="eyebrow">Signals from the crew</span><h2>Mission inbox</h2><p>Approvals, failures, active work, and recently completed missions in one honest queue.</p></div></section><div className="inbox-layout">{group('Needs your attention',needs)}{group('Underway',running)}{group('Recent log',done.slice(0,12))}</div>{tasks.length===0?<EmptyState icon="compass" title="All quiet on deck" body="There are no real mission updates yet. Start one from the Sunny or a template."/>:null}<section className="history-panel"><header><div><span className="eyebrow">Codex & ChatGPT archive</span><h3>Existing task history</h3></div><div className="history-tools"><label><Search/><input value={historyQuery} onChange={event=>setHistoryQuery(event.target.value)} placeholder="Search all history…"/></label><span className="read-only-chip">Read only</span></div></header>{loadingHistory?<div className="history-loading">Reading local Codex history…</div>:visibleHistory.length?<div className="history-grid">{visibleHistory.map((item,index)=><button key={item.threadId??item.id??index} onClick={()=>void readExternal(item)}><History/><span><b>{item.title??item.name??'Untitled Codex task'}</b><small>{item.summary??item.projectName??item.workspace??'Existing Codex task'}</small></span><ChevronRight/></button>)}</div>:<p className="history-loading">{history.length?'No history matches that search.':desktop?'No existing Codex or ChatGPT tasks were found.':'Open the desktop app to read existing task history.'}</p>}</section><AutomationStrip automations={automations}/>{external?<div className="modal-backdrop" onMouseDown={event=>{if(event.target===event.currentTarget)setExternal(null)}}><section className="external-history"><header><div><span className="eyebrow">Read-only task history</span><h3>{external.summary?.title??'Existing task'}</h3></div><button onClick={()=>setExternal(null)}><X/></button></header><div className="external-body">{renderExternal(external.detail)}</div><footer>This imported history cannot be resumed or changed from Sunny HQ.</footer></section></div>:null}</div>;
 }
 

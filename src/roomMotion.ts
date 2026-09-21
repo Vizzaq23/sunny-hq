@@ -1,5 +1,11 @@
 export const ROOM_STATION_CREW=['nami','franky','zoro'] as const;
-export const ROOM_BOARD_X=34;
+// Percentage coordinates for the uncropped 3:2 project-quarters illustration.
+export const ROOM_BOARD_X=46;
+export const ROOM_STATION_X=[32,57,79] as const;
+export function moveRoomCaptain(p:{x:number;y:number},dx:number,dy:number){
+ return {x:Math.max(34,Math.min(78,p.x+dx)),y:Math.max(52,Math.min(76,p.y+dy))};
+}
+export function nearRoomBoard(p:{x:number;y:number}){return p.y<=56&&Math.abs(p.x-ROOM_BOARD_X)<=8;}
 export type RoomActorPosition={y:number;moving:boolean};
 export function stepRoomActor(current:RoomActorPosition,activity:{working:boolean;attention:boolean},seconds:number,reduced:boolean):RoomActorPosition{
  if(activity.attention)return {y:current.y,moving:false};

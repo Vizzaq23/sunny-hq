@@ -58,3 +58,8 @@ Project-room transponder receipts (2026-09-21): saved mission signals expose New
 Written mission outputs (2026-09-21): the mission board can attach project-local .md/.txt deliverables and preview their recorded content as plain text. File identity is verified, while creative quality and art/world compliance remain captain review criteria. Changing a recorded file requires reattachment and review before mission acceptance. This local written-output path does not imply image, audio or video generation is connected.
 
 Deployment observations (2026-09-21): mission review and project health now show explicitly inspected GitHub deployment records for a commit, with environment, observed status and time. Empty records and earlier source stay visible. This supersedes the earlier blanket unavailable placeholder; uninspected projects still have no deployment evidence. A successful historical record is not a live health check, deployed uncommitted work or captain authorization to deploy. See [deployment inspection](deployment-inspection.md) for boundaries and verification limits.
+
+
+## Illustrated quarters admission (2026-09-21)
+
+The project-room CSS prototype now uses the original generated timber/teal room background recorded in ARTWORK.md. This supersedes the illustrated-interior limitation above. A full3:2 canvas preserves perspective without responsive cropping. Three existing crew sprites approach lanes aligned with the desks; the captain stays in a central clear-floor rectangle and reaches a board approach. Direct board/task/stop controls remain usable without walking. State remains entirely sourced from Hub projections. This is one useful illustrated interior, not seamless island-to-door travel or general furniture pathfinding.

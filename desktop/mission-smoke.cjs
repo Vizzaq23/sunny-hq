@@ -49,6 +49,11 @@ app.whenReady().then(async()=>{
   await js('Array.from(document.querySelectorAll("button")).find(b=>b.textContent.trim()==="The Island").click()');
   await wait('Boolean(document.querySelector(".island-project-doors button"))');
   await js('document.querySelector(".island-project-doors button").click()');await wait('Boolean(document.querySelector(".project-room-scene"))');
+  await wait('document.querySelector(".room-illustration")?.naturalWidth===1536');
+  await js('document.querySelector(".project-room-scene").scrollIntoView({block:"center"})');await delay(200);fs.writeFileSync(path.join(output,'illustrated-room.png'),(await win.webContents.capturePage()).toPNG());
+  win.setSize(600,900);await delay(200);await js('document.querySelector(".project-room-scene").scrollIntoView({block:"center"})');await delay(200);
+  assert.equal(await js('(()=>{const r=document.querySelector(".project-room-scene");return Math.abs((r.clientWidth/r.clientHeight)-1.5)<.03;})()'),true);
+  fs.writeFileSync(path.join(output,'illustrated-room-narrow.png'),(await win.webContents.capturePage()).toPNG());win.setSize(1280,900);await delay(200);
   assert.deepEqual(await js('Array.from(document.querySelectorAll("[data-station-crew]")).map(e=>e.dataset.stationCrew)'),await js('Array.from(document.querySelectorAll("[data-room-crew]")).map(e=>e.dataset.roomCrew)'));
   await js('(()=>{const room=document.querySelector(".project-room-scene");room.focus();for(let i=0;i<8;i++)room.dispatchEvent(new KeyboardEvent("keydown",{key:"ArrowUp",bubbles:true}));})()');
   await wait('document.querySelector(".room-position").textContent.includes("Press Enter")');
@@ -143,7 +148,7 @@ app.whenReady().then(async()=>{
   await win.reload();await wait('Boolean(document.querySelector(".home-page,.island-page"))');await js('Array.from(document.querySelectorAll("button")).find(b=>b.textContent.trim()==="Missions").click()');await wait('document.querySelector(".mission-board")?.textContent.includes("Complete")');
   await delay(300);fs.writeFileSync(path.join(output,'mission-board.png'),(await win.webContents.capturePage()).toPNG());
   assert.deepEqual(appErrors,[],'No app errors may be hidden by later successful persistence');
-  console.log('SUNNY_MISSION '+JSON.stringify({passed:true,output,runtime,imageInput:process.env.SUNNY_SMOKE_IMAGE?'external-image':'synthetic-fixture',motionCheck,coordinated,mergeBound,mergeViaUi,checks:['enter-project-room','keyboard-movement','open-room-board','create','prepare-real-branch','launch-through-hub','await-review','real-npm-check','fixture-pr-evidence','fixture-deployment-observation','post-acceptance-deployment-refresh','criteria-gate','written-deliverable-preview','native-image-deliverable-preview','explicit-acceptance','signal-acknowledgment','unseen-filter','signal-mission-navigation','persist','reload']}));
+  console.log('SUNNY_MISSION '+JSON.stringify({passed:true,output,runtime,imageInput:process.env.SUNNY_SMOKE_IMAGE?'external-image':'synthetic-fixture',motionCheck,coordinated,mergeBound,mergeViaUi,checks:['illustrated-room-full-and-narrow','enter-project-room','keyboard-movement','open-room-board','create','prepare-real-branch','launch-through-hub','await-review','real-npm-check','fixture-pr-evidence','fixture-deployment-observation','post-acceptance-deployment-refresh','criteria-gate','written-deliverable-preview','native-image-deliverable-preview','explicit-acceptance','signal-acknowledgment','unseen-filter','signal-mission-navigation','persist','reload']}));
  }catch(error){failure=error;console.error(error);fs.writeFileSync(path.join(output,'failure.png'),(await win.webContents.capturePage()).toPNG());}
  finally{hub.close();win.destroy();app.exit(failure?1:0);}
 }).catch(error=>{console.error(error);app.exit(1);});

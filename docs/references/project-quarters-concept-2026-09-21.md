@@ -1,6 +1,6 @@
 # Project quarters concept — 2026-09-21
 
-Asset: [original PNG](project-quarters-concept-2026-09-21.png). Generated with the built-in image_gen tool, not a CLI/API fallback. Review-only concept; not installed as Sunny's background and not captain-accepted product artwork.
+Asset: [original PNG](project-quarters-concept-2026-09-21.png). Generated with the built-in image_gen tool, not a CLI/API fallback. Originally generated as a review concept; now admitted to the local project-room implementation after geometry and native visual checks. Not captain-accepted mission output or a production release.
 
 Original tool output: `C:\Users\Quintin\.codex\generated_images\01a0c51d-6389-7b82-b551-a2f66bcf2309\exec-fb808d63-8bda-4e1a-8012-cdea1813b0c6.png`. Workspace copy is byte-identical. Original architecture/props were requested; no external commercial asset was downloaded. Generation is not a claim of commercial licensing or global uniqueness.
 
@@ -12,6 +12,6 @@ Use case: stylized-concept. Create one original environment concept image for Su
 
 Three readable workstation areas, a blank board, warm timber/teal palette and open foreground match the brief. The image is painted/cel-shaded, consistent with the documented environment direction rather than a strict low-resolution tileset. No people, app controls or readable status labels were observed. Rug markings and map texture are decoration, not live project state.
 
-Before runtime admission, align movement coordinates, furniture occlusion, board hotspot, responsive crop and character scale with this perspective. Keep state labels in accessible HTML. Do not stretch this concept into a sprite atlas or silently replace the existing world. Captain acceptance remains separate from this technical/visual inspection.
+Runtime admission uses a byte-identical `public/assets/project-quarters.png`, a full uncropped3:2 canvas, desk-aligned crew lanes and bounded clear-floor captain movement. Native normal/working/waiting and responsive screenshots were inspected. State labels remain accessible HTML. This single project interior does not replace the island, ship or sprite atlases. Captain acceptance remains separate from technical/visual inspection.
 
 Recorded original: 1536 × 1024 pixels; 2724389 bytes; SHA256 `1b854c869ad3bf772211d405dcfc7c26174b792396eecfc817ba163112d958d4`.

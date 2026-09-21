@@ -4,7 +4,7 @@ import type {Snapshot,Crew} from '../shared';
 import {CREW} from '../data';
 import {useCrewTexture} from '../crewTexture';
 import {roomCrew} from '../roomActivity';
-import {stepRoomActor,ROOM_STATION_CREW} from '../roomMotion';
+import {stepRoomActor,ROOM_STATION_CREW,ROOM_STATION_X} from '../roomMotion';
 
 export function RoomActors({snapshot,projectId,onOpen}:{snapshot:Snapshot;projectId:string;onOpen:(id:string)=>void}){
  const asset=(name:string)=>new URL(`${import.meta.env.BASE_URL}assets/${name}`,location.href).href;
@@ -22,5 +22,5 @@ function RoomActor({crew,lane,activity,reduced,walk,pet,onOpen}:{crew:Crew;lane:
  const index=CREW.findIndex(c=>c.id===crew.id),start=-(index%2)*288-(working?144:0),row=Math.floor(index/2);
  const mode=moving?'walking':working?'working':'still';
  const style={'--room-frame-start':`${moving?-(index%2)*288:start}px`,'--room-frame-end':`${moving?-(index%2)*288-288:start-144}px`,backgroundImage:`url("${moving?walk??pet:pet}")`,backgroundPositionY:`${-row*72}px`} as CSSProperties;
- return <button className={`room-actor ${mode} ${activity.attention?'needs-attention':''}`} data-room-crew={crew.id} data-motion={mode} data-position={position.y.toFixed(2)} style={{left:`${18+lane*32}%`,top:`${position.y}%`}} disabled={!activity.task} onClick={()=>activity.task&&onOpen(activity.task.id)} aria-label={`${crew.name}: ${activity.state}. ${activity.task?'Open task':'No assignment'}`}><span className="room-actor-sprite" aria-hidden="true" style={style}/><b>{crew.name}</b><small>{activity.state}</small></button>;
+ return <button className={`room-actor ${mode} ${activity.attention?'needs-attention':''}`} data-room-crew={crew.id} data-motion={mode} data-position={position.y.toFixed(2)} style={{left:`${ROOM_STATION_X[lane]}%`,top:`${position.y}%`}} disabled={!activity.task} onClick={()=>activity.task&&onOpen(activity.task.id)} aria-label={`${crew.name}: ${activity.state}. ${activity.task?'Open task':'No assignment'}`}><span className="room-actor-sprite" aria-hidden="true" style={style}/><b>{crew.name}</b><small>{activity.state}</small></button>;
 }

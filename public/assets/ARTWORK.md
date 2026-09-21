@@ -62,3 +62,10 @@ Final runtime rendering: src/crewTexture.ts loads the raw generated white-backgr
 `morgans-blimp-key.png` was created with built-in image generation and then edited with the same tool. Original prompt: whimsical cream, gold and red pixel-style flying newspaper blimp; wooden newspaper-house gondola; Morgans with a black top hat; three-quarter left-facing view; no lettering. Final edit prompt: replace only the surrounding background, including spaces between ropes, with solid magenta #FF00FF; preserve the airship and remove external shadows/glow. Mode: built-in imagegen reference edit. Source: `C:\Users\Quintin\.codex\generated_images\01a08ebc-5a9e-76f0-9e0a-2d2285d63872\exec-134e1bc9-4477-4db9-a986-dd0586e4a9c6.png`.
 
 The generated bitmap is preserved. Runtime chroma-key compositing supplies transparency, including enclosed rope gaps. Gentle bobbing is authored in CSS and disabled by Quiet map/reduced motion. Earlier opaque variants are not used in the interface.
+
+
+## Illustrated project quarters (2026-09-21)
+
+`project-quarters.png` is a byte-identical runtime copy of the original [project-quarters concept](../../docs/references/project-quarters-concept-2026-09-21.md), generated with the built-in Codex image_gen tool. That record contains the full prompt and original tool path. Dimensions1536 ×1024; SHA256 `1b854c869ad3bf772211d405dcfc7c26174b792396eecfc817ba163112d958d4`. No additional image editing, external download or replacement of earlier Sunny artwork occurred.
+
+Admitted as the project-room background after native visual/geometry checks: full3:2 image with no crop, desk lanes32/57/79 percent, clear captain floor34–78% horizontally and52–76% vertically, board approach46/52. Furniture remains outside captain movement. Existing crew atlases and accessible HTML controls supply all changing state. Illustration markings are decorative, never status. Reduced motion preserves the scene and stops crew travel/frame loops. This is local implementation admission, not captain mission acceptance or permission to publish commercially.

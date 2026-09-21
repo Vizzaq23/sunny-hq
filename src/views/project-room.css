@@ -5,3 +5,17 @@
 .room-stations{left:0;right:0;display:block;height:100px}.room-station{position:absolute;transform:translateX(-50%)}@media(max-width:650px){.room-actor{width:90px}.room-actor-sprite{transform:scale(.8);margin:-7px}.room-actor b,.room-actor small{font-size:10px}}
 .room-health{padding:22px;margin-bottom:20px}.room-health>p{font-size:13px;color:#536c64;line-height:1.5}.room-health ul{list-style:none;padding:0;display:grid;gap:12px}.room-health li{border:1px solid #d9c9a6;border-radius:10px;padding:16px;background:#fff9ee}.room-health header{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.room-health header span{font-size:12px}.room-health dl>div{display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap;border-top:1px solid #e7dbc4;padding:8px 0}.room-health dd{margin:0;font-size:12px}.room-health li>p{font-size:12px}.room-health button{background:#fff0cc;color:#234e48;border:1px solid #c8b894;border-radius:7px;padding:9px 12px}
 .room-event-log li[data-seen="false"]{border-left:3px solid #b77428;padding-left:10px}.room-event-log li{flex-wrap:wrap}.room-event-log button:disabled{opacity:.6;cursor:wait}
+
+/* The full 3:2 illustration and percentage geometry share one uncropped canvas. */
+.project-room-scene{height:auto;aspect-ratio:3/2;max-width:1050px;margin:0 auto;background:#b88655;border:5px solid #765137;border-radius:16px;box-shadow:0 8px 24px #62472825}
+.room-illustration{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none;user-select:none}
+.room-mission-board{top:18%;padding:7px 12px;border-width:2px;border-radius:5px;font-size:12px;z-index:4;background:#fff0d4f2}
+.room-mission-board span{font-size:11px}
+.room-stations{top:36%;height:auto;z-index:4}
+.room-station{max-width:23%;padding:5px 9px;border-width:1px;border-radius:6px;background:#fff4d8ec;box-shadow:0 3px 9px #39281835;gap:2px}
+.room-station span{display:none}
+.room-station.occupied{border:2px solid #2b725e}
+.room-position{bottom:2%;left:20%;right:20%;padding:6px;background:#fff4d8eb;border-radius:8px;pointer-events:none}
+.room-captain{z-index:3}.room-captain>span{width:34px;height:34px;font-size:22px;border-width:3px}
+.room-actor b,.room-actor small{background:#fff5dff2;text-shadow:none}
+@media(max-width:650px){.room-mission-board{top:15%;font-size:10px;padding:4px 7px}.room-mission-board span{font-size:9px}.room-station{font-size:10px;padding:3px 5px}.room-station small{font-size:9px}.room-actor{transform:translate(-50%,-50%) scale(.7)}.room-actor-sprite{transform:none;margin:0}.room-captain{transform:translate(-50%,-50%) scale(.75)}.room-position{left:5%;right:5%;font-size:10px;padding:3px}}

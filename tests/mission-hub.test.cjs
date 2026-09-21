@@ -8,6 +8,37 @@ function setup(t,initial={}){
 }
 const brief={projectId:'p',title:'Inventory',objective:'Track items',acceptanceCriteria:['Saved items reload'],completionBoundary:'review'};
 
+test('missing-thread recovery persists interruption before release and rolls back failed saves',async t=>{
+ const {hub,store,saves}=setup(t,{tasks:[{id:'legacy',projectId:'p',crewId:'franky',status:'starting',updatedAt:10,messages:[]}]});
+ const command={taskId:'legacy',expectedUpdatedAt:10,confirmedStopped:true};
+ await assert.rejects(hub.resolveMissingThread({...command,confirmedStopped:false}),/confirm/i);await assert.rejects(hub.resolveMissingThread({...command,expectedUpdatedAt:9}),/changed/i);
+ store.save=()=>{throw Error('Disk full');};await assert.rejects(hub.resolveMissingThread(command),/Disk full/);assert.equal(hub.task('legacy').status,'unknown');assert.equal(hub.gate.blocked(process.cwd()),true);
+ store.save=data=>{assert.equal(hub.gate.blocked(process.cwd()),true);saves.push(structuredClone(data));};await hub.resolveMissingThread(command);store.save=()=>{};
+ assert.equal(saves.at(-1).tasks[0].status,'interrupted');assert.match(saves.at(-1).tasks[0].messages.at(-1).text,/Captain confirmed/);assert.equal(hub.gate.blocked(process.cwd()),false);
+ await assert.rejects(hub.resolveMissingThread(command),/changed|unknown/i);
+});
+
+test('missing-thread recovery rejects live launch, known thread, external and active descendants',async t=>{
+ const {hub}=setup(t,{tasks:[{id:'legacy',projectId:'p',crewId:'franky',status:'unknown',updatedAt:10,messages:[]}]});const task=hub.task('legacy'),command={taskId:task.id,expectedUpdatedAt:10,confirmedStopped:true};
+ task.threadId='known';await assert.rejects(hub.resolveMissingThread(command),/thread|unknown/i);delete task.threadId;
+ task.external=true;await assert.rejects(hub.resolveMissingThread(command),/local|external/i);delete task.external;
+ hub.launchingTasks.add(task.id);await assert.rejects(hub.resolveMissingThread(command),/launch|pending/i);hub.launchingTasks.delete(task.id);
+ hub.state.tasks.push({id:'child',parentTaskId:task.id,status:'unknown',messages:[]});await assert.rejects(hub.resolveMissingThread(command),/assignment|descendant/i);assert.equal(hub.gate.blocked(process.cwd()),true);
+});
+
+test('missing-thread confirmation cannot race an outstanding provider launch',async t=>{
+ const {hub}=setup(t);let finishThread;hub.client.request=async method=>method==='thread/start'?new Promise(resolve=>{finishThread=resolve;}):{turn:{id:'turn'}};
+ const launching=hub.start({projectId:'p',crewId:'franky',prompt:'Launch fixture'});await new Promise(resolve=>setImmediate(resolve));const task=hub.state.tasks[0];task.status='unknown';
+ await assert.rejects(hub.resolveMissingThread({taskId:task.id,expectedUpdatedAt:task.updatedAt,confirmedStopped:true}),/pending/);assert.equal(hub.gate.blocked(process.cwd()),true);
+ finishThread({thread:{id:'late-thread'}});await launching;assert.equal(task.status,'working');assert.equal(hub.launchingTasks.size,0);assert.equal(hub.gate.blocked(process.cwd()),true);
+});
+
+test('missing-thread mission recovery saves cancelled attempt and permits a distinct retry',async t=>{
+ const {hub,saves}=setup(t);const mission=hub.createMission(brief);const attempt=hub.missionBook.begin(mission.id,mission.revision);hub.state.tasks.push({id:attempt.taskId,projectId:'p',crewId:'franky',status:'unknown',updatedAt:10,messages:[]});hub.reserveWriter(hub.task(attempt.taskId));hub.changed();
+ await hub.resolveMissingThread({taskId:attempt.taskId,expectedUpdatedAt:10,confirmedStopped:true});assert.equal(mission.status,'CANCELLED');assert.equal(saves.at(-1).missionBook.missions[0].status,'CANCELLED');
+ await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});assert.notEqual(mission.activeAttemptId,attempt.id);assert.equal(mission.attempts[0].status,'interrupted');
+});
+
 test('uncertain check stays reserved across restart until exact captain confirmation',async t=>{
  const {hub,saves}=setup(t);const mission=hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
  hub.evidence.runCheck=async()=>{assert.equal(saves.at(-1).missionBook.missions[0].checkExecution.script,'test');throw Object.assign(Error('Cleanup uncertain'),{uncertain:true});};

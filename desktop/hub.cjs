@@ -15,7 +15,7 @@ class Hub extends EventEmitter {
   this.imageReader=require('./image-deliverables.cjs').readImageDeliverable;
   const {MissionPublisher,MissionPublication}=require('./mission-publisher.cjs');this.publisher=new MissionPublisher({evidence:this.evidence,git:catalog.getExecutable?.('git',home)||'git',gh:catalog.getExecutable?.('gh',home)||'gh'});this.publication=new MissionPublication(this);this.merger=new (require('./mission-merge.cjs').MissionMerge)(this);
   this.taskRevisions=new Map();for(const task of this.state.tasks)if(['unknown','working','waiting','starting'].includes(task.status))this.reserveWriter(task);
-  this.checkRuns=new Set();for(const mission of this.state.missions)if(mission.checkExecution){const project=this.project(mission.projectId);this.gate.active.set('mission-evidence:'+mission.id,path.resolve(project.path).toLowerCase());this.missionActions.add(mission.id);}
+  this.launchingTasks=new Set();this.checkRuns=new Set();for(const mission of this.state.missions)if(mission.checkExecution){const project=this.project(mission.projectId);this.gate.active.set('mission-evidence:'+mission.id,path.resolve(project.path).toLowerCase());this.missionActions.add(mission.id);}
   this.island=new (require('./island.cjs').Island)(this);this.news=new (require('./news.cjs').News)(this);
   this.client.on('notification',e=>this.notification(e));this.client.on('request',e=>this.request(e));this.client.on('disconnected',error=>{this.state.codex={...this.state.codex,status:'disconnected',error};this.loaded.clear();for(const t of this.state.tasks)if(['working','waiting','starting'].includes(t.status)){t.status='unknown';this.bumpTask(t);}this.state.approvals=[];this.captain.disconnect();this.changed();});
  }
@@ -149,8 +149,9 @@ class Hub extends EventEmitter {
   if(!roles[crewId])throw Error('Choose a crew member.');if(require('./island-residents.json').some(r=>r.id===crewId)&&!this.state.world.residents.some(r=>r.id===crewId&&r.recruited))throw Error('Recruit this resident on the island first.');this.validatePrompt(prompt);const p=this.project(projectId);await this.ensure();if(this.closed||internal.cancelled?.())throw Error('Job cancelled before launch.');
   const execution=selectExecution(this.state.models,{model:model||this.state.settings.model,effort},this.state.settings.routingPolicy);
   const captain=crewId==='luffy'&&!internal.parentTaskId;if(captain&&this.state.tasks.filter(t=>t.captain&&['starting','working','waiting','unknown'].includes(t.status)).length>=3)throw Error('Finish or reconcile an active captain conversation first.');const task={id:internal.id||randomUUID(),title:title||prompt.slice(0,65),projectId,crewId,captain,captainVersion:captain?3:undefined,...execution,selectionReason,parentTaskId:internal.parentTaskId,jobId:internal.jobId,status:'starting',createdAt:Date.now(),updatedAt:Date.now(),messages:[]};if(!captain)this.gate.acquire(task.id,p.path);this.state.tasks.unshift(task);this.changed();
+  this.launchingTasks.add(task.id);
   try{this.persist();const r=await this.client.request('thread/start',{cwd:p.path,...(task.model?{model:task.model}:{}),sandbox:'workspace-write',approvalPolicy:'on-request',...(captain?await this.captain.options(p):{}),developerInstructions:require('./crew.cjs').characterInstructions(crewId,this.state.world.residents.find(r=>r.id===crewId)?.role||roles[crewId])+(captain?'\n'+require('./captain.cjs').instructions:'')});task.threadId=r.thread.id;task.model=r.model||task.model;task.effort=task.effort||r.reasoningEffort||undefined;this.loaded.add(task.id);if(internal.cancelled?.()){task.status='interrupted';this.gate.release(task.id);this.changed();return task;}await this.send(task.id,prompt,true);return task;
-  }catch(e){if(!(e.uncertain&&task.threadId)){task.status='failed';this.gate.release(task.id);}task.error=e.message;this.changed();throw e;}
+  }catch(e){if(!(e.uncertain&&task.threadId)){task.status='failed';this.gate.release(task.id);}task.error=e.message;this.changed();throw e;}finally{this.launchingTasks.delete(task.id);}
  }
  validatePrompt(prompt){if(typeof prompt!=='string'||!prompt.trim())throw Error('Write a message first.');if(prompt.length>100000)throw Error('Message is too long. Attach a file or shorten it.');}
  reserveWriter(task){if(task.captain||task.external)return;const project=this.state.projects.find(p=>p.id===task.projectId);if(project?.path)this.gate.active.set(task.id,path.resolve(project.path).toLowerCase());}
@@ -187,6 +188,22 @@ class Hub extends EventEmitter {
   catch(e){if(e.code==='MISSION_REVIEW_LOCK'){this.gate.release(id);throw e;}task.status='unknown';task.error=e.message;if(e.uncertain){try{await this.reconcile(task);}catch(reconcileError){task.error=e.message+' '+reconcileError.message;}}else this.gate.release(id);this.changed();throw e;}
  }
  async checkStatus(id){return this.taskAction(id,async()=>{const task=this.task(id);if(task.external||!task.threadId)throw Error('This task has no Sunny conversation to check.');try{await this.reconcile(task);return task;}catch(e){task.error=e.message;this.changed();throw e;}});}
+ async resolveMissingThread(input){
+  if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(k=>!['taskId','expectedUpdatedAt','confirmedStopped'].includes(k))||typeof input.taskId!=='string'||!input.taskId||!Number.isFinite(input.expectedUpdatedAt)||input.confirmedStopped!==true)throw Error('Confirm that this task and its processes have stopped.');
+  return this.taskAction(input.taskId,async()=>{
+   const task=this.task(input.taskId);
+   if(task.external)throw Error('Only local Sunny tasks can use this recovery.');
+   if(task.status!=='unknown'||task.threadId)throw Error('Recovery requires an unknown task without a saved thread.');
+   if((task.updatedAt??0)!==input.expectedUpdatedAt)throw Error('Task changed. Inspect it again before confirming.');
+   if(this.launchingTasks.has(task.id))throw Error('A launch is still pending. Wait before resolving this task.');
+   const family=new Set([task.id]);let added=true;while(added){added=false;for(const child of this.state.tasks)if(family.has(child.parentTaskId)&&!family.has(child.id)){family.add(child.id);added=true;}}
+   if(this.state.tasks.some(child=>child.id!==task.id&&family.has(child.id)&&['starting','working','waiting','unknown'].includes(child.status)))throw Error('Resolve the active descendant assignments first.');
+   const previous=structuredClone(task);
+   try{this.missionMutation(()=>{task.status='interrupted';task.error=undefined;task.updatedAt=Date.now();task.messages.push({id:randomUUID(),role:'system',time:task.updatedAt,text:'Captain confirmed that this task and its processes have stopped. Provider execution could not be verified because the saved thread ID is missing. Recorded as interrupted; start a new task or mission attempt.'});this.missionBook.sync(this.state.tasks,this.state.approvals);});}
+   catch(error){for(const key of Object.keys(task))delete task[key];Object.assign(task,previous);throw error;}
+   this.gate.release(task.id);this.bumpTask(task);return task;
+  });
+ }
  async interrupt(id){return this.taskAction(id,()=>this.interruptUnlocked(id));}
  async interruptUnlocked(id){const task=this.task(id);if(task.captain)await this.captain.stop(task);if(!task.threadId)throw Error('No active turn to interrupt.');if(task.status==='unknown'||!task.turnId){const active=await this.reconcile(task);if(!active)return;if(!task.turnId)throw Error('No active turn to interrupt.');}await this.client.request('turn/interrupt',{threadId:task.threadId,turnId:task.turnId});task.status='interrupted';this.gate.release(id);this.state.approvals=this.state.approvals.filter(a=>a.taskId!==id);this.captain.settle(task);this.changed();}
  async discuss({crew,topic}){

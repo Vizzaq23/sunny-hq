@@ -78,6 +78,7 @@ async function handle(action,args={}){
  case 'task:start':return hub.start(args);
  case 'task:send':return hub.send(args.taskId,args.prompt);
  case 'task:interrupt':return hub.interrupt(args.taskId);
+ case 'task:resolveMissingThread':return hub.resolveMissingThread(args);
  case 'task:handoff':return hub.handoff(args);
  case 'task:history':{const imported=importedHistory().map(({messages,...summary})=>summary);try{await hub.ensure();const r=await hub.client.request('thread/list',{limit:100,useStateDbOnly:true,sourceKinds:['cli','vscode','appServer','exec']});return [...imported,...(r.data||[]).filter(t=>!hub.state.tasks.some(own=>own.threadId===t.id)).map(t=>({id:t.id,title:t.name||t.preview||'Codex task',cwd:t.cwd,status:'externally managed',external:true}))];}catch{return imported;}}
  case 'task:readExternal':{if(String(args.threadId).startsWith('chatgpt:')){const item=importedHistory().find(c=>c.id===args.threadId);if(!item)throw Error('Imported conversation not found');return {messages:item.messages};}await hub.ensure();return hub.client.request('thread/read',{threadId:textArg(args.threadId,'task ID',200),includeTurns:true});}

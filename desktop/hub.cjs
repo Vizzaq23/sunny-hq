@@ -15,6 +15,7 @@ class Hub extends EventEmitter {
   this.imageReader=require('./image-deliverables.cjs').readImageDeliverable;
   const {MissionPublisher,MissionPublication}=require('./mission-publisher.cjs');this.publisher=new MissionPublisher({evidence:this.evidence,git:catalog.getExecutable?.('git',home)||'git',gh:catalog.getExecutable?.('gh',home)||'gh'});this.publication=new MissionPublication(this);this.merger=new (require('./mission-merge.cjs').MissionMerge)(this);
   this.taskRevisions=new Map();for(const task of this.state.tasks)if(['unknown','working','waiting','starting'].includes(task.status))this.reserveWriter(task);
+  this.checkRuns=new Set();for(const mission of this.state.missions)if(mission.checkExecution){const project=this.project(mission.projectId);this.gate.active.set('mission-evidence:'+mission.id,path.resolve(project.path).toLowerCase());this.missionActions.add(mission.id);}
   this.island=new (require('./island.cjs').Island)(this);this.news=new (require('./news.cjs').News)(this);
   this.client.on('notification',e=>this.notification(e));this.client.on('request',e=>this.request(e));this.client.on('disconnected',error=>{this.state.codex={...this.state.codex,status:'disconnected',error};this.loaded.clear();for(const t of this.state.tasks)if(['working','waiting','starting'].includes(t.status)){t.status='unknown';this.bumpTask(t);}this.state.approvals=[];this.captain.disconnect();this.changed();});
  }
@@ -102,9 +103,9 @@ class Hub extends EventEmitter {
   const mission=this.missionBook.get(input.missionId);this.missionBook.check(mission,input.revision);
   if(mission.status!=='WAITING_FOR_REVIEW'&&!(input.deployment===true&&mission.status==='COMPLETE'))throw Error('Finish the crew attempt before collecting review evidence.');
   const project=this.project(mission.projectId),lock='mission-evidence:'+mission.id,attemptId=mission.activeAttemptId;
-  this.gate.acquire(lock,project.path);this.missionActions.add(mission.id);let uncertain=false;
+  this.gate.acquire(lock,project.path);this.missionActions.add(mission.id);if(input.script)this.checkRuns.add(mission.id);
   try{
-   this.missionMutation(()=>this.missionBook.record(mission,input.script?'TEST_STARTED':'EVIDENCE_STARTED',{script:input.script||null}));
+   this.missionMutation(()=>{if(input.script)mission.checkExecution={id:randomUUID(),attemptId,script:input.script,startedAt:Date.now()};this.missionBook.record(mission,input.script?'TEST_STARTED':'EVIDENCE_STARTED',{script:input.script||null});});
    const revision=mission.revision;
    const evidence=input.imagePath!==undefined?(({dataUrl,...metadata})=>({...metadata,provenance}))(this.imageReader(project.path,input.imagePath)):input.deployment===true?await this.deployments.inspect(project.path):input.filePath!==undefined?(({text,...metadata})=>metadata)(require('./mission-deliverables.cjs').readDeliverable(project.path,input.filePath)):input.prNumber!==undefined?await this.pullRequests.inspect(project.path,input.prNumber):input.script?await this.evidence.runCheck(project.path,input.script):await this.evidence.gitState(project.path);
    if(this.closed)throw Error('Sunny closed before the check result could be attached.');
@@ -112,10 +113,19 @@ class Hub extends EventEmitter {
     const current=this.missionBook.get(mission.id);this.missionBook.check(current,revision);
     if(current.activeAttemptId!==attemptId)throw Error('The mission attempt changed during verification.');
     const artifact={...evidence,id:randomUUID(),attemptId,projectId:project.id,producer:'sunny-local-verifier'};current.artifacts.push(artifact);
+    if(input.script)current.checkExecution=undefined;
     this.missionBook.record(current,evidence.kind==='check'?(evidence.status==='passed'?'TEST_PASSED':'TEST_FAILED'):evidence.kind==='pull-request'?'PR_UPDATED':['deliverable','image'].includes(evidence.kind)?'DELIVERABLE_ATTACHED':evidence.kind==='deployment'?'DEPLOYMENT_INSPECTED':'GIT_INSPECTED',{artifactId:artifact.id});return artifact;
    });
-  }catch(error){uncertain=Boolean(error.uncertain);if(!this.closed)this.missionMutation(()=>this.missionBook.record(this.missionBook.get(mission.id),'EVIDENCE_FAILED',{message:String(error.message).slice(0,1000)}));throw error;}
-  finally{if(!uncertain){this.gate.release(lock);this.missionActions.delete(mission.id);}}
+  }catch(error){if(!this.closed)this.missionMutation(()=>{const current=this.missionBook.get(mission.id);if(input.script&&!error.uncertain&&current.checkExecution){current.artifacts.push({id:randomUUID(),kind:'check',attemptId,projectId:project.id,producer:'sunny-local-verifier',script:input.script,command:'npm run '+input.script,status:'failed',exitCode:null,recordedAt:Date.now()});current.checkExecution=undefined;}this.missionBook.record(current,'EVIDENCE_FAILED',{message:String(error.message).slice(0,1000)});});throw error;}
+  finally{this.checkRuns.delete(mission.id);if(!this.missionBook.get(mission.id).checkExecution){this.gate.release(lock);this.missionActions.delete(mission.id);}}
+ }
+ reconcileMissionCheck(input){
+  this.validateMissionAction(input,['missionId','revision','executionId','confirmedStopped']);
+  const mission=this.missionBook.get(input.missionId);this.missionBook.check(mission,input.revision);const execution=mission.checkExecution;
+  if(!execution||execution.id!==input.executionId||input.confirmedStopped!==true)throw Error('Confirm the current unresolved check after verifying all its processes have stopped.');
+  if(this.checkRuns.has(mission.id))throw Error('This check call is still running. Wait for it to finish before reconciling.');
+  this.missionMutation(()=>{mission.artifacts.push({id:randomUUID(),kind:'check',attemptId:execution.attemptId,projectId:mission.projectId,producer:'captain-stop-confirmation',script:execution.script,command:'npm run '+execution.script,status:'failed',exitCode:null,recordedAt:Date.now()});mission.checkExecution=undefined;this.missionBook.record(mission,'CHECK_STOP_CONFIRMED',{executionId:execution.id,actor:'captain',verification:'human-attestation'});});
+  this.gate.release('mission-evidence:'+mission.id);this.missionActions.delete(mission.id);
  }
  previewMissionDeliverable(input){
   this.validateMissionAction(input,['missionId','revision','artifactId']);

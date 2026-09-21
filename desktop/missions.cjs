@@ -11,6 +11,7 @@ class MissionBook {
   this.data=saved===undefined?{version:1,missions:[]}:structuredClone(saved);
   for(const mission of this.data.missions){
    if(!mission.id||!Array.isArray(mission.attempts)||!Array.isArray(mission.events)||!Array.isArray(mission.acceptanceCriteria)||!Number.isInteger(mission.revision))throw Error('Invalid saved mission data. Restore a verified backup.');
+   const check=mission.checkExecution;if(check&&(typeof check.id!=='string'||!check.id||!['test','build','typecheck','lint'].includes(check.script)||!Number.isFinite(check.startedAt)||!mission.attempts.some(a=>a.id===check.attemptId)))throw Error('Invalid saved check reservation. Preserve the profile for recovery.');
    if(mission.seenEventIds!==undefined&&(!Array.isArray(mission.seenEventIds)||mission.seenEventIds.length>500||mission.seenEventIds.some(id=>typeof id!=='string'||!mission.events.some(event=>event.id===id))))throw Error('Invalid saved signal receipts.');
   }
  }
@@ -52,6 +53,7 @@ class MissionBook {
  begin(id,revision){
   const mission=this.get(id);this.check(mission,revision);
   if(!['DRAFT','FAILED','CANCELLED','WAITING_FOR_REVIEW','BLOCKED'].includes(mission.status))throw Error('Mission is running, active, or already complete.');
+  if(mission.checkExecution)throw Error('Reconcile the unresolved project check before retrying.');
   const prior=mission.attempts.at(-1);
   if(prior&&!TERMINAL.has(prior.status))throw Error('Reconcile the active attempt before retrying.');
   if(['submitting','uncertain'].includes(mission.mergeRequest?.state))throw Error('Reconcile the merge request before retrying.');
@@ -104,6 +106,7 @@ class MissionBook {
  accept(id,revision,criteria,mergedProof){
   const mission=this.get(id);this.check(mission,revision);
   if(mission.status!=='WAITING_FOR_REVIEW')throw Error('Mission is not ready for review.');
+  if(mission.checkExecution)throw Error('Resolve the project check before acceptance.');
   if(!Array.isArray(criteria)||criteria.length!==mission.acceptanceCriteria.length||!criteria.every(value=>value===true))throw Error('Confirm every acceptance criteria item after reviewing the evidence.');
   // Proof is supplied only by Hub after a fresh read, never by the renderer command.
   if(mission.completionBoundary==='merge'&&(!mergedProof||!mission.artifacts.includes(mergedProof)||mergedProof.attemptId!==mission.activeAttemptId||mergedProof.state!=='MERGED'||mergedProof.checkStatus!=='passed'))throw Error('Verify the merged pull request before completing this mission.');

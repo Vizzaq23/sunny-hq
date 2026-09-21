@@ -8,6 +8,38 @@ function setup(t,initial={}){
 }
 const brief={projectId:'p',title:'Inventory',objective:'Track items',acceptanceCriteria:['Saved items reload'],completionBoundary:'review'};
 
+test('uncertain check stays reserved across restart until exact captain confirmation',async t=>{
+ const {hub,saves}=setup(t);const mission=hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ hub.evidence.runCheck=async()=>{assert.equal(saves.at(-1).missionBook.missions[0].checkExecution.script,'test');throw Object.assign(Error('Cleanup uncertain'),{uncertain:true});};
+ await assert.rejects(hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,script:'test'}),/uncertain/);
+ const restored=setup(t,saves.at(-1));const m=restored.hub.state.missions[0],marker=m.checkExecution;
+ assert.equal(restored.hub.gate.blocked(process.cwd()),true);await assert.rejects(restored.hub.acceptMission({missionId:m.id,revision:m.revision,criteria:[true]}),/check/);
+ const command={missionId:m.id,revision:m.revision,executionId:marker.id,confirmedStopped:true};
+ assert.throws(()=>restored.hub.reconcileMissionCheck({...command,confirmedStopped:false}),/Confirm/);assert.throws(()=>restored.hub.reconcileMissionCheck({...command,revision:m.revision-1}),/changed/);
+ assert.throws(()=>restored.hub.reconcileMissionCheck({...command,executionId:'old'}),/current|changed/);
+ restored.store.save=()=>{throw Error('Disk full');};assert.throws(()=>restored.hub.reconcileMissionCheck(command),/Disk full/);assert.equal(restored.hub.gate.blocked(process.cwd()),true);restored.store.save=()=>{};
+ restored.hub.reconcileMissionCheck(command);assert.equal(restored.hub.gate.blocked(process.cwd()),false);assert.equal(restored.hub.state.missions[0].checkExecution,undefined);
+ assert.equal(restored.hub.state.missions[0].artifacts.at(-1).status,'failed');
+ await assert.rejects(restored.hub.acceptMission({missionId:m.id,revision:restored.hub.state.missions[0].revision,criteria:[true]}),/check|passed/);
+ restored.hub.evidence.runCheck=async()=>({kind:'check',script:'test',status:'passed',fingerprint:'new-source'});restored.hub.evidence.gitState=async()=>({fingerprint:'new-source'});
+ await restored.hub.collectMissionEvidence({missionId:m.id,revision:restored.hub.state.missions[0].revision,script:'test'});await restored.hub.acceptMission({missionId:m.id,revision:restored.hub.state.missions[0].revision,criteria:[true]});assert.equal(restored.hub.state.missions[0].status,'COMPLETE');
+});
+
+test('pending check cannot be manually cleared and failure to save intent prevents execution',async t=>{
+ const {hub,store}=setup(t);const mission=hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ let calls=0,finish;hub.evidence.runCheck=()=>{calls++;return new Promise(resolve=>{finish=resolve;});};store.save=()=>{throw Error('Disk full');};await assert.rejects(hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,script:'test'}),/Disk full/);assert.equal(calls,0);store.save=()=>{};
+ const m=hub.state.missions[0],pending=hub.collectMissionEvidence({missionId:m.id,revision:m.revision,script:'test'});
+ const reloaded=setup(t,{missionBook:structuredClone(hub.missionBook.data),projects:hub.state.projects,tasks:hub.state.tasks});assert.equal(reloaded.hub.gate.blocked(process.cwd()),true);
+ assert.throws(()=>hub.reconcileMissionCheck({missionId:m.id,revision:m.revision,executionId:m.checkExecution.id,confirmedStopped:true}),/running|pending/);
+ finish({kind:'check',script:'test',status:'passed',exitCode:0,fingerprint:'source'});await pending;assert.equal(hub.state.missions[0].checkExecution,undefined);assert.equal(hub.gate.blocked(process.cwd()),false);
+});
+
+test('failed result checkpoint retains check reservation until durable recovery',async t=>{
+ const {hub,store}=setup(t);const mission=hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ hub.evidence.runCheck=async()=>{store.save=()=>{throw Error('Result disk full');};return {kind:'check',script:'test',status:'passed'};};
+ await assert.rejects(hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,script:'test'}),/Result disk full/);assert.ok(hub.state.missions[0].checkExecution);assert.equal(hub.gate.blocked(process.cwd()),true);store.save=()=>{};
+});
+
 test('provider turn dispatch requires durable thread and execution identity',async t=>{
  const {hub,saves}=setup(t);const mission=hub.createMission(brief);
  hub.client.request=async method=>{if(method==='thread/start')return {thread:{id:'durable-thread'}};if(method==='turn/start'){const saved=saves.at(-1).tasks[0];assert.equal(saved.threadId,'durable-thread');assert.ok(saved.executionId);assert.equal(saved.status,'working');return {turn:{id:'turn'}};}return {};};

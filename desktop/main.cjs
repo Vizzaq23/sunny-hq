@@ -39,6 +39,7 @@ async function handle(action,args={}){
  case 'mission:accept':return hub.acceptMission(args);
  case 'mission:previewDeliverable':return hub.previewMissionDeliverable(args);
  case 'mission:evidence':return hub.collectMissionEvidence(args);
+ case 'mission:reconcileCheck':return hub.reconcileMissionCheck(args);
  case 'news:add':return hub.news.importCapture({origin:'Added in Sunny',items:[args]});
  case 'news:update':return hub.news.update(args.id,args.status);
  case 'news:remove':return hub.news.remove(args.id);

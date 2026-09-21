@@ -21,3 +21,6 @@
 .mission-deployments>button{background:#edf3e6;color:#234e48;border:1px solid #c8d3bd;border-radius:7px;padding:9px 12px}.mission-deployments>button:disabled{opacity:.6;cursor:wait}
 
 .mission-images{border:1px solid #dfd2b9;border-radius:10px;padding:16px;margin:16px 0;background:#fff9ee}.mission-images p,.mission-images small,.mission-images figcaption{font-size:12px;line-height:1.5;overflow-wrap:anywhere}.mission-images small{display:block}.mission-images label{display:grid;gap:5px;margin:10px 0}.mission-images textarea{min-height:75px}.mission-images button{background:#edf3e6;color:#234e48;border:1px solid #c8d3bd;border-radius:7px;padding:9px 12px}.mission-images button:disabled{opacity:.6}.mission-image-preview{margin:12px 0}.mission-image-preview img{display:block;max-width:100%;height:auto;max-height:600px;object-fit:contain;background:#e2dac9}.mission-image-preview figcaption{margin:8px 0}
+.mission-check-recovery{padding:16px;margin:12px 0;border:1px solid #bb783c;border-radius:12px;background:#fff3dc}
+.mission-check-recovery label{display:flex;align-items:flex-start;gap:10px;margin:12px 0}
+.mission-check-recovery input[type=checkbox]{width:auto;flex:none;margin-top:3px}

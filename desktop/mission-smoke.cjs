@@ -37,6 +37,7 @@ app.whenReady().then(async()=>{
   if(action==='mission:accept')return hub.acceptMission(args);
   if(action==='mission:previewDeliverable')return hub.previewMissionDeliverable(args);
   if(action==='mission:evidence')return hub.collectMissionEvidence(args);
+  if(action==='mission:reconcileCheck')return hub.reconcileMissionCheck(args);
   throw Error('Unexpected fixture command '+action);
  });
  const js=async code=>{try{return await win.webContents.executeJavaScript(code);}catch(error){throw Error(code+'\n'+error.message);}};
@@ -100,15 +101,20 @@ app.whenReady().then(async()=>{
   }}
   completeTask(rootTask);
   await wait('Boolean(document.querySelector(".mission-accept"))');if(coordinated){assert.equal(await js('document.querySelectorAll(".mission-attempt ol li").length'),4);}
+  const originalCheck=hub.evidence.runCheck.bind(hub.evidence);hub.evidence.runCheck=async()=>{throw Object.assign(Error('Fixture uncertain cleanup'),{uncertain:true});};
+  await js('document.querySelector(".mission-run-test").click()');await wait('Boolean(document.querySelector(".mission-check-recovery"))');await wait('document.querySelector(".mission-error")?.textContent.includes("Fixture uncertain cleanup")');
+  assert.equal(hub.gate.blocked(projectRoot),true);assert.equal(await js('document.querySelector(".mission-check-recovery button").disabled'),true);
+  await js('document.querySelector(".mission-check-recovery").scrollIntoView({block:"center"})');await delay(150);fs.writeFileSync(path.join(output,'check-recovery.png'),(await win.webContents.capturePage()).toPNG());
+  await js('document.querySelector(".mission-check-recovery input").click()');await wait('!document.querySelector(".mission-check-recovery button").disabled');await js('document.querySelector(".mission-check-recovery button").click()');await wait('!document.querySelector(".mission-check-recovery")');assert.equal(hub.gate.blocked(projectRoot),false);hub.evidence.runCheck=originalCheck;
   await js('document.querySelector(".mission-run-test").click()');
   await wait('document.querySelector(".mission-evidence")?.textContent.includes("passed")');
-  assert.equal(hub.state.missions[0].artifacts[0].status,'passed');await wait('document.querySelector(".room-health").textContent.includes("passed")');
+  assert.equal(hub.state.missions[0].artifacts.findLast(a=>a.kind==='check').status,'passed');await wait('document.querySelector(".room-health").textContent.includes("passed")');
   await wait(`document.querySelector(".mission-detail").dataset.revision===${JSON.stringify(String(hub.state.missions[0].revision))}`);
   await wait('!document.querySelector(".mission-prepare-pr").disabled');assert.equal(await js('document.querySelectorAll(".mission-prepare-pr").length'),1);await js('document.querySelector(".mission-prepare-pr").click()');await wait('Boolean(document.querySelector(".mission-publish-pr"))');
   assert.equal(publicationCalls.length,0);assert.equal(await js('document.querySelector(".mission-publish-pr").disabled'),true);
   await js('document.querySelector(".mission-publication input[type=checkbox]").click()');await wait('!document.querySelector(".mission-publish-pr").disabled');await js('document.querySelector(".mission-publish-pr").click()');await wait('document.querySelector(".mission-publication").textContent.includes("· published")');
   assert.equal(publicationCalls.length,2);assert.equal(hub.state.missions[0].prPublication.state,'published');
-  await fill('[aria-label="Pull-request number"]','1');await js('document.querySelector(".mission-inspect-pr").click()');await wait('document.querySelector(".mission-evidence")?.textContent.includes("PR #1")');assert.equal(hub.state.missions[0].artifacts[1].checkStatus,mergeBound?'passed':'unavailable');
+  await fill('[aria-label="Pull-request number"]','1');await js('document.querySelector(".mission-inspect-pr").click()');await wait('document.querySelector(".mission-evidence")?.textContent.includes("PR #1")');assert.equal(hub.state.missions[0].artifacts.findLast(a=>a.kind==='pull-request').checkStatus,mergeBound?'passed':'unavailable');
   if(mergeViaUi){
    await wait(`document.querySelector(".mission-detail").dataset.revision===${JSON.stringify(String(hub.state.missions[0].revision))}`);
    await wait('!document.querySelector(".mission-prepare-merge").disabled');await js('document.querySelector(".mission-prepare-merge").click()');await wait('Boolean(document.querySelector(".mission-open-merge"))');
@@ -158,7 +164,7 @@ app.whenReady().then(async()=>{
   await win.reload();await wait('Boolean(document.querySelector(".home-page,.island-page"))');await js('Array.from(document.querySelectorAll("button")).find(b=>b.textContent.trim()==="Missions").click()');await wait('document.querySelector(".mission-board")?.textContent.includes("Complete")');
   await delay(300);fs.writeFileSync(path.join(output,'mission-board.png'),(await win.webContents.capturePage()).toPNG());
   assert.deepEqual(appErrors,[],'No app errors may be hidden by later successful persistence');
-  console.log('SUNNY_MISSION '+JSON.stringify({passed:true,output,runtime,imageInput:process.env.SUNNY_SMOKE_IMAGE?'external-image':'synthetic-fixture',motionCheck,coordinated,mergeBound,mergeViaUi,checks:['unknown-failed-attention-projection','illustrated-room-full-and-narrow','enter-project-room','keyboard-movement','open-room-board','create','prepare-real-branch','launch-through-hub','await-review','real-npm-check','fixture-pr-evidence','fixture-deployment-observation','post-acceptance-deployment-refresh','criteria-gate','written-deliverable-preview','native-image-deliverable-preview','explicit-acceptance','signal-acknowledgment','unseen-filter','signal-mission-navigation','persist','reload']}));
+  console.log('SUNNY_MISSION '+JSON.stringify({passed:true,output,runtime,imageInput:process.env.SUNNY_SMOKE_IMAGE?'external-image':'synthetic-fixture',motionCheck,coordinated,mergeBound,mergeViaUi,checks:['uncertain-check-confirmation','unknown-failed-attention-projection','illustrated-room-full-and-narrow','enter-project-room','keyboard-movement','open-room-board','create','prepare-real-branch','launch-through-hub','await-review','real-npm-check','fixture-pr-evidence','fixture-deployment-observation','post-acceptance-deployment-refresh','criteria-gate','written-deliverable-preview','native-image-deliverable-preview','explicit-acceptance','signal-acknowledgment','unseen-filter','signal-mission-navigation','persist','reload']}));
  }catch(error){failure=error;console.error(error);fs.writeFileSync(path.join(output,'failure.png'),(await win.webContents.capturePage()).toPNG());}
  finally{hub.close();win.destroy();app.exit(failure?1:0);}
 }).catch(error=>{console.error(error);app.exit(1);});

@@ -1,0 +1,66 @@
+{
+  "recordedDate": "2026-09-21",
+  "sourceCommit": "011ae4b8372587c87ab78e707757783a3e6e5978",
+  "scope": "Local completion checkpoint only; provider and GitHub transport are synthetic in the native journey. Separate dated live-provider manifests do not prove later source was exercised.",
+  "workingTreeTests": {
+    "tests": 295,
+    "pass": 295,
+    "fail": 0,
+    "skipped": 0
+  },
+  "isolatedTests": {
+    "tests": 278,
+    "pass": 278,
+    "fail": 0,
+    "skipped": 0
+  },
+  "builds": {
+    "workingTree": "TypeScript and production build passed, 14.46 seconds",
+    "isolated": "TypeScript and production build passed, 14.13 seconds",
+    "warning": "Existing large CodeEditor chunk"
+  },
+  "native": {
+    "passed": true,
+    "output": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-electron-upgrade-49ea0510e0164974a80240edef53caf5\\.sunny-dev\\mission-check\\1790024428383",
+    "runtime": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-mission-d6Rt7W",
+    "imageInput": "synthetic-fixture",
+    "motionCheck": true,
+    "coordinated": true,
+    "mergeBound": true,
+    "mergeViaUi": true,
+    "checks": [
+      "missing-thread-confirmation",
+      "uncertain-check-confirmation",
+      "unknown-failed-attention-projection",
+      "illustrated-room-full-and-narrow",
+      "enter-project-room",
+      "keyboard-movement",
+      "open-room-board",
+      "create",
+      "prepare-real-branch",
+      "launch-through-hub",
+      "await-review",
+      "real-npm-check",
+      "fixture-pr-evidence",
+      "fixture-deployment-observation",
+      "post-acceptance-deployment-refresh",
+      "criteria-gate",
+      "written-deliverable-preview",
+      "native-image-deliverable-preview",
+      "explicit-acceptance",
+      "signal-acknowledgment",
+      "unseen-filter",
+      "signal-mission-navigation",
+      "persist",
+      "reload"
+    ]
+  },
+  "rendererScrollReturnsPromise": true,
+  "originalUserFiles": {
+    "total": 32,
+    "byteIdentical": 25,
+    "documentedOverlaps": 7
+  },
+  "externalGate": "Official user-local GitHub CLI auth status reports no signed-in GitHub hosts. No authentication or remote mutation performed.",
+  "completion": "incomplete"
+}

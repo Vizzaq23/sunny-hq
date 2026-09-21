@@ -1,6 +1,6 @@
 # Implementation file ledger
 
-2026-09-21. Committed product/research changes from original base `27c5fa6` through `74c4c81`; the report/checkpoint additions below are included explicitly. This ledger excludes the preserved unrelated user overlay. Historical reports keep their own dates.
+2026-09-21. All 96 committed product/research paths changed from original base `27c5fa6` through `011ae4b`, plus the new local completion manifest in this audit refresh (97 total). This ledger excludes the preserved unrelated user overlay. Historical reports keep their own dates.
 
 | Change | File | Purpose |
 | --- | --- | --- |
@@ -97,5 +97,9 @@
 | Created | `tests/visual-live-check.test.cjs` | Regression coverage for visual live check. |
 | Created | `docs/SUNNY-HQ-IMPLEMENTATION-REPORT.md` | Current full-scope report with live/local evidence, unresolved gates and five next proposals. |
 | Created | `docs/implementation-file-ledger.md` | This complete file/purpose inventory. |
+| Created | `src/components/MissingThreadRecovery.tsx` | Explicit captain confirmation for unresolved local tasks missing provider identity. |
+| Created | `src/components/missing-thread-recovery.css` | Readable recovery panel, confirmation and error layout. |
+| Modified | `src/views/Workbench.tsx` | Mount missing-thread recovery and fix the original scroll effect's invalid React cleanup return; preserve unrelated user workbench changes. |
+| Created | `docs/evidence/local-completion-2026-09-21.json` | Current-source local test/build/native evidence and explicit external-verification limit. |
 
-The report checkpoint additionally extends `desktop/mission-smoke.cjs` with labelled unknown/failed scene assertions and screenshots, and updates the current audit/plan links. It adds no application feature or dependency.
+Later corrections strengthen the existing Hub/mission/approval/deliverable boundaries, add durable check and task recovery, reveal the board on opening, and extend native fixtures to cover those controls and fail on renderer errors. Their regression coverage and exact evidence are recorded in `living-missions-plan.md`. No additional dependency was added by these corrections.

@@ -1,6 +1,6 @@
 # Sunny HQ implementation report
 
-2026-09-21. Current implementation through `74c4c81`, with an additional native failure/uncertainty review in this report checkpoint. **The expanded master-PDF goal remains incomplete.** Sunny now has a real local mission and creative workflow, an illustrated interactive project interior, and source-bound review controls. Actual authenticated PR publication, hosted CI, approved merge and live deployment-record verification remain outstanding. Nothing here claims an installed-app upgrade or production release.
+2026-09-21. Current implementation through `011ae4b`, including whole-branch review corrections and durable check/task recovery. Final combined native verification is recorded below. **The expanded master-PDF goal remains incomplete.** Sunny now has a real local mission and creative workflow, an illustrated interactive project interior, and source-bound review controls. Actual authenticated PR publication, hosted CI, approved merge and live deployment-record verification remain outstanding. Nothing here claims an installed-app upgrade or production release.
 
 This report supersedes the foundation report as the current implementation summary. The [foundation report](SUNNY-HQ-CODEX-REPORT.md) remains dated historical evidence. The [33-page audit](master-goal-audit.md) is the requirement index; the [implementation plan](living-missions-plan.md) contains detailed checkpoint records. Every created/modified file and its purpose is in the [file ledger](implementation-file-ledger.md).
 
@@ -92,24 +92,27 @@ Context follows project → mission → assigned task/role. Retrieval filters ex
 
 Electron retains context isolation, sandboxed renderer, no renderer Node integration and validated trusted-frame IPC. Approval IDs bind exact requests, task/project/thread/turn/execution and expiry; stale/reused replies fail. Consequential merge/deploy/billing/messages/publication/credentials remain human decisions. Local checkout reservations do not control unrelated external editors or constitute a full OS tool sandbox.
 
-File review rejects traversal, protected paths, link/hard-link aliases, size violations and detected changing reads. Text is plain UTF-8. PNG input is bounded to8MiB/4096×4096, with bounded chunks, no APNG, and ancillary metadata removed before native decoding. Saved artifacts hold identity/notes rather than image bytes; explicit preview and acceptance recheck originals. Declared source/usage is not copyright verification.
+File review rejects traversal, protected paths, link/hard-link aliases, Windows short-name syntax (tilde-bearing components), size violations and detected changing reads. Use full names without tildes. Text is plain UTF-8. PNG input is bounded to8MiB/4096×4096, with bounded chunks, no APNG, and ancillary metadata removed before native decoding. Saved artifacts hold identity/notes rather than image bytes; explicit preview and acceptance recheck originals. Declared source/usage is not copyright verification.
 
 PR/check evidence belongs to repository/branch/commit/source and current attempt. Expired intent, changed source and uncertain submission cannot be treated as success. GitHub deployment GETs collect bounded validated observations and never deploy. Secrets remain outside renderer-facing evidence.
 
 Back up the current profile before installing a version with mission data. Rollback requires the pre-upgrade backup; do not let an older app save upgraded mission state or casually open an upgraded Chromium profile with an older Electron. No daily profile was migrated by these checks.
 
+Unknown project checks now checkpoint an execution marker before dispatch and retain checkout reservations across restart. Captain confirmation is bound to the exact check/revision, rejected during a pending call, and saved as failed evidence before releasing the reservation; a fresh successful check is required. Older local tasks lacking a saved provider thread have a separate exact-task confirmation, with launch/descendant checks and durable interrupted outcome. Both are explicitly human attestations, not automated process verification. Provider dispatch checkpoints thread/execution identity before a turn; completed stages cannot receive unreviewed follow-ups, delayed starts cannot resurrect terminal tasks, and acceptance binds the reviewed PR target branch. PR publication records are archived on a new attempt while uncertain publication still blocks retry.
+
 ## Installed tools and validation
 
-Installed the official portable GitHub CLI2.101.0 in the user-local Programs directory, with archive integrity verified; no PATH/admin/credential change. It is recognized but unsigned-in at the latest check. The connected Codex GitHub connector is a separate authentication surface and its token was not copied.
+Installed the official portable GitHub CLI2.101.0 in the user-local Programs directory, with archive integrity verified; no PATH/admin/credential change. It is recognized but unsigned-in at the 2026-09-21 completion audit (`gh auth status` via its actual executable). The connected Codex GitHub connector is a separate authentication surface and its token was not copied.
 
 Pinned project Electron44.4.3 and lockfile to remove the two previously reported high-severity runtime/archive advisories. The recorded audit returned zero known vulnerabilities at that checkpoint. Native SQLite/ConPTY and unsigned unpacked Windows packaging passed. No installer, signing, deployment or daily-app replacement occurred. No OpenClaw/Claude/Jev/telemetry dependency was added. See [runtime verification](electron-runtime-upgrade.md).
 
 | Evidence | Result and practical scope |
 | --- | --- |
-| Latest full working-tree Node suite |278 passed,0 failed,0 skipped; includes preserved user overlay. |
-| Latest exact staged-source Node suite |261 passed,0 failed,0 skipped; excludes unrelated user files. |
-| Last renderer build/typecheck (`dfeed95`) | Working build16.50s; exact-source build17.14s; `tsc --noEmit` passed. Later changes were main-process image activity, harnesses and docs. |
+| Latest full working-tree Node suite |295 passed,0 failed,0 skipped at the `011ae4b` audit; includes preserved user overlay. |
+| Latest exact staged-source Node suite |278 passed,0 failed,0 skipped; excludes unrelated user files. |
+| Latest renderer build/typecheck | Working build14.46s; exact-source build14.13s; `tsc --noEmit` passed. Exact-source Workbench includes the verified scroll-effect correction. |
 | Native illustrated journey | Exact-source full/narrow600px, keyboard, crew working/waiting/reduced motion, review/evidence, persistence/reload passed; screenshots inspected. |
+| Final combined native journey | Isolated run `1790024428383` passed coordinated plan/work/validate/review, working/waiting/reduced motion, unknown/failed attention, missing-thread and uncertain-check confirmation, PR/merge-review UI, real Git/npm, written/PNG review, signals, persistence and reload. Provider/GitHub responses are synthetic. |
 | Additional attention review | `.sunny-dev/mission-check/1790022998219`: unknown and failed crew labels/inspection/no-animation passed; both screenshots inspected. Full coordinated native fixture also passed. |
 | Live builder / coordinated missions | Actual source repair and real tests; four actual planner/worker/validator/reviewer results. [Evidence](evidence/live-coordinated-mission-2026-09-21.json). No remote PR or acceptance. |
 | Live written creator |227-word file, three headings, hash-matched review/persistence; wording caveat recorded. [Evidence](evidence/live-creative-mission-2026-09-21.json). |
@@ -117,19 +120,21 @@ Pinned project Electron44.4.3 and lockfile to remove the two previously reported
 | Dependency/packaging checkpoint | Clean locked install; audit0 known vulnerabilities; Electron44 SQLite/PTY and unsigned unpacked app verified. Exact dated scope in runtime note. |
 | CI | Workflow defines Windows Node24 `npm ci`, `npm test`, `npm run build`; local commands verified. Hosted execution and enforced branch rules unverified. |
 | Lint/format | No configured scripts. Whitespace checks passed; no invented lint result. |
-| Review | Bounded independent reviews across increments; no blocking findings in final room/image checks. No claim of a completed whole-branch security audit. |
+| Review | Whole-branch review found concrete defects; `61393d8`, `d405d53`, and `011ae4b` correct them with regression tests. Follow-up lifecycle/security reviews and final scoped audit found no additional material gap. This is not a guarantee of absence of all defects. |
 
 Native provider/GitHub fixtures are deliberately synthetic; local Git/npm/files/UI/persistence are real. Separate live runs establish the specific provider paths only. Existing large CodeEditor bundle warning remains. New test success does not retroactively prove every previous live run exercised later source.
 
+The [local completion manifest](evidence/local-completion-2026-09-21.json) records the exact source commit, current test totals, build outcomes, combined native result and external gate. It is a local verification checkpoint, not a completed-goal claim.
+
 ## Git and ownership
 
-Current branch `codex/sunny-living-missions`, original base `27c5fa6`. Commits: `8f92363` foundation, `4692b84` foundation report, `e2275f4` mission/evidence services, `b44f4f0` mission/room components, `b22f9b2` integrated workflow, `9f3f017` audit/live evidence, `af80e71` runtime patch, `41deaf8` deployment observation, `fa47c9a` image review, `dfeed95` illustrated room, `74c4c81` live visual workflow. This report/checkpoint is a subsequent local commit; its ID is available in history.
+Current branch `codex/sunny-living-missions`, original base `27c5fa6`. Commits: `8f92363` foundation, `4692b84` foundation report, `e2275f4` mission/evidence services, `b44f4f0` mission/room components, `b22f9b2` integrated workflow, `9f3f017` audit/live evidence, `af80e71` runtime patch, `41deaf8` deployment observation, `fa47c9a` image review, `dfeed95` illustrated room, `74c4c81` live visual workflow. Subsequent commits: `61f0a06` implementation report, `61393d8` review boundaries/dispatch checkpoints, `d405d53` durable uncertain-check recovery, `011ae4b` missing-thread recovery and native conversation fix. This audit refresh is a later documentation commit.
 
-Rechecked original32-file hashes:26 remain byte-identical. Six documented overlaps are `desktop/hub.cjs`, `desktop/main.cjs`, `src/App.tsx`, `tests/upgrade.test.cjs`, `package.json`, `package-lock.json`. Saved baselines and explicit path/hunk staging preserve ownership. The working package retains the user's0.11.0 version; committed metadata remains0.9.0. Unrelated Home/workbench/launch/news upgrades remain unstaged/untracked. No blanket cleanup, push, PR, merge or production deployment was performed.
+Rechecked original32-file hashes at this audit:25 remain byte-identical. Seven documented overlaps are `desktop/hub.cjs`, `desktop/main.cjs`, `src/App.tsx`, `tests/upgrade.test.cjs`, `package.json`, `package-lock.json`, and now `src/views/Workbench.tsx` for the recovery component. The original baselines remain preserved. Saved baselines and explicit path/hunk staging preserve ownership. The working package retains the user's0.11.0 version; committed metadata remains0.9.0. Unrelated Home/workbench/launch/news upgrades remain unstaged/untracked. No blanket cleanup, push, PR, merge or production deployment was performed.
 
 ## Remaining gates and exactly five next proposals
 
-The current implementation is reviewable locally, but full completion requires actual authorized GitHub/CI/merge proof, live deployment observation, final integrated whole-diff review and resolution of any resulting findings. Starting browser CLI authentication was previously asked but has not been authorized; no response is inferred. The missing separate art-reference sheet and complete video/audio reference analysis remain evidence limits. Optional vendors are not mandatory installs.
+The current implementation is reviewed and verified locally. Full completion still requires actual authorized GitHub/CI/merge proof and live deployment observation. Whole-branch findings were fixed and independently rechecked; the final combined native journey passed. Any future change still requires its own verification. Starting browser CLI authentication was previously asked but has not been authorized; no response is inferred. The missing separate art-reference sheet and complete video/audio reference analysis remain evidence limits. Optional vendors are not mandatory installs.
 
 These are current dependency-ordered proposals, not remote issues or automatic authorization of their external steps:
 

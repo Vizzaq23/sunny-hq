@@ -1,0 +1,31 @@
+{
+  "passed": true,
+  "provider": "live installed Codex app-server",
+  "runtime": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-live-visual-aoH5FL",
+  "model": "gpt-6-astra",
+  "taskId": "a381a9e4-bcb4-46da-a9b3-1f9c894ad57e",
+  "missionId": "d00fb956-de85-48d7-932b-87a85c348897",
+  "roleId": "creator",
+  "crewId": "brook",
+  "artifactId": "ec40ca79-1c9c-4304-b946-5301c4f29e24",
+  "filePath": "mission-emblem.png",
+  "sha256": "8ebbc7bd6e36f88b84af3634733ff487ea590af8d8f239e070716fec84a07b4b",
+  "bytes": 1750990,
+  "width": 1254,
+  "height": 1254,
+  "imageEvents": [
+    {
+      "method": "item/started",
+      "id": "exec-32c30ef7-940f-4d95-ad9c-883c772afe96",
+      "status": "in_progress"
+    },
+    {
+      "method": "item/completed",
+      "id": "exec-32c30ef7-940f-4d95-ad9c-883c772afe96",
+      "status": "completed"
+    }
+  ],
+  "missionStatus": "WAITING_FOR_REVIEW",
+  "accepted": false,
+  "scope": "Actual Sunny creator dispatch and original PNG file review with native decoder. Generation provenance requires inspection of recorded tool events/output notes. No publication or captain acceptance."
+}

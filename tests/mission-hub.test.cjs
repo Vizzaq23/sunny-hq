@@ -218,3 +218,15 @@ test('creative text evidence previews exact bytes and blocks changed output at a
  await hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,filePath:'welcome.md'});
  await hub.acceptMission({missionId:mission.id,revision:mission.revision,criteria:[true]});assert.equal(mission.status,'COMPLETE');assert.equal(hub.gate.active.size,0);
 });
+
+test('image tool activity is visible without leaking image payloads or granting mission acceptance',async t=>{
+ const {hub}=setup(t);const mission=hub.createMission(brief);const task=await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'creator'});
+ const item={id:'image-call',type:'imageGeneration',status:'in_progress',result:'PRIVATE_IMAGE_PAYLOAD',revisedPrompt:'PRIVATE_TOOL_PROMPT'};
+ hub.notification({method:'item/started',params:{threadId:'thread',turnId:'turn',item}});
+ assert.match(task.messages.find(m=>m.id==='activity:image-call')?.text||'',/Started.*Image generation/);
+ hub.notification({method:'item/completed',params:{threadId:'thread',turnId:'turn',item:{...item,status:'completed'}}});
+ assert.equal(task.messages.filter(m=>m.id==='activity:image-call').length,1);
+ assert.match(task.messages.find(m=>m.id==='activity:image-call').text,/Completed.*Image generation/);
+ hub.notification({method:'item/completed',params:{threadId:'thread',turnId:'turn',item:{...item,status:'failed'}}});assert.match(task.messages.find(m=>m.id==='activity:image-call').text,/failed/);
+ assert.equal(JSON.stringify(task.messages).includes('PRIVATE_'),false);assert.equal(mission.status,'RUNNING');assert.equal(mission.artifacts.length,0);
+});

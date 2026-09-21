@@ -202,6 +202,11 @@ class Hub extends EventEmitter {
   if(method==='turn/started'){task.turnId=p.turn?.id;task.status='working';}
   if(method==='item/agentMessage/delta'){let m=task.messages.find(m=>m.id===p.itemId);if(!m){m={id:p.itemId,role:'assistant',text:'',time:Date.now()};task.messages.push(m);}m.text+=p.delta||'';}
   if(method==='item/completed'&&p.item?.type==='agentMessage'){const item=p.item;let m=task.messages.find(m=>m.id===item.id);if(!m)task.messages.push({id:item.id,role:'assistant',text:item.text||'',time:Date.now()});else if(item.text)m.text=item.text;}
+  if(['item/started','item/completed'].includes(method)&&p.item?.type==='imageGeneration'){
+   const status=['in_progress','completed','failed','cancelled'].includes(p.item.status)?p.item.status.replaceAll('_',' '):'status unavailable';
+   const id='activity:'+p.item.id,text=(method==='item/started'?'Started':'Completed')+' · Image generation · '+status+'. Inspect any output before attaching it for review.';
+   const existing=task.messages.find(m=>m.id===id);if(existing)existing.text=text;else task.messages.push({id,role:'system',text,time:Date.now()});
+  }
   if(['item/started','item/completed'].includes(method)&&p.item&&['commandExecution','fileChange','mcpToolCall','webSearch'].includes(p.item.type)){const item=p.item;const description=item.type==='commandExecution'?('Command: '+item.command+'\n'+(item.aggregatedOutput||'')):item.type==='fileChange'?('Files: '+(item.changes||[]).map(c=>c.path).join(', ')):item.type==='mcpToolCall'?('Tool: '+item.server+'/'+item.tool):('Web search: '+(item.query||''));const id='activity:'+item.id;const text=(method==='item/started'?'Started · ':'Completed · ')+description.slice(-16000);const existing=task.messages.find(m=>m.id===id);if(existing)existing.text=text;else task.messages.push({id,role:'system',text,time:Date.now()});}
   if(method==='thread/status/changed'&&['working','waiting','starting'].includes(task.status)){const next=deriveStatus(p.status);if(next==='working'||next==='waiting'||next==='failed')task.status=next;}
   if(method==='turn/completed'&&p.turn?.id&&task.turnId&&p.turn.id!==task.turnId)return;

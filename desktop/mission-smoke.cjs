@@ -7,6 +7,7 @@ const output=path.join(__dirname,'../.sunny-dev/mission-check',String(Date.now()
 app.whenReady().then(async()=>{
  const projectRoot=path.join(runtime,'project');fs.mkdirSync(projectRoot);const git=(...args)=>execFileSync('git',args,{cwd:projectRoot,windowsHide:true,stdio:'pipe'});
  git('init');git('config','user.email','fixture@example.invalid');git('config','user.name','Sunny fixture');
+ const fixturePng=process.env.SUNNY_SMOKE_IMAGE?fs.readFileSync(process.env.SUNNY_SMOKE_IMAGE):require('electron').nativeImage.createFromBitmap(Buffer.alloc(128*96*4,220),{width:128,height:96}).toPNG();fs.writeFileSync(path.join(projectRoot,'concept.png'),fixturePng);const imageWidth=require('electron').nativeImage.createFromBuffer(fixturePng).getSize().width;
  fs.writeFileSync(path.join(projectRoot,'welcome.md'),'# Welcome aboard\nFixture creative note.\n<script>window.sunnyDeliverableExecuted=true</script>');
  fs.writeFileSync(path.join(projectRoot,'package.json'),JSON.stringify({scripts:{test:'node -e "process.exit(0)"'}}));git('add','.');git('commit','-m','Fixture check');git('remote','add','origin','https://github.com/fixture/sunny.git');
  const store=new StateStore(path.join(runtime,'state.json'));
@@ -108,6 +109,9 @@ app.whenReady().then(async()=>{
   await wait('!document.querySelector(".mission-inspect-deployments").disabled');await js('document.querySelector(".mission-inspect-deployments").click()');
   await wait('document.querySelector(".mission-deployments").textContent.includes("fixture-preview · success")');await wait('document.querySelector(".room-health").textContent.includes("fixture-preview · success")');assert.equal(deploymentCalls.length,2);assert.equal(hub.state.missions[0].status,'WAITING_FOR_REVIEW');
   await js('document.querySelector(".mission-deployments").scrollIntoView({block:"center"})');await delay(300);fs.writeFileSync(path.join(output,'deployment-observation.png'),(await win.webContents.capturePage()).toPNG());
+  await fill('[aria-label="Image path"]','concept.png');await fill('[aria-label="Image source"]',process.env.SUNNY_SMOKE_IMAGE?'External original image_gen concept imported for review verification; no Sunny generator connection':'Synthetic native PNG fixture; no creative provider');await fill('[aria-label="Image usage"]','Test preview only; not product artwork');await js('document.querySelector(".mission-attach-image").click()');
+  await wait('Boolean(document.querySelector(".mission-preview-image"))');await wait('!document.querySelector(".mission-preview-image").disabled');await js('document.querySelector(".mission-preview-image").click()');await wait(`document.querySelector(".mission-image-preview img")?.naturalWidth===${imageWidth}`);assert.equal(hub.state.missions[0].artifacts.find(a=>a.kind==='image').dataUrl,undefined);
+  await js('document.querySelector(".mission-image-preview").scrollIntoView({block:"center"})');await delay(300);fs.writeFileSync(path.join(output,'visual-deliverable.png'),(await win.webContents.capturePage()).toPNG());
   await fill('[aria-label="Deliverable path"]','welcome.md');await js('document.querySelector(".mission-attach-deliverable").click()');
   await wait('Boolean(document.querySelector(".mission-preview-deliverable"))');
   await wait('document.querySelector(".room-health").textContent.includes("welcome.md")');
@@ -139,7 +143,7 @@ app.whenReady().then(async()=>{
   await win.reload();await wait('Boolean(document.querySelector(".home-page,.island-page"))');await js('Array.from(document.querySelectorAll("button")).find(b=>b.textContent.trim()==="Missions").click()');await wait('document.querySelector(".mission-board")?.textContent.includes("Complete")');
   await delay(300);fs.writeFileSync(path.join(output,'mission-board.png'),(await win.webContents.capturePage()).toPNG());
   assert.deepEqual(appErrors,[],'No app errors may be hidden by later successful persistence');
-  console.log('SUNNY_MISSION '+JSON.stringify({passed:true,output,runtime,motionCheck,coordinated,mergeBound,mergeViaUi,checks:['enter-project-room','keyboard-movement','open-room-board','create','prepare-real-branch','launch-through-hub','await-review','real-npm-check','fixture-pr-evidence','fixture-deployment-observation','post-acceptance-deployment-refresh','criteria-gate','written-deliverable-preview','explicit-acceptance','signal-acknowledgment','unseen-filter','signal-mission-navigation','persist','reload']}));
+  console.log('SUNNY_MISSION '+JSON.stringify({passed:true,output,runtime,imageInput:process.env.SUNNY_SMOKE_IMAGE?'external-image':'synthetic-fixture',motionCheck,coordinated,mergeBound,mergeViaUi,checks:['enter-project-room','keyboard-movement','open-room-board','create','prepare-real-branch','launch-through-hub','await-review','real-npm-check','fixture-pr-evidence','fixture-deployment-observation','post-acceptance-deployment-refresh','criteria-gate','written-deliverable-preview','native-image-deliverable-preview','explicit-acceptance','signal-acknowledgment','unseen-filter','signal-mission-navigation','persist','reload']}));
  }catch(error){failure=error;console.error(error);fs.writeFileSync(path.join(output,'failure.png'),(await win.webContents.capturePage()).toPNG());}
  finally{hub.close();win.destroy();app.exit(failure?1:0);}
 }).catch(error=>{console.error(error);app.exit(1);});

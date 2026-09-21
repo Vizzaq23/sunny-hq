@@ -8,6 +8,17 @@ function setup(t,initial={}){
 }
 const brief={projectId:'p',title:'Inventory',objective:'Track items',acceptanceCriteria:['Saved items reload'],completionBoundary:'review'};
 
+test('image evidence keeps provenance without image bytes and refuses changed-file preview or acceptance',async t=>{
+ const fs=require('node:fs'),os=require('node:os'),path=require('node:path');const root=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-image-hub-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+ const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=','base64');fs.writeFileSync(path.join(root,'art.png'),png);
+ const {hub,saves}=setup(t);hub.state.projects[0].path=root;hub.imageReader=(r,p)=>require('../desktop/image-deliverables.cjs').readImageDeliverable(r,p,()=>({isEmpty:()=>false,getSize:()=>({width:1,height:1}),toPNG:()=>png}));
+ const mission=hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,crewId:'brook'});hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ await assert.rejects(hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,imagePath:'art.png'}),/notes/);
+ const a=await hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,imagePath:'art.png',provenance:{source:'Fixture',usage:'Test only'}});assert.equal(a.kind,'image');assert.equal(a.dataUrl,undefined);assert.equal(saves.at(-1).missionBook.missions[0].artifacts[0].dataUrl,undefined);assert.equal(a.provenance.source,'Fixture');
+ assert.match(hub.previewMissionDeliverable({missionId:mission.id,revision:mission.revision,artifactId:a.id}).dataUrl,/^data:image\/png;base64,/);
+ const changed=Buffer.from(png);changed[45]^=1;fs.writeFileSync(path.join(root,'art.png'),changed);assert.throws(()=>hub.previewMissionDeliverable({missionId:mission.id,revision:mission.revision,artifactId:a.id}),/changed/i);await assert.rejects(hub.acceptMission({missionId:mission.id,revision:mission.revision,criteria:[true]}),/changed/i);assert.equal(mission.status,'WAITING_FOR_REVIEW');
+});
+
 test('deployment observations attach to current attempt without granting acceptance and survive reload',async t=>{
  const {hub,saves}=setup(t);const mission=hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,crewId:'franky'});hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
  hub.deployments.inspect=async()=>({kind:'deployment',commit:'a'.repeat(40),repository:'owner/repo',deployments:[],recordedAt:1});

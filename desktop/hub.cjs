@@ -12,6 +12,7 @@ class Hub extends EventEmitter {
   this.missionBook=new MissionBook(saved.missionBook);this.state.missions=this.missionBook.data.missions;this.state.missionRoles=ROLE_BINDINGS;this.missionPersistencePending=this.missionBook.recover(this.state.tasks);
   this.evidence=new (require('./mission-evidence.cjs').MissionEvidence)({git:catalog.getExecutable?.('git',home)||'git'});this.branches=new (require('./mission-branch.cjs').MissionBranch)(this.evidence);this.missionActions=new Set();this.pullRequests=new (require('./pull-request-evidence.cjs').PullRequestEvidence)({evidence:this.evidence,gh:catalog.getExecutable?.('gh',home)||'gh'});
   this.deployments=new (require('./deployment-evidence.cjs').DeploymentEvidence)({evidence:this.evidence,gh:catalog.getExecutable?.('gh',home)||'gh'});
+  this.imageReader=require('./image-deliverables.cjs').readImageDeliverable;
   const {MissionPublisher,MissionPublication}=require('./mission-publisher.cjs');this.publisher=new MissionPublisher({evidence:this.evidence,git:catalog.getExecutable?.('git',home)||'git',gh:catalog.getExecutable?.('gh',home)||'gh'});this.publication=new MissionPublication(this);this.merger=new (require('./mission-merge.cjs').MissionMerge)(this);
   this.taskRevisions=new Map();for(const task of this.state.tasks)if(['unknown','working','waiting','starting'].includes(task.status))this.reserveWriter(task);
   this.island=new (require('./island.cjs').Island)(this);this.news=new (require('./news.cjs').News)(this);
@@ -69,7 +70,7 @@ class Hub extends EventEmitter {
    const checks=new Map();for(const artifact of mission.artifacts)if(artifact.attemptId===mission.activeAttemptId&&artifact.kind==='check')checks.set(artifact.script,artifact);
    if([...checks.values()].some(check=>check.status!=='passed'))throw Error('Every recorded latest check must have passed before acceptance.');
    if(checks.size){const current=await this.evidence.gitState(project.path);if([...checks.values()].some(check=>check.fingerprint!==current.fingerprint))throw Error('Source changed since verification. Run the stale checks again.');}
-   const deliverables=new Map();for(const artifact of mission.artifacts)if(artifact.attemptId===mission.activeAttemptId&&artifact.kind==='deliverable')deliverables.set(process.platform==='win32'?artifact.filePath.toLowerCase():artifact.filePath,artifact);
+   const deliverables=new Map();for(const artifact of mission.artifacts)if(artifact.attemptId===mission.activeAttemptId&&['deliverable','image'].includes(artifact.kind))deliverables.set(process.platform==='win32'?artifact.filePath.toLowerCase():artifact.filePath,artifact);
    let merged;
    if(mission.completionBoundary==='merge'){
     const prior=mission.artifacts.findLast(a=>a.attemptId===mission.activeAttemptId&&a.kind==='pull-request');
@@ -83,13 +84,16 @@ class Hub extends EventEmitter {
    return this.missionMutation(()=>{
     const current=this.missionBook.get(input.missionId);this.missionBook.check(current,input.revision);
     let proof;if(merged){proof={...merged,id:randomUUID(),attemptId:current.activeAttemptId,projectId:project.id,producer:'sunny-local-verifier'};current.artifacts.push(proof);}
-   for(const artifact of deliverables.values())if(require('./mission-deliverables.cjs').readDeliverable(project.path,artifact.filePath).sha256!==artifact.sha256)throw Error('Deliverable changed since review. Attach and review its current version.');
+   for(const artifact of deliverables.values())if((artifact.kind==='image'?require('./mission-deliverables.cjs').readProjectFile(project.path,artifact.filePath,{extensions:['.png'],limit:8*1024*1024}):require('./mission-deliverables.cjs').readDeliverable(project.path,artifact.filePath)).sha256!==artifact.sha256)throw Error('Deliverable changed since review. Attach and review its current version.');
     return this.missionBook.accept(input.missionId,input.revision,input.criteria,proof);
    });
   }finally{this.gate.release(lock);this.missionActions.delete(mission.id);}
  }
  async collectMissionEvidence(input){
-  this.validateMissionAction(input,['missionId','revision','script','prNumber','filePath','deployment']);
+  this.validateMissionAction(input,['missionId','revision','script','prNumber','filePath','deployment','imagePath','provenance']);
+  if(['script','prNumber','filePath','deployment','imagePath'].filter(key=>input[key]!==undefined).length>1)throw Error('Choose one evidence action.');
+  if(input.provenance!==undefined&&input.imagePath===undefined)throw Error('Image notes require an image file.');
+  const provenance=input.imagePath!==undefined?require('./image-deliverables.cjs').imageProvenance(input.provenance):undefined;
   if(input.deployment!==undefined&&(input.deployment!==true||input.filePath!==undefined||input.script!==undefined||input.prNumber!==undefined))throw Error('Choose one deployment inspection or check.');
   if(input.filePath!==undefined&&(typeof input.filePath!=='string'||input.script!==undefined||input.prNumber!==undefined))throw Error('Choose one deliverable file or check.');
   if(input.prNumber!==undefined&&(!Number.isSafeInteger(input.prNumber)||input.prNumber<1||input.script!==undefined))throw Error('Choose one check or a positive pull-request number.');
@@ -102,13 +106,13 @@ class Hub extends EventEmitter {
   try{
    this.missionMutation(()=>this.missionBook.record(mission,input.script?'TEST_STARTED':'EVIDENCE_STARTED',{script:input.script||null}));
    const revision=mission.revision;
-   const evidence=input.deployment===true?await this.deployments.inspect(project.path):input.filePath!==undefined?(({text,...metadata})=>metadata)(require('./mission-deliverables.cjs').readDeliverable(project.path,input.filePath)):input.prNumber!==undefined?await this.pullRequests.inspect(project.path,input.prNumber):input.script?await this.evidence.runCheck(project.path,input.script):await this.evidence.gitState(project.path);
+   const evidence=input.imagePath!==undefined?(({dataUrl,...metadata})=>({...metadata,provenance}))(this.imageReader(project.path,input.imagePath)):input.deployment===true?await this.deployments.inspect(project.path):input.filePath!==undefined?(({text,...metadata})=>metadata)(require('./mission-deliverables.cjs').readDeliverable(project.path,input.filePath)):input.prNumber!==undefined?await this.pullRequests.inspect(project.path,input.prNumber):input.script?await this.evidence.runCheck(project.path,input.script):await this.evidence.gitState(project.path);
    if(this.closed)throw Error('Sunny closed before the check result could be attached.');
    return this.missionMutation(()=>{
     const current=this.missionBook.get(mission.id);this.missionBook.check(current,revision);
     if(current.activeAttemptId!==attemptId)throw Error('The mission attempt changed during verification.');
     const artifact={...evidence,id:randomUUID(),attemptId,projectId:project.id,producer:'sunny-local-verifier'};current.artifacts.push(artifact);
-    this.missionBook.record(current,evidence.kind==='check'?(evidence.status==='passed'?'TEST_PASSED':'TEST_FAILED'):evidence.kind==='pull-request'?'PR_UPDATED':evidence.kind==='deliverable'?'DELIVERABLE_ATTACHED':evidence.kind==='deployment'?'DEPLOYMENT_INSPECTED':'GIT_INSPECTED',{artifactId:artifact.id});return artifact;
+    this.missionBook.record(current,evidence.kind==='check'?(evidence.status==='passed'?'TEST_PASSED':'TEST_FAILED'):evidence.kind==='pull-request'?'PR_UPDATED':['deliverable','image'].includes(evidence.kind)?'DELIVERABLE_ATTACHED':evidence.kind==='deployment'?'DEPLOYMENT_INSPECTED':'GIT_INSPECTED',{artifactId:artifact.id});return artifact;
    });
   }catch(error){uncertain=Boolean(error.uncertain);if(!this.closed)this.missionMutation(()=>this.missionBook.record(this.missionBook.get(mission.id),'EVIDENCE_FAILED',{message:String(error.message).slice(0,1000)}));throw error;}
   finally{if(!uncertain){this.gate.release(lock);this.missionActions.delete(mission.id);}}
@@ -117,9 +121,9 @@ class Hub extends EventEmitter {
   this.validateMissionAction(input,['missionId','revision','artifactId']);
   if(typeof input.artifactId!=='string')throw Error('Choose a recorded deliverable.');
   const mission=this.missionBook.get(input.missionId);this.missionBook.check(mission,input.revision);
-  const artifact=mission.artifacts.find(a=>a.id===input.artifactId&&a.kind==='deliverable');if(!artifact)throw Error('Deliverable not found in this mission.');
+  const artifact=mission.artifacts.find(a=>a.id===input.artifactId&&['deliverable','image'].includes(a.kind));if(!artifact)throw Error('Deliverable not found in this mission.');
   const project=this.project(mission.projectId),lock='deliverable-preview:'+mission.id;this.gate.acquire(lock,project.path);
-  try{const result=require('./mission-deliverables.cjs').readDeliverable(project.path,artifact.filePath);if(result.sha256!==artifact.sha256)throw Error('Deliverable changed. Attach and review its current version.');return {artifactId:artifact.id,...result};}finally{this.gate.release(lock);}
+  try{const result=artifact.kind==='image'?this.imageReader(project.path,artifact.filePath):require('./mission-deliverables.cjs').readDeliverable(project.path,artifact.filePath);if(result.sha256!==artifact.sha256)throw Error('Deliverable changed. Attach and review its current version.');return {artifactId:artifact.id,...result};}finally{this.gate.release(lock);}
  }
  validateMissionAction(input,keys){if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(key=>!keys.includes(key))||typeof input.missionId!=='string'||!Number.isSafeInteger(input.revision)||input.revision<1)throw Error('Invalid mission command.');}
  project(id){const p=this.state.projects.find(p=>p.id===id);if(!p)throw Error('Select a registered project first.');return p;}

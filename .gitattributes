@@ -1,0 +1,2 @@
+# Preserve the exact recorded provider output so its evidence SHA256 survives checkout.
+docs/evidence/live-creative-welcome-2026-09-21.md -text whitespace=cr-at-eol

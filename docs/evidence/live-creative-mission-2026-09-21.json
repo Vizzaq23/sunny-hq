@@ -1,0 +1,24 @@
+{
+  "passed": true,
+  "provider": "live installed Codex app-server",
+  "model": "gpt-6-astra",
+  "crewId": "brook",
+  "roleId": "creator",
+  "taskId": "1e143114-da01-4718-9c3a-42fe93e301ba",
+  "missionId": "1edaf30c-949a-4220-8071-b343349c0c21",
+  "artifactId": "4b2ce7ad-ef3d-4d14-b49a-53b2fbb2483a",
+  "filePath": "welcome.md",
+  "sha256": "2f46268eb8fa000f96663d62a6f2e73f6ea7c5c198e6806e2b9f127bb48d24a2",
+  "bytes": 1367,
+  "words": 227,
+  "missionStatus": "WAITING_FOR_REVIEW",
+  "accepted": false,
+  "scope": "One real written creative mission in an isolated non-Git project; original file inspected through Sunny; no media-provider or publication claim.",
+  "verifiedAt": "2026-09-21",
+  "manualReview": {
+    "status": "changes-requested-before-product-use",
+    "finding": "The phrase update the mission needs clarification: the current UI creates a new brief or attempt but does not edit a saved objective. Replace with create a fresh mission brief if scope changes.",
+    "limits": "Structural checks do not prove creative quality or global originality. The draft was manually read; no captain acceptance or publication was performed."
+  },
+  "outputArtifact": "live-creative-welcome-2026-09-21.md"
+}

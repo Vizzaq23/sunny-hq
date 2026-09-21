@@ -25,3 +25,57 @@ test('Luffy’s chosen model and reasoning reach the specialist and survive a fo
 test('unsupported routing choices never create an assignment',async t=>{const {hub}=setup(t);hub.state.models=[{model:'quick',isDefault:true,supportedReasoningEfforts:[{reasoningEffort:'low'}]}];const p=await captain(hub);const result=await hub.request(request(p,'choice',{...args,model:'quick',effort:'ultra'}));assert.equal(result.success,false);assert.equal(hub.state.tasks.length,1);});
 test('cumulative provider token notifications replace rather than double count',async t=>{const {hub}=setup(t);const p=await captain(hub);const event={method:'thread/tokenUsage/updated',params:{threadId:p.threadId,tokenUsage:{total:{totalTokens:123,inputTokens:100,outputTokens:23}}}};hub.notification(event);hub.notification(event);assert.equal(p.tokenUsage.total.totalTokens,123);});
 test('existing 0.5 captain sessions migrate to the model selection tool schema',async t=>{const {hub,calls}=setup(t);const p=await captain(hub);p.status='finished';p.captainVersion=undefined;const old=p.threadId;await hub.send(p.id,'Choose an efficient model');assert.notEqual(p.threadId,old);assert.equal(p.captainVersion,3);assert.ok(calls.filter(c=>c.method==='thread/start').at(-1).params.dynamicTools[0].inputSchema.properties.effort);});
+
+test('coordinated mission dispatch enforces and records planner worker validator reviewer sequence',async t=>{
+ const {hub}=setup(t);const mission=hub.createMission({projectId:'p',title:'Staged fixture',objective:'Build fixture',acceptanceCriteria:['Verified fixture']});
+ const parent=await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'coordinator'});
+ const bad=await hub.request(request(parent,'skip-planner'));assert.equal(bad.success,false);assert.equal(hub.state.tasks.length,1);
+ for(const [index,crewId] of ['nami','franky','usopp','zoro'].entries()){
+  const pending=hub.request(request(parent,'stage-'+index,{...args,crewId}));await flush();
+  const child=hub.state.tasks.find(x=>x.parentTaskId===parent.id&&x.status==='working');assert.equal(child?.crewId,crewId);
+  complete(hub,child);const response=await pending;assert.equal(response.success,true);
+  assert.equal(mission.attempts[0].workflow.stages[index].status,'complete');
+ }
+ complete(hub,parent);assert.equal(mission.status,'WAITING_FOR_REVIEW');assert.equal(mission.attempts[0].workflow.complete,true);
+ await hub.acceptMission({missionId:mission.id,revision:mission.revision,criteria:[true]});assert.equal(mission.status,'COMPLETE');
+});
+
+test('coordinator ending without required stages fails instead of exposing captain acceptance',async t=>{
+ const {hub}=setup(t);const mission=hub.createMission({projectId:'p',title:'Early fixture',objective:'Build fixture',acceptanceCriteria:['Verified fixture']});
+ const parent=await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'coordinator'});complete(hub,parent);
+ assert.equal(mission.status,'FAILED');assert.match(mission.attempts[0].error,/plan stage/);
+ await assert.rejects(hub.acceptMission({missionId:mission.id,revision:mission.revision,criteria:[true]}),/not ready/i);
+});
+
+test('mission specialists receive their own role and ID without coordinator instructions',async t=>{const {hub,calls}=setup(t);const mission=hub.createMission({projectId:'p',title:'Scoped plan',objective:'Build only the fixture',acceptanceCriteria:['Tests unchanged']});const parent=await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'coordinator'});const pending=hub.request(request(parent,'plan',{crewId:'nami',title:'Plan fixture',objective:'Return a short plan only'}));await flush();const child=hub.state.tasks.find(t=>t.parentTaskId===parent.id);const prompt=calls.filter(c=>c.method==='turn/start').at(-1).params.input[0].text;assert.match(prompt,/Assigned role: planner/);assert.ok(prompt.includes('Sunny task ID: '+child.id));assert.match(prompt,/Tests unchanged/);assert.doesNotMatch(prompt,/Use sunny_delegate for four required sequential stages/);complete(hub,child);await pending;});
+
+test('long mission delegation preserves objective, role and every acceptance criterion',async t=>{
+ const {hub,calls}=setup(t);
+ const objective='OBJECTIVE_START: preserve source files. '+ 'Detailed scope. '.repeat(900)+' OBJECTIVE_END';
+ const acceptanceCriteria=Array.from({length:20},(_,i)=>'Criterion '+i+': '+ 'Check fixture. '.repeat(100));
+ const mission=hub.createMission({projectId:'p',title:'Long bounded plan',objective,acceptanceCriteria});
+ const parent=await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'coordinator'});
+ const pending=hub.request(request(parent,'long-plan',{crewId:'nami',title:'Plan scope',objective:'Return a bounded plan; do not edit files.'}));
+ await flush();
+ const child=hub.state.tasks.find(task=>task.parentTaskId===parent.id);
+ const prompt=calls.filter(c=>c.method==='turn/start').at(-1).params.input[0].text;
+ complete(hub,child);await pending;
+ assert.ok(prompt.includes(objective));
+ for(const criterion of mission.acceptanceCriteria)assert.ok(prompt.includes(criterion));
+ assert.match(prompt,/Assigned role: planner/);
+ assert.ok(prompt.includes('Sunny mission '+mission.id+', project p.'));
+ assert.match(prompt,/Your assignment:\nReturn a bounded plan; do not edit files\./);
+ assert.ok(prompt.length<100000);
+});
+
+test('oversized mission delegation rejects visibly without sending a truncated provider prompt',async t=>{
+ const {hub,calls}=setup(t);
+ const mission=hub.createMission({projectId:'p',title:'Large scope',objective:'Scope. '.repeat(12500),acceptanceCriteria:['Preserve all constraints']});
+ const parent=await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'coordinator'});
+ const before=calls.filter(c=>c.method==='turn/start').length;
+ const result=await hub.request(request(parent,'oversized',{crewId:'nami',title:'Plan scope',objective:'Assignment. '.repeat(1000)}));
+ assert.equal(result.success,false);assert.match(result.contentItems[0].text,/too long/i);
+ assert.equal(calls.filter(c=>c.method==='turn/start').length,before);
+ assert.equal(hub.state.tasks.filter(task=>task.parentTaskId===parent.id).length,0);
+ assert.equal(hub.captain.pending.size,0);assert.equal(hub.gate.active.size,0);
+});

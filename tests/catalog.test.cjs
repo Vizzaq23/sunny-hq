@@ -190,8 +190,11 @@ test('getExecutable resolves supported commands from PATH without a shell',t=>{
   const bin=makeDir(path.join(home,'bin'));
   const gh=write(path.join(bin,'gh.exe'));
   const previous=process.env.PATH;
+  const previousProgramFiles=process.env.ProgramFiles,previousProgramFilesX86=process.env['ProgramFiles(x86)'];
+  process.env.ProgramFiles=path.join(home,'Program Files');
+  process.env['ProgramFiles(x86)']=path.join(home,'Program Files (x86)');
   process.env.PATH=bin;
-  t.after(()=>{process.env.PATH=previous;});
+  t.after(()=>{process.env.PATH=previous;for(const [key,value] of [['ProgramFiles',previousProgramFiles],['ProgramFiles(x86)',previousProgramFilesX86]]){if(value===undefined)delete process.env[key];else process.env[key]=value;}});
 
   assert.equal(catalog.getExecutable('gh',home),gh);
   assert.equal(catalog.getExecutable('unsupported',home),null);

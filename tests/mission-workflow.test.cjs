@@ -1,0 +1,8 @@
+const {test}=require('node:test');const assert=require('node:assert/strict');
+const {stageProgress,assertStageAssignment}=require('../desktop/mission-workflow.cjs');
+const attempt={taskId:'root',workflowVersion:1};
+const result=(id,crewId)=>({id,parentTaskId:'root',crewId,status:'finished',messages:[{role:'assistant',text:'Actual scoped result'}]});
+test('coordinated stages require ordered real task results',()=>{const tasks=[result('p','nami'),result('w','franky'),result('v','usopp'),result('r','zoro')];const progress=stageProgress(attempt,tasks);assert.equal(progress.complete,true);assert.deepEqual(progress.stages.map(s=>s.taskId),['p','w','v','r']);});
+test('planner must complete with output before a worker may start',()=>{assert.throws(()=>assertStageAssignment(attempt,[],'franky'),/plan/i);assertStageAssignment(attempt,[],'nami');const empty=result('p','nami');empty.messages=[];assert.throws(()=>assertStageAssignment(attempt,[empty],'franky'),/plan/i);});
+test('out-of-order work and uncertain results never satisfy stages',()=>{assert.equal(stageProgress(attempt,[result('w','franky'),result('p','nami')]).complete,false);const pending=result('p','nami');pending.status='unknown';assert.throws(()=>assertStageAssignment(attempt,[pending],'franky'),/plan/i);});
+test('completed staged attempt cannot silently start extra work',()=>{const tasks=[result('p','nami'),result('w','robin'),result('v','usopp'),result('r','zoro')];assert.throws(()=>assertStageAssignment(attempt,tasks,'franky'),/new attempt/i);});

@@ -18,6 +18,14 @@ test('unowned provider approval is rejected without offering authority',t=>{
  const {hub,rejected,request}=fixture(t);request(1,{threadId:'foreign'});
  assert.equal(hub.state.approvals.length,0);assert.equal(rejected.length,1);
 });
+test('nullable elicitation cannot bind to a task without a valid thread',t=>{
+ const {hub,task,sent,rejected}=fixture(t);task.status='starting';
+ for(const threadId of [undefined,null,'',' ',42,'x'.repeat(201)]){
+  task.threadId=threadId;
+  hub.request({id:rejected.length+1,method:'mcpServer/elicitation/request',params:{threadId,turnId:null}});
+ }
+ assert.equal(hub.state.approvals.length,0);assert.equal(sent.length,0);assert.equal(rejected.length,6);
+});
 test('approval cannot authorize a superseding turn',t=>{
  const {hub,task,sent,request}=fixture(t);request();const a=hub.state.approvals[0];task.turnId='new-turn';
  assert.throws(()=>hub.respond({id:a.id,decision:'accept'}),/no longer|stale|changed/i);assert.equal(sent.length,0);

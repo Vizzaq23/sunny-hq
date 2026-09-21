@@ -55,8 +55,10 @@ class MissionBook {
   const prior=mission.attempts.at(-1);
   if(prior&&!TERMINAL.has(prior.status))throw Error('Reconcile the active attempt before retrying.');
   if(['submitting','uncertain'].includes(mission.mergeRequest?.state))throw Error('Reconcile the merge request before retrying.');
+  if(['publishing','uncertain'].includes(mission.prPublication?.state))throw Error('Reconcile the PR publication before retrying.');
   const attempt={id:randomUUID(),taskId:randomUUID(),status:'starting',startedAt:Date.now(),taskIds:[]};
   if(mission.mergeRequest){(mission.mergeHistory??=[]).push(mission.mergeRequest);mission.mergeRequest=undefined;}
+  if(mission.prPublication){(mission.publicationHistory??=[]).push(mission.prPublication);mission.prPublication=undefined;}
   mission.attempts.push(attempt);mission.activeAttemptId=attempt.id;mission.status='RUNNING';mission.connection='connected';mission.acceptedAt=undefined;mission.acceptance=undefined;
   mission.taskIds.push(attempt.taskId);attempt.taskIds.push(attempt.taskId);
   this.record(mission,'MISSION_STARTED',{taskId:attempt.taskId});return attempt;

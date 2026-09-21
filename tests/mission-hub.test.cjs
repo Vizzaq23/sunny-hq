@@ -8,6 +8,47 @@ function setup(t,initial={}){
 }
 const brief={projectId:'p',title:'Inventory',objective:'Track items',acceptanceCriteria:['Saved items reload'],completionBoundary:'review'};
 
+test('provider turn dispatch requires durable thread and execution identity',async t=>{
+ const {hub,saves}=setup(t);const mission=hub.createMission(brief);
+ hub.client.request=async method=>{if(method==='thread/start')return {thread:{id:'durable-thread'}};if(method==='turn/start'){const saved=saves.at(-1).tasks[0];assert.equal(saved.threadId,'durable-thread');assert.ok(saved.executionId);assert.equal(saved.status,'working');return {turn:{id:'turn'}};}return {};};
+ await hub.startMission({missionId:mission.id,revision:mission.revision,crewId:'franky'});
+});
+
+test('delegated task checkpoint failure prevents all provider requests',async t=>{
+ const {hub,store}=setup(t);let calls=0;hub.client.request=async()=>{calls++;return {thread:{id:'thread'},turn:{id:'turn'}};};store.save=()=>{throw Error('Disk unavailable');};
+ await assert.rejects(hub.start({projectId:'p',crewId:'franky',prompt:'Scoped assignment'},{parentTaskId:'captain'}),/Disk unavailable/);assert.equal(calls,0);store.save=()=>{};
+});
+
+test('unknown legacy launch without a thread retains its checkout reservation',async t=>{
+ const {hub}=setup(t,{tasks:[{id:'legacy-start',projectId:'p',crewId:'franky',status:'starting',messages:[]}]});
+ assert.equal(hub.state.tasks[0].status,'unknown');assert.equal(hub.gate.blocked(process.cwd()),true);
+ await assert.rejects(hub.start({projectId:'p',crewId:'franky',prompt:'Another writer'}),/already|checkout|project/i);
+});
+
+test('delayed turn starts cannot resurrect completed work or replace a current turn',async t=>{
+ const {hub}=setup(t);const mission=hub.createMission(brief);const task=await hub.startMission({missionId:mission.id,revision:mission.revision,crewId:'franky'});
+ hub.notification({method:'turn/started',params:{threadId:'thread',turn:{id:'old-turn'}}});assert.equal(task.turnId,'turn');
+ hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ hub.notification({method:'turn/started',params:{threadId:'thread',turn:{id:'turn'}}});
+ assert.equal(task.status,'finished');assert.equal(mission.status,'WAITING_FOR_REVIEW');assert.equal(hub.gate.active.has(task.id),false);
+});
+
+test('finished coordinated stage cannot be changed while coordinator still runs',async t=>{
+ const {hub}=setup(t);const mission=hub.createMission(brief);const attempt=hub.missionBook.begin(mission.id,mission.revision);attempt.workflowVersion=1;
+ const child={id:'builder-child',projectId:'p',parentTaskId:attempt.taskId,crewId:'franky',threadId:'builder-thread',turnId:'builder-turn',status:'finished',messages:[]};
+ attempt.taskIds.push(child.id);hub.state.tasks.push(child);let calls=0;hub.client.request=async()=>{calls++;return {turn:{id:'another'}};};
+ await assert.rejects(hub.send(child.id,'Change the implementation again'),/new attempt|mission board/i);assert.equal(calls,0);
+});
+
+test('merge acceptance rejects a PR retargeted since inspection',async t=>{
+ const {hub}=setup(t);const mission=hub.createMission({...brief,completionBoundary:'merge'});await hub.startMission({missionId:mission.id,revision:mission.revision,crewId:'franky'});
+ hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ const evidence={kind:'pull-request',number:1,url:'https://github.com/fixture/sunny/pull/1',commit:'a'.repeat(40),fingerprint:'source',baseBranch:'main',state:'MERGED',mergedAt:'2026-09-21T12:00:00Z',checkStatus:'passed'};
+ hub.pullRequests.inspect=async()=>({...evidence});await hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,prNumber:1});
+ hub.pullRequests.inspect=async()=>({...evidence,baseBranch:'wrong-target'});
+ await assert.rejects(hub.acceptMission({missionId:mission.id,revision:mission.revision,criteria:[true]}),/changed/i);assert.equal(mission.status,'WAITING_FOR_REVIEW');
+});
+
 test('image evidence keeps provenance without image bytes and refuses changed-file preview or acceptance',async t=>{
  const fs=require('node:fs'),os=require('node:os'),path=require('node:path');const root=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-image-hub-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
  const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=','base64');fs.writeFileSync(path.join(root,'art.png'),png);
@@ -171,6 +212,18 @@ test('uncertain PR publication cannot automatically retry or restart work',async
  let published=0;hub.publisher={prepare:async()=>({id:'preview',attemptId:mission.activeAttemptId,state:'prepared',expiresAt:Date.now()+10000}),validate:async()=>{},publish:async()=>{published++;throw Error('Timeout');}};
  await hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare');await assert.rejects(hub.publication.act({missionId:mission.id,revision:mission.revision,previewId:'preview',confirmed:true},'publish'),/may have reached/);assert.equal(mission.prPublication.state,'uncertain');
  await assert.rejects(hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare'),/Reconcile/);await assert.rejects(hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'}),/Reconcile/);assert.equal(published,1);
+});
+
+test('a new attempt can prepare and reconcile a previously published PR at its new source',async t=>{
+ const {hub}=setup(t);const mission=hub.createMission(brief);
+ await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ const oldAttempt=mission.activeAttemptId;mission.prPublication={id:'old',attemptId:oldAttempt,state:'published',number:7};
+ await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ hub.publisher.prepare=async()=>({id:'new',attemptId:mission.activeAttemptId,state:'prepared',repository:'fixture/sunny',commit:'b'.repeat(40),base:'main'});
+ await hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare');
+ hub.pullRequests.inspect=async()=>({kind:'pull-request',repository:'fixture/sunny',number:7,url:'https://github.com/fixture/sunny/pull/7',commit:'b'.repeat(40),baseBranch:'main'});
+ await hub.publication.act({missionId:mission.id,revision:mission.revision,prNumber:7},'reconcile');
+ assert.equal(mission.prPublication.state,'published');assert.equal(mission.prPublication.attemptId,mission.activeAttemptId);assert.equal(mission.publicationHistory[0].attemptId,oldAttempt);assert.equal(mission.artifacts.at(-1).attemptId,mission.activeAttemptId);
 });
 
 test('failed PR authorization persistence prevents remote submission',async t=>{

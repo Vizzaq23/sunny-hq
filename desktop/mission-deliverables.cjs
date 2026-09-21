@@ -1,7 +1,8 @@
 const fs=require('node:fs'),path=require('node:path');const {createHash}=require('node:crypto');
 function readProjectFile(root,input,{extensions,limit}){
  if(typeof input!=='string'||!input||input.length>1000||path.isAbsolute(input)||/[\0:]/.test(input))throw Error('Choose a project-relative file.');
- const parts=input.split(/[\\/]/);if(parts.some(part=>!part||part==='.'||part==='..'||['.git','.codex','.agents','.ssh'].includes(part.toLowerCase())||part.toLowerCase().startsWith('.env')))throw Error('Protected or invalid deliverable path.');
+ // Reject short-name syntax: Windows aliases can hide protected directory names.
+ const parts=input.split(/[\\/]/);if(parts.some(part=>!part||part.includes('~')||part==='.'||part==='..'||['.git','.codex','.agents','.ssh'].includes(part.toLowerCase())||part.toLowerCase().startsWith('.env')))throw Error('Protected or invalid deliverable path. Use the full filename without a tilde.');
  if(!extensions.includes(path.extname(input).toLowerCase()))throw Error('Unsupported deliverable file type.');
  const base=fs.realpathSync(root);let file=base;
  for(const part of parts){file=path.join(file,part);if(fs.lstatSync(file).isSymbolicLink())throw Error('Deliverable links are not supported.');}

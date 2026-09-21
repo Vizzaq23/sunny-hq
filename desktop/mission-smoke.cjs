@@ -68,6 +68,7 @@ app.whenReady().then(async()=>{
   await wait('document.querySelector(".room-position").textContent.includes("Press Enter")');
   await js('document.querySelector(".project-room-scene").dispatchEvent(new KeyboardEvent("keydown",{key:"Enter",bubbles:true}))');
   await wait('Boolean(document.querySelector(".mission-board"))');
+  assert.equal(await js('document.querySelector(".mission-board").getBoundingClientRect().top<window.innerHeight'),true,"Opening the board must reveal it without manual scrolling");
   assert.equal(await js('document.querySelector(".mission-brief select").options.length'),1);
   await delay(300);fs.writeFileSync(path.join(output,'project-room.png'),(await win.webContents.capturePage()).toPNG());
   await fill('[aria-label="Mission title"]','Fixture inventory');await fill('[aria-label="Mission objective"]','Track the captain inventory');await fill('[aria-label="Acceptance criteria"]','Items survive reload');

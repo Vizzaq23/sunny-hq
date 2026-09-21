@@ -16,6 +16,7 @@ function object(value,label){
 function createApproval(request,task,now=Date.now()){
  if(!task||!ACTIVE.has(task.status)||task.external)throw Error('Approval has no active Sunny task.');
  const params=object(request.params,'approval parameters');
+ if(typeof params.threadId!=='string'||!params.threadId.trim()||params.threadId.length>200||typeof task.threadId!=='string'||!task.threadId.trim()||task.threadId.length>200)throw Error('Approval requires a valid thread identifier.');
  const nullable=request.method==='mcpServer/elicitation/request'&&params.turnId==null;
  if(!nullable&&(typeof params.turnId!=='string'||!params.turnId.trim()||params.turnId.length>200))throw Error('Approval requires a valid turn identifier.');
  if(params.threadId!==task.threadId||(params.turnId&&task.turnId&&params.turnId!==task.turnId))throw Error('Approval belongs to a stale turn.');

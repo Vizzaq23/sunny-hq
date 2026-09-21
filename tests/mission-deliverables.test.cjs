@@ -6,3 +6,5 @@ test('deliverable rejects traversal, absolute paths, links and protected folders
 test('deliverable refuses oversized, invalid UTF-8 and binary content',t=>{const root=fixture(t);for(const data of [Buffer.alloc(256*1024+1,65),Buffer.from([0xff]),Buffer.from([65,0,66])]){fs.writeFileSync(path.join(root,'note.txt'),data);assert.throws(()=>readDeliverable(root,'note.txt'));}});
 
 test('deliverable rejects hard-linked aliases of protected content',t=>{const root=fixture(t);fs.writeFileSync(path.join(root,'.env'),'fixture-private-text');fs.linkSync(path.join(root,'.env'),path.join(root,'alias.txt'));assert.throws(()=>readDeliverable(root,'alias.txt'),/link/i);});
+
+test('deliverable refuses Windows short-name aliases before opening files',t=>{const root=fixture(t);for(const name of ['CODEX~1/private.txt','AGENTS~1/private.md','output/ENV~1.TXT'])assert.throws(()=>readDeliverable(root,name),/Protected or invalid/);});

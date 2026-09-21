@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import type {Snapshot} from '../shared';
 import {CREW} from '../data';
 import {CrewBadge} from '../components/Chrome';
@@ -13,6 +13,8 @@ export function ProjectRoom({projectId,snapshot,invoke,onBack,onOpen}:{projectId
  const project=snapshot.projects.find(p=>p.id===projectId),[board,setBoard]=useState(false),[position,setPosition]=useState({x:ROOM_BOARD_X,y:74}),[error,setError]=useState('');
  const [markingSignal,setMarkingSignal]=useState(false),[onlyUnseen,setOnlyUnseen]=useState(false);
  const [focusMission,setFocusMission]=useState<{id:string;sequence:number}>();
+ const boardRef=useRef<HTMLDivElement>(null);
+ useEffect(()=>{if(board){boardRef.current?.scrollIntoView({block:'start'});boardRef.current?.focus({preventScroll:true});}},[board,focusMission]);
  const openMission=(id:string)=>{setFocusMission(previous=>({id,sequence:(previous?.sequence??0)+1}));setBoard(true);};
  const tasks=snapshot.tasks.filter(t=>t.projectId===projectId),missions=(snapshot.missions??[]).filter(m=>m.projectId===projectId);
  const signals=roomSignals(snapshot,projectId,Number.MAX_SAFE_INTEGER).filter(e=>!onlyUnseen||!e.seen).slice(0,8),unseen=missions.reduce((count,m)=>count+m.events.filter(e=>!m.seenEventIds?.includes(e.id)).length,0);
@@ -36,7 +38,7 @@ export function ProjectRoom({projectId,snapshot,invoke,onBack,onOpen}:{projectId
   <section className="room-crew-roster" aria-label="Project crew stations">{CREW.map(c=>{const activity=roomCrew(snapshot,projectId,c.id);return <button key={c.id} data-crew={c.id} data-state={activity.state} className={`room-crew-card ${activity.attention?'needs-attention':''} ${activity.working?'is-working':''}`} disabled={!activity.task} onClick={()=>activity.task&&onOpen(activity.task.id)}><CrewBadge crew={c}/><span><strong>{c.name}</strong><small>{c.role}</small><b>{activity.state}</b><span>{activity.task?.title??'No assignment in this project'}</span>{activity.mission?<small>Mission: {activity.mission.title}</small>:null}{activity.activeCount>1?<small>{activity.activeCount} active assignments · open selected task</small>:null}</span></button>;})}</section>
   <section className="panel room-event-log" aria-label="Transponder signals"><h3>Transponder signals · {unseen} unseen</h3><p>Showing up to eight {onlyUnseen?'unseen':'recent'} signals. Marking seen does not approve requests or resolve blockers.</p><button aria-pressed={onlyUnseen} onClick={()=>setOnlyUnseen(value=>!value)}>{onlyUnseen?'Show recent signals':'Show unseen signals'}</button>{signals.length?<ol>{signals.map(e=><li key={e.id} data-signal-id={e.id} data-seen={e.seen}><time dateTime={new Date(e.time).toISOString()}>{new Date(e.time).toLocaleTimeString()}</time><span><strong>{e.title}</strong><small>{e.type.replaceAll('_',' ').toLowerCase()} · {e.seen?'Seen':'New'}</small></span><button onClick={()=>openMission(e.missionId)}>Inspect mission</button>{!e.seen?<button disabled={markingSignal} onClick={()=>void markSeen(e)}>Mark seen</button>:null}</li>)}</ol>:<p>{onlyUnseen?'No unseen signals.':'No mission signals yet.'}</p>}</section>
   <ProjectHealth missions={missions} projectId={projectId} onMission={openMission}/>
-  {board?<MissionBoard focusMission={focusMission} snapshot={{...snapshot,projects:[project],missions}} invoke={invoke} onOpen={onOpen}/>:null}
+  {board?<div ref={boardRef} tabIndex={-1} role="region" aria-label="Project mission board"><MissionBoard focusMission={focusMission} snapshot={{...snapshot,projects:[project],missions}} invoke={invoke} onOpen={onOpen}/></div>:null}
   <section className="panel room-logbook"><h3>Project logbook</h3>{missions.length?missions.map(m=><button key={m.id} onClick={()=>openMission(m.id)}>{m.title} · {m.status.replaceAll('_',' ').toLowerCase()}</button>):<p>No missions yet. Open the board to give the crew its first objective.</p>}<p>Deployment observations are available in the project health log after inspection.</p></section>
  </section>;
 }

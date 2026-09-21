@@ -28,7 +28,7 @@ class MissionEvidence {
  constructor({git='git',runtime=npmRuntime,execute=executeCheck}={}){this.git=git;this.runtime=runtime;this.execute=execute;}
  async command(root,args){return (await runFile(this.git,args,{cwd:root,windowsHide:true,encoding:'utf8',maxBuffer:8*1024*1024,timeout:15000})).stdout;}
  async gitState(root){
-  const actual=fs.realpathSync(root),repo=fs.realpathSync((await this.command(actual,['rev-parse','--show-toplevel'])).trim());
+  const actual=fs.realpathSync.native(root),repo=fs.realpathSync.native((await this.command(actual,['rev-parse','--show-toplevel'])).trim());
   const normalize=p=>process.platform==='win32'?p.toLowerCase():p;
   if(normalize(repo)!==normalize(actual))throw Error('Register the repository root before collecting mission evidence.');
   const flags=await this.command(actual,['ls-files','-v','-z']);

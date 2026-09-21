@@ -18,6 +18,17 @@ test('Git evidence fingerprints actual dirty and untracked content',async t=>{
 test('Git evidence refuses nested project roots',async t=>{
  const {root}=repo(t);fs.mkdirSync(path.join(root,'nested'));await assert.rejects(new MissionEvidence().gitState(path.join(root,'nested')),/repository root/i);
 });
+
+test('Git evidence identifies a Windows short-path repository without accepting its child', {skip:process.platform!=='win32'},async t=>{
+ const {root}=repo(t);
+ // This read-only shell expansion uses only the generated fixture path.
+ assert.ok(!/["%\r\n]/.test(root));
+ const short=execFileSync('cmd.exe',['/d','/c',`for %I in ("${root}") do @echo %~sI`],{encoding:'utf8',windowsHide:true,windowsVerbatimArguments:true}).trim();
+ const evidence=new MissionEvidence();
+ assert.equal((await evidence.gitState(short)).fingerprint,(await evidence.gitState(root)).fingerprint);
+ fs.mkdirSync(path.join(short,'nested'));
+ await assert.rejects(evidence.gitState(path.join(short,'nested')),/repository root/i);
+});
 test('check runner preserves exit status and refuses nonexistent scripts',async t=>{
  const {root}=repo(t);const evidence=new MissionEvidence();
  const pass=await evidence.runCheck(root,'test');assert.equal(pass.status,'passed');assert.equal(pass.exitCode,0);assert.equal(pass.command,'npm run test');

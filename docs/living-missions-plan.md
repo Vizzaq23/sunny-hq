@@ -368,3 +368,14 @@ The opt-in harness initially stayed idle because Electron has `require.main.file
 Added task activity for image generation, including allowlisted status and no copied image payload/revised prompt. Its regression failed before the handler and passed afterward; tool completion leaves mission/artifacts untouched. This log enhancement was added after the live process loaded Hub, so its evidence is the independent regression suite, not that earlier live run.
 
 Fresh suites:278/278 working-tree tests;261/261 exact staged-source tests. No renderer/type changes; the previous dfeed95 build/typecheck and native scene checks remain the renderer baseline, not a newly claimed build. Bounded independent review found no blocking defect and passed29 focused tests. Image/provenance review is separate from technical checks. GitHub CLI remains unsigned-in on recheck; live PR/CI/deployment proof, final integrated journey review and full updated report remain outstanding.
+
+
+## Full implementation report and attention review — 2026-09-21
+
+Delivered `SUNNY-HQ-IMPLEMENTATION-REPORT.md` and the complete created/modified-file ledger, preserving the foundation report as history. Current report covers all requested research/tool decisions, architecture/roles/states, security/context, installed tools, evidence limits, Git/ownership and exactly five dependency-ordered next proposals. It explicitly leaves the expanded goal incomplete pending authenticated remote proof and final whole-diff review.
+
+Extended the native fixture with labelled unknown/failed task projections. Run `.sunny-dev/mission-check/1790022998219` exited0 with the entire coordinated journey, including both new attention checks, normal/600px room, working/waiting/reduced motion, source/check/review/receipts/persistence/reload. Both attention screenshots were inspected; labels, stopped animation and direct task inspection remain visible. This is synthetic status input, not a claim of triggering real provider failure. Renderer build is unchanged from the tested illustrated-room increment.
+
+Recomputed all32 original user hashes:26 remain byte-identical. Six overlaps are Hub/main/App/upgrade test plus package/lock Electron update. Preserved user changes remain outside curated commits; version0.11.0 overlay remains separate from committed0.9.0. The report ledger was checked against Git's full base-to-HEAD name/status list.
+
+Report review confirmed all91 base-to-checkpoint changed paths in the ledger, plus the two new report files and all requested report topics. Corrected “immutable attempts” to “durable attempt history” because active status/workflow is intentionally mutable. Checked22 local documentation links, none missing.

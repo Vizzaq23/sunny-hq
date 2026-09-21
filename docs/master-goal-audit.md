@@ -64,3 +64,7 @@ Security follow-up: the audit checkpoint initially found two high-severity vulne
 5. Refresh the delivered implementation report after the remaining remote gates. The local-review refresh now covers `011ae4b`, 295 working-tree tests, 278 isolated tests, both builds and the final combined journey. Its current version contains references/decisions, architecture/roles/states, file ledger, exact validation, Git state, unresolved gates and exactly five next proposals. Audit completion again against every row above before declaring the full goal achieved.
 
 Optional Jev/OpenClaw/Claude integration is a separate evidence-based adoption decision. It must not displace the unfinished real user journey. No completion, remote merge, production deployment, paid subscription or public publication is claimed by this audit.
+
+## Authenticated remote checkpoint — 2026-09-21
+
+CLI sign-in is now verified as Vizzaq23. Remote default `codex/sunny-hq` at `2e26650` was integrated locally in a clean isolated clone as `651fbe1`, preserving the mission UI and the existing performance PR. The production deployment reader returned an authenticated, source-bound empty result for that unpublished commit; see `docs/evidence/live-github-deployment-2026-09-21.json`. This removes the authentication/read-access blocker, but does not prove publication, hosted CI, merge or deployment. The expanded goal remains incomplete.

@@ -103,3 +103,7 @@
 | Created | `docs/evidence/local-completion-2026-09-21.json` | Current-source local test/build/native evidence and explicit external-verification limit. |
 
 Later corrections strengthen the existing Hub/mission/approval/deliverable boundaries, add durable check and task recovery, reveal the board on opening, and extend native fixtures to cover those controls and fail on renderer errors. Their regression coverage and exact evidence are recorded in `living-missions-plan.md`. No additional dependency was added by these corrections.
+
+## Authenticated integration additions
+
+The integration checkpoint additionally modifies `src/Companion.tsx`, `src/main.tsx` and `src/views/DashboardViews.tsx` solely to retain the default branch's already-reviewed lazy loading and memoization. `src/App.tsx` retains those performance changes alongside the mission/project-room UI. `docs/evidence/live-github-deployment-2026-09-21.json` records the actual authenticated empty deployment observation. These additions bring the original-base comparison to 101 paths; the implementation PR comparison against the new default excludes unchanged upstream-only files.

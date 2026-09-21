@@ -1,6 +1,6 @@
 # Sunny HQ implementation report
 
-2026-09-21. Current implementation through `011ae4b`, including whole-branch review corrections and durable check/task recovery. Final combined native verification is recorded below. **The expanded master-PDF goal remains incomplete.** Sunny now has a real local mission and creative workflow, an illustrated interactive project interior, and source-bound review controls. Actual authenticated PR publication, hosted CI, approved merge and live deployment-record verification remain outstanding. Nothing here claims an installed-app upgrade or production release.
+2026-09-21. Current implementation through `011ae4b`, including whole-branch review corrections and durable check/task recovery. Final combined native verification is recorded below. **The expanded master-PDF goal remains incomplete.** Sunny now has a real local mission and creative workflow, an illustrated interactive project interior, and source-bound review controls. Actual authenticated PR publication, hosted CI and approved merge remain outstanding. GitHub CLI sign-in and a live read-only deployment lookup are now verified (see the checkpoint below). Nothing here claims an installed-app upgrade or production release.
 
 This report supersedes the foundation report as the current implementation summary. The [foundation report](SUNNY-HQ-CODEX-REPORT.md) remains dated historical evidence. The [33-page audit](master-goal-audit.md) is the requirement index; the [implementation plan](living-missions-plan.md) contains detailed checkpoint records. Every created/modified file and its purpose is in the [file ledger](implementation-file-ledger.md).
 
@@ -10,7 +10,7 @@ Open the existing island, enter a registered project's illustrated quarters, mov
 
 Inspect attempts, source fingerprints, real local npm checks, PR/check observations, written outputs and PNG previews. Current-attempt project health suggests the next useful action. Saved transponder receipts track awareness without authorizing anything. File changes invalidate recorded review; later source evidence can mark checks stale. A finished provider turn means ready for review, not mission completion.
 
-PR publication has a concrete expiring preview and explicit confirmation; uncertainty must be reconciled before retry. Merge review opens the exact GitHub PR for the captain; Sunny verifies the resulting merge instead of submitting it automatically. GitHub deployment inspection is read-only and source-bound. These GitHub paths have synthetic transport coverage, but have not completed a live authenticated voyage on this machine.
+PR publication has a concrete expiring preview and explicit confirmation; uncertainty must be reconciled before retry. Merge review opens the exact GitHub PR for the captain; Sunny verifies the resulting merge instead of submitting it automatically. GitHub deployment inspection is read-only and source-bound. Publication and merge paths have synthetic transport coverage; the deployment reader has additionally completed a live authenticated empty-result lookup. A full authenticated PR voyage remains outstanding.
 
 Brook's live creative mission used the installed provider's built-in image tool to generate an original PNG, record its exact prompt/source, and pass Sunny's native preview/hash/persistence boundary. The selected original-image workflow is real. No audio/video provider, broad media catalog or commercial rights guarantee is implied.
 
@@ -102,7 +102,7 @@ Unknown project checks now checkpoint an execution marker before dispatch and re
 
 ## Installed tools and validation
 
-Installed the official portable GitHub CLI2.101.0 in the user-local Programs directory, with archive integrity verified; no PATH/admin/credential change. It is recognized but unsigned-in at the 2026-09-21 completion audit (`gh auth status` via its actual executable). The connected Codex GitHub connector is a separate authentication surface and its token was not copied.
+Installed the official portable GitHub CLI2.101.0 in the user-local Programs directory, with archive integrity verified; no PATH/admin/credential change. The captain subsequently authorized browser sign-in and completed authentication as Vizzaq23, verified using `gh auth status`; credentials are stored in the OS keyring. The connected Codex GitHub connector is a separate authentication surface and its token was not copied.
 
 Pinned project Electron44.4.3 and lockfile to remove the two previously reported high-severity runtime/archive advisories. The recorded audit returned zero known vulnerabilities at that checkpoint. Native SQLite/ConPTY and unsigned unpacked Windows packaging passed. No installer, signing, deployment or daily-app replacement occurred. No OpenClaw/Claude/Jev/telemetry dependency was added. See [runtime verification](electron-runtime-upgrade.md).
 
@@ -134,7 +134,7 @@ Rechecked original32-file hashes at this audit:25 remain byte-identical. Seven d
 
 ## Remaining gates and exactly five next proposals
 
-The current implementation is reviewed and verified locally. Full completion still requires actual authorized GitHub/CI/merge proof and live deployment observation. Whole-branch findings were fixed and independently rechecked; the final combined native journey passed. Any future change still requires its own verification. Starting browser CLI authentication was previously asked but has not been authorized; no response is inferred. The missing separate art-reference sheet and complete video/audio reference analysis remain evidence limits. Optional vendors are not mandatory installs.
+The current implementation is reviewed and verified locally. Full completion still requires actual authorized GitHub/CI/merge proof. A live deployment lookup now confirms an empty result for the unpublished implementation commit. Whole-branch findings were fixed and independently rechecked; the final combined native journey passed. Any future change still requires its own verification. Browser CLI authentication is complete; publication and merge still require their own authority. The missing separate art-reference sheet and complete video/audio reference analysis remain evidence limits. Optional vendors are not mandatory installs.
 
 These are current dependency-ordered proposals, not remote issues or automatic authorization of their external steps:
 
@@ -182,3 +182,11 @@ These existing files remain outside the implementation/report commit (M modified
 ?? tests/task-flow.test.cjs
 ?? tests/upgrade.test.cjs
 ```
+
+## Authenticated GitHub integration checkpoint — 2026-09-21
+
+The captain completed the authorized GitHub CLI device login as Vizzaq23. Read-only repository verification confirmed private `Vizzaq23/sunny-hq`, default branch `codex/sunny-hq`, tip `2e266501d3222433e3c3bf08a279372fd27bea2a`. Its already-merged performance PR was integrated locally into an isolated clean clone, resulting in `651fbe1825ef2ecba0e21a9056688ed7f5247a92`. The App conflict resolution preserves the project room, mission board and navigation while retaining remote lazy loading and Suspense. The original workspace and its unrelated user edits were untouched.
+
+A clean locked install reported zero known vulnerabilities. All 278 automated tests passed and build/typecheck passed (13.50-second Vite build; existing large CodeEditor warning). The production deployment reader authenticated against GitHub and returned zero deployments for the exact unpublished merge commit: [observation](evidence/live-github-deployment-2026-09-21.json). This proves authenticated read and honest empty handling, not a deployed environment. No token was copied into artifacts. No branch push, PR publication, remote merge or deployment occurred at this checkpoint.
+
+The integrated native workflow also passed with process exit 0 in run `1790032831408`: coordinated stages, room motion/reduced motion, both uncertain-operation recovery paths, full/narrow room views, source-bound synthetic PR/merge/deployment review, deliverable previews, acceptance, signals and reload. The expected injected `Fixture uncertain cleanup` error exercised recovery and was not an unhandled renderer failure. GitHub/provider transport in this native check remains synthetic.

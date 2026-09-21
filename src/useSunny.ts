@@ -7,6 +7,7 @@ export type Toast={id:number;message:string;tone?:'default'|'success'|'error'};
 export function useSunny(){
   const [snapshot,setSnapshot]=useState<Snapshot>(EMPTY_SNAPSHOT);
   const [ready,setReady]=useState(false);
+  const [loadError,setLoadError]=useState('');
   const [toasts,setToasts]=useState<Toast[]>([]);
   const toastId=useRef(0);
   const desktop=Boolean(window.sunny);
@@ -29,10 +30,13 @@ export function useSunny(){
   useEffect(()=>{
     let alive=true;
     if(!window.sunny){setReady(true);return;}
-    void window.sunny.invoke('snapshot').then((next:Snapshot)=>{if(alive)setSnapshot(next);}).catch((error)=>toast(error instanceof Error?error.message:String(error),'error')).finally(()=>{if(alive)setReady(true);});
+    let receivedUpdate=false;
+    const earlyTasks=new Map<string,Task>();let initialPending=true;
+    void window.sunny.invoke('snapshot').then((next:Snapshot)=>{if(alive&&!receivedUpdate){for(const task of earlyTasks.values())next={...next,tasks:upsertTask(next.tasks,task)};setSnapshot(next);}}).catch((error)=>{if(alive&&!receivedUpdate)setLoadError(error instanceof Error?error.message:String(error));}).finally(()=>{initialPending=false;earlyTasks.clear();if(alive)setReady(true);});
     const unsubscribe=window.sunny.subscribe(event=>{
-      if(event.type==='snapshot')setSnapshot(event.data as Snapshot);
-      if(event.type==='task')setSnapshot(prev=>({...prev,tasks:upsertTask(prev.tasks,event.data as Task)}));
+      if(!alive)return;
+      if(event.type==='snapshot'){receivedUpdate=true;setLoadError('');setReady(true);setSnapshot(event.data as Snapshot);}
+      if(event.type==='task'){if(initialPending)earlyTasks.set(event.data.id,event.data as Task);setSnapshot(prev=>({...prev,tasks:upsertTask(prev.tasks,event.data as Task)}));}
       if(event.type==='approval')setSnapshot(prev=>({...prev,approvals:[...prev.approvals.filter(a=>a.id!==event.data.id),event.data]}));
       if(event.type==='error')toast(event.data?.message??'Sunny HQ encountered an error.','error');
     });
@@ -40,7 +44,7 @@ export function useSunny(){
   },[toast]);
 
   const mergeSnapshot=useCallback((partial:Partial<Snapshot>)=>setSnapshot(prev=>({...prev,...partial})),[]);
-  return{snapshot,setSnapshot,mergeSnapshot,ready,desktop,invoke,toast,toasts};
+  return{snapshot,setSnapshot,mergeSnapshot,ready,loadError,desktop,invoke,toast,toasts};
 }
 
 function upsertTask(tasks:Task[],task:Task){const index=tasks.findIndex(item=>item.id===task.id);if(index<0)return[task,...tasks];const next=[...tasks];next[index]=task;return next;}

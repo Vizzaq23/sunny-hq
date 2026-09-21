@@ -4,6 +4,7 @@ import {FolderPlus,Plus} from 'lucide-react';
 import type {CrewId,Project} from './shared';
 import {useSunny} from './useSunny';
 import {Sidebar,Toasts,Topbar,type ViewId} from './components/Chrome';
+import {HomeView} from './views/HomeView';
 import {ProjectRoom} from './views/ProjectRoom';
 import {MissionBoard} from './views/MissionBoard';
 
@@ -19,14 +20,15 @@ const LibraryView=lazy(()=>import('./views/OpsViews').then(module=>({default:mod
 const ToolsView=lazy(()=>import('./views/OpsViews').then(module=>({default:module.ToolsView})));
 const SettingsView=lazy(()=>import('./views/OpsViews').then(module=>({default:module.SettingsView})));
 type WorkspaceInit={taskId?:string;projectId?:string;crewId?:CrewId;prompt?:string};
-const viewTitles:Record<ViewId,{title:string;subtitle:string}>={news:{title:'Morgans’ blimp',subtitle:'The flying press'},island:{title:'The Island',subtitle:'Your growing AI world'},ship:{title:'The Sunny',subtitle:'Command deck'},projects:{title:'Projects',subtitle:'Local cargo'},crew:{title:'Crew',subtitle:'Your specialists'},missions:{title:'Missions',subtitle:'Templates & routes'},library:{title:'Library',subtitle:'Obsidian knowledge'},tools:{title:'Tools',subtitle:'Workshop'},inbox:{title:'Inbox',subtitle:'Mission signals'},settings:{title:'Settings',subtitle:'Captain’s quarters'}};
+const viewTitles:Record<ViewId,{title:string;subtitle:string}>={home:{title:'Home',subtitle:'Your daily workspace'},news:{title:'Morgans’ blimp',subtitle:'The flying press'},island:{title:'The Island',subtitle:'Your growing AI world'},ship:{title:'The Sunny',subtitle:'Command deck'},projects:{title:'Projects',subtitle:'Local cargo'},crew:{title:'Crew',subtitle:'Your specialists'},missions:{title:'Missions',subtitle:'Templates & routes'},library:{title:'Library',subtitle:'Obsidian knowledge'},tools:{title:'Tools',subtitle:'Workshop'},inbox:{title:'Inbox',subtitle:'Mission signals'},settings:{title:'Settings',subtitle:'Captain’s quarters'}};
 
 export default function App(){
   const sunny=useSunny();
   const {snapshot,invoke,toast}=sunny;
   const [roomProjectId,setRoomProjectId]=useState<string>();
-  const [view,setView]=useState<ViewId>('island');
+  const [view,setView]=useState<ViewId>('home');
   const [menu,setMenu]=useState(false);
+  const [launchPending,setLaunchPending]=useState(false);
   const [workspace,setWorkspace]=useState<WorkspaceInit|null>(null);
   const [activeProjectId,setActiveProjectId]=useState<string>();
   useEffect(()=>window.sunny?.subscribe(event=>{if(event.type==='workspace:open'){if(workspace&&!window.confirm('Switch workspaces? Unsaved drafts and file edits in the current workspace will be discarded.'))return;setWorkspace(event.data);}}),[workspace]);
@@ -35,14 +37,17 @@ export default function App(){
   const openWorkspace=(init:WorkspaceInit)=>{setActiveProjectId(init.projectId??snapshot.tasks.find(task=>task.id===init.taskId)?.projectId);setWorkspace(init);};
   const importProject=async()=>{try{const project=await invoke<Project|null>('project:add');if(!project)return;sunny.setSnapshot(previous=>({...previous,projects:previous.projects.some(item=>item.id===project.id)?previous.projects:[...previous.projects,project]}));toast(`${project.name} is aboard.`,'success');setActiveProjectId(project.id);}catch{/* invoke reports errors */}};
   const removeProject=async(projectId:string)=>{await invoke('project:remove',{projectId});sunny.setSnapshot(previous=>({...previous,projects:previous.projects.filter(project=>project.id!==projectId)}));toast('Project removed from Sunny HQ.','success');};
-  const topActions=useMemo(()=>view==='projects'?<button className="top-action" onClick={()=>void importProject()}><FolderPlus/>Import</button>:view==='ship'?<button className="top-action" onClick={()=>openWorkspace({projectId:snapshot.projects[0]?.id,crewId:'luffy'})}><Plus/>Mission</button>:null,[view,snapshot.projects]);
+  const topActions=useMemo(()=>view==='projects'?<button className="top-action" onClick={()=>void importProject()}><FolderPlus/>Import</button>:view!=='home'?<button className="top-action" onClick={()=>openWorkspace({projectId:activeProjectId??snapshot.projects[0]?.id,crewId:'luffy'})}><Plus/>New task</button>:null,[view,snapshot.projects,activeProjectId]);
 
-  if(workspace)return <><Suspense fallback={<div className="loading-deck"><span/><h2>Opening the workbench…</h2></div>}><Workbench key={JSON.stringify(workspace)} snapshot={snapshot} initial={workspace} invoke={invoke} toast={toast} onClose={()=>setWorkspace(null)}/></Suspense><Toasts items={sunny.toasts}/></>;
+  if(!sunny.ready)return <div className="loading-deck" role="status"><span/><h2>Getting your workspace ready…</h2></div>;
+  if(sunny.loadError)return <div className="loading-deck" role="alert"><h2>Your workspace couldn’t load</h2><p>{sunny.loadError}</p><button className="primary-button" onClick={()=>window.location.reload()}>Reload Sunny</button></div>;
+  if(workspace)return <><Suspense fallback={<div className="loading-deck"><span/><h2>Opening the workbench…</h2></div>}><Workbench key={JSON.stringify(workspace)} snapshot={snapshot} initial={workspace} invoke={invoke} toast={toast} onClose={()=>setWorkspace(null)} onSettings={()=>{setWorkspace(null);navigate('settings');}}/></Suspense><Toasts items={sunny.toasts}/></>;
   return <div className={`app-shell ${snapshot.settings.reducedMotion?'reduce-motion':''}`}>
     {sunny.desktop?<button className="float-ship-button" onClick={()=>void invoke('companion:show').catch(()=>{})}>↗ Ship on desktop</button>:null}
     <Sidebar view={view} onView={navigate} projects={snapshot.projects} tasks={snapshot.tasks} activeProjectId={activeProjectId} onProject={id=>openWorkspace({projectId:id})} open={menu} onToggle={()=>setMenu(value=>!value)}/>
     {menu?<button className="mobile-scrim" onClick={()=>setMenu(false)} aria-label="Close navigation"/>:null}
-    <div className="main-shell"><Topbar title={titles.title} subtitle={titles.subtitle} desktop={sunny.desktop} codexStatus={snapshot.codex.status} onMenu={()=>setMenu(true)} actions={topActions}/><Suspense fallback={<div className="page-scroll"><div className="loading-deck"><span/><h2>Loading the deck…</h2></div></div>}><div className="page-scroll">
+    <div className="main-shell"><Topbar title={titles.title} subtitle={titles.subtitle} desktop={sunny.desktop} codexStatus={snapshot.codex.status} onMenu={()=>setMenu(true)} actions={topActions}/><Suspense key={view} fallback={<div className="page-scroll"><div className="loading-deck"><span/><h2>Loading the deck…</h2></div></div>}><div className="page-scroll">
+      {view==='home'?<HomeView launchPending={launchPending} onLaunchPending={setLaunchPending} snapshot={snapshot} invoke={invoke} onWorkspace={openWorkspace} onImport={()=>void importProject()} onExplore={()=>navigate('island')} onSettings={()=>navigate('settings')}/>:null}
       {view==='island'&&roomProjectId?<ProjectRoom projectId={roomProjectId} snapshot={snapshot} invoke={invoke} onBack={()=>setRoomProjectId(undefined)} onOpen={taskId=>openWorkspace({taskId})}/>:null}
       {view==='island'&&!roomProjectId?<IslandView onProjectRoom={id=>setRoomProjectId(id)} snapshot={snapshot} invoke={invoke} onWorkspace={openWorkspace} onShip={()=>navigate('ship')} onNews={()=>navigate('news')}/>:null}
       {view==='news'?<MorgansView snapshot={snapshot} invoke={invoke} onWorkspace={openWorkspace} onBack={()=>navigate('island')}/>:null}

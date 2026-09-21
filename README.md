@@ -4,9 +4,11 @@ A personal Windows AI studio aboard the Thousand Sunny. Click a Straw Hat statio
 
 ## Open it
 
-Double-click **Launch Sunny.cmd** in this folder. The packaged app is in `release/win-unpacked/Sunny HQ.exe`. The optional installer is `release/Sunny HQ Setup 0.6.0.exe`.
+Double-click **Launch Sunny.cmd** in this folder. The upgraded app is in `release-workflow-0.10.0/win-unpacked/Sunny HQ.exe` (0.10.0); the launcher falls back to the older `release` build if the upgrade is missing. If Sunny is already running, finish any active work and choose **Quit** from its tray menu before launching the update. Closing its window only hides it to the tray. The previous build is preserved.
 
 Sunny uses the installed Codex CLI and your existing sign-in. Settings shows connection status and the models returned by that account. Usage remains subject to your normal account limits. Closing the window leaves Sunny in the system tray; use the tray's Quit action to exit.
+
+Version 0.10 opens on **Home**: describe a goal, choose a project, and start with Luffy or a specialist. Search and filter tasks, see linked assignments, and open anything needing attention. Conversations keep drafts across navigation and expose the editor/terminal through **Files & tools**. See [the workflow upgrade notes](docs/WORKFLOW-UPGRADE.md) for the changes, verification, and the remaining Windows save-permission limitation.
 
 ## Included
 

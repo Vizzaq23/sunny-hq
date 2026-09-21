@@ -2,6 +2,7 @@ node_modules/
 dist/
 release/
 release-morgans/
+release-workflow/
 .sunny-dev/
 .superpowers/
 *.log
@@ -11,3 +12,6 @@ release-morgans/
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm
+
+release-workflow-0.10.0/
+release-workflow-0.11.0/

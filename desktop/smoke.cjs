@@ -1,7 +1,7 @@
 const fs=require('node:fs');const path=require('node:path');const assert=require('node:assert/strict');
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 module.exports=async function smokeActions({win,hub,handle,terminals}){
- const root=path.join(process.cwd(),'.sunny-dev','fixture-project');fs.mkdirSync(root,{recursive:true});fs.writeFileSync(path.join(root,'hello.txt'),'Hello Sunny\n');const project={id:'sunny-smoke-fixture',name:'Sunny verification fixture',path:root,category:'development'};hub.state.projects.unshift(project);hub.changed();
+ const fixtureBase=path.join(process.cwd(),'.sunny-dev');fs.mkdirSync(fixtureBase,{recursive:true});const root=fs.mkdtempSync(path.join(fixtureBase,'fixture-project-'));fs.writeFileSync(path.join(root,'hello.txt'),'Hello Sunny\n');const project={id:'sunny-smoke-fixture',name:'Sunny verification fixture',path:root,category:'development'};hub.state.projects.unshift(project);hub.changed();
  try{
   const read=await handle('files:read',{projectId:project.id,path:'hello.txt'});assert.equal(read.text,'Hello Sunny\n');
   const saved=await handle('files:write',{projectId:project.id,path:'hello.txt',text:'Verified save\n',hash:read.hash});assert.equal(saved.text,'Verified save\n');
@@ -12,7 +12,7 @@ module.exports=async function smokeActions({win,hub,handle,terminals}){
   const output=await new Promise((resolve,reject)=>{let data='';const timer=setTimeout(()=>reject(Error('Terminal smoke timed out')),10000);const sub=terminal.onData(chunk=>{data+=chunk;if(data.includes('SUNNY_PTY_OK')){clearTimeout(timer);sub.dispose();resolve(data);}});terminal.write("Write-Output ('SUNNY_' + 'PTY_OK')\r");});assert.match(output,/SUNNY_PTY_OK/);await handle('terminal:close',{id:session.id});
   const pages=[];for(const label of ['Projects','Crew','Missions','Library','Tools','Inbox','Settings','The Sunny']){await win.webContents.executeJavaScript(`Array.from(document.querySelectorAll('.sidebar button')).find(b=>b.textContent.trim()===${JSON.stringify(label)})?.click()`);await pause(160);const heading=await win.webContents.executeJavaScript('document.querySelector(".topbar")?.innerText || document.body.innerText.slice(0,120)');pages.push({label,heading});}
   await win.webContents.executeJavaScript(`Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim()==='Talk to Luffy')?.click()`);await pause(200);await win.webContents.executeJavaScript(`document.querySelector('.deck-dialog .open-workspace').click()`);await pause(1400);
-  const workbench=await win.webContents.executeJavaScript('Boolean(document.querySelector(".workbench"))');assert.ok(workbench,'Workbench opens');
+  const workbench=await win.webContents.executeJavaScript('Boolean(document.querySelector(".workbench"))');assert.ok(workbench,'Workbench opens');await win.webContents.executeJavaScript('document.querySelector(".workspace-tools-toggle").click()');await pause(400);
   await win.webContents.executeJavaScript(`Array.from(document.querySelectorAll('button')).find(b=>b.textContent.includes('hello.txt'))?.click()`);await pause(2200);
   const editor=await win.webContents.executeJavaScript('Boolean(document.querySelector(".monaco-editor"))');assert.ok(editor,'Local Monaco editor loads');
   fs.writeFileSync(path.join(process.cwd(),'.sunny-dev','workbench-smoke.png'),(await win.webContents.capturePage()).toPNG());

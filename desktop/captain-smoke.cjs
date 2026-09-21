@@ -11,7 +11,7 @@ module.exports=async({win,hub,handle})=>{
   await win.webContents.executeJavaScript(`document.querySelector('.deck-dialog .open-workspace').click()`);await pause(1200);
   assert.match(await win.webContents.executeJavaScript(`document.querySelector('.interrupt-button').innerText`),/Stop crew/);assert.match(await win.webContents.executeJavaScript(`document.querySelector('.crew-assignment').innerText`),/fixture-model · low reasoning/);assert.match(await win.webContents.executeJavaScript(`document.querySelector('.crew-assignment').innerText`),/1,234 reported session tokens/);
   assert.match(await win.webContents.executeJavaScript(`document.querySelector('.approval-stack').innerText`),/Synthetic crew permission check/);
-  assert.equal(await win.webContents.executeJavaScript(`document.querySelector('.composer textarea').disabled`),true);
+  assert.equal(await win.webContents.executeJavaScript(`document.querySelector('.composer-foot button').disabled`),true);
   fs.writeFileSync(path.join(process.cwd(),'.sunny-dev','captain-assignments.png'),(await win.webContents.capturePage()).toPNG());
   await win.webContents.executeJavaScript(`document.querySelector('.crew-assignment').click()`);await pause(200);
   assert.match(await win.webContents.executeJavaScript(`document.querySelector('.workbench-head h2').innerText`),/^Build the compass$/);

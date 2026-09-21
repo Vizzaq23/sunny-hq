@@ -7,7 +7,7 @@ module.exports=async({win,hub})=>{
   assert.match(await win.webContents.executeJavaScript('document.body.innerText'),/get your workspace back/);
  }finally{hub.state.world.residents=residents;hub.changed();}
  await win.webContents.executeJavaScript(`Array.from(document.querySelectorAll('button')).find(b=>b.textContent==='Reload Sunny').click()`);
- for(let attempt=0;attempt<40;attempt++){await pause(250);if(await win.webContents.executeJavaScript('Boolean(document.querySelector(".island-scene"))').catch(()=>false))break;}
- assert.ok(await win.webContents.executeJavaScript('Boolean(document.querySelector(".island-scene"))'));
- console.log('SUNNY_RECOVERY '+JSON.stringify({renderFailureVisible:true,reloadRestoresIsland:true}));
+ for(let attempt=0;attempt<40;attempt++){await pause(250);if(await win.webContents.executeJavaScript('Boolean(document.querySelector(".home-page"))').catch(()=>false))break;}
+ assert.ok(await win.webContents.executeJavaScript('Boolean(document.querySelector(".home-page"))'));
+ console.log('SUNNY_RECOVERY '+JSON.stringify({renderFailureVisible:true,reloadRestoresHome:true}));
 };

@@ -17,6 +17,7 @@ app.whenReady().then(async()=>{
  const openedUrls=[];
  let failure;const mergeBound=process.env.SUNNY_SMOKE_MERGE==='1';const coordinated=process.env.SUNNY_SMOKE_COORDINATED==='1';let threadSequence=0;
  hub.pullRequests.read=async()=>({number:1,url:'https://github.com/fixture/sunny/pull/1',state:fixtureMerged?'MERGED':'OPEN',mergedAt:fixtureMerged?'2026-09-21T12:00:00Z':null,headRefOid:git('rev-parse','HEAD').toString().trim(),headRefName:git('branch','--show-current').toString().trim(),baseRefName:'main',isDraft:false,reviewDecision:'APPROVED',statusCheckRollup:mergeBound?[{__typename:'CheckRun',status:'COMPLETED',conclusion:'SUCCESS'}]:[]});
+ const deploymentCalls=[];hub.deployments.read=async args=>{deploymentCalls.push(args);assert.equal(args[args.indexOf('--method')+1],'GET');const base='https://api.github.com/repos/fixture/sunny',url=base+'/deployments/42';return args.at(-1).includes('/statuses?')?[{id:43,url:url+'/statuses/43',deployment_url:url,state:'success',created_at:'2026-09-21T12:00:00Z'}]:[{id:42,url,repository_url:base,statuses_url:url+'/statuses',environment:'fixture-preview',sha:git('rev-parse','HEAD').toString().trim(),created_at:'2026-09-21T11:00:00Z'}];};
  hub.client.connected=true;hub.state.codex.status='connected';hub.state.settings.reducedMotion=true;
  hub.client.request=async method=>{if(method==='config/read')return {config:{}};if(method==='thread/start')return {thread:{id:'fixture-thread-'+(++threadSequence)}};if(method==='turn/start')return {turn:{id:'fixture-turn-'+threadSequence}};throw Error('Unexpected fixture call '+method);};
  const appErrors=[];hub.on('event',event=>{if(event.type==='error')appErrors.push(event.data);win.webContents.send('sunny:event',event);});
@@ -104,6 +105,9 @@ app.whenReady().then(async()=>{
    await js('document.querySelector(".mission-recheck-merge").click()');await wait('document.querySelector(".mission-merge-control").textContent.includes("Merge verified")');assert.equal(publicationCalls.length,2);assert.equal(hub.state.missions[0].mergeRequest.state,'merged');
 
   }
+  await wait('!document.querySelector(".mission-inspect-deployments").disabled');await js('document.querySelector(".mission-inspect-deployments").click()');
+  await wait('document.querySelector(".mission-deployments").textContent.includes("fixture-preview · success")');await wait('document.querySelector(".room-health").textContent.includes("fixture-preview · success")');assert.equal(deploymentCalls.length,2);assert.equal(hub.state.missions[0].status,'WAITING_FOR_REVIEW');
+  await js('document.querySelector(".mission-deployments").scrollIntoView({block:"center"})');await delay(300);fs.writeFileSync(path.join(output,'deployment-observation.png'),(await win.webContents.capturePage()).toPNG());
   await fill('[aria-label="Deliverable path"]','welcome.md');await js('document.querySelector(".mission-attach-deliverable").click()');
   await wait('Boolean(document.querySelector(".mission-preview-deliverable"))');
   await wait('document.querySelector(".room-health").textContent.includes("welcome.md")');
@@ -117,6 +121,7 @@ app.whenReady().then(async()=>{
   assert.equal(JSON.parse(fs.readFileSync(store.file,'utf8')).missionBook.missions[0].status,'COMPLETE');
   await wait('document.querySelector(".room-crew-roster").textContent.includes("Mission complete")');
   await js('document.querySelector(".room-crew-roster").scrollIntoView({block:"start"})');await delay(300);fs.writeFileSync(path.join(output,'crew-stations.png'),(await win.webContents.capturePage()).toPNG());
+  const acceptanceBefore=JSON.stringify(hub.state.missions[0].acceptance);await wait('!document.querySelector(".mission-inspect-deployments").disabled');await js('document.querySelector(".mission-inspect-deployments").click()');await wait('!document.querySelector(".mission-inspect-deployments").disabled');assert.equal(deploymentCalls.length,4);assert.equal(hub.state.missions[0].status,'COMPLETE');assert.equal(JSON.stringify(hub.state.missions[0].acceptance),acceptanceBefore);
   const signalId=hub.state.missions[0].events.at(-1).id;
   await wait(`Boolean(document.querySelector('[data-signal-id="${signalId}"]'))`);
   await js(`Array.from(document.querySelector('[data-signal-id="${signalId}"]').querySelectorAll('button')).find(b=>b.textContent==='Mark seen').click()`);
@@ -134,7 +139,7 @@ app.whenReady().then(async()=>{
   await win.reload();await wait('Boolean(document.querySelector(".home-page,.island-page"))');await js('Array.from(document.querySelectorAll("button")).find(b=>b.textContent.trim()==="Missions").click()');await wait('document.querySelector(".mission-board")?.textContent.includes("Complete")');
   await delay(300);fs.writeFileSync(path.join(output,'mission-board.png'),(await win.webContents.capturePage()).toPNG());
   assert.deepEqual(appErrors,[],'No app errors may be hidden by later successful persistence');
-  console.log('SUNNY_MISSION '+JSON.stringify({passed:true,output,runtime,motionCheck,coordinated,mergeBound,mergeViaUi,checks:['enter-project-room','keyboard-movement','open-room-board','create','prepare-real-branch','launch-through-hub','await-review','real-npm-check','fixture-pr-evidence','criteria-gate','written-deliverable-preview','explicit-acceptance','signal-acknowledgment','unseen-filter','signal-mission-navigation','persist','reload']}));
+  console.log('SUNNY_MISSION '+JSON.stringify({passed:true,output,runtime,motionCheck,coordinated,mergeBound,mergeViaUi,checks:['enter-project-room','keyboard-movement','open-room-board','create','prepare-real-branch','launch-through-hub','await-review','real-npm-check','fixture-pr-evidence','fixture-deployment-observation','post-acceptance-deployment-refresh','criteria-gate','written-deliverable-preview','explicit-acceptance','signal-acknowledgment','unseen-filter','signal-mission-navigation','persist','reload']}));
  }catch(error){failure=error;console.error(error);fs.writeFileSync(path.join(output,'failure.png'),(await win.webContents.capturePage()).toPNG());}
  finally{hub.close();win.destroy();app.exit(failure?1:0);}
 }).catch(error=>{console.error(error);app.exit(1);});

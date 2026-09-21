@@ -7,6 +7,20 @@ function setup(t,initial={}){
  return {hub,store,saves};
 }
 const brief={projectId:'p',title:'Inventory',objective:'Track items',acceptanceCriteria:['Saved items reload'],completionBoundary:'review'};
+
+test('deployment observations attach to current attempt without granting acceptance and survive reload',async t=>{
+ const {hub,saves}=setup(t);const mission=hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,crewId:'franky'});hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ hub.deployments.inspect=async()=>({kind:'deployment',commit:'a'.repeat(40),repository:'owner/repo',deployments:[],recordedAt:1});
+ await assert.rejects(hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,deployment:true,script:'test'}),/one/i);
+ await assert.rejects(hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,deployment:'yes'}),/deployment/i);
+ const artifact=await hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,deployment:true});assert.equal(artifact.attemptId,mission.activeAttemptId);assert.equal(mission.status,'WAITING_FOR_REVIEW');assert.equal(mission.events.at(-1).type,'DEPLOYMENT_INSPECTED');assert.equal(setup(t,saves.at(-1)).hub.state.missions[0].artifacts[0].kind,'deployment');
+});
+
+test('deployment refresh after acceptance preserves acceptance and failed lookup releases the lock',async t=>{
+ const {hub}=setup(t);const mission=hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,crewId:'franky'});hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});await hub.acceptMission({missionId:mission.id,revision:mission.revision,criteria:[true]});const accepted=structuredClone(mission.acceptance);
+ hub.deployments.inspect=async()=>{throw Error('Lookup unavailable');};await assert.rejects(hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,deployment:true}),/Lookup unavailable/);assert.equal(hub.missionActions.has(mission.id),false);assert.equal(hub.gate.blocked(process.cwd()),false);assert.equal(mission.artifacts.length,0);
+ hub.deployments.inspect=async()=>({kind:'deployment',deployments:[],recordedAt:1});await hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,deployment:true});assert.equal(mission.status,'COMPLETE');assert.deepEqual(mission.acceptance,accepted);
+});
 test('mission launches real Hub task and persists evidence before snapshot',async t=>{
  const {hub,saves}=setup(t);const mission=hub.createMission(brief);
  const task=await hub.startMission({missionId:mission.id,revision:mission.revision,crewId:'franky'});

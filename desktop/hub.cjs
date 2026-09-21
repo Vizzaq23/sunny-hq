@@ -11,6 +11,7 @@ class Hub extends EventEmitter {
   const saved=store.load();this.growth=new Growth(saved.growth);this.discussionRun=null;this.state={news:require('./news.cjs').initialNews(saved.news),world:require('./island.cjs').initialWorld(saved.world),growth:this.growth.data,discussions:(saved.discussions||[]).map(e=>({...e,status:e.status==='working'?'interrupted':e.status})),projects:saved.projects||catalog.discoverProjects(home),tasks:(saved.tasks||[]).map(t=>({...t,status:['working','waiting','starting'].includes(t.status)?'unknown':t.status})),tools:catalog.discoverTools(home),settings:{reducedMotion:false,notifications:true,routingPolicy:'efficient',...saved.settings},codex:{status:'disconnected'},approvals:[],models:[],usage:null,automations:catalog.discoverAutomations(home)};
   this.missionBook=new MissionBook(saved.missionBook);this.state.missions=this.missionBook.data.missions;this.state.missionRoles=ROLE_BINDINGS;this.missionPersistencePending=this.missionBook.recover(this.state.tasks);
   this.evidence=new (require('./mission-evidence.cjs').MissionEvidence)({git:catalog.getExecutable?.('git',home)||'git'});this.branches=new (require('./mission-branch.cjs').MissionBranch)(this.evidence);this.missionActions=new Set();this.pullRequests=new (require('./pull-request-evidence.cjs').PullRequestEvidence)({evidence:this.evidence,gh:catalog.getExecutable?.('gh',home)||'gh'});
+  this.deployments=new (require('./deployment-evidence.cjs').DeploymentEvidence)({evidence:this.evidence,gh:catalog.getExecutable?.('gh',home)||'gh'});
   const {MissionPublisher,MissionPublication}=require('./mission-publisher.cjs');this.publisher=new MissionPublisher({evidence:this.evidence,git:catalog.getExecutable?.('git',home)||'git',gh:catalog.getExecutable?.('gh',home)||'gh'});this.publication=new MissionPublication(this);this.merger=new (require('./mission-merge.cjs').MissionMerge)(this);
   this.taskRevisions=new Map();for(const task of this.state.tasks)if(['unknown','working','waiting','starting'].includes(task.status))this.reserveWriter(task);
   this.island=new (require('./island.cjs').Island)(this);this.news=new (require('./news.cjs').News)(this);
@@ -88,25 +89,26 @@ class Hub extends EventEmitter {
   }finally{this.gate.release(lock);this.missionActions.delete(mission.id);}
  }
  async collectMissionEvidence(input){
-  this.validateMissionAction(input,['missionId','revision','script','prNumber','filePath']);
+  this.validateMissionAction(input,['missionId','revision','script','prNumber','filePath','deployment']);
+  if(input.deployment!==undefined&&(input.deployment!==true||input.filePath!==undefined||input.script!==undefined||input.prNumber!==undefined))throw Error('Choose one deployment inspection or check.');
   if(input.filePath!==undefined&&(typeof input.filePath!=='string'||input.script!==undefined||input.prNumber!==undefined))throw Error('Choose one deliverable file or check.');
   if(input.prNumber!==undefined&&(!Number.isSafeInteger(input.prNumber)||input.prNumber<1||input.script!==undefined))throw Error('Choose one check or a positive pull-request number.');
   if(input.script!==undefined&&!['test','build','typecheck','lint'].includes(input.script))throw Error('Choose a supported check.');
   if(this.missionActions.has(input.missionId))throw Error('A mission evidence check is already running.');
   const mission=this.missionBook.get(input.missionId);this.missionBook.check(mission,input.revision);
-  if(mission.status!=='WAITING_FOR_REVIEW')throw Error('Finish the crew attempt before collecting review evidence.');
+  if(mission.status!=='WAITING_FOR_REVIEW'&&!(input.deployment===true&&mission.status==='COMPLETE'))throw Error('Finish the crew attempt before collecting review evidence.');
   const project=this.project(mission.projectId),lock='mission-evidence:'+mission.id,attemptId=mission.activeAttemptId;
   this.gate.acquire(lock,project.path);this.missionActions.add(mission.id);let uncertain=false;
   try{
    this.missionMutation(()=>this.missionBook.record(mission,input.script?'TEST_STARTED':'EVIDENCE_STARTED',{script:input.script||null}));
    const revision=mission.revision;
-   const evidence=input.filePath!==undefined?(({text,...metadata})=>metadata)(require('./mission-deliverables.cjs').readDeliverable(project.path,input.filePath)):input.prNumber!==undefined?await this.pullRequests.inspect(project.path,input.prNumber):input.script?await this.evidence.runCheck(project.path,input.script):await this.evidence.gitState(project.path);
+   const evidence=input.deployment===true?await this.deployments.inspect(project.path):input.filePath!==undefined?(({text,...metadata})=>metadata)(require('./mission-deliverables.cjs').readDeliverable(project.path,input.filePath)):input.prNumber!==undefined?await this.pullRequests.inspect(project.path,input.prNumber):input.script?await this.evidence.runCheck(project.path,input.script):await this.evidence.gitState(project.path);
    if(this.closed)throw Error('Sunny closed before the check result could be attached.');
    return this.missionMutation(()=>{
     const current=this.missionBook.get(mission.id);this.missionBook.check(current,revision);
     if(current.activeAttemptId!==attemptId)throw Error('The mission attempt changed during verification.');
     const artifact={...evidence,id:randomUUID(),attemptId,projectId:project.id,producer:'sunny-local-verifier'};current.artifacts.push(artifact);
-    this.missionBook.record(current,evidence.kind==='check'?(evidence.status==='passed'?'TEST_PASSED':'TEST_FAILED'):evidence.kind==='pull-request'?'PR_UPDATED':evidence.kind==='deliverable'?'DELIVERABLE_ATTACHED':'GIT_INSPECTED',{artifactId:artifact.id});return artifact;
+    this.missionBook.record(current,evidence.kind==='check'?(evidence.status==='passed'?'TEST_PASSED':'TEST_FAILED'):evidence.kind==='pull-request'?'PR_UPDATED':evidence.kind==='deliverable'?'DELIVERABLE_ATTACHED':evidence.kind==='deployment'?'DEPLOYMENT_INSPECTED':'GIT_INSPECTED',{artifactId:artifact.id});return artifact;
    });
   }catch(error){uncertain=Boolean(error.uncertain);if(!this.closed)this.missionMutation(()=>this.missionBook.record(this.missionBook.get(mission.id),'EVIDENCE_FAILED',{message:String(error.message).slice(0,1000)}));throw error;}
   finally{if(!uncertain){this.gate.release(lock);this.missionActions.delete(mission.id);}}

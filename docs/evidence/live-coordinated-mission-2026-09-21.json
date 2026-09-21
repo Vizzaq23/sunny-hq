@@ -1,0 +1,54 @@
+{
+  "passed": true,
+  "coordinated": true,
+  "workflow": {
+    "stages": [
+      {
+        "id": "plan",
+        "taskId": "86aef58c-206c-4150-9e18-fffac7c5cc1b",
+        "status": "complete",
+        "resultMessageId": "msg_0393b41236a38d55016ab184a51ad087d1b81eed4005b485da"
+      },
+      {
+        "id": "work",
+        "taskId": "8984453b-bf21-45a7-ace6-e3c3e6e5a9da",
+        "status": "complete",
+        "resultMessageId": "msg_0b428ab5aac2b840016ab184c9fea487d1842fe9933c0c799f"
+      },
+      {
+        "id": "validate",
+        "taskId": "130c8600-b6fe-4268-8ec4-6c7a7ac3dbcb",
+        "status": "complete",
+        "resultMessageId": "msg_03b3fb636fce014e016ab184f61dd887d1a39d04beff55dc3b"
+      },
+      {
+        "id": "review",
+        "taskId": "3ff2c401-5835-4586-9ecd-5e3408ee2acc",
+        "status": "complete",
+        "resultMessageId": "msg_0f2d664bd1fb85fb016ab1851998a487d1a8b26edd111b2418"
+      }
+    ],
+    "complete": true
+  },
+  "provider": "live installed Codex app-server",
+  "model": "gpt-6-astra",
+  "taskId": "aa80658e-c273-4feb-ad54-802be2c07924",
+  "missionId": "dcf1d9f8-ad04-47fe-95b1-6603edb11666",
+  "branch": "codex/sunny-dcf1d9f8-ad04-47fe-95b1-6603edb11666",
+  "changedFiles": [
+    "sum.cjs"
+  ],
+  "test": "passed",
+  "missionStatus": "WAITING_FOR_REVIEW",
+  "accepted": false,
+  "remoteGitActions": false,
+  "verifiedAt": "2026-09-21",
+  "scope": "Real planner, builder, validator and reviewer through Sunny coordinator; no live PR/merge claim.",
+  "implementationSha256": "252b171b57107be11db18a648d564aa7cac34dc074b43963d2f65478a1485bce",
+  "baselineTest": "failed with Implement me",
+  "preservedFiles": [
+    "package.json",
+    "sum.test.cjs",
+    "AGENTS.md"
+  ]
+}

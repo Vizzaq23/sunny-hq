@@ -1,6 +1,8 @@
 # Agent platform roadmap
 
-2026-09-21. Phase 1 establishes the safe development foundation. The complete game-like mission-to-PR experience remains the north star, not this release's completion claim. See [design](foundation-design.md), [routing](agent-routing.md), [world](world-bible.md), [art](art-bible.md), and [reference review](REFERENCE-REVIEW.md).
+2026-09-21. This roadmap began with the foundation session and is retained as the dependency plan. The captain subsequently authorized implementation beyond Phase 1. See the [current full-PDF audit](master-goal-audit.md) and [implementation evidence](living-missions-plan.md) for present status; the complete goal is still open. See also [design](foundation-design.md), [routing](agent-routing.md), [world](world-bible.md), [art](art-bible.md), and [reference review](REFERENCE-REVIEW.md).
+
+Current checkpoint: mission truth, role routing, bounded coordinated handoffs, enterable project rooms, state-driven crew movement and written deliverable review are implemented. Real Codex coding and written creative fixtures passed separately. The native full voyage still uses synthetic GitHub transport; live PR/hosted CI/approved merge, deployment inspection, selected media workflow and final full-scope verification remain unfinished. Optional runtime adoption is not required merely because a vendor appears in this roadmap.
 
 ## Phases and gates
 
@@ -25,7 +27,9 @@ The workflow runs locked installation, existing tests and the production build/t
 
 After the workflow has actually run remotely, the captain may make `Windows tests and build` a required branch check with human review and no direct main pushes. Repository rules were not changed remotely. Until then this is a checked-in workflow, not proof of enforced branch protection or a hosted green run. Keep failures blocking; do not add continue-on-error or credentials to PR validation. Installer/release/production deployment remains separately authorized.
 
-## Exactly five next issues (proposals; not started)
+## Original five next issues (historical proposals)
+
+These were the foundation report's proposals, not five newly queued tasks. The expanded goal subsequently authorized work on this sequence: issues 1–2 are implemented, issue 3 is locally implemented but lacks the live GitHub proof, issue 4 has a functional room slice, and issue 5 remains conditional on a useful evaluation. Preserve their original acceptance criteria below; use the current audit for outstanding work. The final expanded-goal report must supply five current next proposals.
 
 ### 1. Validate mission and approval commands at the desktop boundary
 

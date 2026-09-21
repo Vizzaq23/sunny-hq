@@ -1,0 +1,24 @@
+{
+  "passed": true,
+  "provider": "live installed Codex app-server",
+  "model": "gpt-6-astra",
+  "taskId": "5855c40e-c247-46f3-a7aa-c37d68eaa44d",
+  "missionId": "34338092-1782-4b2b-b6dd-ddd6b35f71f3",
+  "branch": "codex/sunny-34338092-1782-4b2b-b6dd-ddd6b35f71f3",
+  "changedFiles": [
+    "sum.cjs"
+  ],
+  "test": "passed",
+  "missionStatus": "WAITING_FOR_REVIEW",
+  "accepted": false,
+  "remoteGitActions": false,
+  "verifiedAt": "2026-09-21",
+  "scope": "One real builder mission in an isolated local Git repository; no live PR, merge, or multi-agent claim.",
+  "implementationSha256": "301551d5a079f6b26af59005bfad34abd8eb3a73d09b4774bdb7fec6c3c1cea4",
+  "baselineTest": "failed with Implement me",
+  "preservedFiles": [
+    "package.json",
+    "sum.test.cjs",
+    "AGENTS.md"
+  ]
+}

@@ -1,0 +1,54 @@
+# Agent routing and authority
+
+Research date: 2026-09-21. The existing `desktop/model-routing.cjs` live-catalog validation remains the running implementation. This document defines the next boundary; it does not claim new providers are connected.
+
+## Role bindings
+
+| Stable role | Preferred binding | Current/fallback | Risk | Approval |
+| --- | --- | --- | --- | --- |
+| Coordinator | Fable 5.1 preference | Existing Luffy/Codex coordinator; account catalog | Routine planning; high if it dispatches consequential work | Cannot authorize external actions |
+| Planner | Fable 5.1 preference | Nami/Codex, supported general model | Low/routine | Local plans automatic |
+| General reasoning | GPT-5.6 Sol preference | Supported catalog model | Routine, escalate uncertainty | Depends on action, not model |
+| Builder | Codex now; Claude Code optional | Franky/Codex; stop if no capable worker | Local scoped writes routine | Human for consequential external steps |
+| Architecture/review | GPT-6 Astra preference | Zoro/Codex; human when unavailable | High uncertainty | Review is evidence, never authorization |
+| Research | Supported reasoning model | Robin/Codex | Read-only low; sources untrusted | No external communications by default |
+| Visual design | Opus/Fable preference | Sanji/Brook with available tool | Local art routine | Human for publication/spending |
+| Vision inspection | Gemini vision-class preference | Human or verified available vision tool | Read-only evaluation | No new data transfer by default |
+| Validator | Deterministic tests/CI first | Usopp/Codex for investigation | Routine isolated checks | Production probes need authorization |
+| Decision router | Rules first; Jev candidate | Existing catalog policy and planner | Semantic uncertainty varies | Never approves consequential actions |
+| Operator | Jinbe with bounded tools | Human | High external consequences | Explicit action-bound human approval |
+| Captain | Human | None | Final authority | Merge/deploy/spend/publish/delete/credentials |
+
+Sol/Astra are exposed by this development session's model catalog. That does not establish every model's availability in Sunny or another provider account. Fable/Opus/Gemini bindings remain preferences until the selected runtime reports usable IDs/capabilities. Do not silently substitute an unavailable explicitly requested model.
+
+## Routing order
+
+1. Validate project, attempt, capability, checkout ownership and permission profile in code.
+2. Apply deterministic rules for explicit role requests, exact tool eligibility, budgets, deadlines and mandatory approvals.
+3. Use semantic classification only when rules cannot determine a useful role. Candidate set includes `abstain`; a model cannot invent an executable tool or model ID.
+4. Use a supported capable model for normal reasoning; escalate ambiguous/high-impact design to the architecture reviewer. Human authority is separate from reviewer confidence.
+5. Before execution recheck the attempt revision, permission and any action-bound approval. Reject stale decisions. Record the decision source, version, selected candidate, evidence reference and outcome.
+
+## Jev: verified primary-source findings
+
+[TypeSafe's API](https://docs.typesafe.ai/api) accepts `POST https://api.typesafe.ai/v1/systemone` with Bearer authentication, `state`, typed `questions` and an optional model. Choice returns a chosen option and distribution; Score returns an ordered-level score; Noul returns a yes probability. Choice/Score include confidence; Noul does not. This is a hosted decision model, not a coding worker or orchestrator. No local model distribution was established in the reviewed docs.
+
+[JavaScript SDK](https://docs.typesafe.ai/sdk/javascript): `@typesafe-ai/sdk`, Node 20+, ESM/CommonJS/TypeScript, `TypeSafeClient.systemOne` and typed question helpers. Python is also documented. Keys belong in the main process, never a Vite environment variable exposed to the renderer. Official docs link SDK source at [typesafe-ai/typesafe-sdk-js](https://github.com/typesafe-ai/typesafe-sdk-js).
+
+[Model documentation](https://docs.typesafe.ai/models), inspected directly: `jev-1.13.0`, $0.042 per million input tokens, no output-token charge; published limits 250,000 tokens/second and 1,200 requests/minute, explicitly subject to change. Budget is 64k total request tokens and 32k for state plus the longest question. Questions share state. Responses report token usage; no claim that requests consume zero tokens is valid. English is the strongest documented language; other languages require evaluation. Pin model version and record the returned version. No paid calls, account creation or SDK installation were performed.
+
+[Confidence](https://docs.typesafe.ai/confidence) is derived from the response distribution, not proof of correctness or authorization. Do not copy universal 0.5/0.9 thresholds from examples. Calibrate against Sunny-labelled tasks and cost-weighted error outcomes. High confidence never skips a required human gate. [Known limitations](https://docs.typesafe.ai/model-jaggedness/jev-1.13) include literal interpretation, arithmetic/date comparison, indirection, irrelevant context and adversarial inputs. Numeric rules remain code. Vendor throughput and social speedup claims are not Sunny end-to-end latency measurements; no independent uptime/SLA or production reliability result was established here.
+
+## Proposed adapter contract, not a fake integration
+
+Input: decisionId, attemptId, stateRevision, sanitized task brief, permitted role/model candidates, deadline and policy version. Output is either `selected` (candidateId, provider/model version, probabilities/confidence when supplied, usage and elapsed time) or `abstain` (reason code). Only prevalidated candidates are accepted. Timeouts, overload, malformed results, stale revisions and missing credentials abstain; bounded retry only for a read-only decision within its deadline. Never retry a worker side effect because the router timed out.
+
+Start in shadow mode on synthetic or explicitly approved redacted tasks. Compare rules, existing captain routing and Jev on held-out examples. Measure role correctness, unsafe false-allow rate, abstention coverage, p50/p95 latency, actual tokens/cost, stale result rejection and end-to-end task quality. Activate only if it materially improves quality or cost without weakening permissions. Until then, no dependency or production adapter is justified.
+
+## Claude Code evaluation
+
+Not found on PATH or at `%USERPROFILE%\.local\bin\claude.exe`. No installation was needed for this foundation: existing Codex already supplies the first worker path. [Official setup](https://code.claude.com/docs/en/setup) documents native Windows support, Git Bash and native installer/WinGet routes; the stable PowerShell installer is hosted at `https://claude.ai/install.ps1`. Review the downloaded installer and published integrity checks before execution rather than piping an unknown script into a shell. Authentication requires a supported Claude account or provider credentials; no subscription purchase or credential setup was performed.
+
+Potential value: an independent implementation/review worker for cross-provider evaluation and fallback. It overlaps with Codex on files, commands and coding tasks. Both are useful only if actual task quality, availability or independent review merits maintaining two integrations. A future adapter must test cancellation, tool permissions, streamed events, recovery and authentication separately; a successful CLI launch alone is insufficient.
+
+The inspected setup requirements are Windows 10 1809+/Server 2019+, 4 GB RAM and x64/ARM64. Git Bash is optional in current documentation, with PowerShell fallback; native Windows does not provide Claude Code's native OS sandbox. Do not treat Windows support as a sandbox guarantee. These requirements and available account plans should be rechecked at installation time.

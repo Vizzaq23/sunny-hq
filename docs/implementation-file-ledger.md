@@ -115,3 +115,10 @@ The integration checkpoint additionally modifies `src/Companion.tsx`, `src/main.
 - `src/views/project-room.css`: matching shelf controls and bounded wrapping previews at narrow widths.
 - `desktop/project-charts-smoke.cjs`: isolated production-renderer fixture for explicit reads, errors/retry, text escaping, folder navigation, late responses and layout.
 - `docs/living-missions-plan.md`, `docs/world-bible.md`, `docs/master-goal-audit.md`, this ledger: requirement, decision, verification, limits and source-only delivery status.
+
+## Pipeline operator guide (2026-09-22)
+
+- `docs/SUNNY-AI-PIPELINE.md`: captain-requested plain-language guide from project selection to accepted mission, with current role/provider boundaries, actual UI labels, recovery guidance and a simple post-update smoke checklist.
+- `README.md`: links the operator guide from the project entry point.
+
+The guide describes the source features and explicitly distinguishes them from the currently installed package and from still-unverified continuous live evidence. It was authored separately from the live crew's four-file filtering assignment.

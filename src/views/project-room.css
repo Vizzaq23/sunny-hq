@@ -23,6 +23,8 @@
 .project-charts {min-width:0;padding:22px;margin-bottom:20px;}
 .project-charts summary {cursor:pointer;font-weight:700;}
 .project-charts nav,.project-charts ul {display:flex;flex-wrap:wrap;gap:8px;}
+.project-charts .chart-filter {display:grid;gap:5px;margin:14px 0;font-weight:700;}
+.project-charts .chart-filter input {max-width:30rem;padding:9px 12px;border:1px solid #c8b894;border-radius:8px;background:#fffdf5;color:#214442;}
 .project-charts ul {list-style:none;padding:0;max-height:240px;overflow:auto;}
 .project-charts li {max-width:100%;}
 .project-charts button {max-width:100%;overflow-wrap:anywhere;padding:9px 12px;border:1px solid #c8b894;border-radius:8px;background:#fff8e9;color:#214442;}

@@ -13,7 +13,7 @@ function enabledFor(hub,task,env=process.env){
 }
 function availableRoles(hub,task){
  if(!task.captain)return [];
- const roles=ROLE_BINDINGS.filter(r=>r.crewId!=='luffy').map(r=>({id:r.crewId,description:r.label+': '+r.capability}));
+ const roles=ROLE_BINDINGS.filter(r=>r.crewId!=='luffy'&&r.crewId!=='morgans').map(r=>({id:r.crewId,description:r.label+': '+r.capability}));
  for(const resident of residents){const current=hub.state.world.residents.find(r=>r.id===resident.id&&r.recruited);if(current)roles.push({id:current.id,description:current.role||resident.role});}
  const attempt=hub.state.missions.flatMap(m=>m.attempts).find(a=>a.taskId===task.id);
  return roles.filter(r=>{try{if(attempt)assertStageAssignment(attempt,hub.state.tasks,r.id);return true;}catch{return false;}});
@@ -53,4 +53,3 @@ async function prepareJevContext({hub,task,prompt,signal,revision,env=process.en
  return {status:'ok',journal:hub.growth.formatContext(selected),suggestion:Object.keys(advice).length?'Jev advisory recommendation (not an assignment or authorization; explicit user instructions and current mission stage take precedence): '+JSON.stringify(advice):'',activity:'Jev context prepared; advisory only ('+safeModel+', '+elapsed+' ms).',revision};
 }
 module.exports={prepareJevContext,enabledFor,availableRoles};
-

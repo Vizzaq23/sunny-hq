@@ -47,4 +47,3 @@ function buildRequest(input,{model='jev-1.13.0'}={}){
  return {body,mapping};
 }
 module.exports={buildRequest,validateInput,InputError,plain};
-

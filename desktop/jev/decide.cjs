@@ -41,4 +41,3 @@ async function decide(input,{apiKey=process.env.TYPESAFE_API_KEY,model='jev-1.13
  }
 }
 module.exports={decide,QUESTION_REVISION};
-

@@ -10,4 +10,3 @@ function applyPolicy(input,answers){
   probabilities:{relevance:answers.relevance,choices:answers.choices}};
 }
 module.exports={applyPolicy};
-

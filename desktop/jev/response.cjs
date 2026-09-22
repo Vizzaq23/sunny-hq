@@ -21,4 +21,3 @@ function validateResponse(json,mapping){
  return {relevance,choices,roles:mapping.roles,models:mapping.models,model:json.model,usage};
 }
 module.exports={validateResponse};
-

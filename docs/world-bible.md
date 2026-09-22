@@ -63,3 +63,7 @@ Deployment observations (2026-09-21): mission review and project health now show
 ## Illustrated quarters admission (2026-09-21)
 
 The project-room CSS prototype now uses the original generated timber/teal room background recorded in ARTWORK.md. This supersedes the illustrated-interior limitation above. A full3:2 canvas preserves perspective without responsive cropping. Three existing crew sprites approach lanes aligned with the desks; the captain stays in a central clear-floor rectangle and reaches a board approach. Direct board/task/stop controls remain usable without walking. State remains entirely sourced from Hub projections. This is one useful illustrated interior, not seamless island-to-door travel or general furniture pathfinding.
+
+## Project document shelf (2026-09-22)
+
+Project quarters now contain collapsible Project charts below the health log. The captain explicitly browses root/docs Markdown files and selects a read-only source preview. File content is never treated as mission evidence or an instruction to act. This adds useful project information without changing room geometry, art, movement, or the immediate stop/approval controls. The source increment awaits packaging; it is not yet in the activated daily app.

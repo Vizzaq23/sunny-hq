@@ -107,3 +107,18 @@ Later corrections strengthen the existing Hub/mission/approval/deliverable bound
 ## Authenticated integration additions
 
 The integration checkpoint additionally modifies `src/Companion.tsx`, `src/main.tsx` and `src/views/DashboardViews.tsx` solely to retain the default branch's already-reviewed lazy loading and memoization. `src/App.tsx` retains those performance changes alongside the mission/project-room UI. `docs/evidence/live-github-deployment-2026-09-21.json` records the actual authenticated empty deployment observation. These additions bring the original-base comparison to 101 paths; the implementation PR comparison against the new default excludes unchanged upstream-only files.
+
+## Project charts increment (2026-09-22)
+
+- `src/components/ProjectCharts.tsx`: explicit read-only root/docs Markdown navigation, source-text preview, honest loading/error/empty state and stale-request handling.
+- `src/views/ProjectRoom.tsx`: adds the project-keyed shelf beneath existing health controls.
+- `src/views/project-room.css`: matching shelf controls and bounded wrapping previews at narrow widths.
+- `desktop/project-charts-smoke.cjs`: isolated production-renderer fixture for explicit reads, errors/retry, text escaping, folder navigation, late responses and layout.
+- `docs/living-missions-plan.md`, `docs/world-bible.md`, `docs/master-goal-audit.md`, this ledger: requirement, decision, verification, limits and source-only delivery status.
+
+## Pipeline operator guide (2026-09-22)
+
+- `docs/SUNNY-AI-PIPELINE.md`: captain-requested plain-language guide from project selection to accepted mission, with current role/provider boundaries, actual UI labels, recovery guidance and a simple post-update smoke checklist.
+- `README.md`: links the operator guide from the project entry point.
+
+The guide describes the source features and explicitly distinguishes them from the currently installed package and from still-unverified continuous live evidence. It was authored separately from the live crew's four-file filtering assignment.

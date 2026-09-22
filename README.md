@@ -2,6 +2,8 @@
 
 A personal Windows AI studio aboard the Thousand Sunny. Click a Straw Hat station to start a real Codex mission, then work with its conversation, files, Git changes, terminal and local preview.
 
+Read the [start-to-finish AI pipeline guide](docs/SUNNY-AI-PIPELINE.md) for mission setup, crew roles, checks, approvals, recovery and a simple post-update test.
+
 ## Open it
 
 Double-click **Launch Sunny.cmd** in this folder. The upgraded app is in `release-workflow-0.10.0/win-unpacked/Sunny HQ.exe` (0.10.0); the launcher falls back to the older `release` build if the upgrade is missing. If Sunny is already running, finish any active work and choose **Quit** from its tray menu before launching the update. Closing its window only hides it to the tray. The previous build is preserved.

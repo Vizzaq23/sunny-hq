@@ -14,7 +14,7 @@ const state={projects:[{id:'studio',name:'Sunny Studio',path:output,category:'de
  task('unknown','Recover the settings update','unknown','chopper',{error:'The connection was interrupted.'}),
  task('done','Write the onboarding guide','finished','robin',{messages:[{id:'reply',role:'assistant',text:'The onboarding guide is ready. It covers setup, first tasks, and reviewing the crew’s results.',time:now-60000}]})
 ],settings:{reducedMotion:true,notifications:false},codex:{status:'connected'},approvals:[{id:'permission',taskId:'design',method:'item/commandExecution/requestApproval',params:{command:'npm test',reason:'Verify the updated dashboard.'}}],models:[],tools:[],automations:[],usage:null,world:{paused:true,residents:[],jobs:[],ledger:[]}};
- let win,failStart=true,starts=0,answers=0,failSnapshot=false,raceSnapshot=true,startDelay=150,stops=0,failCheck=true,taskRace=false;
+ let win,failStart=true,starts=0,answers=0,failSnapshot=false,raceSnapshot=true,startDelay=150,stops=0,failCheck=true,taskRace=false,reportRequests=0,captures=0,failCapture=true;
 const emit=()=>win.webContents.send('sunny:event',{type:'snapshot',data:structuredClone(state)});
 ipcMain.handle('sunny:invoke',async(_event,action,args)=>{
  if(action==='skills:suggest')return args.brief.includes('dashboard')?{available:[skillOption],suggested:[skillOption]}:{available:[],suggested:[]};
@@ -33,6 +33,21 @@ ipcMain.handle('sunny:invoke',async(_event,action,args)=>{
  if(action==='files:read')return {path:args.path,text:'Hello Sunny\n',hash:'fixture'};
  if(action==='library:search')return [{path:'00 Projects/Launch Notes.md',title:'Launch Notes',excerpt:'A useful saved project note.'},{path:'00 Projects/Long Notes.md',title:'Long Notes',excerpt:'A large reference note.'}];
  if(action==='library:read')return {path:args.path,text:args.path.includes('Long Notes')?'x'.repeat(16001):'Keep the launch focused on a small, verifiable first release.',hash:'fixture-note'};
+ if(action==='library:capture'){captures++;if(failCapture)throw Error('Fixture: Obsidian vault unavailable');return {path:'00 Inbox/Morgans work report.md'};}
+ if(action==='report:create'){
+  reportRequests++;assert.equal(args.projectIds,undefined,'default includes all projects');assert.ok(Math.abs(Date.now()-args.since-7*86400000)<5000,'default is seven days');
+  if(reportRequests>1){const packet={createdAt:now,scope:{projectIds:['studio','launch'],since:args.since,until:now},coverage:{source:'saved-local-records',truncated:true,retainedEventLimit:500},projects:[{id:'studio',name:'Sunny Studio',tasks:[],missions:[],observations:[]},{id:'launch',name:'Launch planning',tasks:[],missions:[],observations:[]}],attention:[]};const reportTask=task('morgans-unknown','Morgans work report','unknown','morgans',{error:'Provider status uncertain.'});state.tasks.unshift(reportTask);emit();return {packet,task:reportTask};}
+  state.tasks.unshift(task('failed-fixture','Failed build review','failed','zoro'));
+  state.missions=[{id:'review-fixture',projectId:'launch',title:'Review the launch',objective:'Review saved launch evidence.',acceptanceCriteria:['Captain checks the result'],completionBoundary:'review',status:'WAITING_FOR_REVIEW',connection:'connected',revision:1,createdAt:now,updatedAt:now,taskIds:[],attempts:[],artifacts:[],events:[]}];
+  const reportTask=task('morgans-report','Morgans work report','working','morgans');state.tasks.unshift(reportTask);emit();
+  const item=(kind,id,title,status,target,projectId='studio')=>({kind,id,title,status,projectId,observedAt:now,sourceId:id,sourceTime:now,target:{view:kind==='task'?'task':'mission',id:target}});
+  const failed=item('task','failed-fixture','Failed build review','failed','failed-fixture');
+  const mission=item('mission','review-fixture','Review the launch','review-needed','review-fixture','launch');
+  const deployment=item('deployment','review-fixture:deployment','Deployment observation','unobserved','review-fixture','launch');
+  const packet={createdAt:now,scope:{projectIds:['studio','launch'],since:args.since,until:now},coverage:{source:'saved-local-records',truncated:false,retainedEventLimit:500},projects:[{id:'studio',name:'Sunny Studio',tasks:[failed],missions:[],observations:[]},{id:'launch',name:'Launch planning',tasks:[],missions:[mission],observations:[deployment]}],attention:[failed,mission]};
+  setTimeout(()=>{reportTask.status='finished';reportTask.messages=[{id:'morgans-reply',role:'assistant',text:'The build review failed. The launch mission awaits review.',time:Date.now()}];emit();},250);
+  return {packet,task:reportTask};
+ }
  if(action==='settings:update'){if(Object.hasOwn(args,'roomSoundEnabled'))state.settings.roomSoundEnabled=args.roomSoundEnabled;if(Object.hasOwn(args,'roomSoundVolume'))state.settings.roomSoundVolume=args.roomSoundVolume;emit();return state.settings;}
  if(action==='task:history')return [];
  if(action==='app:diagnostic'||action==='asset:crewTexture')return null;
@@ -63,6 +78,47 @@ app.whenReady().then(async()=>{
   await win.loadFile(path.join(root,'dist','index.html'));await wait('Boolean(document.querySelector(".home-page"))');await delay(250);
   assert.equal(await js('document.querySelectorAll(".home-task").length'),4,'newer snapshot wins over stale initial response');
   await delay(250);await screenshot('home-desktop.png');
+  await nav('Morgans’ blimp');await wait('Boolean(document.querySelector(".morgans-page"))');
+  assert.ok(await js('Boolean(document.querySelector(".morgans-report"))'),'Morgans has a saved-work report section');
+  assert.equal(await js('document.querySelector(".morgans-report-controls select").value'),'all');
+  assert.equal(await js('document.querySelectorAll(".morgans-report-controls select")[1].value'),'7');
+  await js('document.querySelector(".morgans-report-generate").focus()');assert.equal(await js('document.activeElement.classList.contains("morgans-report-generate")'),true,'report action is keyboard reachable');
+  await click('.morgans-report-generate');await wait('document.querySelectorAll(".morgans-source").length===3');
+  assert.equal(reportRequests,1);assert.equal(captures,0,'generation and viewing never write to Obsidian');
+  assert.ok(await js('document.querySelector(".morgans-report-evidence").textContent.includes("failed")'));
+  assert.ok(await js('document.querySelector(".morgans-report-evidence").textContent.includes("review needed")'));
+  assert.ok(await js('document.querySelector(".morgans-report-evidence").textContent.includes("unobserved")'));
+  await wait('document.querySelector(".morgans-report-draft textarea").value.includes("The build review failed")');
+  assert.ok(await js('document.querySelector(".morgans-report-draft textarea").value.includes("failed-fixture")'),'generated wording appends saved source IDs');
+  await fill('[aria-label="Report draft"]','Captain-edited report with saved evidence.');assert.equal(captures,0,'editing stays local');
+  await click('.morgans-report-draft>button');await wait('Boolean(document.querySelector(".morgans-report-error"))');assert.equal(captures,1);
+  assert.equal(await js('document.querySelector(".morgans-report-draft textarea").value'),'Captain-edited report with saved evidence.','failed save keeps draft');
+  failCapture=false;await click('.morgans-report-draft>button');await wait('document.querySelector(".morgans-report-draft>button").disabled');assert.equal(captures,2);
+  await click('.morgans-report-draft>button');assert.equal(captures,2,'saved draft cannot be duplicated by another click');
+  await screenshot('morgans-report-saved.png');
+  await click('.morgans-report-task button');await wait('document.querySelector(".workbench")?.dataset.crewId==="morgans"');
+  assert.ok(await js('document.querySelector(".conversation-room-art").src.endsWith("/assets/morgans-blimp.png")'),'reporter task uses packaged blimp art');
+  assert.ok(await js('document.querySelector(".workbench-crew .crew-badge").style.backgroundImage.includes("morgans-blimp-key.png")'),'reporter badge uses Morgans artwork');
+  assert.equal(await js('document.querySelector(".composer textarea").disabled'),true,'reporter task is read-only after its sourced turn');
+  await click('[aria-label="Back to workspace"]');await nav('Morgans’ blimp');await wait('Boolean(document.querySelector(".morgans-report-draft"))');
+  await fill('[aria-label="Report draft"]','Keep this unsaved draft while checking the source.');
+  await js('Array.from(document.querySelectorAll(".morgans-source")).find(button=>button.textContent.includes("Failed build review")).click()');await wait('document.querySelector(".workbench")?.dataset.crewId==="zoro"');
+  await click('[aria-label="Back to workspace"]');await nav('Morgans’ blimp');await wait('Boolean(document.querySelector(".morgans-report-draft"))');
+  assert.equal(await js('document.querySelector(".morgans-report-draft textarea").value'),'Keep this unsaved draft while checking the source.','source navigation keeps draft');
+  await js('Array.from(document.querySelectorAll(".morgans-source")).find(button=>button.textContent.includes("Review the launch")).click()');await wait('Boolean(document.querySelector(".mission-board"))');
+  assert.ok(await js('document.querySelector(".mission-entries button[aria-pressed=true]")?.textContent.includes("Review the launch")'),'mission source opens exact mission');
+  assert.equal(await js('Array.from(document.querySelectorAll(".mission-launch-controls select option")).some(option=>option.value==="reporter")'),false,'on-demand reporter is not an unsourced mission lead');
+  await nav('Morgans’ blimp');await wait('Boolean(document.querySelector(".morgans-report-draft"))');
+  assert.equal(await js('document.querySelector(".morgans-report-draft textarea").value'),'Keep this unsaved draft while checking the source.');
+  await js('window.confirm=()=>false;undefined');await click('.morgans-report-generate');assert.equal(reportRequests,1,'unsaved draft replacement requires confirmation');
+  await js('window.confirm=()=>true;undefined');state.settings.reducedMotion=true;emit();await click('.morgans-report-generate');await wait('document.querySelector(".morgans-report-coverage")?.textContent.includes("truncated")');
+  assert.equal(reportRequests,2);assert.equal(captures,2,'uncertain report and empty evidence do not save automatically');
+  assert.ok(await js('document.querySelector(".morgans-report-task").textContent.includes("uncertain")'));
+  assert.ok(await js('document.querySelector(".morgans-report-evidence").textContent.includes("No saved task")'));
+  assert.equal(await js('getComputedStyle(document.querySelector(".morgans-report")).animationName'),'none','report remains usable with reduced motion');
+  await screenshot('morgans-report-uncertain.png');
+  await nav('Crew');await wait('Boolean(document.querySelector(".crew-grid"))');assert.equal(await js('document.querySelectorAll(".crew-card").length'),10,'Morgans reporter stays separate from the ten Straw Hats');
+  await nav('Home');
   assert.equal(await js('document.querySelectorAll("button button").length'),0,'no nested buttons');
   await fill('[aria-label="Search tasks"]','dashboard layout');await wait('document.querySelectorAll(".home-task").length===1');
   await click('.home-task-open');await wait('Boolean(document.querySelector(".approval-card"))');
@@ -108,6 +164,8 @@ app.whenReady().then(async()=>{
   assert.equal(await js('document.querySelector(".workbench").dataset.crewId'),'robin','selected Obsidian note opens with Robin');
   assert.ok(await js('document.querySelector(".composer textarea").value.includes("Keep the launch focused on a small, verifiable first release.")'),'selected note content is attached as a reviewable draft');
   assert.ok(await js('document.querySelector(".composer textarea").value.includes("Do not edit or save the Obsidian vault")'),'Robin is asked to propose changes without automatic vault writes');
+  assert.ok(await js('document.querySelector(".composer textarea").value.includes("Note revision: fixture-note")'),'Robin handoff cites exact note revision');
+  assert.ok(await js('document.querySelector(".composer textarea").value.includes("captain’s project decision")'),'Robin handoff asks for decision context');
   assert.equal(await js('document.querySelector(".composer textarea").value.includes("Older unrelated draft")'),false,'Robin note context has an isolated draft key');
   assert.equal(starts,1,'preparing Robin review does not start or send a task');
   await click('[aria-label="Back to workspace"]');await wait('Boolean(document.querySelector(".library-page"))');await fill('.search-box input','launch');await wait('document.querySelectorAll(".search-results button").length===2');await click('.search-results button:nth-child(2)');await wait('Boolean(document.querySelector(".robin-note-limit"))');assert.equal(await js('document.querySelector(".library-note-actions .secondary-button").disabled'),true,'oversized note is not silently truncated into Robin context');await nav('Home');await wait('Boolean(document.querySelector(".home-page"))');await js('Array.from(document.querySelectorAll(".sidebar button")).find(button=>button.textContent.trim()==="Settings").click()');await wait('Boolean(document.querySelector(".settings-page"))');
@@ -170,7 +228,7 @@ app.whenReady().then(async()=>{
    assert.ok(await js(`document.querySelector(".conversation-room-art").src.endsWith("/assets/${asset}")`),`${crewId} opens its own packaged room art`);assert.equal(await js('document.querySelector(".conversation-room-art").getAttribute("aria-hidden")'),'true',`${crewId} art remains decorative`);assert.equal(await js('getComputedStyle(document.querySelector(".conversation-room-art")).opacity'),'0.19',`${crewId} scene stays subdued below chat content`);assert.ok(await js('Boolean(document.querySelector(".composer textarea")&&Array.from(document.querySelectorAll("button")).some(button=>button.getAttribute("aria-label")==="Back to workspace"))'),`${crewId} keeps direct work controls available`);
    if(crewId==='zoro')await screenshot('zoro-dojo-room-working.png');if(crewId==='chopper'){assert.ok(await js('document.querySelector(".workbench").classList.contains("reduce-motion")'),'reduced motion keeps Chopper room static and usable');await screenshot('chopper-infirmary-reduced-motion.png');}await click('[aria-label="Back to workspace"]');await wait('!document.querySelector(".workbench")');
   }
-  fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({passed:true}));console.log('SUNNY_WORKFLOW '+JSON.stringify({passed:true,checks:['snapshot-race','family-search','specialist-approval','duplicate-approval','draft-per-task','home-draft-navigation','failed-start-draft','duplicate-start','lazy-tools','folder-parent','editor-load','draft-reload','reconcile','inbox','compact-layout','island-navigation','captain-controlled-map-zoom-keyboard-touch','startup-retry','pending-launch-navigation','dirty-project-switch','dirty-file-task-start','template-cleared-after-start','character-room-theme','room-audio-toggle','room-audio-settings','robin-obsidian-library-route','note-context-unsent-robin-review','oversized-note-boundary','all-ten-illustrated-crew-rooms','reduced-motion-illustrated-room'],screenshots:output}));
+  fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({passed:true}));console.log('SUNNY_WORKFLOW '+JSON.stringify({passed:true,checks:['snapshot-race','family-search','specialist-approval','duplicate-approval','draft-per-task','home-draft-navigation','failed-start-draft','duplicate-start','lazy-tools','folder-parent','editor-load','draft-reload','reconcile','inbox','compact-layout','island-navigation','captain-controlled-map-zoom-keyboard-touch','startup-retry','pending-launch-navigation','dirty-project-switch','dirty-file-task-start','template-cleared-after-start','character-room-theme','room-audio-toggle','room-audio-settings','robin-obsidian-library-route','note-context-unsent-robin-review','robin-note-revision-decision-context','morgans-saved-work-report','morgans-source-navigation','morgans-explicit-obsidian-save','morgans-uncertain-truncated-state','oversized-note-boundary','all-ten-illustrated-crew-rooms','reduced-motion-illustrated-room'],screenshots:output}));
  }catch(error){await screenshot('failure.png').catch(()=>{});fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({passed:false,error:error.stack}));console.error(error);process.exitCode=1;}
  finally{win.destroy();app.exit(process.exitCode||0);}
 }).catch(error=>{console.error(error);app.exit(1);});

@@ -29,7 +29,7 @@ Navigation must retain a direct searchable list and keyboard path to every missi
 | Den-den-mushi signal | Notification tied to a persisted event |
 | Captain's approval | Authorization for a specific consequential action |
 | Treasure/progression | Clearly labelled achievements; never invented earnings |
-| Morgans' blimp | Imported sourced briefing; not an unattended connected feed |
+| Morgans' blimp | Imported sourced outside briefing and captain-requested reports from saved Sunny work |
 
 ## Canon and implementation
 
@@ -69,6 +69,12 @@ The project-room CSS prototype now uses the original generated timber/teal room 
 The Grand Line chart is active in the current worktree: six distinct One Piece-inspired destinations retain the saved district identifiers and each opens its existing work surface. The captain may optionally control a Straw Hat or recruited resident using keyboard or touch movement, with zoom and drag exploration. This changes presentation only; missions, jobs, approvals, and completion evidence still come from saved work state. Destination labels and action buttons remain accessible DOM controls outside the artwork. Room art, sprite behavior, sound cues, and source provenance are recorded in `public/assets/ARTWORK.md`.
 
 Character workbenches now carry ten distinct static room illustrations. Robin's room includes a direct Obsidian library route, and note review prepares a draft for Robin without editing the vault. Room arrival cues are original synthesized audio, opt-in, adjustable, immediately muteable, and unrelated to task status. Reduced-motion settings preserve readable status and direct controls.
+
+## Morgans reports and Robin decisions (2026-09-23)
+
+Morgans is a reporter on his blimp, separate from the ten core Straw Hats. On captain request, Sunny builds a bounded packet from saved tasks, missions, approvals, checks, pull requests and deployment observations across selected registered projects. The default covers all projects and seven days; older unresolved work remains visible. The blimp shows exact source IDs and times beside Morgans' generated wording. A finished provider turn is still review-needed work, absent deployment evidence remains unobserved, and truncated coverage is labelled. The reporter turn has read-only, no-tool authority. The captain can edit its summary and explicitly save one new note to Obsidian `00 Inbox`; viewing, generating and editing do not write the vault.
+
+Robin remains the librarian. The captain selects an existing Obsidian note and project, then Robin receives its path, revision and JSON-quoted content in an unsent draft to inform a decision. Robin should identify supported facts, uncertainties, choices and a recommendation. Neither a vault note nor Morgans' prose grants approval, proves acceptance or changes mission state.
 
 ## Project document shelf (2026-09-22)
 

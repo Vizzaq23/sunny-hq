@@ -57,8 +57,9 @@ export function CrewBadge({crew,size='normal',onClick}:{crew:Crew;size?:'small'|
   const spriteUrl=new URL(`${import.meta.env.BASE_URL}assets/crew-pet-states.png`,window.location.href).href;
   const chopperUrl=new URL(`${import.meta.env.BASE_URL}assets/chopper-pet.webp`,window.location.href).href;
   const texture=useCrewTexture(spriteUrl,'states');
-  const chopper=crew.id==='chopper',pixel=chopper||Boolean(resident?residentTexture:texture);
-  return <Tag className={`crew-badge ${size} ${pixel?'pixel':'portrait'} ${chopper?'chopper':''}`} style={{'--crew':crew.color,'--crew-x':`${x}%`,'--crew-y':`${y}%`,backgroundImage:`url("${resident?residentTexture??residentUrl:chopper?chopperUrl:texture??crewSheetUrl}")`,backgroundSize:resident?'400% 400%':chopper?'800% 1100%':texture?'800% 500%':undefined} as React.CSSProperties} onClick={onClick} title={`${crew.name} · ${crew.role}`} aria-label={`${crew.name}, ${crew.role}`}><span>{crew.name}</span></Tag>;
+  const chopper=crew.id==='chopper',morgans=crew.id==='morgans',pixel=chopper||Boolean(resident?residentTexture:texture);
+  const morgansUrl=new URL(`${import.meta.env.BASE_URL}assets/morgans-blimp-key.png`,window.location.href).href;
+  return <Tag className={`crew-badge ${size} ${pixel?'pixel':'portrait'} ${chopper?'chopper':''}`} style={{'--crew':crew.color,'--crew-x':`${x}%`,'--crew-y':`${y}%`,backgroundImage:`url("${morgans?morgansUrl:resident?residentTexture??residentUrl:chopper?chopperUrl:texture??crewSheetUrl}")`,backgroundSize:morgans?'contain':resident?'400% 400%':chopper?'800% 1100%':texture?'800% 500%':undefined,backgroundPosition:morgans?'center':undefined,backgroundRepeat:morgans?'no-repeat':undefined} as React.CSSProperties} onClick={onClick} title={`${crew.name} · ${crew.role}`} aria-label={`${crew.name}, ${crew.role}`}><span>{crew.name}</span></Tag>;
 }
 
 export function TaskRow({task,crew,onClick}:{task:Task;crew?:Crew;onClick:()=>void}){

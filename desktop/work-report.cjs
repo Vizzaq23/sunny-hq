@@ -1,5 +1,6 @@
 const DAY=86400000;
 const MAX_ITEMS=500;
+const MAX_PACKET_CHARS=65000;
 const ATTENTION=new Set(['unknown','failed','interrupted','blocked','waiting-approval','review-needed','stale']);
 const UNRESOLVED=new Set(['unknown','failed','interrupted','blocked','waiting-approval','review-needed','working']);
 
@@ -25,9 +26,9 @@ function createWorkReport(snapshot,request={},now=Date.now()){
  const scope=validateScope(snapshot,request,now),projectSet=new Set(scope.projectIds);
  const projects=scope.projectIds.map(id=>{const project=snapshot.projects.find(item=>item.id===id);return {id,name:boundedTitle(project.name),tasks:[],missions:[],observations:[]};});
  const byProject=new Map(projects.map(project=>[project.id,project]));
- const attention=[];let itemCount=0,truncated=false;
+ const attention=[];let itemCount=0,truncated=false,estimatedChars=JSON.stringify(projects).length+JSON.stringify(scope).length+1000;
  const include=item=>item.observedAt>=scope.since&&item.observedAt<=scope.until||UNRESOLVED.has(item.status);
- const add=(item,bucket,force=false)=>{if(!projectSet.has(item.projectId)||(!force&&!include(item)))return;if(itemCount>=MAX_ITEMS){truncated=true;return;}itemCount++;byProject.get(item.projectId)[bucket].push(item);if(ATTENTION.has(item.status))attention.push(item);};
+ const add=(item,bucket,force=false)=>{if(!projectSet.has(item.projectId)||(!force&&!include(item)))return;const needsAttention=ATTENTION.has(item.status),chars=JSON.stringify(item).length*(needsAttention?2:1)+4;if(itemCount>=MAX_ITEMS||estimatedChars+chars>MAX_PACKET_CHARS){truncated=true;return;}itemCount++;estimatedChars+=chars;byProject.get(item.projectId)[bucket].push(item);if(needsAttention)attention.push(item);};
  for(const task of snapshot.tasks||[]){
   const status=taskStatus(task),observedAt=time(task.updatedAt,time(task.createdAt,now));
   add({projectId:task.projectId,kind:'task',id:task.id,title:boundedTitle(task.title),status,observedAt,target:{view:'task',id:task.id},sourceId:task.id,sourceTime:observedAt},'tasks');

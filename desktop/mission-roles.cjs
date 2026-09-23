@@ -1,5 +1,5 @@
 const ROLE_BINDINGS=Object.freeze([
- ['coordinator','Coordinator','luffy','coordination'],['planner','Planner','nami','planning'],['builder','Builder','franky','implementation'],['reviewer','Reviewer','zoro','review'],['validator','Validator','usopp','verification'],['researcher','Researcher','robin','research'],['designer','Visual designer','sanji','design'],['diagnostician','Diagnostician','chopper','diagnosis'],['creator','Creative worker','brook','creative'],['operator','Operator','jinbe','operations']
+ ['coordinator','Coordinator','luffy','coordination'],['planner','Planner','nami','planning'],['builder','Builder','franky','implementation'],['reviewer','Reviewer','zoro','review'],['validator','Validator','usopp','verification'],['researcher','Researcher','robin','research'],['designer','Visual designer','sanji','design'],['diagnostician','Diagnostician','chopper','diagnosis'],['creator','Creative worker','brook','creative'],['operator','Operator','jinbe','operations'],['reporter','Reporter','morgans','reporting']
 ].map(([id,label,crewId,capability])=>Object.freeze({id,label,crewId,capability,provider:'codex'})));
 function resolveMissionRole(input,bindings=ROLE_BINDINGS){
  const binding=input.roleId?bindings.find(r=>r.id===input.roleId):bindings.find(r=>r.crewId===input.crewId);

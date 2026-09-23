@@ -70,3 +70,11 @@ test('pre-range unresolved mission keeps its current-attempt observations visibl
  assert.equal(packet.projects[0].observations.find(item=>item.id==='old-check').status,'passed');
  assert.equal(packet.projects[0].observations.find(item=>item.kind==='deployment').status,'unobserved');
 });
+
+test('a large saved history stays within one reporter prompt budget and labels truncation',()=>{
+ const input=structuredClone(fixture);
+ input.tasks=Array.from({length:500},(_,index)=>({id:`task-${index}`,projectId:'alpha',title:'A'.repeat(180),status:'finished',createdAt:1000,updatedAt:9000}));
+ const packet=createWorkReport(input,{projectIds:['alpha'],since:1000,until:9000},9000);
+ assert.equal(packet.coverage.truncated,true);
+ assert.ok(JSON.stringify(packet).length<80000);
+});

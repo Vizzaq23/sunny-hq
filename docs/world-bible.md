@@ -64,6 +64,12 @@ Deployment observations (2026-09-21): mission review and project health now show
 
 The project-room CSS prototype now uses the original generated timber/teal room background recorded in ARTWORK.md. This supersedes the illustrated-interior limitation above. A full3:2 canvas preserves perspective without responsive cropping. Three existing crew sprites approach lanes aligned with the desks; the captain stays in a central clear-floor rectangle and reaches a board approach. Direct board/task/stop controls remain usable without walking. State remains entirely sourced from Hub projections. This is one useful illustrated interior, not seamless island-to-door travel or general furniture pathfinding.
 
+## Grand Line and character-room update (2026-09-23)
+
+The Grand Line chart is active in the current worktree: six distinct One Piece-inspired destinations retain the saved district identifiers and each opens its existing work surface. The captain may optionally control a Straw Hat or recruited resident using keyboard or touch movement, with zoom and drag exploration. This changes presentation only; missions, jobs, approvals, and completion evidence still come from saved work state. Destination labels and action buttons remain accessible DOM controls outside the artwork. Room art, sprite behavior, sound cues, and source provenance are recorded in `public/assets/ARTWORK.md`.
+
+Character workbenches now carry ten distinct static room illustrations. Robin's room includes a direct Obsidian library route, and note review prepares a draft for Robin without editing the vault. Room arrival cues are original synthesized audio, opt-in, adjustable, immediately muteable, and unrelated to task status. Reduced-motion settings preserve readable status and direct controls.
+
 ## Project document shelf (2026-09-22)
 
-Project quarters now contain collapsible Project charts below the health log. The captain explicitly browses root/docs Markdown files and selects a read-only source preview. File content is never treated as mission evidence or an instruction to act. This adds useful project information without changing room geometry, art, movement, or the immediate stop/approval controls. The source increment awaits packaging; it is not yet in the activated daily app.
+Project quarters contain collapsible Project charts below the health log. The captain explicitly browses root/docs Markdown files and selects a read-only source preview. File content is never treated as mission evidence or an instruction to act. This adds useful project information without changing the immediate stop/approval controls.

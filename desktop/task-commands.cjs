@@ -1,5 +1,5 @@
 const schemas={
- 'task:start':{required:['projectId','crewId','prompt'],optional:['title','model','effort','selectionReason']},
+ 'task:start':{required:['projectId','crewId','prompt'],optional:['title','model','effort','selectionReason','selectedSkills']},
  'task:send':{required:['taskId','prompt'],optional:[]},
  'task:handoff':{required:['taskId','crewId','prompt'],optional:[]},
  'task:interrupt':{required:['taskId'],optional:[]},
@@ -13,6 +13,7 @@ function validateTaskCommand(action,args){
  if(Object.keys(args).some(key=>!keys.includes(key)))throw Error('Unknown task argument.');
  for(const key of keys){
   const value=args[key];if(!schema.required.includes(key)&&(value===undefined||value===''))continue;
+  if(key==='selectedSkills'){if(!Array.isArray(value)||value.length>2||value.some(item=>!item||typeof item!=='object'||Array.isArray(item)||Object.keys(item).some(field=>!['id','revision'].includes(field))||typeof item.id!=='string'||typeof item.revision!=='string'))throw Error('Invalid selectedSkills.');continue;}
   if(typeof value!=='string'||!value.trim()||value.length>limits[key]||value.includes('\0'))throw Error('Invalid '+key+'.');
  }
  return args;

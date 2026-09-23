@@ -20,7 +20,7 @@ export const CREW_BY_ID = new Map<CrewId,Crew>(ALL_CREW.map(member=>[member.id,m
 
 export const EMPTY_SNAPSHOT: Snapshot = {
   projects:[],tasks:[],tools:[],approvals:[],models:[],usage:null,automations:[],
-  settings:{reducedMotion:false,notifications:true,model:undefined},
+  settings:{reducedMotion:false,notifications:true,roomSoundEnabled:false,roomSoundVolume:.32,model:undefined},
   codex:{status:'desktop-required'},
 };
 

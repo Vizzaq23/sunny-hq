@@ -69,3 +69,32 @@ The generated bitmap is preserved. Runtime chroma-key compositing supplies trans
 `project-quarters.png` is a byte-identical runtime copy of the original [project-quarters concept](../../docs/references/project-quarters-concept-2026-09-21.md), generated with the built-in Codex image_gen tool. That record contains the full prompt and original tool path. Dimensions1536 ×1024; SHA256 `1b854c869ad3bf772211d405dcfc7c26174b792396eecfc817ba163112d958d4`. No additional image editing, external download or replacement of earlier Sunny artwork occurred.
 
 Admitted as the project-room background after native visual/geometry checks: full3:2 image with no crop, desk lanes32/57/79 percent, clear captain floor34–78% horizontally and52–76% vertically, board approach46/52. Furniture remains outside captain movement. Existing crew atlases and accessible HTML controls supply all changing state. Illustration markings are decorative, never status. Reduced motion preserves the scene and stops crew travel/frame loops. This is local implementation admission, not captain mission acceptance or permission to publish commercially.
+
+## Grand Line voyage map (2026-09-22)
+
+`grand-line-voyage-map.png` is a new original generated illustration used as the island view background. Built-in Codex image generation used `island-world.png` only as a style reference; the source output remains at `C:\Users\Quintin\.codex\generated_images\01a0cb6c-4608-72d0-b747-afed9475e3e3\exec-31d55a09-8275-4d50-94db-32d8c4db526d.png`. Exported size: 1536 × 1024. SHA256: `4c42031fbba281e8960b85db3ef6f056ca13aa46609da4923760b95dea8693cf`.
+
+Final prompt: "Create a brand-new original pixel-art Grand Line archipelago, using the existing Sunny island only as a style and color-quality reference, not preserving its single-island geography. The Sunny is anchored in a clear central sea lane. Around it are six separated islands: a scholarly island with giant tree and observatory, a canal city of shipwright workshops, a moonlit gothic haunted ship island, a festival market town, a cloud island with golden temple and sky gardens, and a white judicial fortress with bridge and waterfalls. Match Sunny's crisp, charming, high-detail hand-painted pixel-art aesthetic. Keep each island distinct with open water for HTML hotspots. No labels, text, UI, logos, emblems, characters, copied official artwork or watermark. Whole 3:2 landscape composition visible without cropping." Named destination labels and status are HTML controls, not baked into the image. This generated fan setting is not a commercial license.
+
+## Procedural crew-room sound cues (2026-09-23)
+
+`src/roomAudio.ts` synthesizes a brief character-specific arrival cue for each of the ten core stations with Web Audio oscillators and gain envelopes. No audio bitmap/sample is bundled, recorded, fetched, or licensed from another source. Cues are opt-in, quiet, stop immediately when muted, and run only on entering/changing a crew room; they do not indicate task activity. The user-adjustable volume is capped at 65% of the cue envelope.
+
+## Illustrated character chat rooms — 2026-09-23
+
+Ten original generated room illustrations now give each core crewmate a distinct chat backdrop. Each is 1536 × 1024, uses `island-world.png` only as a style reference, and remains a byte-identical copy of its generated source. The prompt set requested empty, wide elevated shipboard interiors with recognizable role props, broad calm center space for conversation readability, Sunny's colorful hand-painted pixel-art game style, and no text, interface or copied official artwork.
+
+| Asset | Generated source | SHA256 | Character-specific room direction |
+| --- | --- | --- | --- |
+| `luffy-captains-den.png` | `exec-5c04807e-e0dd-4c05-95b1-226392122934.png` | `59F066B491F2C5136E1C9B4B38EA96697606A605A5AF0C20FE9694BADC2D5D33` | Sunny captain's den, warm red/gold accents, open planning table and porthole |
+| `zoro-dojo-room.png` | `exec-63f535c6-fc52-47d7-8e5e-ae161f2640a5.png` | `2AFADEC0E42A55A94082B88E27DEC558340EA008A39997ECBBC8D24F8BC9845E` | Timber dojo, tatami, three practice swords, straw target, sea-facing porthole |
+| `nami-chart-room.png` | `exec-76719ea4-6100-49b9-87f1-372e2fc5f332.png` | `21F07BCFEB1B93F90E48908F6294A6917D9AB643427E227E09E70A9596238392` | Navigation chart room, maps, compass, brass instruments and orange accents |
+| `usopp-inventors-workshop.png` | `exec-a518b4ce-fef9-48b3-bdea-4d8271409e65.png` | `0291C6522607AF49378BCD49189D1E04DFF58A81DA078F78098638ED61684C94` | Inventor's workshop, tools, slingshot materials, prototypes and bright green details |
+| `sanji-galley-room.png` | `exec-904cf7a0-6940-484c-aa26-1be1b8b7c667.png` | `4116D12FE70F743AF4A6C229B8366FC7230FED3E130C02A4D0CB553EA7B8CEC3` | Ship galley, copper cookware, service counter, warm cream and red details |
+| `chopper-infirmary-room.png` | `exec-5cc280f0-b421-4b52-a717-71e7e2f5a154.png` | `467462489FA619F3736F578277550211F9C502C580989757688F477D778F6E70` | Compact infirmary, medicine cabinet, examination bed, pink and mint accents |
+| `robin-ship-library.png` | `exec-3db2123f-9894-4686-925a-93f770875ce9.png` | `E8230861A07E65C02C3A931388BA37D4CA98DA57EC8965AFF45B9BBABC17EA3A` | Quiet library, tall shelves, research desk, books and deep violet accents |
+| `franky-shipwright-room.png` | `exec-8e2e25ad-e504-4d60-95c3-6feb18962c19.png` | `E29915E79F9A279AF61EF490E51527190A87BBE7AF941F962D6702419D051A8C` | Shipwright bay, workbench, blueprints, brass tools and industrial blue accents |
+| `brook-music-room.png` | `exec-0671d1a7-9a3d-4acb-b744-6619e355c132.png` | `C5BC9C225B7AC21973DC3F4C608F8478FEBBDF1DFF86264452EC51038DB3B68B` | Music room, violin, sheet music, stage details and plum/ivory palette |
+| `jinbe-helm-room.png` | `exec-b4d989a7-44ce-4e93-8e43-fda33df7ba06.png` | `8AA7B6658264FA9FC2E9B39A964E2C3491E453F90590F018B4599023F1B8EB1F` | Helm and lookout room, ship wheel, sea charts, teal wood and brass |
+
+The exact prompt outputs are retained in the generated-images directory shown above (same directory as the Zoro source). All ten were decoded and checked in fixture conversations; the Electron workflow captured Zoro and Chopper rooms. Runtime art is aria-hidden, static, and rendered at 19% opacity under direct chat content. It contains no mission status or actionable controls. Reduced motion is verified with Chopper. These are stylized fan-room illustrations, not a commercial license.

@@ -3,3 +3,43 @@
 .island-page .island-scene{min-width:0}.island-page .island-actors .deck-crew{margin:0;transform:translate(-50%,-100%) scale(.8);transition:transform .15s}.island-page .island-actors .deck-crew:hover{transform:translate(-50%,-100%) scale(.86)}.island-page .island-resident{transform:translate(-50%,-100%)}
 
 .parallel-limit{display:flex;align-items:center;gap:10px;font-size:12px;color:#24575b;margin-top:12px}.parallel-limit select{padding:7px;border:1px solid #ccd4c0;border-radius:7px;background:#fffdf5;color:inherit}.all-jobs-toggle{display:flex;align-items:center;gap:7px;font-size:12px;color:#24575b;margin-bottom:14px}.recovery-screen{margin:0;min-height:100vh;background:#faf6ed;color:#24575b;padding:48px;font:16px system-ui}.recovery-screen h1{font:36px Georgia,serif;max-width:680px}.recovery-screen p{max-width:600px;line-height:1.7}.recovery-screen button{background:#24575b;color:white;padding:12px 18px;border:0;border-radius:8px;margin:12px 12px 0 0;cursor:pointer}
+
+/* The sea chart changes the setting while saved district IDs remain the same. */
+.voyage-route{display:flex;gap:8px;overflow-x:auto;padding:2px 1px 12px;margin-bottom:9px;scrollbar-width:thin}
+.voyage-route button{flex:1 0 132px;min-width:0;text-align:left;border:1px solid #d6d8c7;border-radius:11px;background:#fff9eb;color:#245357;padding:10px 12px;box-shadow:0 2px 8px #123c3b0b}
+.voyage-route button[aria-pressed="true"]{background:#174e55;color:#fff8e9;border-color:#d7ad69}
+.voyage-route span,.voyage-route small{display:block}.voyage-route span{font-weight:700;font-size:12px}.voyage-route small{font-size:10px;margin-top:3px;opacity:.83}
+.island-page .island-viewport{height:min(65vw,660px);min-height:430px;background:#087aaf}
+.island-page .island-scene{min-width:860px}
+.island-page .island-district{min-width:112px;max-width:166px;padding:8px 10px;border:1px solid #fff5d5;background:#fff9eaf2;color:#184c51;box-shadow:0 4px 12px #072e4880;white-space:normal;text-align:center;line-height:1.2}
+.island-page .island-district b{display:block;font:700 13px Georgia,serif}
+.island-page .island-district small{font-size:10px;line-height:1.25;color:#4e6969}
+.island-page .island-district.selected{background:#124d53;color:#fff7dc;border-color:#ffd17c}
+.island-page .island-district.selected small{color:#fff0c9}
+.island-page .island-dock-link{left:50%;top:51%;transform:translate(-50%,-50%);background:#0d515fdc;border:1px solid #fff6d7;color:#fff9e9;box-shadow:0 4px 12px #062d4870;font-weight:700}
+.destination-header{border-bottom:1px solid #e0d9c9;background:linear-gradient(145deg,#fbf8eb,#edf2df)}
+.destination-header.destination-justice{background:linear-gradient(145deg,#fffaf0,#e3eef3)}
+.destination-header.destination-scholar{background:linear-gradient(145deg,#fbf8eb,#e4efdd)}
+.destination-header.destination-shipwright{background:linear-gradient(145deg,#fff9ea,#deedf0)}
+.destination-header.destination-moonlit{background:linear-gradient(145deg,#f5f0f8,#e6e0ee)}
+.destination-header.destination-festival{background:linear-gradient(145deg,#fff9ea,#f7e5d4)}
+.destination-header.destination-sky{background:linear-gradient(145deg,#fffbed,#e7f0f6)}
+.destination-header .destination-work-button{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;margin:12px 0;border:0;border-radius:8px;background:#155760;color:#fff9e9;padding:10px 12px;font-size:12px;font-weight:700;text-align:left}
+.destination-projects{display:grid;gap:5px;padding-top:11px;border-top:1px solid #627e7a45}
+.destination-projects strong{font-size:11px;color:#285459;margin-bottom:2px}
+.destination-projects button{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid #d3d9cc;border-radius:7px;background:#fffdf6c9;color:#285459;padding:7px 9px;font-size:11px;text-align:left}
+.destination-projects small{font-size:10px;color:#637d78}
+@media(max-width:1000px){.voyage-route button{flex-basis:142px}.island-page .island-viewport{height:570px}.island-page .island-scene{min-width:860px}}
+
+
+.island-page .island-project-doors{display:block;margin:0 0 14px;border:1px solid #dcd8c8;border-radius:10px;background:#fffaef}
+.island-page .island-project-doors summary{padding:10px 13px;cursor:pointer;color:#24575b;font-size:12px;font-weight:700}
+.island-page .island-project-doors nav{display:flex;gap:8px;flex-wrap:wrap;padding:0 10px 10px;max-height:185px;overflow:auto}
+.island-page .island-project-doors button{padding:8px 10px;border-width:1px}
+.island-page .morgans-blimp{left:41%;top:0;width:18%;max-width:175px}
+.destination-projects{max-height:170px;overflow:auto;scrollbar-width:thin}
+.island-page .island-viewport{outline:none}.island-page .island-viewport:focus-visible{box-shadow:inset 0 0 0 3px #f2c263}
+.island-page .island-actors .deck-crew{transition:left .11s linear,top .11s linear,transform .15s,filter .15s}.island-page .island-actors .deck-crew.selected{filter:drop-shadow(0 0 9px #ffca58) drop-shadow(0 5px 5px #123b5a88)}.island-page .island-resident{transition:left .11s linear,top .11s linear}.island-page .island-resident.selected .resident-frame{filter:drop-shadow(0 0 7px #ffca58) drop-shadow(0 3px 3px #16434c)}.island-page .island-resident.selected b{opacity:1;background:#124d53;color:#fff8e9}
+.captain-map-controls{display:flex;align-items:center;gap:14px;padding:12px 15px;border-top:1px solid #d9d5c5;background:#f5efde}.captain-map-controls>label{display:grid;gap:5px;min-width:190px;color:#315e5b;font-size:11px;font-weight:700}.captain-map-controls select{min-height:36px;padding:7px 9px;border:1px solid #d0cdbb;border-radius:7px;background:#fffdf5;color:#234f53;font:inherit;font-weight:500}.island-move-pad{display:grid;grid-template:34px 34px/34px 34px 34px;gap:3px}.island-move-pad button{border:1px solid #c9c6b4;border-radius:7px;background:#fffcf3;color:#194e57;font-size:19px;line-height:1;box-shadow:0 2px 3px #243d3716}.island-move-pad button:active{transform:translateY(1px);background:#e5ebd9}.island-move-pad button:nth-child(1){grid-area:1/2}.island-move-pad button:nth-child(2){grid-area:2/1}.island-move-pad button:nth-child(3){grid-area:2/2}.island-move-pad button:nth-child(4){grid-area:2/3}.captain-map-hint{max-width:470px;color:#687871;font-size:10px;line-height:1.5}
+@media(max-width:640px){.captain-map-controls{align-items:flex-start;flex-wrap:wrap}.captain-map-controls>label{flex:1 1 160px}.captain-map-hint{flex:1 1 100%}}
+@media(prefers-reduced-motion:reduce){.island-page .island-actors .deck-crew,.island-page .island-resident{transition:none!important}}

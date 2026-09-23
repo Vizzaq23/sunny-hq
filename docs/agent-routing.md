@@ -1,6 +1,6 @@
 # Agent routing and authority
 
-Research date: 2026-09-21. The existing `desktop/model-routing.cjs` live-catalog validation remains the running implementation. This document defines the next boundary; it does not claim new providers are connected.
+Research date: 2026-09-21; implementation update: 2026-09-23. The existing `desktop/model-routing.cjs` live-catalog validation remains the execution policy. An optional Jev advisor now prepares context for explicitly selected projects; it does not execute work or change human authority.
 
 ## Role bindings
 
@@ -39,11 +39,11 @@ Sol/Astra are exposed by this development session's model catalog. That does not
 
 [Confidence](https://docs.typesafe.ai/confidence) is derived from the response distribution, not proof of correctness or authorization. Do not copy universal 0.5/0.9 thresholds from examples. Calibrate against Sunny-labelled tasks and cost-weighted error outcomes. High confidence never skips a required human gate. [Known limitations](https://docs.typesafe.ai/model-jaggedness/jev-1.13) include literal interpretation, arithmetic/date comparison, indirection, irrelevant context and adversarial inputs. Numeric rules remain code. Vendor throughput and social speedup claims are not Sunny end-to-end latency measurements; no independent uptime/SLA or production reliability result was established here.
 
-## Proposed adapter contract, not a fake integration
+## Original adapter proposal and current scope
 
 Input: decisionId, attemptId, stateRevision, sanitized task brief, permitted role/model candidates, deadline and policy version. Output is either `selected` (candidateId, provider/model version, probabilities/confidence when supplied, usage and elapsed time) or `abstain` (reason code). Only prevalidated candidates are accepted. Timeouts, overload, malformed results, stale revisions and missing credentials abstain; bounded retry only for a read-only decision within its deadline. Never retry a worker side effect because the router timed out.
 
-Start in shadow mode on synthetic or explicitly approved redacted tasks. Compare rules, existing captain routing and Jev on held-out examples. Measure role correctness, unsafe false-allow rate, abstention coverage, p50/p95 latency, actual tokens/cost, stale result rejection and end-to-end task quality. Activate only if it materially improves quality or cost without weakening permissions. Until then, no dependency or production adapter is justified.
+The original proposal called for shadow evaluation before automatic routing. That evaluation is still outstanding. The implemented adapter is narrower: when `SUNNY_JEV_ENABLED=1`, an exact registered project ID is allowlisted, and a key is present in the launching process, Jev may rank existing crew-journal context and return advisory role/model suggestions. The existing Codex worker, catalog validation, mission stage rules and captain approvals remain authoritative. Morgans' report-only turns bypass Jev, and Morgans is excluded from the advice candidate set. See [integration and rollback](jev-integration.md). No paid live Jev call or measured quality improvement is claimed. A held-out comparison of relevance, abstention, latency, usage and task outcomes is still required before changing routing policy.
 
 ## Claude Code evaluation
 
@@ -55,7 +55,7 @@ The inspected setup requirements are Windows 10 1809+/Server 2019+, 4 GB RAM and
 
 ## Implemented mission routing (2026-09-21)
 
-The mission board now uses stable role IDs through `desktop/mission-roles.cjs`. The selected capability, crew/provider binding, reason and policy version are saved before dispatch and shown on each attempt. Codex is the only connected implementation; unsupported provider bindings reject, not fallback silently. This supplements the live model/effort selector and existing read-only coordinator's six-assignment sequential delegation limit. Scoped mission context includes objective and acceptance criteria without the full saved ledger. Automated semantic role choice, provider configuration UI, guaranteed planner/reviewer stage enforcement and Jev evaluation remain future work; explicit role selection is not evidence of those capabilities.
+The mission board now uses stable role IDs through `desktop/mission-roles.cjs`. The selected capability, crew/provider binding, reason and policy version are saved before dispatch and shown on each attempt. Codex is the only connected worker implementation; unsupported provider bindings reject, not fallback silently. This supplements the live model/effort selector and existing read-only coordinator's six-assignment sequential delegation limit. Scoped mission context includes objective and acceptance criteria without the full saved ledger. Automatic semantic assignment, provider configuration UI and live Jev evaluation remain future work; explicit role selection and optional advice are not evidence of those capabilities.
 
 New coordinator-led mission attempts now enforce ordered plan/work/validate/review stages at the Captain tool boundary (workflow version 1). Each requires a finished child task with a provider result. Early coordinator completion fails the attempt with the missing-stage explanation. The board projects real stage/task references. This supersedes the earlier future-work note about stage enforcement for newly created coordinator attempts only. Agent text remains attributed output, not proof of correctness; local checks and human criteria review still matter.
 

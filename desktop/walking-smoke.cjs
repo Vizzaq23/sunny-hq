@@ -1,8 +1,10 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
 module.exports=async({win,hub})=>{
- const read=()=>win.webContents.executeJavaScript(`Array.from(document.querySelectorAll('.deck-crew')).map(c=>({id:c.dataset.crewId,x:Number(c.dataset.deckX),y:Number(c.dataset.deckY),moving:c.dataset.moving,mode:c.dataset.mode,sprite:c.querySelector('.deck-sprite').className}))`);
- const before=await read();await pause(2500);let after=await read();assert.equal(after.length,10);assert.ok(after.some((c,i)=>Math.hypot(c.x-before[i].x,c.y-before[i].y)>.2),'Crew positions change along deck routes');
+ const read=()=>new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Deck did not respond during walking smoke.')),10000);win.webContents.executeJavaScript(`Array.from(document.querySelectorAll('.deck-crew')).map(c=>({id:c.dataset.crewId,x:Number(c.dataset.deckX),y:Number(c.dataset.deckY),moving:c.dataset.moving,mode:c.dataset.mode,sprite:c.querySelector('.deck-sprite').className}))`).then(value=>{clearTimeout(timer);resolve(value);},error=>{clearTimeout(timer);reject(error);});});
+ // The journal click returns before React commits the deck route in a packaged build.
+ await pause(350);let before=[];for(let i=0;i<20;i++){before=await read();if(before.length===10)break;await pause(100);}assert.equal(before.length,10,'Deck crew render before walking checks');
+ await pause(2500);let after=await read();assert.equal(after.length,10);assert.ok(after.some((c,i)=>Math.hypot(c.x-before[i].x,c.y-before[i].y)>.2),'Crew positions change along deck routes');
  assert.ok(after.some(c=>c.sprite.includes('walk-sprite')||c.sprite.includes('pet-walk-')),'Walking uses animation frames');
  const fixture={id:'walking-fixture',crewId:'franky',projectId:hub.state.projects[0]?.id,status:'working',title:'Synthetic movement check',createdAt:Date.now(),updatedAt:Date.now(),messages:[]};hub.state.tasks.push(fixture);hub.changed();
  try{

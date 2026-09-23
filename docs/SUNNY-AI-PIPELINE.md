@@ -51,6 +51,8 @@ For a writing, research or other review-only mission, choose **Captain reviews t
 
 Do not paste secrets into mission briefs or documents. The captain has specifically forbidden reading the local `.env` file or Jev key; that restriction remains in force. Do not inspect them to troubleshoot connectivity.
 
+Sunny may suggest up to two reviewed skills for a quick task or mission role when Codex reports them available for that project. Review each suggestion before sending. A changed or disabled skill blocks launch so the brief can be corrected. The chosen skill is saved with the task or attempt; it guides the specialist but grants no new permission and does not prove the instructions were followed. See [skill selection](skill-pipeline.md) for the exact boundary.
+
 ## A practical example, step by step
 
 Use a disposable test project for your first try. A real mission uses real account quota and may change that project's files.
@@ -77,6 +79,16 @@ Use a disposable test project for your first try. A real mission uses real accou
 
 Deployment is a separate action. Reading existing deployment records does not launch a website or install a new desktop version. An empty deployment list means no matching records were observed; it is not a successful deployment.
 
+## Test the pipeline with a project
+
+Start with a disposable copy of your test project on a clean Git branch. Keep `.env`, credentials, customer data and unrelated edits out of the mission. Pick one small, reversible change with acceptance criteria visible in the diff and existing tests. Choose **Captain reviews the result**, prepare the branch, select **Coordinator · Luffy**, and send the crew. Watch the saved attempt, Nami's plan, the specialist's actual changes, Usopp's check, Zoro's review and the resulting mission status. A finished crew reply still needs your review. If the connection becomes uncertain, inspect the existing attempt before starting another.
+
+For the remote portion, use a separate disposable GitHub repository you control. Confirm its origin and target branch before requesting a PR preview. Sunny's own GitHub path requires a signed-in GitHub CLI in addition to the Codex sign-in; a connected GitHub app elsewhere does not sign in that CLI. Publishing, merging and deploying remain separate captain decisions. Hosted checks apply to the commit they actually ran on. Do not use Sunny's production repository as the test target.
+
+If you also want to test X research, open Morgans' X feed and capture a small set of posts from the signed-in Chrome feed. Import the resulting briefing, retain each source URL and date, and hand one item to a disposable project for read-only research. Check that the answer separates the author's claims from facts verified through cited primary sources and states what remains unknown. Do not like, reply, repost, follow or message as part of this test. For a GPT-6 Sol/Luna comparison, give both models the same post and criteria in separate tasks, then compare attribution, evidence, uncertainty and usefulness; record which model actually ran.
+
+For each stage, record the source of truth: mission/attempt ID, task result, file diff, check result tied to the source revision, PR/check observation if used, and your final acceptance. Animation and a green reply cannot replace those records.
+
 ## What each part does
 
 | Part | Responsibility |
@@ -92,6 +104,8 @@ Deployment is a separate action. Reading existing deployment records does not la
 | Git and GitHub | Store code history, PRs, hosted checks and the authoritative remote merge result. |
 
 Roles are stable jobs. Models are selected from the connected runtime's available catalog and routing policy; the sprite does not permanently determine the model. The current routing is deterministic, and these roles currently run through Codex. Jev, Fable, Claude or OpenClaw are not silently performing work merely because they appear in a plan or tool list. Other roles include Robin for research, Sanji for design, Chopper for diagnosis, Brook for creative work and Jinbe for operations.
+
+Settings shows the live Codex model catalogue. The 2026-09-23 read-only check returned GPT-6 Astra as the default, plus GPT-6 Sol and Luna; their availability can change. Sunny validates the chosen model and reasoning level against that catalogue before dispatch. An optional Jev advisor, if explicitly enabled for a registered project, may rank bounded journal context and suggest an eligible role or model. It does not perform the work, override an explicit choice, make a Morgans report, or grant approval. [Jev setup and rollback](jev-integration.md) explain the opt-in boundary; no live Jev quality or cost result is claimed here.
 
 Morgans has a separate, on-demand reporting path. When you press **Generate report** in his blimp, Sunny reads only saved local project, task, mission, approval, check, PR and deployment fields into a bounded evidence packet. The packet has a creation time, selected scope, record IDs/times and a truncation flag; it omits chats, prompts, raw logs and secrets. Sunny starts one read-only Codex reporter task with no tools or delegation. Its wording is a summary for review, while the saved records shown alongside remain the facts. If the provider fails or its state is uncertain, the packet remains visible; Sunny does not automatically start another turn. A passed check can be stale after the source changes, and a missing deployment is unobserved rather than successful.
 
@@ -120,7 +134,7 @@ Crew movement reflects recorded activity. Ambient walking, banter and celebratio
 - **The connection drops:** use the task's status/recovery controls. A reserved checkout may mean work is still uncertain, not abandoned.
 - **A check is unresolved:** inspect the check and its child processes. Only confirm that they stopped when you actually verified that fact. That confirmation records a failed check; run a fresh successful check before acceptance.
 - **Publishing is uncertain:** inspect GitHub first and reconcile the actual PR number. Do not blindly publish again; the first request may have succeeded.
-- **An existing file cannot be saved:** preserve the draft and inspect the exact error. This machine previously showed a Windows permission limitation for some existing files; no security protection should be disabled by guesswork.
+- **An existing file cannot be saved:** preserve the draft and inspect the exact error. An older packaged run hit a Windows write block for one externally created OneDrive fixture file. A later isolated packaged repeat saved app-created and externally created disposable files in OneDrive and Temp, including stale-write protection. That does not prove every existing file or identify the earlier cause; do not disable security protection by guesswork.
 
 ## A simple smoke test after an update
 
@@ -134,6 +148,6 @@ Keep the pre-update backup and previous package. Do not let an older binary over
 
 ## What has and has not been proven
 
-The current implementation has recorded live Codex coding, coordination and creative runs, real GitHub PRs/merges and hosted checks, plus isolated native workflow tests. Those separate records do not automatically prove one continuous live journey through every screen. The ongoing live charts mission is intended to close that gap and remains subject to its actual checks, publication, merge and acceptance evidence.
+The current implementation has recorded live Codex coding, coordination and creative runs, real GitHub PRs/merges and hosted checks, plus isolated native workflow tests. Those separate records do not automatically prove one continuous live journey through every screen. The chart mission reached a real PR and merge, but its mission ID was absent from the observed daily profile, so its captain acceptance was not recorded there. As of 2026-09-23, Morgans reporting and optional Jev advice are reviewed source changes awaiting merge and daily-app activation. Sunny's GitHub CLI is installed but not signed in at this checkpoint, so a new live Sunny-published PR still requires that sign-in and a chosen test project.
 
 Project charts and its filtering follow-up are source increments after the previously activated package. Do not assume a feature is installed until the update record says so. See the [current requirement audit](master-goal-audit.md) and [implementation report](SUNNY-HQ-IMPLEMENTATION-REPORT.md) for exact evidence and remaining work.

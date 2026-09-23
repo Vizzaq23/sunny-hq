@@ -1,6 +1,14 @@
 # Sunny HQ implementation report
 
-## Current verified checkpoint - 2026-09-22 UTC
+## Current verified checkpoint - 2026-09-23 UTC
+
+The repository's default branch is `codex/sunny-hq` at `d7bfb2bc4892a70c58e9f5f2a1b8fd17309aa760`. [PR #8](https://github.com/Vizzaq23/sunny-hq/pull/8) adds on-demand Morgans reports from bounded saved records and explicit Obsidian draft saving, while Robin continues to supply existing notes for decisions. [PR #9](https://github.com/Vizzaq23/sunny-hq/pull/9) stacks optional, project-allowlisted Jev context advice on that change. [PR #10](https://github.com/Vizzaq23/sunny-hq/pull/10) updates the captain's [pipeline guide](SUNNY-AI-PIPELINE.md). All three are open and unmerged at this checkpoint; #8 and #9 passed hosted Windows test/build checks, and #10's check was still running when this paragraph was written. Merge approval for these new PRs remains separate from earlier approved merges.
+
+The combined source passed a clean locked install, 347 tests, build/typecheck, the native workflow fixture and a full source desktop smoke. A Windows package was staged at `.sunny-dev/validated-release-jev-smoke-fix/win-unpacked/Sunny HQ.exe` (executable SHA256 `8D951BEEA61CF83226A6D02CB348383174EE919A4E35D1AA83CC1881E9293ED1`). Its final isolated-profile desktop smoke completed; two earlier packaged attempts stalled after the crew journal, leading to a bounded deck-readiness wait in the smoke harness. Treat that timing flake as a release watch item. The package includes the optional Jev code and no `.env` file. No live Jev request or paid evaluation was performed, and the captain's `.env` and key were not read.
+
+The normal launcher still points to `.sunny-dev/validated-release-ten-crew-rooms`, while the running daily process is from `release-workflow-0.11.0`. Neither was restarted or changed for this checkpoint. A fresh read-only Codex catalog returned GPT-6 Astra as default, with Sol and Luna available. Sunny can find GitHub CLI 2.101.0, but that CLI is not authenticated now; the separate GitHub connector used for these PRs does not sign Sunny's CLI in. A continuous live Sunny mission through its own PR publication, remote merge observation and revision-bound captain acceptance therefore remains open, as do the chosen test project, daily-app activation/acceptance and broader world/navigation requirements. The full 33-page goal is not complete.
+
+## Historical verified checkpoint - 2026-09-22 UTC
 
 PR [#2](https://github.com/Vizzaq23/sunny-hq/pull/2) is merged as `6ba8de7cbdd25502b64a8ab043cff1058bec84cf`. PR [#3](https://github.com/Vizzaq23/sunny-hq/pull/3) is merged, with explicit captain approval, as `c792b527a908fd2195594c86ec22eec4508d9267`. Its [post-merge hosted run](https://github.com/Vizzaq23/sunny-hq/actions/runs/35669215679) succeeded on that exact merge commit. These remote states were rechecked on 2026-09-22 UTC. An authenticated repository deployment-list lookup returned zero records; this is evidence of an empty deployment history, not a live deployment.
 

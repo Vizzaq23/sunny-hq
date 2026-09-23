@@ -48,6 +48,14 @@ test('Morgans is read-only even when selected as a normal specialist',async t=>{
  assert.equal(hub.gate.blocked(process.cwd()),false);
 });
 
+test('a saved Morgans report cannot accept an unsourced follow-up turn',async t=>{
+ const {hub,calls}=setup(t);
+ const result=await hub.createWorkReport({projectIds:['p']});
+ hub.notification({method:'turn/completed',params:{threadId:'report-thread',turn:{id:'report-turn',status:'completed'}}});
+ await assert.rejects(hub.send(result.task.id,'Change this report using private files'),/new report|report-only/i);
+ assert.equal(calls.filter(call=>call.method==='turn/start').length,1);
+});
+
 test('reporter provider requests cannot become captain approvals',async t=>{
  const {hub}=setup(t),denials=[];
  await hub.start({projectId:'p',crewId:'morgans',prompt:'Report recorded work'});

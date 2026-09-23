@@ -4,7 +4,7 @@ The captain leads a living digital crew from Sunny HQ. Projects are destinations
 
 ## Places that exist
 
-The full application has Home, Island, Sunny ship, Projects, Crew, Missions, Library, Tools, Inbox, Settings and Morgans' blimp. Home is currently the opening screen. The island has Sunny harbor, Observatory, The forge, Creative house, Market square and Growth garden. It is a zoomable map with moving crew and clickable districts. The companion is the floating Sunny ship. These are not yet enterable project interiors or a player-controlled avatar game.
+The full application has Home, Island, Sunny ship, Projects, Crew, Missions, Library, Tools, Inbox, Settings and Morgans' blimp. Home is currently the opening screen. The Grand Line chart has six clickable destinations, zoom and drag exploration, and optional control of a selected crew member. Project doors open useful project quarters. The companion is the floating Sunny ship. Movement is a presentation control, not a general collision-based game world.
 
 The ship's existing route graph includes galley, library/chart area, workshop/testing, medical station, music and helm, linked by deck paths and stairs. Preserve those physical connections. Island movement presently travels between district homes and the plaza; it is not a general collision/pathfinding simulation.
 
@@ -35,7 +35,7 @@ Navigation must retain a direct searchable list and keyboard path to every missi
 
 Sunny identity, warm adventure, crew camaraderie and the captain's authority are product canon. Model IDs, SQLite layout, Electron components, providers and graph coordinates are implementation details. A coding turn finishing is not a launched voyage completing. The backend owns mission truth and approvals; the scene reads projections. Preserve error/unknown states even when they interrupt the story.
 
-A world change requires matching [art guidance](art-bible.md), a navigation/scale check and screenshots of relevant normal, working, blocked and reduced-motion states. Project-room and playable-navigation work is future scope in the [roadmap](agent-platform-roadmap.md), not claimed by this foundation.
+A world change requires matching [art guidance](art-bible.md), a navigation/scale check and screenshots of relevant normal, working, blocked and reduced-motion states. The implemented room and character-control increments are described below; seamless full-world travel remains future scope in the [roadmap](agent-platform-roadmap.md).
 
 ## Implemented project-room increment (2026-09-21)
 

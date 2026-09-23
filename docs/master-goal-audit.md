@@ -4,9 +4,13 @@
 
 This is the current requirement index. [Living missions plan](living-missions-plan.md) contains dated implementation and verification records; earlier checkpoint statements describe their own dates, not current missing features. [Current implementation report](SUNNY-HQ-IMPLEMENTATION-REPORT.md) summarizes delivered work, file purposes, validation and unresolved gates; [foundation report](SUNNY-HQ-CODEX-REPORT.md) remains historical. Test success alone does not establish the whole product experience.
 
-## Current verified checkpoint - 2026-09-22 UTC
+## Current verified checkpoint - 2026-09-23 UTC
 
-The [implementation report](SUNNY-HQ-IMPLEMENTATION-REPORT.md#current-verified-checkpoint---2026-09-22-utc) records the exact PRs, merge commits, hosted checks, package identity, backup and authorized activation. Both PRs are merged; PR #3 post-merge checks passed; the activated visible app is responding. Authenticated deployment lookup returned zero records. The full objective remains incomplete: separate live workers and CLI-published PRs do not establish a continuous Sunny publication/acceptance mission, and daily-app acceptance plus broader project/world requirements remain open.
+The [implementation report](SUNNY-HQ-IMPLEMENTATION-REPORT.md#current-verified-checkpoint---2026-09-23-utc) records the current branch, open PRs #8–#10, hosted/local checks, staged package, installed-app boundary and remaining live-voyage gates. Morgans/Robin and optional Jev are verified source changes but are not merged or active in the daily app. Jev has not made a live paid call. The current Codex catalogue exposes GPT-6 Astra, Sol and Luna; Sunny's separate GitHub CLI is installed but not signed in. The captain's test project and merge decisions remain pending. The full objective is still incomplete.
+
+## Historical verified checkpoint - 2026-09-22 UTC
+
+The [implementation report](SUNNY-HQ-IMPLEMENTATION-REPORT.md#historical-verified-checkpoint---2026-09-22-utc) records the exact PRs, merge commits, hosted checks, package identity, backup and authorized activation. Both PRs are merged; PR #3 post-merge checks passed; the activated visible app is responding. Authenticated deployment lookup returned zero records. The full objective remains incomplete: separate live workers and CLI-published PRs do not establish a continuous Sunny publication/acceptance mission, and daily-app acceptance plus broader project/world requirements remain open.
 
 ## Evidence rules
 
@@ -16,7 +20,9 @@ The [implementation report](SUNNY-HQ-IMPLEMENTATION-REPORT.md#current-verified-c
 - Optional integrations are adopted only for a demonstrated useful capability. A decision to defer an optional vendor is not a fake integration or proof that the corresponding product capability is implemented.
 - Human review, acceptance, merge and publication remain distinct from a finished provider turn.
 
-## Requirements mapped to current evidence
+## Requirements mapped to the 2026-09-22 baseline
+
+The table below retains the full PDF requirement-by-requirement baseline. Read its earlier activation and vendor statements with the newer checkpoint above; after the staged PRs are merged and the daily app is updated, each affected row needs a fresh source-and-runtime audit rather than an assumed status change.
 
 | PDF pages | Requirement | Current implementation/evidence | Status and remaining work |
 | --- | --- | --- | --- |

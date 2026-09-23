@@ -107,6 +107,7 @@ app.whenReady().then(async()=>{
   assert.equal(await js('document.querySelector(".morgans-report-draft textarea").value'),'Keep this unsaved draft while checking the source.','source navigation keeps draft');
   await js('Array.from(document.querySelectorAll(".morgans-source")).find(button=>button.textContent.includes("Review the launch")).click()');await wait('Boolean(document.querySelector(".mission-board"))');
   assert.ok(await js('document.querySelector(".mission-entries button[aria-pressed=true]")?.textContent.includes("Review the launch")'),'mission source opens exact mission');
+  assert.equal(await js('Array.from(document.querySelectorAll(".mission-launch-controls select option")).some(option=>option.value==="reporter")'),false,'on-demand reporter is not an unsourced mission lead');
   await nav('Morgans’ blimp');await wait('Boolean(document.querySelector(".morgans-report-draft"))');
   assert.equal(await js('document.querySelector(".morgans-report-draft textarea").value'),'Keep this unsaved draft while checking the source.');
   await js('window.confirm=()=>false;undefined');await click('.morgans-report-generate');assert.equal(reportRequests,1,'unsaved draft replacement requires confirmation');

@@ -40,11 +40,10 @@ test('unsafe reporter setup returns the factual packet without starting a thread
  assert.equal(hub.state.tasks.length,0);
 });
 
-test('Morgans is read-only even when selected as a normal specialist',async t=>{
+test('Morgans cannot be started as a normal unsourced specialist',async t=>{
  const {hub,calls}=setup(t);
- const task=await hub.start({projectId:'p',crewId:'morgans',prompt:'Report recorded work'});
- assert.equal(task.crewId,'morgans');
- assert.equal(calls.find(call=>call.method==='thread/start').params.sandbox,'read-only');
+ await assert.rejects(hub.start({projectId:'p',crewId:'morgans',prompt:'Report recorded work'}),/blimp|saved records/i);
+ assert.equal(calls.some(call=>call.method==='thread/start'),false);
  assert.equal(hub.gate.blocked(process.cwd()),false);
 });
 
@@ -58,7 +57,7 @@ test('a saved Morgans report cannot accept an unsourced follow-up turn',async t=
 
 test('reporter provider requests cannot become captain approvals',async t=>{
  const {hub}=setup(t),denials=[];
- await hub.start({projectId:'p',crewId:'morgans',prompt:'Report recorded work'});
+ await hub.createWorkReport({projectIds:['p']});
  hub.client.rejectRequest=(id,reason)=>denials.push({id,reason});
  hub.request({id:17,method:'item/commandExecution/requestApproval',params:{threadId:'report-thread',command:'echo secret'}});
  assert.equal(hub.state.approvals.length,0);
@@ -109,4 +108,15 @@ test('status reconciliation cannot revive a reporter result after a tool attempt
  await hub.checkStatus(result.task.id);
  assert.equal(result.task.status,'failed');
  assert.doesNotMatch(JSON.stringify(result.task.messages),/Untrusted finished report|PRIVATE_COMMAND/);
+});
+
+test('a previous profile shape and a saved reporter task reopen without a schema change or writer lock',t=>{
+ const project={id:'p',name:'Prototype',path:process.cwd()};
+ const oldTask={id:'old',projectId:'p',crewId:'robin',title:'Earlier note',status:'finished',createdAt:1,updatedAt:2,messages:[]};
+ const reporterTask={id:'report',projectId:'p',crewId:'morgans',title:'Morgans work report',status:'finished',createdAt:3,updatedAt:4,messages:[{id:'answer',role:'assistant',text:'Saved report',time:4}]};
+ const hub=new Hub({home:process.cwd(),store:{load:()=>({projects:[project],tasks:[oldTask,reporterTask]}),save(){},close(){}},catalog:{discoverProjects:()=>[],discoverTools:()=>[],discoverAutomations:()=>[]}});
+ t.after(()=>hub.close());
+ assert.equal(hub.state.tasks.find(task=>task.id==='old').title,'Earlier note');
+ assert.equal(hub.state.tasks.find(task=>task.id==='report').messages[0].text,'Saved report');
+ assert.equal(hub.gate.blocked(process.cwd()),false);
 });

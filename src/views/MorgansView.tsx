@@ -1,11 +1,12 @@
-import {useState} from 'react';
+import {useRef,useState,type Dispatch,type SetStateAction} from 'react';
 import {ArrowLeft,ExternalLink,Bookmark,Newspaper,Plus,Download,Search} from 'lucide-react';
-import type {Snapshot} from '../shared';
+import type {Snapshot,WorkReportItem,WorkReportResult} from '../shared';
+import type {ReportViewState} from '../App';
 import './morgans.css';
 import {useCrewTexture} from '../crewTexture';
 type Invoke=<T=unknown>(action:string,args?:unknown)=>Promise<T>;
 const empty={title:'',url:'',summary:'',why:'',nextStep:'',source:'Web',category:'projects',projectId:''};
-export function MorgansView({snapshot,invoke,onWorkspace,onBack}:{snapshot:Snapshot;invoke:Invoke;onWorkspace:(v:{crewId?:string;projectId?:string;prompt?:string})=>void;onBack:()=>void}){
+export function MorgansView({snapshot,invoke,onWorkspace,onBack,reportView,setReportView,onReportSource}:{snapshot:Snapshot;invoke:Invoke;onWorkspace:(v:{crewId?:string;projectId?:string;prompt?:string})=>void;onBack:()=>void;reportView:ReportViewState;setReportView:Dispatch<SetStateAction<ReportViewState>>;onReportSource:(item:WorkReportItem)=>void}){
  const blimp=useCrewTexture(new URL(`${import.meta.env.BASE_URL}assets/morgans-blimp-key.png`,location.href).href,'blimp');
  const news=snapshot.news,items=news?.items||[];
  const [category,setCategory]=useState('all'),[status,setStatus]=useState('latest'),[query,setQuery]=useState(''),[busy,setBusy]=useState(false),[adding,setAdding]=useState(false),[form,setForm]=useState(empty),[notice,setNotice]=useState(''),[project,setProject]=useState(snapshot.projects[0]?.id||'');
@@ -14,6 +15,7 @@ export function MorgansView({snapshot,invoke,onWorkspace,onBack}:{snapshot:Snaps
  const filtered=items.filter(i=>(category==='all'||i.category===category)&&(status==='saved'?i.status==='saved':status==='dismissed'?i.status==='dismissed':i.status!=='dismissed')&&`${i.title} ${i.summary} ${i.why}`.toLowerCase().includes(query.toLowerCase()));
  return <div className="page morgans-page"><button className="morgans-back" onClick={onBack}><ArrowLeft size={15}/>Back to the island</button>
   <header className="morgans-masthead"><div><span className="eyebrow">World Economy News · Your private edition</span><h2>Big news.<br/><em>Useful next moves.</em></h2><p>“Headlines are only the beginning, Captain!”</p><small>Morgans’ flying press brings you project ideas, career leads and things worth learning.</small></div><img src={blimp} style={{visibility:blimp?'visible':'hidden'}} alt="Morgans aboard his flying newspaper blimp"/></header>
+  <ReportDesk snapshot={snapshot} invoke={invoke} reportView={reportView} setReportView={setReportView} onReportSource={onReportSource}/>
   <div className="morgans-toolbar"><div><b>{items.filter(i=>i.status==='unread').length} unread dispatches</b><small>{news?.lastCaptureAt?`Last imported ${new Date(news.lastCaptureAt).toLocaleString()} · ${news.lastOrigin}`:'Your first briefing is ready to collect.'}</small></div><button disabled={busy} onClick={()=>void act('news:import').then((r:any)=>{if(r)setNotice(`${r.added} new stories imported.`);}).catch(()=>{})}><Download size={15}/>Import Chrome capture</button><button onClick={()=>setAdding(v=>!v)}><Plus size={15}/>Add a source</button></div>
   {notice?<p className="morgans-notice" role="status">{notice}</p>:null}
   <div className="morgans-layout"><section>
@@ -23,4 +25,41 @@ export function MorgansView({snapshot,invoke,onWorkspace,onBack}:{snapshot:Snaps
    {!filtered.length?<div className="morgans-empty"><Newspaper size={35}/><h3>No dispatches in this edition.</h3><p>Import a Chrome capture or add a source. Morgans will keep the source and suggested next step together.</p></div>:null}
   </section><aside className="morgans-sidebar"><section><span className="eyebrow">Flight log</span><h3>Chrome collection</h3><p>Briefings are imported snapshots, not a live feed. Only the captured posts are included.</p><div className="feed-links"><button onClick={()=>void act('news:openFeed',{source:'x'}).catch(()=>{})}>Open X in Chrome ↗</button><button onClick={()=>void act('news:openFeed',{source:'linkedin'}).catch(()=>{})}>Open LinkedIn in Chrome ↗</button></div><button className="capture-request" onClick={()=>void act('news:captureRequest').then(()=>setNotice('Copied. Paste this request into Codex, then import its saved JSON capture here.')).catch(()=>{})}>Copy Chrome briefing request</button><small>Paste the request into Codex to collect a fresh, bounded Chrome briefing. Import its JSON result above. No unattended collection is enabled.</small></section><section><h3>Send useful ideas aboard</h3><label>Discussion project<select aria-label="Briefing discussion project" value={project} onChange={e=>setProject(e.target.value)}><option value="">Choose project</option>{snapshot.projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label><p>Luffy opens a draft for your review. Starting a mission is a separate action.</p></section><form onSubmit={e=>{e.preventDefault();void act('news:preferences',preferences).then(()=>setNotice('Briefing preferences saved. They will be included in your next capture request.')).catch(()=>{});}}><h3>Your next horizon</h3>{(['roles','location','topics'] as const).map(key=><label key={key}>{({roles:'Target job titles / experience',location:'Location / remote preference',topics:'Projects and topics to watch'})[key]}<textarea maxLength={500} value={preferences[key]} onChange={e=>setPreferences({...preferences,[key]:e.target.value})}/></label>)}<button disabled={busy}>Save preferences</button></form></aside></div>
  </div>;
+}
+
+function ReportDesk({snapshot,invoke,reportView,setReportView,onReportSource}:{snapshot:Snapshot;invoke:Invoke;reportView:ReportViewState;setReportView:Dispatch<SetStateAction<ReportViewState>>;onReportSource:(item:WorkReportItem)=>void}){
+ const [projectId,setProjectId]=useState('all'),[days,setDays]=useState(7),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ const saving=useRef(false);
+ const packet=reportView.result?.packet;
+ const task=snapshot.tasks.find(item=>item.id===reportView.result?.task?.id)??reportView.result?.task;
+ const items=packet?.projects.flatMap(project=>[...project.tasks,...project.missions,...project.observations])??[];
+ const generate=async()=>{
+  if(busy)return;
+  if(reportView.dirty&&!reportView.saved&&!window.confirm('Replace your unsaved Morgans draft with a new report?'))return;
+  setBusy(true);setError('');
+  try{
+   const scope={...(projectId==='all'?{}:{projectIds:[projectId]}),since:Date.now()-days*86400000};
+   const result=await invoke<WorkReportResult>('report:create',scope);
+   setReportView({result,draft:'',dirty:false,saved:false,title:'Morgans work report'});
+  }catch(reason){setError(reason instanceof Error?reason.message:String(reason));}
+  finally{setBusy(false);}
+ };
+ const save=async()=>{
+  if(saving.current||!packet||!reportView.draft.trim()||!reportView.title.trim()||reportView.saved)return;
+  saving.current=true;setBusy(true);setError('');
+  try{await invoke('library:capture',{title:reportView.title.trim(),text:reportView.draft});setReportView(current=>({...current,saved:true,dirty:false}));}
+  catch(reason){setError(reason instanceof Error?reason.message:String(reason));}
+  finally{saving.current=false;setBusy(false);}
+ };
+ return <section className="morgans-report" aria-label="Saved work report">
+  <div className="morgans-report-head"><div><span className="eyebrow">Morgans’ work desk</span><h3>What happened across the fleet?</h3><p>Build a sourced report from Sunny’s saved work. Generated wording stays separate from the records below.</p></div><div className="morgans-report-controls"><label>Projects<select aria-label="Report projects" value={projectId} onChange={event=>setProjectId(event.target.value)}><option value="all">All projects</option>{snapshot.projects.map(project=><option key={project.id} value={project.id}>{project.name}</option>)}</select></label><label>Period<select aria-label="Report period" value={days} onChange={event=>setDays(Number(event.target.value))}><option value={7}>Last 7 days</option><option value={30}>Last 30 days</option><option value={90}>Last 90 days</option></select></label><button className="morgans-report-generate" disabled={busy||!snapshot.projects.length} onClick={()=>void generate()}>{busy?'Working…':'Generate report'}</button></div></div>
+  {!snapshot.projects.length?<p className="morgans-report-empty">Add a project to Sunny before generating a work report.</p>:null}
+  {error?<p role="alert" className="morgans-report-error">{error} Your draft remains here.</p>:null}
+  {packet?<><div className="morgans-report-coverage"><strong>Saved Sunny records</strong><span>{packet.projects.length} {packet.projects.length===1?'project':'projects'} · {new Date(packet.scope.since).toLocaleDateString()}–{new Date(packet.scope.until).toLocaleDateString()} · captured {new Date(packet.createdAt).toLocaleString()}</span>{packet.coverage.truncated?<b>Large history: this report is truncated. Choose a narrower period or project.</b>:null}</div>
+   {reportView.result?.error?<p className="morgans-report-error" role="status">Morgans could not write the summary: {reportView.result.error} The saved evidence is still available.</p>:null}
+   {task?<p className="morgans-report-task" role="status">Morgans’ draft: <strong>{task.status}</strong>{task.status==='unknown'?' · Provider state is uncertain; check the saved task before relying on its wording.':null}{task.error?` · ${task.error}`:null}<button onClick={()=>onReportSource({projectId:task.projectId,kind:'task',id:task.id,title:task.title,status:task.status,observedAt:task.updatedAt,target:{view:'task',id:task.id},sourceId:task.id,sourceTime:task.updatedAt})}>Open reporter task</button></p>:null}
+   <div className="morgans-report-layout"><div className="morgans-report-evidence"><h4>Source records</h4>{items.length?packet.projects.map(project=><section key={project.id}><h5>{project.name}</h5>{[...project.tasks,...project.missions,...project.observations].map(item=><button className="morgans-source" key={`${item.kind}:${item.id}`} onClick={()=>onReportSource(item)}><span><b>{item.title}</b><small>{item.kind} · {item.sourceId} · {new Date(item.sourceTime).toLocaleString()}</small></span><em className={`report-status report-status-${item.status}`}>{item.status.replaceAll('-',' ')}</em></button>)}</section>):<p>No saved task, mission, or observation in this period. Older unresolved work would appear here.</p>}</div>
+   <div className="morgans-report-draft"><h4>Reviewable Obsidian draft</h4><p>Read and edit Morgans’ wording before you save. Saving creates one new note in Obsidian <b>00 Inbox</b>.</p><label>Note title<input aria-label="Report note title" maxLength={120} value={reportView.title} onChange={event=>setReportView(current=>({...current,title:event.target.value,dirty:true,saved:false}))}/></label><label>Report text<textarea aria-label="Report draft" rows={13} value={reportView.draft} onChange={event=>setReportView(current=>({...current,draft:event.target.value,dirty:true,saved:false}))} placeholder={task?.status==='working'||task?.status==='starting'?'Morgans is writing. You can start your own draft here.':'Write a draft from the source records, or wait for Morgans’ wording.'}/></label><button disabled={busy||reportView.saved||!reportView.draft.trim()||!reportView.title.trim()} onClick={()=>void save()}>{reportView.saved?'Saved to Obsidian Inbox':'Save draft to Obsidian Inbox'}</button>{reportView.saved?<p role="status">Saved one note. Edit the draft to prepare another version.</p>:null}</div></div>
+  </>:null}
+ </section>;
 }

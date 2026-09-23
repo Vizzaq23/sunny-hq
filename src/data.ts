@@ -15,7 +15,8 @@ export const CREW: Crew[] = [
 ];
 
 export const RESIDENT_CATALOG:Crew[]=islandResidents;
-export const ALL_CREW=[...CREW,...RESIDENT_CATALOG];
+export const MORGANS:Crew={id:'morgans',name:'Morgans',role:'Work Reporter',color:'#ad7049',station:'News Blimp',description:'Reports saved work across projects with sources and open questions.'};
+export const ALL_CREW=[...CREW,...RESIDENT_CATALOG,MORGANS];
 export const CREW_BY_ID = new Map<CrewId,Crew>(ALL_CREW.map(member=>[member.id,member]));
 
 export const EMPTY_SNAPSHOT: Snapshot = {

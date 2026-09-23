@@ -14,7 +14,7 @@ import {useDraft} from '../useDraft';
 import {playRoomCue,ROOM_SOUND_DEFAULT_VOLUME,stopRoomAudio,unlockRoomAudio} from '../roomAudio';
 
 type Invoke=<T=unknown>(action:string,args?:unknown)=>Promise<T>;
-const ROOM_ART:Record<CrewId,string>={luffy:'luffy-captains-den.png',zoro:'zoro-dojo-room.png',nami:'nami-chart-room.png',usopp:'usopp-inventors-workshop.png',sanji:'sanji-galley-room.png',chopper:'chopper-infirmary-room.png',robin:'robin-ship-library.png',franky:'franky-shipwright-room.png',brook:'brook-music-room.png',jinbe:'jinbe-helm-room.png'};
+const ROOM_ART:Record<CrewId,string>={luffy:'luffy-captains-den.png',zoro:'zoro-dojo-room.png',nami:'nami-chart-room.png',usopp:'usopp-inventors-workshop.png',sanji:'sanji-galley-room.png',chopper:'chopper-infirmary-room.png',robin:'robin-ship-library.png',franky:'franky-shipwright-room.png',brook:'brook-music-room.png',jinbe:'jinbe-helm-room.png',morgans:'morgans-blimp.png'};
 
 export function Workbench({snapshot,initial,invoke,toast,onClose,onSettings,onOpenLibrary}:{snapshot:Snapshot;initial:{taskId?:string;projectId?:string;crewId?:CrewId;prompt?:string;draftKey?:string};invoke:Invoke;toast:(message:string,tone?:'default'|'success'|'error')=>void;onClose:()=>void;onSettings?:()=>void;onOpenLibrary?:()=>void}){
   const task=snapshot.tasks.find(item=>item.id===initial.taskId);
@@ -22,7 +22,7 @@ export function Workbench({snapshot,initial,invoke,toast,onClose,onSettings,onOp
   const [crewId,setCrewId]=useState<CrewId>(initial.crewId??task?.crewId??'luffy');
   const [sending,setSending]=useState(false),[operationError,setOperationError]=useState(''),[showTools,setShowTools]=useState(false);
   const pending=useRef(false);
-  const availableCrew=CREW.filter(member=>member.spriteRow===undefined||snapshot.world?.residents.some(resident=>resident.id===member.id&&resident.recruited));
+  const availableCrew=CREW.filter(member=>member.id!=='morgans'&&(member.spriteRow===undefined||snapshot.world?.residents.some(resident=>resident.id===member.id&&resident.recruited)));
   const [pane,setPane]=useState<'files'|'git'|'terminal'|'preview'>('files');
   const [editorDirty,setEditorDirty]=useState(false),[editorSession,setEditorSession]=useState(0);
   const [activeTaskId,setActiveTaskId]=useState(initial.taskId);
@@ -31,8 +31,8 @@ export function Workbench({snapshot,initial,invoke,toast,onClose,onSettings,onOp
   const [prompt,setPrompt]=useDraft(activeTaskId?`task:${activeTaskId}`:initial.draftKey??`new:${projectId}`,activeTaskId&&activeTaskId!==initial.taskId?'':initial.prompt??'');
   const activeTask=snapshot.tasks.find(item=>item.id===activeTaskId)??task;
   const project=snapshot.projects.find(item=>item.id===(activeTask?.projectId??projectId));
-  const crew=CREW_BY_ID.get(activeTask?.crewId??crewId)!;
-  const roomArt=new URL(`${import.meta.env.BASE_URL}assets/${ROOM_ART[crew.id]}`,location.href).href;
+  const crew=CREW_BY_ID.get(activeTask?.crewId??crewId)??CREW_BY_ID.get('luffy')!;
+  const roomArt=new URL(`${import.meta.env.BASE_URL}assets/${ROOM_ART[crew.id]??ROOM_ART.luffy}`,location.href).href;
   const roomSoundEnabled=snapshot.settings.roomSoundEnabled===true;
   const roomSoundVolume=snapshot.settings.roomSoundVolume??ROOM_SOUND_DEFAULT_VOLUME;
   useEffect(()=>{if(roomSoundEnabled)void playRoomCue(crew.id,roomSoundVolume);},[crew.id,roomSoundEnabled]);

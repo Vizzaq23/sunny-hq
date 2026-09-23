@@ -1,0 +1,123 @@
+{
+  "dateUtc": "2026-09-23T02:27:34.4940385Z",
+  "objective": "Original station-specific room arrival sound cues, opt-in controls, and activation",
+  "branch": "codex/sunny-living-missions",
+  "workingTreeHead": "c58ffc48bf943b6a27f3a9da5e58c1dba3eae0bf",
+  "sourceChangesCommitted": false,
+  "sourceHashes": {
+    "vite.config.ts": "C36D5E8ABB5DCDD4F24498302C96355F08C891A46E14F62FA584EE6CE802011F",
+    "Launch Sunny.cmd": "881F206B22B977BBB5AD551963B0AD41164A6B63C64654E713013E68A0D006CE",
+    "README.md": "93DA34FB7A260030D7CB60383AF0485F7B8933374CE8CC93DA7FEA4676DFFD01",
+    "docs/art-bible.md": "0FDAEAA3C198B8C85F415187C8A68E62173C937C4F78A2278E7C45C24F349146",
+    "src/shared.ts": "9263BE5BE5969AD508A350475EE9AEBBFBEDE08F3075F64D3FC7613385258BB4",
+    "src/views/OpsViews.tsx": "655537FCC3C8BC3BA89ADD514677E9EBD87AE7B3050681561DF9C8C21448C51A",
+    "docs/master-goal-audit.md": "687043820EF79327188D91E0769C6E69A1AE045B7EA41DB8AB4BB92B4D996B17",
+    "tests/room-audio.test.cjs": "5DA1ED81443F93F9368572AE42757C622E8E2FAAD96F2DBDD84F710CD44BC078",
+    "desktop/main.cjs": "DDD82665541112078618ED046E79DC24F9B48624B7F4CEA419CE503445F7995E",
+    "src/views/Workbench.tsx": "174DEFB5A7D00CFE59EC492FA5371142DD1DDCBAE5F8DED253959A5470AFA2FE",
+    "public/assets/ARTWORK.md": "4412C965A17C95A4EA5F5B55C36F4ADEFB6BC8775FBF66E90BF197044C62B604",
+    "desktop/hub.cjs": "A68C3F91B22D600387EB19F37F8EA4F3753B5725F9E965DDC4EF15D2B2605AFD",
+    "desktop/smoke.cjs": "062D727DEC40E576A6C1A17A23F7AA5275CB8DB1792AE32BAD2F95FEDDEB32D7",
+    "docs/implementation-file-ledger.md": "EF0D1D266BE397543AA6B7847D6526099311087C4CEA537835910E886BE9D9D9",
+    "src/roomAudio.ts": "7B5BFAB8936AB79B01DBEDB5C235678749E62E9E72B4F8B6260CB5E2174359E2",
+    "docs/world-bible.md": "F3C23DC31833CAD8D145723AD9527BEFE8D5F031027F04340F1045384E7B2250",
+    "src/data.ts": "527FDE963A2D60F3F9EA28FC2A97F475B76D4B0DD613D3FA70227E3FA1F46764",
+    "desktop/workflow-smoke.cjs": "A5815C040B804258E26443131A68954FAC95CA04B020087C6AC5693FD80C00D5",
+    "docs/living-missions-plan.md": "36CC897237331479CE48A8A3C68EB34145847106E0CBF51DDC9FD60F0F19A9AA",
+    "docs/SUNNY-HQ-IMPLEMENTATION-REPORT.md": "7B900091354EAB678DA15D2A944ADBA0BD24ED2EF812ED92C7737E1B3732F1F6"
+  },
+  "verification": {
+    "focusedAudioTests": {
+      "command": "node --test tests/room-audio.test.cjs",
+      "passed": 3,
+      "failed": 0
+    },
+    "nodeSuite": {
+      "command": "node --test tests/*.test.cjs",
+      "passed": 328,
+      "failed": 0,
+      "skipped": 0
+    },
+    "typecheck": {
+      "command": "node node_modules/typescript/bin/tsc --noEmit",
+      "result": "passed"
+    },
+    "productionBuild": {
+      "command": "node node_modules/vite/bin/vite.js build",
+      "result": "passed",
+      "warning": "Large CodeEditor chunks remain."
+    },
+    "electronWorkflow": {
+      "command": "node node_modules/electron/cli.js desktop/workflow-smoke.cjs",
+      "result": "passed",
+      "checks": 26,
+      "screenshot": ".sunny-dev/workflow-check/focused-conversation.png",
+      "screenshotSha256": "90550C3EA931E86AFB94C728718480EFE26083D0680FFF1B0F17BCE88D1A3503",
+      "resultFile": ".sunny-dev/workflow-check/result.json",
+      "resultFileSha256": "11C11DB30F4B3F6C758722BA3E27EEA08145B7D212F6A157451E364B48475280",
+      "settingsScreenshot": ".sunny-dev/workflow-check/room-sound-settings.png",
+      "settingsScreenshotSha256": "336F40E0EA5845A910F2B881A14FDC018C21BB5D560457E59ABEFB3417EFCBE8"
+    },
+    "packagedElectronSmoke": {
+      "command": "node node_modules/electron/cli.js <absolute app.asar> --smoke-test",
+      "exitCode": 0,
+      "groups": [
+        "SUNNY_ACTIONS",
+        "SUNNY_COMPANION",
+        "SUNNY_GROWTH",
+        "SUNNY_WALKING",
+        "SUNNY_CAPTAIN",
+        "SUNNY_ISLAND",
+        "SUNNY_NEWS",
+        "SUNNY_RECOVERY",
+        "SUNNY_SMOKE"
+      ],
+      "roomAudioSettings": {
+        "max": "65",
+        "toggle": "false",
+        "volumeLabel": "Room sound volume",
+        "min": "0"
+      },
+      "settingsIpcBounds": [
+        "valid 0.45 enabled setting saved",
+        "volume > 0.65 rejected",
+        "non-boolean enable rejected"
+      ],
+      "screenshot": ".sunny-dev/desktop-smoke.png",
+      "screenshotSha256": "F58B55211AEA4AA3ADBF658FD46765EAE4C3CA795FBCE13BB6EC699F607F9B71"
+    }
+  },
+  "package": {
+    "appVersion": "0.11.0",
+    "electronVersion": "44.4.3",
+    "path": ".sunny-dev/validated-release-crew-room-sfx/win-unpacked/Sunny HQ.exe",
+    "executableSha256": "8C65D5F7B78036787D558BCAE53793EA6BE10496FFEFE0DB45BBD7B331BC4F0E",
+    "appAsarSha256": "C1F73084C8B33E672A654F33F17AE84A2060BE4601D7D4A02F56BAD34DEBB20C",
+    "launcher": "Launch Sunny.cmd",
+    "activeMainPid": 32656,
+    "activeProfile": "%LOCALAPPDATA%/Sunny HQ",
+    "activation": "opened with existing user profile; no provider mission submitted"
+  },
+  "profileBackup": {
+    "path": ".sunny-dev/profile-backup-before-room-sfx-20260923",
+    "files": 56,
+    "bytes": 54683600.0,
+    "sqliteSha256": "782AF7067DF88F3799C10114351FB4ACA6182FAB79453157553E15397CFD5837"
+  },
+  "soundDesign": {
+    "crewRooms": 10,
+    "enabledByDefault": false,
+    "volumeDefault": 0.32,
+    "maximumVolume": 0.65,
+    "trigger": "room entry or assigned-specialist change",
+    "progressSounds": false,
+    "backgroundLoop": false,
+    "newDependencies": 0,
+    "recordedAudioAssets": 0
+  },
+  "environment": {
+    "viteEnvFileDisabled": true,
+    "priorDefaultBuildMayHaveParsedEnvInternally": true,
+    "credentialValueExposedInOutput": false
+  }
+}

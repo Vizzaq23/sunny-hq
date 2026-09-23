@@ -40,3 +40,13 @@ Name assets in lowercase kebab-case by subject and purpose (`crew-walk`, `morgan
 Walking follows paths and direction, working starts at a station, blocked/waiting pauses purposeful work, completion celebrates once per verified attempt. Scripted banter and signature actions are entertainment. Reduced motion retains state labels and interactivity while stopping travel/bobbing/frame stepping. Never imply backend work through random animation.
 
 Acceptable variation: room props, role-specific tools, controlled district accent colors and character proportions matching their silhouette. Prohibited drift: six unrelated generated styles, unreviewed replacement of the Chopper anchor, clipped hats/feet, unstable scale, baked text, vendor logos as crew identities, and commercial artwork scraped from references. Review a contact sheet and the rendered world before admitting any new atlas.
+
+## Voyage chart extension (2026-09-22)
+
+`grand-line-voyage-map.png` replaces the visible single-island background while retaining the original bitmap as an art reference and rollback option. Six separate landforms use the same elevated, richly painted pixel-textured perspective as the previous island. Percent-based hotspots and local crew patrols must remain on the pictured landforms; the Sunny link sits in the central sea. Text labels, job counts, focus states and direct work controls remain HTML. The moonlit Thriller Bark landform has a local purple palette; the rest of the chart retains warm daylight and saturated teal sea. Reduced motion stops crew and blimp movement without hiding task state.
+
+## Specialist chat-room treatments (2026-09-23)
+
+Conversation workspaces use ten original character-specific 1536×1024 room illustrations, recorded with generated source paths, SHA256 hashes and prompt summaries in `public/assets/ARTWORK.md`. Zoro's dojo, Robin's library, Nami's chart room and the other seven rooms each use distinct props and palette. Keep the fixed scene subdued at 19% opacity beneath all text and controls; the image is decorative and aria-hidden. Rooms remain static for reduced motion. Native fixture captures in `.sunny-dev/workflow-check/` are implementation evidence, not distributable art.
+
+Audio identity can reinforce those same station materials without becoming a soundtrack: use brief, low-volume, original synthesized arrival cues with distinct intervals and timbres for each crew room. Keep audio off until the captain enables it, provide a saved volume control and an immediate mute, and never attach sounds to mission progress. Current implementation uses small Web Audio note sequences and no recorded or third-party samples.

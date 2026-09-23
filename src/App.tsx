@@ -19,7 +19,7 @@ const ProjectsView=lazy(()=>import('./views/DashboardViews').then(module=>({defa
 const LibraryView=lazy(()=>import('./views/OpsViews').then(module=>({default:module.LibraryView})));
 const ToolsView=lazy(()=>import('./views/OpsViews').then(module=>({default:module.ToolsView})));
 const SettingsView=lazy(()=>import('./views/OpsViews').then(module=>({default:module.SettingsView})));
-type WorkspaceInit={taskId?:string;projectId?:string;crewId?:CrewId;prompt?:string};
+type WorkspaceInit={taskId?:string;projectId?:string;crewId?:CrewId;prompt?:string;draftKey?:string};
 const viewTitles:Record<ViewId,{title:string;subtitle:string}>={home:{title:'Home',subtitle:'Your daily workspace'},news:{title:'Morgans’ blimp',subtitle:'The flying press'},island:{title:'The Island',subtitle:'Your growing AI world'},ship:{title:'The Sunny',subtitle:'Command deck'},projects:{title:'Projects',subtitle:'Local cargo'},crew:{title:'Crew',subtitle:'Your specialists'},missions:{title:'Missions',subtitle:'Templates & routes'},library:{title:'Library',subtitle:'Obsidian knowledge'},tools:{title:'Tools',subtitle:'Workshop'},inbox:{title:'Inbox',subtitle:'Mission signals'},settings:{title:'Settings',subtitle:'Captain’s quarters'}};
 
 export default function App(){
@@ -41,7 +41,7 @@ export default function App(){
 
   if(!sunny.ready)return <div className="loading-deck" role="status"><span/><h2>Getting your workspace ready…</h2></div>;
   if(sunny.loadError)return <div className="loading-deck" role="alert"><h2>Your workspace couldn’t load</h2><p>{sunny.loadError}</p><button className="primary-button" onClick={()=>window.location.reload()}>Reload Sunny</button></div>;
-  if(workspace)return <><Suspense fallback={<div className="loading-deck"><span/><h2>Opening the workbench…</h2></div>}><Workbench key={JSON.stringify(workspace)} snapshot={snapshot} initial={workspace} invoke={invoke} toast={toast} onClose={()=>setWorkspace(null)} onSettings={()=>{setWorkspace(null);navigate('settings');}}/></Suspense><Toasts items={sunny.toasts}/></>;
+  if(workspace)return <><Suspense fallback={<div className="loading-deck"><span/><h2>Opening the workbench…</h2></div>}><Workbench key={JSON.stringify(workspace)} snapshot={snapshot} initial={workspace} invoke={invoke} toast={toast} onClose={()=>setWorkspace(null)} onSettings={()=>{setWorkspace(null);navigate('settings');}} onOpenLibrary={()=>{setWorkspace(null);navigate('library');}}/></Suspense><Toasts items={sunny.toasts}/></>;
   return <div className={`app-shell ${snapshot.settings.reducedMotion?'reduce-motion':''}`}>
     {sunny.desktop?<button className="float-ship-button" onClick={()=>void invoke('companion:show').catch(()=>{})}>↗ Ship on desktop</button>:null}
     <Sidebar view={view} onView={navigate} projects={snapshot.projects} tasks={snapshot.tasks} activeProjectId={activeProjectId} onProject={id=>openWorkspace({projectId:id})} open={menu} onToggle={()=>setMenu(value=>!value)}/>
@@ -55,7 +55,7 @@ export default function App(){
       {view==='projects'?<ProjectsView projects={snapshot.projects} tasks={snapshot.tasks} onImport={()=>void importProject()} onOpen={id=>openWorkspace({projectId:id})} onRemove={id=>void removeProject(id)}/>:null}
       {view==='crew'?<CrewView snapshot={snapshot} invoke={invoke} onSelect={crewId=>openWorkspace({projectId:snapshot.projects[0]?.id,crewId})}/>:null}
       {view==='missions'?<><MissionBoard snapshot={snapshot} invoke={invoke} onOpen={taskId=>openWorkspace({taskId})}/><MissionsView automations={snapshot.automations} onStart={(crewId,prompt)=>openWorkspace({projectId:snapshot.projects[0]?.id,crewId,prompt})}/></>:null}
-      {view==='library'?<LibraryView projects={snapshot.projects} invoke={invoke} toast={toast}/>:null}
+      {view==='library'?<LibraryView projects={snapshot.projects} activeProjectId={activeProjectId} invoke={invoke} toast={toast} onAskRobin={(projectId,prompt,draftKey)=>openWorkspace({projectId,crewId:'robin',prompt,draftKey})}/>:null}
       {view==='tools'?<ToolsView tools={snapshot.tools} projects={snapshot.projects} desktop={sunny.desktop} invoke={invoke} toast={toast}/>:null}
       {view==='inbox'?<InboxView tasks={snapshot.tasks} automations={snapshot.automations} desktop={sunny.desktop} invoke={invoke} onOpen={taskId=>openWorkspace({taskId})}/>:null}
       {view==='settings'?<SettingsView snapshot={snapshot} invoke={invoke} mergeSnapshot={sunny.mergeSnapshot} toast={toast}/>:null}

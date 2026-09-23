@@ -1,8 +1,9 @@
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowRight,CheckCircle2,ChevronRight,Compass,FolderPlus,LoaderCircle,Search,Send,Sparkles,Users} from 'lucide-react';
-import type {CrewId,Snapshot,Task} from '../shared';
+import type {CrewId,Snapshot,Task,SkillChoice} from '../shared';
 import {ALL_CREW,CREW_BY_ID,formatRelative} from '../data';
 import {CrewBadge} from '../components/Chrome';
+import {SkillPicker} from '../components/SkillPicker';
 import {filterFamilies,taskFamilies,taskLabel,taskGuidance,type TaskFamily} from '../taskFlow';
 import {clearSubmittedDraft,useDraft} from '../useDraft';
 import './home.css';
@@ -23,6 +24,7 @@ export function HomeView({launchPending,onLaunchPending,snapshot,invoke,onWorksp
  const [prompt,setPrompt]=useDraft(`home:${projectId}`);
  const sending=launchPending,setSending=onLaunchPending;
  const [error,setError]=useState('');
+ const [selectedSkills,setSelectedSkills]=useState<SkillChoice[]>([]),[skillsReady,setSkillsReady]=useState(true);
  const mounted=useRef(true);useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
  const pending=useRef(false),input=useRef<HTMLTextAreaElement>(null);
  const [query,setQuery]=useDraft('home:search'),[phase,setPhase]=useDraft('home:phase','all'),[filterProject,setFilterProject]=useDraft('home:filter-project');
@@ -35,7 +37,7 @@ export function HomeView({launchPending,onLaunchPending,snapshot,invoke,onWorksp
   if(!prompt.trim()||!selectedProject||pending.current||launchPending)return;
   pending.current=true;setSending(true);setError('');
   try{
-   const task=await invoke<Task>('task:start',{projectId:selectedProject.id,crewId:mode==='delegate'?'luffy':crewId,prompt:prompt.trim(),model:snapshot.settings.model});
+   const task=await invoke<Task>('task:start',{projectId:selectedProject.id,crewId:mode==='delegate'?'luffy':crewId,prompt:prompt.trim(),model:snapshot.settings.model,selectedSkills});
    clearSubmittedDraft(`home:${projectId}`,prompt);setLaunchedId(task.id);
    if(mounted.current){setPrompt('');onWorkspace({taskId:task.id,projectId:task.projectId,crewId:task.crewId});}
   }catch(error){if(mounted.current)setError(error instanceof Error?error.message:String(error));}
@@ -55,7 +57,8 @@ export function HomeView({launchPending,onLaunchPending,snapshot,invoke,onWorksp
    <div className="launch-options"><label className="home-field"><span>1. Choose your project</span><select aria-label="Task project" value={selectedProject?.id??''} disabled={sending} onChange={event=>{setProjectId(event.target.value);try{sessionStorage.setItem('sunny:last-project',event.target.value);}catch{}}}><option value="">Choose a project…</option>{snapshot.projects.map(project=><option value={project.id} key={project.id}>{project.name}</option>)}</select></label><button className="import-inline" disabled={sending} onClick={onImport}><FolderPlus size={15}/> Import a folder</button>
     <fieldset className="routing-choice" disabled={sending}><legend>2. Choose how to work</legend><label className={mode==='delegate'?'selected':''}><input type="radio" name="routing" value="delegate" checked={mode==='delegate'} onChange={()=>setMode('delegate')}/><span><b>Let Luffy delegate <em>Recommended</em></b><small>He picks specialists and brings their results back.</small></span></label><label className={mode==='direct'?'selected':''}><input type="radio" name="routing" value="direct" checked={mode==='direct'} onChange={()=>setMode('direct')}/><span><b>Work with one specialist</b><small>Choose exactly who takes the task.</small></span></label></fieldset>
     {mode==='direct'?<label className="home-field"><span>Specialist</span><select aria-label="Task specialist" value={crewId} disabled={sending} onChange={event=>setCrewId(event.target.value)}>{crew.filter(member=>member.id!=='luffy').map(member=><option key={member.id} value={member.id}>{member.name} · {member.role}</option>)}</select></label>:null}
-    <button className="launch-submit" disabled={!selectedProject||!prompt.trim()||sending||!window.sunny} onClick={()=>void submit()}>{sending?<LoaderCircle size={18} className="spin"/>:<Send size={18}/>} {sending?'Starting your task…':mode==='delegate'?'Start with Luffy':'Start task'} {!sending?<ArrowRight size={18}/>:null}</button><small className="launch-hint">{!window.sunny?'Open Sunny HQ on desktop to run tasks.':!selectedProject?'Choose or import a project to begin.':'Ctrl + Enter to start · Draft kept in this window'}</small>
+    <SkillPicker projectId={selectedProject?.id??''} brief={prompt} roleId={mode==='delegate'?'coordinator':crewId} disabled={sending} invoke={invoke} value={selectedSkills} onChange={setSelectedSkills} onReadyChange={setSkillsReady}/>
+    <button className="launch-submit" disabled={!selectedProject||!prompt.trim()||sending||!skillsReady||!window.sunny} onClick={()=>void submit()}>{sending?<LoaderCircle size={18} className="spin"/>:<Send size={18}/>} {sending?'Starting your task…':mode==='delegate'?'Start with Luffy':'Start task'} {!sending?<ArrowRight size={18}/>:null}</button><small className="launch-hint">{!window.sunny?'Open Sunny HQ on desktop to run tasks.':!selectedProject?'Choose or import a project to begin.':'Ctrl + Enter to start · Draft kept in this window'}</small>
    </div>
   </section>
   <div className="home-stats" aria-label="Task overview">{([{id:'attention',label:'Need your attention',icon:Sparkles},{id:'active',label:'In progress',icon:Users},{id:'done',label:'Past tasks',icon:CheckCircle2}] as const).map(item=><button key={item.id} className={`home-stat ${item.id} ${phase===item.id?'selected':''}`} onClick={()=>choosePhase(phase===item.id?'all':item.id)} aria-pressed={phase===item.id}><item.icon size={20}/><strong>{counts[item.id]}</strong><span>{item.label}</span><ChevronRight size={16}/></button>)}</div>

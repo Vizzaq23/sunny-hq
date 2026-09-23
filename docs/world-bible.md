@@ -68,6 +68,8 @@ The project-room CSS prototype now uses the original generated timber/teal room 
 
 The Grand Line chart is active in the current worktree: six distinct One Piece-inspired destinations retain the saved district identifiers and each opens its existing work surface. The captain may optionally control a Straw Hat or recruited resident using keyboard or touch movement, with zoom and drag exploration. This changes presentation only; missions, jobs, approvals, and completion evidence still come from saved work state. Destination labels and action buttons remain accessible DOM controls outside the artwork. Room art, sprite behavior, sound cues, and source provenance are recorded in `public/assets/ARTWORK.md`.
 
+The chart can expand across the content area for a larger map. A visible District desk control moves keyboard focus to the selected district's work surface, and Return to chart moves focus back to the map. Compact chart restores the side-by-side layout. This is a view choice only; the same direct district, project, job, and approval controls remain available, and the map does not imply any work has started or finished.
+
 Character workbenches now carry ten distinct static room illustrations. Robin's room includes a direct Obsidian library route, and note review prepares a draft for Robin without editing the vault. Room arrival cues are original synthesized audio, opt-in, adjustable, immediately muteable, and unrelated to task status. Reduced-motion settings preserve readable status and direct controls.
 
 ## Morgans reports and Robin decisions (2026-09-23)

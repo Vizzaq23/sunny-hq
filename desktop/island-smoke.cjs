@@ -5,7 +5,19 @@ module.exports=async({win,hub,handle})=>{
  try{
   await win.webContents.executeJavaScript(`Array.from(document.querySelectorAll('.sidebar button')).find(b=>b.textContent.trim()==='The Island').click()`);await pause(1000);
   assert.equal(await win.webContents.executeJavaScript(`document.querySelectorAll('.island-district').length`),6);
- assert.ok(await win.webContents.executeJavaScript(`document.querySelector('.island-art').naturalWidth>1000`));
+  assert.ok(await win.webContents.executeJavaScript(`document.querySelector('.island-art').naturalWidth>1000`));
+  const compactWidth=await win.webContents.executeJavaScript(`document.querySelector('.island-map-panel').getBoundingClientRect().width`);
+  assert.ok(await win.webContents.executeJavaScript(`Boolean(document.querySelector('[aria-label="Expand chart"]'))`),'Chart view is available');
+  await win.webContents.executeJavaScript(`document.querySelector('[aria-label="Expand chart"]').click()`);await pause(120);
+  assert.ok(await win.webContents.executeJavaScript(`document.querySelector('.island-map-panel').getBoundingClientRect().width`)>compactWidth+100,'Chart view gives the map substantially more width');
+  assert.equal(await win.webContents.executeJavaScript(`document.querySelector('[aria-label="Compact chart"]').getAttribute('aria-pressed')`),'true');
+  await win.webContents.executeJavaScript(`document.querySelector('[aria-label="Open district desk"]').click()`);await pause(80);
+  assert.ok(await win.webContents.executeJavaScript(`document.activeElement.classList.contains('island-control')`),'district desk can be reached from the chart');
+  await win.webContents.executeJavaScript(`document.querySelector('[aria-label="Return to chart"]').click()`);await pause(80);
+  assert.ok(await win.webContents.executeJavaScript(`document.activeElement.classList.contains('island-viewport')`),'chart can be refocused from the district desk');
+  fs.writeFileSync(path.join(process.cwd(),'.sunny-dev','island-chart-expanded.png'),(await win.webContents.capturePage()).toPNG());
+  await win.webContents.executeJavaScript(`document.querySelector('[aria-label="Compact chart"]').click()`);await pause(100);
+  assert.ok(await win.webContents.executeJavaScript(`document.querySelector('.island-map-panel').getBoundingClientRect().width`)<=compactWidth+2,'compact layout returns');
   assert.ok(await win.webContents.executeJavaScript(`Boolean(document.querySelector('[aria-label="Toggle captain controls"]'))`),'Captain controls toggle is available');
   for(let i=0;i<13;i++)await win.webContents.executeJavaScript(`document.querySelector('[aria-label="Zoom in"]').click()`);await pause(120);assert.equal(await win.webContents.executeJavaScript(`Array.from(document.querySelectorAll('.island-map-toolbar button')).some(button=>button.textContent.includes('400%'))`),true,'map zoom reaches 400%');await win.webContents.executeJavaScript(`Array.from(document.querySelectorAll('.island-map-toolbar button')).find(button=>button.textContent.includes('%')).click()`);await pause(120);assert.equal(await win.webContents.executeJavaScript(`document.querySelector('.island-scene').style.width`),'100%');
   await win.webContents.executeJavaScript(`document.querySelector('[aria-label="Toggle captain controls"]').click()`);await pause(120);await win.webContents.executeJavaScript(`(()=>{const s=document.querySelector('[aria-label="Captain character"]');Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value').set.call(s,'zoro');s.dispatchEvent(new Event('change',{bubbles:true}));})()`);await pause(180);

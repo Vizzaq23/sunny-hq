@@ -12,7 +12,7 @@ module.exports=async({win,hub,handle})=>{
   assert.match(await js(`document.querySelector('.morgans-blimp').innerText`),/2 new/);
   await handle('settings:update',{reducedMotion:true});await pause(150);assert.equal(await js(`getComputedStyle(document.querySelector('.morgans-blimp')).animationName`),'none');await handle('settings:update',{reducedMotion:motion});
   fs.writeFileSync(path.join(process.cwd(),'.sunny-dev','morgans-island.png'),(await win.webContents.capturePage()).toPNG());
-  await js(`document.querySelector('.morgans-blimp').click()`);await pause(250);assert.equal(await js(`document.querySelectorAll('.morgans-story').length`),2);
+  await js(`document.querySelector('.morgans-blimp').click()`);for(let i=0;i<40&&await js(`document.querySelectorAll('.morgans-story').length`)!==2;i++)await pause(100);assert.equal(await js(`document.querySelectorAll('.morgans-story').length`),2);
   await click('Careers');await pause(100);assert.equal(await js(`document.querySelectorAll('.morgans-story').length`),1);assert.match(await js(`document.querySelector('.morgans-story h3').textContent`),/career/);
   await click('All dispatches');await pause(100);await click('Save');await pause(150);assert.equal(hub.state.news.items[0].status,'saved');
   fs.writeFileSync(path.join(process.cwd(),'.sunny-dev','morgans-briefing.png'),(await win.webContents.capturePage()).toPNG());

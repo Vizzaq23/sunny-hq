@@ -24,6 +24,7 @@ app.whenReady().then(async()=>{
  const appErrors=[];hub.on('event',event=>{if(event.type==='error')appErrors.push(event.data);win.webContents.send('sunny:event',event);});
  win.webContents.on('console-message',event=>{if(event.level==='error'){appErrors.push({message:event.message});console.error('Renderer:',event.message);}});
  ipcMain.handle('sunny:invoke',async(_e,action,args)=>{
+  if(action==='skills:suggest')return {available:[],suggested:[]};
   if(action==='snapshot')return hub.state;
   if(action==='task:resolveMissingThread')return hub.resolveMissingThread(args);
   if(action==='files:list')return [];
@@ -89,7 +90,7 @@ app.whenReady().then(async()=>{
   await fill('[aria-label="Mission title"]','Keep this unfinished brief');await js('document.querySelector(".room-health-mission").click()');await delay(100);assert.equal(await js(`document.querySelector('[aria-label="Mission title"]').value`),'Keep this unfinished brief');
   await js('document.querySelector(".mission-prepare-branch").click()');await wait('document.querySelector(".mission-detail").textContent.includes("ready")');assert.match(hub.state.missions[0].branch.name,/^codex\/sunny-/);
   await js(`(()=>{const e=document.querySelector(".mission-launch-controls select");e.value=${JSON.stringify(coordinated?'coordinator':'builder')};e.dispatchEvent(new Event("change",{bubbles:true}));})()`);await delay(50);
-  await js('document.querySelector(".mission-launch").click()');await wait('document.querySelector(".mission-board").textContent.includes("Running")');
+  await wait('!document.querySelector(".mission-launch").disabled');await js('document.querySelector(".mission-launch").click()');await wait('document.querySelector(".mission-board").textContent.includes("Running")');
   assert.equal(hub.state.missions[0].status,'RUNNING');
   const rootTask=hub.state.tasks[0];
   const completeTask=task=>{hub.notification({method:'item/completed',params:{threadId:task.threadId,item:{id:'result-'+task.id,type:'agentMessage',text:'Labelled fixture stage result'}}});hub.notification({method:'turn/completed',params:{threadId:task.threadId,turn:{id:task.turnId,status:'completed'}}});};

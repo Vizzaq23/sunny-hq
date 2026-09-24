@@ -1,0 +1,165 @@
+{
+  "observedAt": "2026-09-24T03:04:40.576Z",
+  "scope": "Offline synthetic execution, validation, independent review and repair-cycle trial",
+  "parentTaskId": "3f2c84c7-89cf-4c97-9d36-1855abc750ed",
+  "sequence": [
+    {
+      "role": "builder",
+      "crew": "ace",
+      "taskId": "3709f853-63fe-42fb-98aa-6c7aef767da5",
+      "tests": 10
+    },
+    {
+      "role": "validator",
+      "crew": "law",
+      "taskId": "188f81aa-81e3-4ff8-82bd-ca63927a05e5",
+      "verdict": "FAIL",
+      "findings": 2
+    },
+    {
+      "role": "repair",
+      "crew": "ace",
+      "taskId": "7b695a99-f731-4827-ace0-6e462aa60e9d",
+      "tests": 14
+    },
+    {
+      "role": "validator",
+      "crew": "law",
+      "taskId": "fb65d46d-4573-4f4a-96d0-d12a3a98002f",
+      "verdict": "PASS",
+      "tests": 14
+    },
+    {
+      "role": "reviewer",
+      "crew": "vivi",
+      "taskId": "5cd157cf-593e-4616-acab-fbf2375f0d27",
+      "verdict": "FAIL",
+      "findings": 3
+    },
+    {
+      "role": "repair",
+      "crew": "ace",
+      "taskId": "032a1634-a904-45f6-9eae-440c4732aca7",
+      "tests": 21
+    },
+    {
+      "role": "validator",
+      "crew": "law",
+      "model": "gpt-6-luna",
+      "taskId": "059974d7-9f55-49fb-b781-6be8a36b152a",
+      "verdict": "PASS",
+      "tests": 21
+    },
+    {
+      "role": "reviewer",
+      "crew": "vivi",
+      "model": "gpt-6-sol",
+      "taskId": "e18d620b-6441-4e86-a3c8-03600fd9199d",
+      "verdict": "PASS",
+      "tests": 21,
+      "independentMutationProbes": 17
+    }
+  ],
+  "operatorChecks": {
+    "testsPassed": 21,
+    "testsFailed": 0,
+    "manifestMatched": 8,
+    "validCliExits": [
+      0,
+      0
+    ],
+    "byteIdentical": true,
+    "invalidCliExit": 1,
+    "malformedCliExit": 1,
+    "previouslyFailingProbesNowRejected": [
+      "unknown jurisdiction",
+      "unknown rule version",
+      "conflicting game ID",
+      "quote observed before quote timestamp"
+    ]
+  },
+  "source": [
+    {
+      "name": "audit.js",
+      "sha256": "f19404a78a0b802cde3cfcea1d7ad2ee955310dcfc120c9c6ea2301c2da9db58"
+    },
+    {
+      "name": "audit.test.js",
+      "sha256": "48320e11cc603771d2186c940957a3377b9fd6ddc138f3ce760fee2dbaf3e509"
+    },
+    {
+      "name": "cli.js",
+      "sha256": "9463d4a76bbf2df720162769b7df7af921b9b1d9fa7833d0084cf3f1f221e289"
+    },
+    {
+      "name": "fixtures/invalid.json",
+      "sha256": "8560f3fb9adadc0136d2d39bd188681b02c6b13718e598748ce99a5073757495"
+    },
+    {
+      "name": "fixtures/malformed.json",
+      "sha256": "e9a940d3861c44250df52dfd9c5068444b3198ba5ffdeff2a1dd0688800630da"
+    },
+    {
+      "name": "fixtures/valid.json",
+      "sha256": "cac5a39845ccc2dce55c86047b7b495040ebb73027b465d20f7615d49aa6c41e"
+    },
+    {
+      "name": "package.json",
+      "sha256": "fa9acfe15c37446824af3935aaa29b22d26d71bfc6c0f8fe610f4ecbec982c7c"
+    },
+    {
+      "name": "README.md",
+      "sha256": "45c0250286dbe39c67d9d6b73a0f02ff971e0bb343e720ff091e168cd8bf8fde"
+    }
+  ],
+  "records": [
+    {
+      "name": "BUILD-RECORD.md",
+      "sha256": "a13b8cbca9dd6411950dc045242e0a2c4dc67fd39af3dc616a972911d7a34db4"
+    },
+    {
+      "name": "VALIDATION-RECORD.md",
+      "sha256": "ec7dc844391ba58f54805c90cb598e135f585181af83b18e94fa2522802af3e4"
+    },
+    {
+      "name": "REVIEW-RECORD.md",
+      "sha256": "377a697c1fb1b52381d8946feba88f26fb68959f16a84e0eed5a9e7e20303e39"
+    }
+  ],
+  "preservedPlanningFiles": [
+    {
+      "name": "PROJECT-BRIEF.md",
+      "unchanged": true
+    },
+    {
+      "name": "ENGINEERING-PLAN.md",
+      "unchanged": true
+    },
+    {
+      "name": "SOURCES.md",
+      "unchanged": true
+    }
+  ],
+  "workflowUpdated": true,
+  "reviewedImplementationUnchanged": true,
+  "ui": {
+    "recoveryDialogObserved": true,
+    "reloadRestoredWorkspace": true,
+    "finalTaskResultObserved": true,
+    "readyToReview": true,
+    "cause": "Unconfirmed",
+    "noDuplicateMissionStarted": true
+  },
+  "continuation": {
+    "assignmentLimit": 6,
+    "captainContinuedInSunny": true
+  },
+  "limits": [
+    "Synthetic fixtures only",
+    "No real data rights or coverage established",
+    "No probabilities, EV, models, paid providers or wagers",
+    "No Git commit or publication; source review bound to SHA256",
+    "Desktop session had an interface interruption; do not claim error-free operation"
+  ],
+  "observerDocumentationEdit": "Corrected builder record attribution from Zoro to Vivi; no implementation or source manifest changes"
+}

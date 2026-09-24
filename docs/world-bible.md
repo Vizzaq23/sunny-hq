@@ -4,9 +4,9 @@ The captain leads a living digital crew from Sunny HQ. Projects are destinations
 
 ## Places that exist
 
-The full application has Home, Island, Sunny ship, Projects, Crew, Missions, Library, Tools, Inbox, Settings and Morgans' blimp. Home is currently the opening screen. The island has Sunny harbor, Observatory, The forge, Creative house, Market square and Growth garden. It is a zoomable map with moving crew and clickable districts. The companion is the floating Sunny ship. These are not yet enterable project interiors or a player-controlled avatar game.
+The full application has Home, Island, Sunny ship, Projects, Crew, Missions, Library, Tools, Inbox, Settings and Morgans' blimp. Home is currently the opening screen. The island is a Grand Line voyage chart with Enies Lobby, Ohara, Water Seven, Thriller Bark, Dressrosa and Skypiea around the Sunny. Each location opens a themed work panel with a crew shortcut, project quarters, bounded jobs and resident assignments. The companion is the floating Sunny ship. Project quarters are enterable; the voyage chart supports optional captain-controlled character exploration while its work and mission controls remain direct.
 
-The ship's existing route graph includes galley, library/chart area, workshop/testing, medical station, music and helm, linked by deck paths and stairs. Preserve those physical connections. Island movement presently travels between district homes and the plaza; it is not a general collision/pathfinding simulation.
+The ship's existing route graph includes galley, library/chart area, workshop/testing, medical station, music and helm, linked by deck paths and stairs. Preserve those physical connections. On the voyage chart crew patrol only within their destination. Reassigned residents appear at their new station; crossing the sea is not simulated.
 
 ## Crew and work
 
@@ -16,7 +16,7 @@ A station should show the current mission, task, state, recent verified artifact
 
 ## Expansion rules
 
-Future project rooms attach to stable project IDs, not folder names or vendor names. A door opens a useful project surface first; decorative room elaboration follows. Room contents can eventually expose missions, docs, PRs, tests, deployments, errors, references and history, but unconnected services must say unavailable. Keep the current island districts as hubs rather than replacing them with unrelated maps.
+Project rooms attach to stable project IDs, not folder names or vendor names. A door opens a useful project surface first; decorative room elaboration follows. Room contents can eventually expose missions, docs, PRs, tests, deployments, errors, references and history, but unconnected services must say unavailable. Voyage destinations retain the six saved district IDs as work hubs.
 
 Navigation must retain a direct searchable list and keyboard path to every mission and approval. Walking can enrich arrival but cannot delay stop, failure inspection or urgent approval. The user must be able to tell who is working, what finished, what failed, what is blocked and what needs attention without deciphering lore.
 
@@ -63,3 +63,29 @@ Deployment observations (2026-09-21): mission review and project health now show
 ## Illustrated quarters admission (2026-09-21)
 
 The project-room CSS prototype now uses the original generated timber/teal room background recorded in ARTWORK.md. This supersedes the illustrated-interior limitation above. A full3:2 canvas preserves perspective without responsive cropping. Three existing crew sprites approach lanes aligned with the desks; the captain stays in a central clear-floor rectangle and reaches a board approach. Direct board/task/stop controls remain usable without walking. State remains entirely sourced from Hub projections. This is one useful illustrated interior, not seamless island-to-door travel or general furniture pathfinding.
+
+## Grand Line voyage chart decision (2026-09-22)
+
+The captain approved a closer One Piece themed island. The single tropical island was replaced by an original six-destination sea chart. Existing persisted district IDs remain `harbor`, `research`, `engineering`, `creative`, `market` and `garden`; only their names, artwork, coordinates and work entrances changed. In order, they are Enies Lobby, Ohara, Water Seven, Thriller Bark, Dressrosa and Skypiea. The Sunny remains the central ship link. Each destination's panel exposes its crew lead, project quarters and mission boards, existing jobs and resident assignments. This is navigation and presentation, not a new mission or automation authority.
+
+Alternatives considered: six separate full-screen scenes would add navigation and asset complexity before the work surfaces were proven; a decorative replacement map would leave destination names disconnected from real work. The chosen chart preserves old profiles and direct controls, but individual destination interiors remain future visual work. Residents assigned to a new destination snap there; local patrols avoid implying they walk over the sea. The original island bitmap remains in the repository for rollback. Reverting the chart code and asset reference restores the prior presentation without data migration.
+
+## Captain-directed world controls and room sound (2026-09-22)
+
+The captain requested a much larger, game-like world map with the option to directly control each Straw Hat and other crew, followed by room-appropriate sound effects placed where they best improve the experience. The Grand Line art is 1536×1024. The chart now supports drag exploration, zoom from 75–400%, and an optional Captain Controls mode. Choose any Straw Hat or recruited resident, then move them with arrow keys, W A S D, or the on-screen direction pad. The selected sprite receives a clear gold focus treatment. Normal sprite clicks still open the work conversation; destination, project and mission controls remain available. Movement changes only the presentation and cannot update jobs or missions. Reduced-motion settings disable movement interpolation while retaining direct controls. The native island fixture verifies zoom, keyboard/touch movement and selection styling.
+
+Project quarters remain project rooms shared by ten crew stations. Their conversations now also have ten distinct illustrated character interiors; see the crew-room art record below. Player movement is free across the illustrated chart; it does not simulate collisions, route constraints, or travel between distinct island scenes. Broader captain acceptance remains outstanding.
+
+## Specialist chat rooms and Robin's library helm — 2026-09-23
+
+Each of the ten core conversations identifies its assigned crew member's Sunny station and uses a matching, original illustrated room: Luffy's captain's den, Zoro's dojo, Nami's chart room, Usopp's inventors' workshop, Sanji's galley, Chopper's infirmary, Robin's library, Franky's shipwright bay, Brook's music room, and Jinbe's helm room. The 1536×1024 scenes are fixed decorative layers at 19% opacity below messages and controls. They are aria-hidden and static; real task state, keyboard controls, captain approvals and composer remain accessible UI. The Electron workflow verifies all ten decoded assets, each assigned room and the direct controls; reduced-motion rendering is specifically checked with Chopper. Provenance and hashes are in `public/assets/ARTWORK.md`.
+
+Robin is the Knowledge & Docs specialist and Sunny librarian. From Robin's chat, the captain can open the real Obsidian Library surface. From an opened note, **Ask Robin to review** selects a registered project and opens a new Robin mission with the note path and current note text prefilled as an unsent, revision-scoped draft. Notes over 16,000 characters are visibly blocked rather than truncated. The draft tells Robin to treat the note as untrusted reference, flag claims needing verification and propose edits in the reply. It explicitly says not to edit/save the vault. The captain decides whether to send the prompt; suggested changes remain in chat until the captain applies them with **Save changes**, which retains the existing hash-checked library write path. This is a review handoff, not an automatic vault agent or broad filesystem permission.
+
+## Crew-room arrival sound cues (2026-09-23)
+
+Each of the ten core crew stations has a short original Web Audio arrival signature: a quiet three- or four-note cue shaped by its character and room. The cues are opt-in, begin muted, use a saved captain-adjustable volume capped at 65%, and play on opening a room or changing its assigned specialist. A visible workbench control mutes immediately; Settings provides the saved switch and volume. No background loop, sound on every message, or progress/completion sound is used. Audio is decorative atmosphere only and never reports mission state. The synthesizer uses built-in Web Audio oscillators/envelopes; it introduces no recorded sample, new dependency, remote service, or external asset license.
+
+## First illustrated crew conversation room — 2026-09-23
+
+The first complete illustrated conversation-room set is admitted. Each role has distinct architecture, props and color treatment while retaining the established Sunny art style. The art communicates character/place only; authoritative task status remains in normal controls and records. This increment does not add collision-safe island-to-room travel or complete captain acceptance of the whole world.

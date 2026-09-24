@@ -1,0 +1,52 @@
+{
+  "date": "2026-09-23T00:25:32Z",
+  "workspaceBranch": "codex/sunny-living-missions",
+  "launcher": "Launch Sunny.cmd",
+  "activeExecutable": ".sunny-dev/validated-release-gpt6-room-play/win-unpacked/Sunny HQ.exe",
+  "activeAppVersion": "0.11.0",
+  "electronVersion": "44.4.3",
+  "appArchiveSha256": "4a7fdf99f80b6dd4ac7aaee7a3afb132058cc4889f2a638457a73f7e48c15460",
+  "archiveModifiedAt": "2026-09-22T23:37:44.7203535Z",
+  "previouslyDocumentedPackage": {
+    "executable": ".sunny-dev/validated-release-9fb87a9/win-unpacked/Sunny HQ.exe",
+    "appVersion": "0.11.0",
+    "appArchiveSha256": "52af5c30375ca160fe4dd1d573616966cf8f96066dcd473a6569e0ecb3e5d159",
+    "archiveModifiedAt": "2026-09-22T01:14:12.8469802Z"
+  },
+  "currentPackageChecks": {
+    "launchTargetMatchesActiveProcesses": true,
+    "assetBundleContainsProjectChartsAndVoyageOverviewLabels": true,
+    "isolatedPackagedPreview": {
+      "result": {
+        "home": true,
+        "tasks": 3,
+        "banner": true,
+        "overflow": false
+      },
+      "screenshot": "%TEMP%/sunny-hq-review-0.11.0/preview.png",
+      "screenshotSha256": "85ca70e552149400ee860ed5b9b8379e0c665f45c118e403b00c7c00cc5e698b",
+      "scope": "Packaged sample-data preview with a separate profile; no agents, provider calls, projects, or active Sunny profile."
+    }
+  },
+  "readOnlyProfileSummary": {
+    "taskStatuses": {
+      "failed": 1,
+      "finished": 56,
+      "interrupted": 3
+    },
+    "workingWaitingOrStarting": 0,
+    "chartMissionIdFromPr4Present": false,
+    "queryScope": "SQLite opened read-only. Returned status counts and the exact mission ID lookup only; no task text, messages, settings, or credentials were returned."
+  },
+  "editorSaveRetest": {
+    "result": "passed",
+    "evidence": "packaged-editor-save-repeat-2026-09-23.json",
+    "summary": "Both file origins saved successfully in workspace and temp fixtures; stale external writes were rejected in both locations while drafts remained visible."
+  },
+  "limits": [
+    "The current package's exact source commit was not embedded in the inspected package metadata, so this record binds to the executable path and app.asar hash, not a Git source SHA.",
+    "Presence of UI labels in the bundle and sample Home render do not prove the chart mission criteria or every live project-room interaction.",
+    "The absent mission record prevents using Sunny's revision-bound acceptance control on this profile. PR merge and passing CI do not count as mission acceptance."
+  ],
+  "effects": "No app process was closed, no release was switched, no project file or saved profile data was modified, and no .env file or Jev API key was read."
+}

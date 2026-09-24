@@ -1,0 +1,93 @@
+{
+  "date": "2026-09-23T02:50:16.177Z",
+  "objective": "First illustrated physical crew chat room: Zoro dojo",
+  "branch": "codex/sunny-living-missions",
+  "workingTreeHead": "c58ffc48bf943b6a27f3a9da5e58c1dba3eae0bf",
+  "sourceChangesCommitted": false,
+  "implementation": {
+    "room": "Zoro training dojo",
+    "asset": "public/assets/zoro-dojo-room.png",
+    "width": 1536,
+    "height": 1024,
+    "opacity": 0.19,
+    "decorativeAriaHidden": true,
+    "reducedMotion": "static",
+    "source": "C:\\Users\\Quintin\\.codex\\generated_images\\01a0c51d-6389-7b82-b551-a2f66bcf2309\\exec-63f535c6-fc52-47d7-8e5e-ae161f2640a5.png",
+    "assetSha256": "2AFADEC0E42A55A94082B88E27DEC558340EA008A39997ECBBC8D24F8BC9845E"
+  },
+  "verification": {
+    "nodeTests": {
+      "command": "node --test tests/*.test.cjs",
+      "passed": 328,
+      "failed": 0,
+      "skipped": 0
+    },
+    "typecheck": "passed",
+    "productionBuild": "passed",
+    "electronWorkflow": {
+      "command": "node node_modules/electron/cli.js desktop/workflow-smoke.cjs",
+      "passed": true,
+      "checks": 27,
+      "screenshot": ".sunny-dev/workflow-check/zoro-dojo-room-working.png",
+      "screenshotSha256": "0BA486A3BDE7BA1ED1DF6B59AA8245839E481D51A4E683B4FD7204B4CECF2547",
+      "resultFileSha256": "11C11DB30F4B3F6C758722BA3E27EEA08145B7D212F6A157451E364B48475280"
+    },
+    "packagedSmoke": {
+      "command": "electron app.asar --smoke-test",
+      "exitCode": 0,
+      "groups": [
+        "SUNNY_ACTIONS",
+        "SUNNY_COMPANION",
+        "SUNNY_GROWTH",
+        "SUNNY_WALKING",
+        "SUNNY_CAPTAIN",
+        "SUNNY_ISLAND",
+        "SUNNY_NEWS",
+        "SUNNY_RECOVERY",
+        "SUNNY_SMOKE"
+      ],
+      "screenshot": ".sunny-dev/desktop-smoke.png",
+      "screenshotSha256": "F58B55211AEA4AA3ADBF658FD46765EAE4C3CA795FBCE13BB6EC699F607F9B71",
+      "asarAssetMatchesSource": true
+    }
+  },
+  "package": {
+    "version": "0.11.0",
+    "path": ".sunny-dev/validated-release-zoro-dojo/win-unpacked/Sunny HQ.exe",
+    "appAsarSha256": "4888F2CFF26E4D1EFE5B31485D8842FF2E8104A1EEBC3DBF7C32F2F267CE5E7F",
+    "exeSha256": "1A455DF80FA3056944641AC367D800846229E33B4D7A5106873E35C38AC0EC72",
+    "launcher": "Launch Sunny.cmd",
+    "activeMainPid": 29808,
+    "activeWindowTitle": "Sunny HQ"
+  },
+  "activeProfile": {
+    "path": "%LOCALAPPDATA%/Sunny HQ",
+    "tasks": 60,
+    "nonterminalTasks": 0,
+    "backup": ".sunny-dev/profile-backup-before-zoro-dojo-20260923",
+    "backupFiles": 57,
+    "backupBytes": 65063120,
+    "sqliteSha256": "B50649A33BB56AA6BD1099D4201DE1D7F8FFA66C0BED1840D1FC87BD766774B0",
+    "allFilesMatched": true
+  },
+  "sourceHashes": {
+    "src/views/Workbench.tsx": "3F09AED8CBB06A52DAF9B31B5903A0391E7CE3F907E6E171125AD004C6264218",
+    "src/styles.css": "AD4315B4206174E804D7948CCE22770099039F60E93AA6F9AE59AC0FFF2A3996",
+    "desktop/workflow-smoke.cjs": "E7B9B1ABDC57A1FEFE068D2CC1AED23FAAF76243D69D64865A25EC5DB88CCF11",
+    "public/assets/zoro-dojo-room.png": "2AFADEC0E42A55A94082B88E27DEC558340EA008A39997ECBBC8D24F8BC9845E",
+    "public/assets/ARTWORK.md": "EE3ABC9E6FF55925961A43AB48BD41C837D531B86FC1D7BCF48220860F9DA418",
+    "docs/world-bible.md": "5AA6D0EBFEAD778CB98F430FD501B79488D168C9F27F229B6734BAE44BEB8AF8",
+    "docs/master-goal-audit.md": "8E648AF211A70C3226CD839A3F6E872C3F7BCFD280765B8D4ED9F6A3E5605AD7",
+    "docs/living-missions-plan.md": "DD40E43E8D33A4F2C0FE3241AED4C30039DA519825102E154233E42D53E89CBE",
+    "docs/SUNNY-HQ-IMPLEMENTATION-REPORT.md": "B219BB3FDB961702589ABC163E6000568DA25A69B3F2257A1CE475C8EDD58C18",
+    "README.md": "A77F9A5BEBADAAE3E39BDD556B6B1F61A705BD03070142EB796A308A1FD63B7A",
+    "Launch Sunny.cmd": "F8517882B0A31839B48EA66C4F671537DDEDC28DBC918FFB869603D8965D9016"
+  },
+  "limits": [
+    "This is the first of ten illustrated crew rooms; nine remain.",
+    "No mission was sent during package or fixture verification.",
+    "Chart collision/pathfinding and captain whole-world acceptance remain incomplete.",
+    "No git commit was created; existing user changes remain uncommitted and preserved.",
+    "The PDF-wide goal remains active."
+  ]
+}

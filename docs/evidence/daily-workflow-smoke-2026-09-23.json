@@ -1,0 +1,76 @@
+{
+  "date": "2026-09-23T01:06:53Z",
+  "result": "passed",
+  "scope": "Production renderer UI in Electron 44.4.3 with controlled synthetic IPC fixtures; no Codex/provider connection, user project, or live Sunny profile was used. The editor check waits for the rendered fixture contents and normalizes Monaco's nonbreaking-space display.",
+  "projectVersion": "0.11.0",
+  "command": "node_modules/.bin/electron.cmd desktop/workflow-smoke.cjs (capture retry fix)",
+  "exitCode": 0,
+  "checkCount": 21,
+  "fullNodeSuite": {
+    "command": "node --test tests/*.test.cjs",
+    "result": "passed",
+    "passed": 325,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 5186,
+    "credentialSafety": "No .env file or key value was read; tests used their controlled fixture configuration."
+  },
+  "checks": [
+    "snapshot race keeps newer state",
+    "task family search and filtering",
+    "specialist approval and duplicate approval guard",
+    "separate captain and specialist drafts",
+    "draft retention across navigation and UI reload",
+    "suggested skills can be selected or removed",
+    "failed task start preserves the brief",
+    "duplicate task start is rejected",
+    "editor and terminal bundles load lazily",
+    "file navigation stops at the registered project root",
+    "Monaco editor loads",
+    "unknown-task recovery error remains visible",
+    "status check does not stop running work; explicit stop works",
+    "Inbox and island navigation render",
+    "compact layout has no horizontal overflow",
+    "late launch response does not steal navigation",
+    "late launch clears only the submitted brief",
+    "newer draft survives a late successful launch",
+    "dirty editor blocks project switch",
+    "starting a task preserves the dirty editor buffer",
+    "failed snapshot exposes retry; early streamed state beats stale snapshot"
+  ],
+  "resultFile": {
+    "path": ".sunny-dev/workflow-check/result.json",
+    "sha256": "11c11db30f4b3f6c758722ba3e27eea08145b7d212f6a157451e364b48475280"
+  },
+  "source": {
+    "path": "desktop/workflow-smoke.cjs",
+    "sha256": "345ac7cd521d93b83dd80b7c2a853377cdd34f51ad84ee8a95797867b16f3aac"
+  },
+  "screenshots": [
+    {
+      "path": ".sunny-dev/workflow-check/home-desktop.png",
+      "sha256": "c32176ae59981585fd197f2dc0599e1df2d4b0f7b95560a24207badb02a35247"
+    },
+    {
+      "path": ".sunny-dev/workflow-check/focused-conversation.png",
+      "sha256": "c3225fd30b1d41489c932f783bffb73b40c8a300a0e1b508cee7cc073f15d87b"
+    },
+    {
+      "path": ".sunny-dev/workflow-check/files-workspace.png",
+      "sha256": "6efe9326281e731223a23983f5c45dc86436f6d124af0acc2cc2839c9e5d3473"
+    },
+    {
+      "path": ".sunny-dev/workflow-check/home-compact.png",
+      "sha256": "1956cae1c5715ac8cb998b7f9640045002fd16927b01a602b46840e41965c0b7"
+    },
+    {
+      "path": ".sunny-dev/workflow-check/stopped-task.png",
+      "sha256": "2a18060e0309089ca37dfa2e97f2461c030e7e056fbb7dfe62662d58d137d3d5"
+    }
+  ],
+  "limitations": [
+    "This tests the renderer and state transitions against fixture IPC, not real provider behavior or the active user's Sunny data.",
+    "It does not exercise a packaged executable, real filesystem writes, PR/CI/deployment operations, or acceptance of a live mission.",
+    "The separate packaged editor-save repeat remains partial: OneDrive app-created/PowerShell-created saves and stale-write rejection passed, but the temp-root UI timed out before attempting a save. See packaged-editor-save-repeat-2026-09-22.json."
+  ]
+}

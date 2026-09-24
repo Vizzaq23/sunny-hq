@@ -1,0 +1,59 @@
+{
+  "date": "2026-09-23T00:22:31Z",
+  "result": "passed",
+  "executable": ".sunny-dev/validated-release-gpt6-room-play/win-unpacked/Sunny HQ.exe",
+  "version": "0.11.0",
+  "electronVersion": "44.4.3",
+  "appArchiveSha256": "4a7fdf99f80b6dd4ac7aaee7a3afb132058cc4889f2a638457a73f7e48c15460",
+  "isolatedProfile": "C:/Users/Quintin/AppData/Local/Temp/sunny-editor-save-L8dgAO",
+  "workspaceFixture": "C:/Users/Quintin/OneDrive/Documents/ChatGPT/aI WORKFLOW/.sunny-dev/editor-save-JjnCH0",
+  "tempFixture": "C:/Users/Quintin/AppData/Local/Temp/sunny-editor-files-XK8p0C",
+  "observations": [
+    {
+      "location": "workspace",
+      "file": "app-created.txt",
+      "save": "passed"
+    },
+    {
+      "location": "workspace",
+      "file": "external-created.txt",
+      "save": "passed"
+    },
+    {
+      "location": "workspace",
+      "staleExternalWrite": "rejected; disk contents preserved and editor draft retained"
+    },
+    {
+      "location": "temp",
+      "file": "app-created.txt",
+      "save": "passed"
+    },
+    {
+      "location": "temp",
+      "file": "external-created.txt",
+      "save": "passed"
+    },
+    {
+      "location": "temp",
+      "staleExternalWrite": "rejected; disk contents preserved and editor draft retained"
+    }
+  ],
+  "resultFileSha256": "734075bd5e2764bf8342e03baf390cd7e1e7c85b15e0c976a19be7776267cad2",
+  "screenshots": [
+    {
+      "path": "C:/Users/Quintin/AppData/Local/Temp/sunny-editor-save-L8dgAO/workspace-editor.png",
+      "sha256": "468a276a88c3679c81e253821ac588d2c3c792b128836a174f64ae5c3746e186"
+    },
+    {
+      "path": "C:/Users/Quintin/AppData/Local/Temp/sunny-editor-save-L8dgAO/temp-editor.png",
+      "sha256": "5714d322ed16665bb00bf1dd29599ccdc244e139e29fb7192b0441c27baba926"
+    }
+  ],
+  "scope": "Packaged production renderer, Monaco input, production preload/IPC sender validation, registered-project file handlers, and stale-write protection. The existing Sunny session continued in its normal profile; no provider was connected.",
+  "historicalContext": "The 2026-09-22 run passed the workspace cases but stopped at a Monaco UI timing assertion before attempting temp saves. A prior candidate had blocked one PowerShell-created OneDrive save. Neither condition reproduced in this complete repeat; the earlier cause remains unexplained.",
+  "limits": [
+    "This run covers newly created disposable fixtures; it does not prove every existing captain project file can be saved in every Windows/security state.",
+    "Passing both locations does not identify or resolve the historical intermittent OneDrive block. No security settings, exclusions, permissions, or user project files were changed."
+  ],
+  "effects": "Only fresh test fixtures and an isolated temporary app profile were written. No .env file, Jev API key, credential, or live provider was accessed."
+}

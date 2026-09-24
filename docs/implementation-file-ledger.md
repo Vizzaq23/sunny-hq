@@ -103,3 +103,28 @@
 | Created | `docs/evidence/local-completion-2026-09-21.json` | Current-source local test/build/native evidence and explicit external-verification limit. |
 
 Later corrections strengthen the existing Hub/mission/approval/deliverable boundaries, add durable check and task recovery, reveal the board on opening, and extend native fixtures to cover those controls and fail on renderer errors. Their regression coverage and exact evidence are recorded in `living-missions-plan.md`. No additional dependency was added by these corrections.
+
+Island exploration update: `src/islandControls.ts` defines bounded keyboard/touch movement and zoom limits; `src/islandMotion.ts` projects the selected avatar without touching task state; `src/views/IslandView.tsx` and `src/island.css` provide the optional controls and visible focus; `desktop/island-smoke.cjs` verifies the full Straw Hat roster, a recruited resident, input methods and zoom. `desktop/main.cjs` adds bounded retry for the final Electron smoke screenshot after observed `UnknownVizError`. `Launch Sunny.cmd` targets the isolated-profile-tested 0.11.0 candidate. Related user-facing and requirement documentation is updated in `README.md`, `docs/world-bible.md`, `docs/master-goal-audit.md`, `docs/living-missions-plan.md`, `docs/SUNNY-HQ-IMPLEMENTATION-REPORT.md`, the JSON evidence record and this ledger.
+
+Character workspace increment — 2026-09-23: `src/App.tsx` passes selected Obsidian note context into a Robin workspace with an isolated revision-scoped draft key; `src/views/Workbench.tsx` assigns static station-themed presentation and exposes Robin's Library shortcut; `src/views/OpsViews.tsx` provides the bounded Ask Robin review action and explicit manual-save path; `src/styles.css` defines each core crew's room cues. `desktop/workflow-smoke.cjs` covers theme/identity, note lookup, prefilled unsent Robin review, draft isolation and long-note refusal. `Launch Sunny.cmd` now targets the locally verified and activated 0.11.0 candidate. The 25-check result, screenshots, source hashes, package SHA256, active package path and verified pre-update profile backup are in `docs/evidence/character-chat-rooms-2026-09-23.json`. No user project file or credential was included in the evidence record.
+
+Crew-room audio increment — 2026-09-23: `src/roomAudio.ts` supplies ten short, distinct synthesized station cues using Web Audio only; `src/views/Workbench.tsx` adds an accessible mute switch and plays on room/specialist entry only; `src/views/OpsViews.tsx`, `src/shared.ts`, `src/data.ts`, and `desktop/hub.cjs` persist captain sound/volume preferences; `desktop/main.cjs` validates those settings; `tests/room-audio.test.cjs`, `desktop/smoke.cjs`, and `desktop/workflow-smoke.cjs` verify cue definitions, safe volume, stop/mute, IPC persistence, UI and opt-in behavior. README and art/world/audit documentation describe its limits. No sound sample, paid generation, new package, or user-data migration is introduced.
+
+## First illustrated character-room increment — 2026-09-23 UTC
+
+| Change | File | Purpose |
+| --- | --- | --- |
+| Created | `public/assets/zoro-dojo-room.png` | Original generated dojo interior admitted as Zoro's subdued chat background; prompt/hash in ARTWORK.md. |
+| Created | `docs/evidence/zoro-dojo-room-2026-09-23.json` | Hash-matched source, test, package and profile-backup evidence for this increment. |
+| Modified | `src/views/Workbench.tsx` | Resolve the Zoro room asset into the conversation as decorative art. |
+| Modified | `src/styles.css` | Position the room art beneath chat content without moving controls. |
+| Modified | `desktop/workflow-smoke.cjs` | Verify decoded asset, accessibility, opacity, direct controls and screenshot in a fixture-only Zoro conversation. |
+| Modified | `Launch Sunny.cmd` | Activate the verified Zoro-room Windows package. |
+| Modified | `README.md` | Document the active package and accurately state that nine physical rooms remain. |
+| Modified | `public/assets/ARTWORK.md`, `docs/world-bible.md`, `docs/master-goal-audit.md`, `docs/living-missions-plan.md`, `docs/SUNNY-HQ-IMPLEMENTATION-REPORT.md` | Preserve original-art provenance, world behavior, requirement status and validation limits. |
+
+## Complete illustrated crew-room set — 2026-09-23 UTC
+
+Created nine generated room illustrations alongside Zoro's dojo; `src/views/Workbench.tsx` selects all ten by assigned crew identity and `src/styles.css` places each decorative scene below chat content. The Electron workflow now validates each image mapping, decode, accessibility boundary and direct control, plus reduced-motion Chopper rendering. `Launch Sunny.cmd` points to the separately built and packaged-verified `.sunny-dev/validated-release-ten-crew-rooms` candidate. README, art/world bibles and goal/implementation reports record the result and remaining limits. Exact hashes, screenshots, package checks and profile backup are in `docs/evidence/ten-crew-rooms-2026-09-23.json`. Existing profile backup has 58 files and 65,064,544 bytes; all file hashes matched before launch. No live provider work was started.
+
+\n

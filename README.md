@@ -4,19 +4,21 @@ A personal Windows AI studio aboard the Thousand Sunny. Click a Straw Hat statio
 
 ## Open it
 
-Double-click **Launch Sunny.cmd** in this folder. The packaged app is in `release/win-unpacked/Sunny HQ.exe`. The optional installer is `release/Sunny HQ Setup 0.6.0.exe`.
+Double-click **Launch Sunny.cmd** in this folder. It opens the verified 0.11.0 package at `.sunny-dev/validated-release-renderer-recovery-2026-09-23/win-unpacked/Sunny HQ.exe`; the launcher stops with an error if that package is missing. This fresh Windows build includes the merged Codex worker launch fix and renderer-exit diagnostics/recovery checks, and passed the full packaged desktop check on 2026-09-23. The unsigned installer and package hashes are beside it in the release directory. If Sunny is already running, finish any active work and choose **Quit** from its tray menu before launching the update. Closing its window only hides it to the tray. The previous builds and profile backups are preserved.
 
 Sunny uses the installed Codex CLI and your existing sign-in. Settings shows connection status and the models returned by that account. Usage remains subject to your normal account limits. Closing the window leaves Sunny in the system tray; use the tray's Quit action to exit.
 
+Version 0.11 opens on **Home**: describe a goal, choose a project, and start with Luffy or a specialist. Search and filter tasks, see linked assignments, and open anything needing attention. Conversations keep drafts across navigation and expose the editor/terminal through **Files & tools**. The latest packaged save check passed for app-created and externally created files in both OneDrive workspace and Temp fixtures, including stale-write protection; see [the workflow upgrade notes](docs/WORKFLOW-UPGRADE.md) and the dated evidence in `docs/evidence/`.
+
 ## Included
 
-- Ten Straw Hat specialist roles with distinct conversation personalities, clickable deck characters, in-scene chat, real task status, saved conversations, approval prompts and explicit handoffs.
+- Ten Straw Hat specialist roles with distinct conversation personalities and illustrated station-themed chat rooms, clickable deck characters, in-scene chat, real task status, saved conversations, approval prompts and explicit handoffs. Each chat uses its crewmate's own Sunny room illustration. Robin's chat links to the Obsidian librarian workflow.
 - Codex app-server integration, streaming assistant output, tool activity records, interrupt and uncertain-connection recovery.
 - Local project discovery/import, file tree, Monaco editor with stale-save protection, file search service, Git diff and selected-file commits. Selecting a file for commit includes its whole working contents; unrelated staged files remain outside that commit.
 - Real PowerShell terminals and isolated localhost preview windows.
 - Searchable tool directory: installed tools, configured MCP entries, skills, connected Codex apps and web shortcuts are labelled separately. Connected-app actions happen inside crew conversations; listed tools do not imply every provider is connected.
 - Docker container controls and GitHub PR listing when their local CLIs/services are available.
-- Applied AI Studio Obsidian search, Markdown editing and inbox capture.
+- Applied AI Studio Obsidian search, Markdown editing, inbox capture and reviewable note handoff to Robin.
 - Job, learning, TCG and creative mission templates; existing automation metadata.
 - Read-only existing Codex history. Import ChatGPT's `conversations.json` from Settings; imported history stays read-only and local. The importer keeps the selected conversation branch and text messages, not binary attachments.
 - SQLite persistence with JSON fallback, recovery preservation, settings, backup export and Windows Win+H dictation.
@@ -46,7 +48,7 @@ Use Node 24. This machine has a broken global npm shim; invoke the bundled npm C
 Reference scan: [Munder Difflin notes](docs/REFERENCE-REVIEW.md). Generated artwork provenance: [ARTWORK.md](public/assets/ARTWORK.md).
 
 
-Observed on this PC: the packaged app can create and update its own files, but Windows returns EPERM when it updates some files created by other programs. Norton 360 for Gamers is installed; its history should be checked for a Sunny HQ block before changing settings. The underlying cause has not been confirmed from a Norton event. No security protection or exclusions were changed. Crew conversations, discovery, file reading, terminals and the fresh-fixture packaged checks work. Existing-file saves need this local permission issue resolved.
+Historical note: an earlier packaged run reported EPERM while saving certain externally created files. The cause was not confirmed, and no security protection or exclusions were changed. The latest repeat on the current 0.11.0 package saved app-created and externally created files in both OneDrive and Temp fixtures, while correctly rejecting stale external writes and preserving the editor draft. See `docs/evidence/packaged-editor-save-repeat-2026-09-23.json`; investigate again if the issue recurs.
 ## Desktop ship and crew life
 
 Minimize the hub, close it to the tray, or click **Ship on desktop** to leave the Thousand Sunny and its crew floating above your desktop. The full workspace remains loaded; active tasks continue. Drag the ship's top handle to move it, use minus/plus to resize, and use the expand button or tray menu to restore Sunny HQ. The ship's X hides it to the tray; choose Quit in the tray to exit the app. Clicking a crew member still opens their conversation.
@@ -95,6 +97,8 @@ Verification: 84 tests and a live fictional routing probe. Luffy chose GPT-5.6 L
 ## Island expansion (0.7.0)
 
 The full app opens onto a zoomable island with six work districts; the floating desktop companion remains the Thousand Sunny. The ten core crewmates walk around the island. Recruit Law, Ace, Vivi and Perona, edit their specialist roles and districts, and talk to them directly or delegate through Luffy. Their journals use the same persistent memory system as the ship crew. Residents are defined in `desktop/island-residents.json`; further expansion needs catalog entries and matching artwork.
+
+The Grand Line chart can be explored by dragging and zoomed from 75% to 400%. Turn on **Captain controls**, choose any Straw Hat or recruited character, and move them with the arrow keys or W A S D while the chart is focused, or use the on-screen direction pad. This is free visual exploration: it does not change work, mission, approval or automation state. Reduced-motion settings remove movement interpolation without removing the controls.
 
 Create a job against a registered project, choose its specialist, objective, interval, daily and lifetime run limits, maximum duration and reported daily token threshold. New jobs start paused. Enable a job and the global automation switch to schedule it; **Run once** starts an explicit manual pass. Review is required after successful runs by default. The local scheduler permits one island job at a time, supports up to 100 job definitions and retains the existing checkout writer lock. The app must remain open and the PC awake. Restart disarms automation, and uncertain work requires reconciliation. Missed intervals do not trigger catch-up bursts.
 

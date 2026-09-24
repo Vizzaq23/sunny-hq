@@ -1,0 +1,95 @@
+{
+  "date": "2026-09-22T22:08:01.3569489-04:00",
+  "objective": "station-themed crew chats and captain-reviewed Robin/Obsidian note handoff",
+  "branch": "codex/sunny-living-missions",
+  "workingTreeHead": "c58ffc48bf943b6a27f3a9da5e58c1dba3eae0bf",
+  "sourceChangesCommitted": false,
+  "sourceHashes": {
+    "docs/world-bible.md": "879066DCEF390E4FB975F0BEE8E8F141819D9EE00698EA28E2DDC4B1A0A5BF30",
+    "docs/master-goal-audit.md": "CD2145280661C514547BABA276D17EAB8F4EDEB4FEF004F0FB74FAE2815367EF",
+    "docs/implementation-file-ledger.md": "21332DE7BD3FD6E3943277B79DFFB832A2AF4DE175CE647919DA04061672DAF9",
+    "docs/art-bible.md": "54C29B31F9082DA682EA4CEE6CAAF9E6DFDD97B7EB1BCF00F7AED5642CE8C50A",
+    "src/views/OpsViews.tsx": "7D60AF0F0A8DC987B1A1C7B615668970BE0AC69ABDA01224097C313322BF951C",
+    "desktop/workflow-smoke.cjs": "7ED3CFBC9D146053FCF79110BEBAB13E1BA4A62B502208407CC1E1FA9649A902",
+    "src/App.tsx": "D0C7FC00ED7CB519A4DF873C6DB0D515554B765026422E140AC934D9CD12484A",
+    "docs/living-missions-plan.md": "6CEDDB682CA7671E8BC1D17ABF3F45AC9E498B618C08848025FFBB36DE3A2EDF",
+    "src/views/Workbench.tsx": "B89446F100C33AC9B2DED32236F5A9EFD518BF3CD97CD7BD6C219B92ADA111FC",
+    "src/styles.css": "032985267912B50CE450DAF2A22688CB303E53356D70306B3E160AE885D0530C",
+    "README.md": "8C2361C4832A404E1F44E7F3B23BB0868A0B66B6B7547839BB7362FF2B59ACA4",
+    "Launch Sunny.cmd": "7B5AF3470ABF46C7EEE2D725307C63D900858A9EEF7E06C6CE76970AA42C4367",
+    "docs/SUNNY-HQ-IMPLEMENTATION-REPORT.md": "0ABA8F80EABDD466EB4E887DF9F11F23B84E4E48131FBFC8A646D82527759E63",
+    "vite.config.ts": "C36D5E8ABB5DCDD4F24498302C96355F08C891A46E14F62FA584EE6CE802011F"
+  },
+  "verification": {
+    "nodeTests": {
+      "command": "node --test tests/*.test.cjs",
+      "passed": 325,
+      "failed": 0,
+      "skipped": 0
+    },
+    "typecheck": {
+      "command": "node node_modules/typescript/bin/tsc --noEmit",
+      "result": "passed"
+    },
+    "productionBuild": {
+      "command": "node node_modules/vite/bin/vite.js build",
+      "result": "passed",
+      "knownWarning": "Large CodeEditor chunks remain."
+    },
+    "electronWorkflow": {
+      "command": "node node_modules/electron/cli.js desktop/workflow-smoke.cjs",
+      "result": "passed",
+      "checks": 25,
+      "screenshot": ".sunny-dev/workflow-check/focused-conversation.png",
+      "screenshotSha256": "1119FD5FDAA1CE445FEEFC2AFB8333254CF772FAD4D6FBC234DC5A4238D8FB2D",
+      "resultFile": ".sunny-dev/workflow-check/result.json",
+      "resultFileSha256": "11C11DB30F4B3F6C758722BA3E27EEA08145B7D212F6A157451E364B48475280"
+    },
+    "packagedElectronSmoke": {
+      "command": "node node_modules/electron/cli.js <absolute app.asar> --smoke-test",
+      "exitCode": 0,
+      "groups": [
+        "SUNNY_ACTIONS",
+        "SUNNY_COMPANION",
+        "SUNNY_GROWTH",
+        "SUNNY_WALKING",
+        "SUNNY_CAPTAIN",
+        "SUNNY_ISLAND",
+        "SUNNY_NEWS",
+        "SUNNY_RECOVERY",
+        "SUNNY_SMOKE"
+      ],
+      "finalHomeRendered": true,
+      "projects": 16,
+      "tools": 117,
+      "codexStatus": "connected",
+      "availableModelCount": 7,
+      "noMissionSubmitted": true,
+      "screenshot": ".sunny-dev/desktop-smoke.png",
+      "screenshotSha256": "F58B55211AEA4AA3ADBF658FD46765EAE4C3CA795FBCE13BB6EC699F607F9B71"
+    }
+  },
+  "package": {
+    "appVersion": "0.11.0",
+    "electronVersion": "44.4.3",
+    "path": ".sunny-dev/validated-release-crew-rooms-env-locked/win-unpacked/Sunny HQ.exe",
+    "appAsarSha256": "45953B61CFAB3300F62D9966565D82A388CF69180F4F1402BE62A8A2D4103041",
+    "launcher": "Launch Sunny.cmd",
+    "activeMainPid": 49044,
+    "activeProfile": "%LOCALAPPDATA%/Sunny HQ",
+    "activation": "launched with existing profile; no task started"
+  },
+  "profileBackup": {
+    "path": ".sunny-dev/profile-backup-before-env-locked-rebuild-20260923",
+    "files": 55,
+    "bytes": 54682160,
+    "sqliteSha256": "782AF7067DF88F3799C10114351FB4ACA6182FAB79453157553E15397CFD5837",
+    "fileCountBytesAndDatabaseHashMatched": true
+  },
+  "limits": [
+    "No live AI task was submitted.",
+    "Full product acceptance, room sound and ten illustrated physical interiors remain open.",
+    "Earlier Vite builds used the default env-loading path, which may have parsed local .env files internally; no credential value was exposed in output or passed to an AI task. The Vite config now sets envFile:false and the final rebuild/package smoke passed with that guard.",
+    "Existing unrelated uncommitted work remains preserved."
+  ]
+}

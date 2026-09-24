@@ -1,0 +1,49 @@
+{
+  "verifiedAt": "2026-09-24T02:24:19.029Z",
+  "sourceCommit": "f89c9eabe0e011e5897c3afa7cdaec9dd4673ed1",
+  "sourceTree": "fb0385e3fca48fdb4e65938b86031dc13d822a06",
+  "mergedDefaultCommit": "ceb41ac3c13b9c2a8e8dc7bf1382be3250f8cf39",
+  "packagedFilesChecked": 194,
+  "mismatch": [],
+  "archiveSha256": "ce4432cc76e7084fe9b3d67230814f0f55a3284f53bc301fd956bc3c4e76c959",
+  "installerSha256": "9334ce02da93d58c7e0857525ebb38edb46ec956c6e17bf8bc896e63029531ab",
+  "signed": false,
+  "fullPackageBuild": {
+    "exitCode": 0,
+    "electron": "44.4.3",
+    "electronBuilder": "26.15.3",
+    "source": "installed Electron distribution",
+    "installer": "Sunny HQ Setup 0.11.0.exe"
+  },
+  "desktopSmoke": {
+    "exitCode": 0,
+    "stderrEmpty": true,
+    "checks": [
+      "SUNNY_ACTIONS",
+      "SUNNY_COMPANION",
+      "SUNNY_GROWTH",
+      "SUNNY_WALKING",
+      "SUNNY_CAPTAIN",
+      "SUNNY_ISLAND",
+      "SUNNY_NEWS",
+      "SUNNY_RECOVERY",
+      "SUNNY_SMOKE"
+    ]
+  },
+  "pr": "https://github.com/Vizzaq23/sunny-hq/pull/12",
+  "ci": "https://github.com/Vizzaq23/sunny-hq/actions/runs/35946442299",
+  "localTests": {
+    "passed": 348,
+    "buildPassed": true,
+    "sourceUnchangedSinceTests": true
+  },
+  "productionLaunch": {
+    "observedAt": "2026-09-24T02:33:48.592Z",
+    "executable": ".sunny-dev/validated-release-complete-2026-09-23/win-unpacked/Sunny HQ.exe",
+    "existingProfilePreserved": true,
+    "normalNativeLaunchRendered": true,
+    "codexConnected": true,
+    "launcherUpdated": true,
+    "diagnosticLimit": "Background shell launches briefly showed a blank window for both the previous and fresh package; a redraw restored it. The exact fresh package rendered immediately on normal native launch. No application regression established; retain this observation if it recurs."
+  }
+}

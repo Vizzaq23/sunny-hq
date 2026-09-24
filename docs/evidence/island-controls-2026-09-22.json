@@ -1,0 +1,51 @@
+{
+  "date": "2026-09-22",
+  "branch": "codex/sunny-living-missions",
+  "baseCommit": "c58ffc4",
+  "scope": "Optional player movement on the existing six-destination Grand Line chart",
+  "checks": {
+    "strawHatRoster": 10,
+    "recruitedResident": "Law",
+    "keyboard": "ArrowRight moved selected Zoro",
+    "touchPad": "Move south activated",
+    "selection": "Selected state visible on core crew and recruited resident",
+    "zoom": "75% through 400%, reset to 100%",
+    "nativeElectronSmoke": "All suites passed, final app screenshot captured",
+    "windowsPackage": {
+      "path": ".sunny-dev/validated-release-island-controls/win-unpacked",
+      "version": "0.11.0",
+      "appAsarSha256": "E9264ED5F1FD6F94F7DD02F1831AD8D1ACEF9EEFD2DBAF7FA517E7712FC226F8",
+      "packagedAsarSmoke": "All suites passed when the packaged app.asar was launched with the installed Electron runtime and an isolated profile",
+      "activeLaunch": "Launch Sunny.cmd opened the candidate with the existing profile; Home showed 1 item needing attention, 0 in progress and 8 past tasks. No task was started."
+    },
+    "activeProfileBackup": {
+      "path": ".sunny-dev/profile-backup-before-island-controls/Sunny HQ",
+      "files": 52,
+      "bytes": 54677831,
+      "databaseSha256": "782AF7067DF88F3799C10114351FB4ACA6182FAB79453157553E15397CFD5837",
+      "verified": true
+    },
+    "nodeTests": "325 passed, 0 failed, 0 skipped",
+    "build": "TypeScript check and Vite production build passed"
+  },
+  "screenshots": {
+    "captainControls": {
+      "path": ".sunny-dev/captain-controls.png",
+      "sha256": "FB020795058431F12BA5E102D9206C8D25E23155CE9739AA4460D3E925C060AF"
+    },
+    "islandWorld": {
+      "path": ".sunny-dev/island-world.png",
+      "sha256": "B741A29361A314160C11433F3E50DA870CF23498E9DF59E6F616A15FA022A279"
+    },
+    "fullDesktopSmoke": {
+      "path": ".sunny-dev/desktop-smoke.png",
+      "sha256": "F58B55211AEA4AA3ADBF658FD46765EAE4C3CA795FBCE13BB6EC699F607F9B71"
+    }
+  },
+  "limitations": [
+    "Renderer-only movement does not update task or mission state.",
+    "Movement is free within one illustrated chart; collisions, path constraints, separate character interiors and room audio remain unimplemented.",
+    "Fixture runs used isolated profiles. The normal packaged launch used the existing profile after a verified local backup."
+  ],
+  "credentialHandling": "No .env or Jev API key was read. No provider mission was started."
+}

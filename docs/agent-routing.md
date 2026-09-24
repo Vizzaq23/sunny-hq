@@ -1,6 +1,6 @@
 # Agent routing and authority
 
-Research date: 2026-09-21. The existing `desktop/model-routing.cjs` live-catalog validation remains the running implementation. This document defines the next boundary; it does not claim new providers are connected.
+Research established 2026-09-21; live model catalog rechecked 2026-09-23. The existing `desktop/model-routing.cjs` live-catalog validation remains the running implementation. This document defines the next boundary; it does not claim new providers are connected.
 
 ## Role bindings
 
@@ -8,7 +8,7 @@ Research date: 2026-09-21. The existing `desktop/model-routing.cjs` live-catalog
 | --- | --- | --- | --- | --- |
 | Coordinator | Fable 5.1 preference | Existing Luffy/Codex coordinator; account catalog | Routine planning; high if it dispatches consequential work | Cannot authorize external actions |
 | Planner | Fable 5.1 preference | Nami/Codex, supported general model | Low/routine | Local plans automatic |
-| General reasoning | GPT-5.6 Sol preference | Supported catalog model | Routine, escalate uncertainty | Depends on action, not model |
+| General reasoning | GPT-6 Sol for work needing judgment; GPT-6 Luna for routine, well-scoped tasks | Exact model/effort must come from the live Codex catalog | Routine reasoning | Depends on action, not model |
 | Builder | Codex now; Claude Code optional | Franky/Codex; stop if no capable worker | Local scoped writes routine | Human for consequential external steps |
 | Architecture/review | GPT-6 Astra preference | Zoro/Codex; human when unavailable | High uncertainty | Review is evidence, never authorization |
 | Research | Supported reasoning model | Robin/Codex | Read-only low; sources untrusted | No external communications by default |
@@ -19,7 +19,11 @@ Research date: 2026-09-21. The existing `desktop/model-routing.cjs` live-catalog
 | Operator | Jinbe with bounded tools | Human | High external consequences | Explicit action-bound human approval |
 | Captain | Human | None | Final authority | Merge/deploy/spend/publish/delete/credentials |
 
-Sol/Astra are exposed by this development session's model catalog. That does not establish every model's availability in Sunny or another provider account. Fable/Opus/Gemini bindings remain preferences until the selected runtime reports usable IDs/capabilities. Do not silently substitute an unavailable explicitly requested model.
+Fable/Opus/Gemini bindings remain preferences until the selected runtime reports usable IDs/capabilities. Do not silently substitute an unavailable explicitly requested model.
+
+### Live Codex catalog check — 2026-09-23 UTC
+
+A read-only `model/list` request through the installed, signed-in Codex app-server returned visible `gpt-6-astra` (default), `gpt-6-sol`, and `gpt-6-luna`, along with GPT-5.6 models. Sol and Luna therefore already appear in Sunny's Settings selector and Luffy's delegation catalog; no hard-coded model list or API-key integration is needed. The returned reasoning choices differed by model: Sol included `ultra`, while Luna did not. Sunny validates the exact selected ID and effort against the current catalog before dispatch, so availability remains account/runtime-dependent. This check did not start a provider task or incur a model turn. No `.env` file or Jev key was read. OpenAI's current [model guidance](https://learn.chatgpt.com/docs/models) recommends GPT-6 Sol for complex coding and agentic workflows, and GPT-6 Luna for focused, repeatable, high-volume work. Its [pricing guidance](https://learn.chatgpt.com/docs/pricing) says ChatGPT Work and Codex share pricing, credits and usage limits. These recommendations guide model choice but neither increase quota nor change Sunny's action/approval rules.
 
 ## Routing order
 
@@ -39,11 +43,17 @@ Sol/Astra are exposed by this development session's model catalog. That does not
 
 [Confidence](https://docs.typesafe.ai/confidence) is derived from the response distribution, not proof of correctness or authorization. Do not copy universal 0.5/0.9 thresholds from examples. Calibrate against Sunny-labelled tasks and cost-weighted error outcomes. High confidence never skips a required human gate. [Known limitations](https://docs.typesafe.ai/model-jaggedness/jev-1.13) include literal interpretation, arithmetic/date comparison, indirection, irrelevant context and adversarial inputs. Numeric rules remain code. Vendor throughput and social speedup claims are not Sunny end-to-end latency measurements; no independent uptime/SLA or production reliability result was established here.
 
-## Proposed adapter contract, not a fake integration
+### Picture-guided engineering lanes — 2026-09-24
 
-Input: decisionId, attemptId, stateRevision, sanitized task brief, permitted role/model candidates, deadline and policy version. Output is either `selected` (candidateId, provider/model version, probabilities/confidence when supplied, usage and elapsed time) or `abstain` (reason code). Only prevalidated candidates are accepted. Timeouts, overload, malformed results, stale revisions and missing credentials abstain; bounded retry only for a read-only decision within its deadline. Never retry a worker side effect because the router timed out.
+An optional, separately flagged decision now classifies a selected project's next task brief as NOT_ENGINEERING, SMALL, MEDIUM, HIGH or ESCALATE before `turn/start`. SMALL/MEDIUM/HIGH request Luna low/medium/high; ESCALATE requests Sol high. The live catalog must support the exact model and effort. Explicit execution choices win; unavailable or low-confidence decisions leave the existing route in place and display a fallback. The classifier sees the bounded current brief, not the repository, and cannot authorize actions or certify completion. Its three-second read-only deadline never triggers a worker retry. See [activation and data scope](jev-integration.md).
 
-Start in shadow mode on synthetic or explicitly approved redacted tasks. Compare rules, existing captain routing and Jev on held-out examples. Measure role correctness, unsafe false-allow rate, abstention coverage, p50/p95 latency, actual tokens/cost, stale result rejection and end-to-end task quality. Activate only if it materially improves quality or cost without weakening permissions. Until then, no dependency or production adapter is justified.
+The worker receives a fixed instruction to inspect real repository state and diff, run relevant deterministic checks, and report failures. HIGH and ESCALATE request fresh Sol High review before mission COMPLETE, but this prompt alone cannot prove the review happened. Coordinator missions already have an ordered reviewer stage; the mission board's actual check artifacts and human acceptance remain the authority. Direct conversations still end as provider turns, not accepted missions. Because a second Jev call adds latency, token use and data transfer with no measured Sunny benefit, `SUNNY_JEV_ENGINEERING_ROUTING` stays off by default under the captain's “only benefits” direction. Evaluation on representative tasks is required before default activation.
+
+## Earlier adapter proposal and evaluation boundary
+
+The foundation proposal called for decisionId, attemptId, stateRevision, a sanitized brief, permitted candidates, a deadline and policy version. The implemented optional decision uses the current task-preparation revision and project guard, a bounded brief, current catalog candidates and a three-second deadline. It records selected lane or fallback in task activity without a new persistence schema. Only prevalidated model/effort pairs are applied. Timeouts, malformed results, stale task state and missing credentials do not start a second worker turn. The proposed richer decision record and cross-attempt evaluation are still future work.
+
+Evaluate on synthetic or explicitly approved redacted tasks. Compare rules, existing captain routing and Jev on held-out examples. Measure role correctness, unsafe false-allow rate, abstention coverage, p50/p95 latency, actual tokens/cost, stale result rejection and end-to-end task quality. Enable by default only if it materially improves quality or cost without weakening permissions.
 
 ## Claude Code evaluation
 

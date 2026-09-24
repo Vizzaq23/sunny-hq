@@ -1,0 +1,77 @@
+{
+  "date": "2026-09-23",
+  "scope": "Complete the ten character-specific illustrated chat rooms and activate the local Sunny package.",
+  "security": {
+    "envFilesRead": false,
+    "apiKeysRead": false,
+    "providerTaskStarted": false,
+    "profileTaskContentRecorded": false
+  },
+  "art": {
+    "dimensions": "1536x1024",
+    "styleReference": "public/assets/island-world.png",
+    "styleReferenceOnly": true,
+    "runtime": {
+      "opacity": 0.19,
+      "ariaHidden": true,
+      "static": true,
+      "reducedMotionCheckedWith": "chopper"
+    },
+    "assets": [
+      { "crew": "luffy", "file": "luffy-captains-den.png", "sha256": "59F066B491F2C5136E1C9B4B38EA96697606A605A5AF0C20FE9694BADC2D5D33" },
+      { "crew": "zoro", "file": "zoro-dojo-room.png", "sha256": "2AFADEC0E42A55A94082B88E27DEC558340EA008A39997ECBBC8D24F8BC9845E" },
+      { "crew": "nami", "file": "nami-chart-room.png", "sha256": "21F07BCFEB1B93F90E48908F6294A6917D9AB643427E227E09E70A9596238392" },
+      { "crew": "usopp", "file": "usopp-inventors-workshop.png", "sha256": "0291C6522607AF49378BCD49189D1E04DFF58A81DA078F78098638ED61684C94" },
+      { "crew": "sanji", "file": "sanji-galley-room.png", "sha256": "4116D12FE70F743AF4A6C229B8366FC7230FED3E130C02A4D0CB553EA7B8CEC3" },
+      { "crew": "chopper", "file": "chopper-infirmary-room.png", "sha256": "467462489FA619F3736F578277550211F9C502C580989757688F477D778F6E70" },
+      { "crew": "robin", "file": "robin-ship-library.png", "sha256": "E8230861A07E65C02C3A931388BA37D4CA98DA57EC8965AFF45B9BBABC17EA3A" },
+      { "crew": "franky", "file": "franky-shipwright-room.png", "sha256": "E29915E79F9A279AF61EF490E51527190A87BBE7AF941F962D6702419D051A8C" },
+      { "crew": "brook", "file": "brook-music-room.png", "sha256": "C5BC9C225B7AC21973DC3F4C608F8478FEBBDF1DFF86264452EC51038DB3B68B" },
+      { "crew": "jinbe", "file": "jinbe-helm-room.png", "sha256": "8AA7B6658264FA9FC2E9B39A964E2C3491E453F90590F018B4599023F1B8EB1F" }
+    ],
+    "sourceFolder": "C:\\Users\\Quintin\\.codex\\generated_images\\01a0c51d-6389-7b82-b551-a2f66bcf2309",
+    "promptAndProvenance": "public/assets/ARTWORK.md"
+  },
+  "verification": {
+    "typescript": "passed",
+    "viteProductionBuild": "passed; existing large CodeEditor chunk warning",
+    "nodeTests": { "passed": 328, "failed": 0 },
+    "electronWorkflow": {
+      "passed": true,
+      "checks": 29,
+      "tenRoomMappings": true,
+      "reducedMotionRoom": true,
+      "screenshots": {
+        "zoro": { "path": ".sunny-dev/workflow-check/zoro-dojo-room-working.png", "sha256": "D9E3418278F33B6C0D2DE283617AB82BAD7BC989C3C98FCD4133B7BAD4971B1E" },
+        "chopperReducedMotion": { "path": ".sunny-dev/workflow-check/chopper-infirmary-reduced-motion.png", "sha256": "247A9A5F63B9D4B259572C0EB93A02DE78B61D0188FA3ABDA6F6CA1DCD52DE85" }
+      }
+    },
+    "packagedSmoke": {
+      "passed": true,
+      "groups": ["actions", "companion", "growth", "walking", "captain", "island", "news", "recovery", "smoke"],
+      "allRoomAssetsByteMatchedInAppAsar": true
+    },
+    "package": {
+      "path": ".sunny-dev/validated-release-ten-crew-rooms/win-unpacked/Sunny HQ.exe",
+      "version": "0.11.0",
+      "sha256": "4C52E6A1EFAB88746C05FBBEEC88B42BCC4D6E68E19A5B21A526E256F927523A",
+      "appAsarSha256": "026A370B47E60713D8D67C7F775EE5C96330C86B6279AE6D191BB9BFF18AAE67",
+      "activeWindow": "Sunny HQ",
+      "responding": true
+    },
+    "profile": {
+      "backup": ".sunny-dev/profile-backup-before-ten-crew-rooms-20260923",
+      "files": 58,
+      "bytes": 65064544,
+      "allPathAndSha256PairsMatched": true,
+      "taskCount": 60,
+      "statusCounts": { "finished": 56, "interrupted": 3, "failed": 1 },
+      "nonterminalTasks": 0
+    }
+  },
+  "remaining": [
+    "Island collision and pathfinding",
+    "Complete video/audio and separate art-reference source analysis",
+    "Captain acceptance of the whole world and remaining PDF requirements"
+  ]
+}

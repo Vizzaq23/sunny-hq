@@ -1,0 +1,43 @@
+{
+  "version": "0.10.0",
+  "matchedFiles": 14,
+  "sha256": "c020a999437ae94fe7cf02437a2b99e632931a9a52a098af5dd7b694fd5aa0a0",
+  "archive": "release-workflow-0.10.0/win-unpacked/resources/app.asar",
+  "verifiedAt": "2026-09-12T21:11:54.512Z",
+  "workflowChecks": [
+    "snapshot-race",
+    "family-search",
+    "specialist-approval",
+    "duplicate-approval",
+    "draft-per-task",
+    "home-draft-navigation",
+    "failed-start-draft",
+    "duplicate-start",
+    "lazy-tools",
+    "folder-parent",
+    "editor-load",
+    "draft-reload",
+    "reconcile",
+    "inbox",
+    "compact-layout",
+    "island-navigation",
+    "startup-retry",
+    "pending-launch-navigation",
+    "dirty-project-switch",
+    "dirty-file-task-start",
+    "template-cleared-after-start"
+  ],
+  "nativeChecks": [
+    "ACTIONS",
+    "COMPANION",
+    "GROWTH",
+    "WALKING",
+    "CAPTAIN",
+    "ISLAND",
+    "NEWS",
+    "RECOVERY",
+    "SMOKE"
+  ],
+  "codexConnected": true,
+  "remainingIssue": "Windows blocked an older existing fixture save with EPERM; fresh fixture saves passed."
+}

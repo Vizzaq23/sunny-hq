@@ -1,0 +1,24 @@
+{
+  "date": "2026-09-22 UTC",
+  "result": "partial",
+  "executable": "C:/Users/Quintin/OneDrive/Documents/ChatGPT/aI WORKFLOW/.sunny-dev/validated-release-gpt6-room-play/win-unpacked/Sunny HQ.exe",
+  "version": "0.11.0",
+  "appArchiveSha256": "4a7fdf99f80b6dd4ac7aaee7a3afb132058cc4889f2a638457a73f7e48c15460",
+  "isolatedProfile": "C:/Users/Quintin/AppData/Local/Temp/sunny-editor-save-5e8D4n",
+  "workspaceFixture": "C:/Users/Quintin/OneDrive/Documents/ChatGPT/aI WORKFLOW/.sunny-dev/editor-save-0RWLOz",
+  "workspaceObservations": {
+    "appCreatedFileSave": "passed",
+    "powershellCreatedFileSave": "passed",
+    "staleExternalWrite": "rejected; the external disk contents remained intact and the editor retained its unsaved draft",
+    "screenshot": "C:/Users/Quintin/AppData/Local/Temp/sunny-editor-save-5e8D4n/workspace-editor.png"
+  },
+  "tempFixture": "C:/Users/Quintin/AppData/Local/Temp/sunny-editor-files-MZKdKz",
+  "tempObservation": "The native smoke timed out waiting for Monaco input to mark the file dirty after the renderer reload. The fixture file remained original; no save was attempted in this second location.",
+  "historicalContext": "A previous packaged candidate blocked one PowerShell-created OneDrive fixture save. That failure was not reproduced in this current-package OneDrive pass. Its underlying cause remains unknown.",
+  "limits": [
+    "This run does not complete the current package's two-location smoke test.",
+    "The temp-root timeout is separate from the expected stale-write rejection and does not prove a temp-folder write failure.",
+    "A fixture pass does not establish that every captain project file will save under all Windows/security states."
+  ],
+  "effects": "The test used only fresh disposable fixtures and a separate temporary profile. The normal Sunny process/profile remained open and unchanged. No provider request, environment-file access, credential read, permission change or security-setting change occurred."
+}

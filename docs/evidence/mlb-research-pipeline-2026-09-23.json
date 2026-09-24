@@ -1,0 +1,108 @@
+{
+  "observedAt": "2026-09-24T02:37:30.814Z",
+  "scope": "Research and Markdown planning only; captain review remains pending",
+  "releaseEvidence": "release-complete-2026-09-23.json",
+  "projectFolder": "C:/Users/Quintin/OneDrive/Documents/ChatGPT/MLB Prediction Intelligence",
+  "parentTaskId": "ea84109c-656d-40e7-8edd-e7295b91a219",
+  "tasks": [
+    {
+      "id": "ea84109c-656d-40e7-8edd-e7295b91a219",
+      "crew": "luffy",
+      "model": "gpt-6-astra",
+      "effort": "low",
+      "status": "finished",
+      "updatedAt": 1790217409041,
+      "result": "The saved research plan is ready for your review, captain.\n\n- [ENGINEERING-PLAN.md](<C:/Users/Quintin/OneDrive/Documents/ChatGPT/MLB Prediction Intelligence/ENGINEERING-PLAN.md>) — Law reconciled it with the brief. Vivi independently rechecked settlement/EV, point-in-time weather evidence, and **One bounded first slice**.\n- [SOURCES.md](<C:/Users/Quintin/OneDrive/Documents/ChatGPT/MLB Prediction Intelligence/SOURCES.md>) — source qualifications and review status updated.\n\nBoth specialists read the actual files; saved corrections were read back successfully. All three review findings are resolved. Quantitative models alone own probabilities; rights, costs, historical availability, and matching quotes remain explicit gates.\n\nSome editing attempts failed before successful writes/readback; no launcher failure recurred. No application code or prohibited actions were taken.\n\nStopped at a reviewable research plan—not implementation approval.",
+      "toolRecords": 16
+    },
+    {
+      "id": "ef09f56b-d8be-49c5-97a6-d645910abb31",
+      "crew": "law",
+      "model": "gpt-6-sol",
+      "effort": "low",
+      "status": "finished",
+      "updatedAt": 1790217120055,
+      "result": "I read [PROJECT-BRIEF.md](<C:/Users/Quintin/OneDrive/Documents/ChatGPT/MLB Prediction Intelligence/PROJECT-BRIEF.md>), [ENGINEERING-PLAN.md](<C:/Users/Quintin/OneDrive/Documents/ChatGPT/MLB Prediction Intelligence/ENGINEERING-PLAN.md>), and [SOURCES.md](<C:/Users/Quintin/OneDrive/Documents/ChatGPT/MLB Prediction Intelligence/SOURCES.md>) from disk. I found no applicable `AGENTS.md`.\n\nI corrected the stale file-access status in both saved documents and tightened **One bounded first slice** to a candidate 60-minute cutoff and FanDuel Puerto Rico Action moneyline test contract. The plan now makes historical rule version and matching quote coverage explicit pass conditions. I read back both edited files; the changes are present. No application code or provider calls were made.\n\nFor Vivi’s independent **saved-file review**, the consequential checks are: MLB and vendor rights claims; whether each proposed feature has evidence available at the cutoff; FanDuel Puerto Rico rule history and matching historical odds; the cost arithmetic and unquoted costs; and whether the quantitative model alone owns probabilities while Jev and Grok remain research-only. That review has **not** happened in this turn. Rights, feed entitlement, and historical as-of coverage remain unresolved gates.\n\n`git status --short` returned `fatal: not a git repository (or any of the parent directories): .git`; I did not use Git to verify changes.",
+      "toolRecords": 4
+    },
+    {
+      "id": "778ff2be-847b-4a9d-a851-570659eb828d",
+      "crew": "vivi",
+      "model": "gpt-6-sol",
+      "effort": "medium",
+      "status": "finished",
+      "updatedAt": 1790217182001,
+      "result": "I read the actual saved [brief](C:/Users/Quintin/OneDrive/Documents/ChatGPT/MLB%20Prediction%20Intelligence/PROJECT-BRIEF.md), [plan](C:/Users/Quintin/OneDrive/Documents/ChatGPT/MLB%20Prediction%20Intelligence/ENGINEERING-PLAN.md), and [source register](C:/Users/Quintin/OneDrive/Documents/ChatGPT/MLB%20Prediction%20Intelligence/SOURCES.md). I found no applicable `AGENTS.md`. **Changed files: none.**\n\nThe plan aligns with the brief’s research-only boundary. It reserves game probabilities for the quantitative model, keeps Jev and Grok in research and review roles, and gates rights and paid access. The 400-credit and 3,600-credit examples are arithmetically correct under the stated one-region, one-market assumption; [The Odds API documents 10 credits per historical request](https://the-odds-api.com/liveapi/guides/v4/).\n\nThree corrections would make the saved plan reviewable:\n\n1. **High — Outcome and EV contract.** [Plan § Product boundary and decision ownership](C:/Users/Quintin/OneDrive/Documents/ChatGPT/MLB%20Prediction%20Intelligence/ENGINEERING-PLAN.md:11) and [§ Modeling and evaluation](C:/Users/Quintin/OneDrive/Documents/ChatGPT/MLB%20Prediction%20Intelligence/ENGINEERING-PLAN.md:38) define a home-win probability and a two-outcome EV formula, while the ledger retains voids. [FanDuel’s Puerto Rico rules](https://www.fanduel.com/fanduel-sportsbook-house-rules-pr) permit voids and settlement after shortened games. Specify whether the model predicts official game winner or settlement winner, and how void/no-action probability enters EV and scoring. Do not apply `p × d − 1` to observations where a refund is possible without a stated treatment.\n\n2. **Medium — Weather evidence at T−60.** [Plan § Point-in-time data contract](C:/Users/Quintin/OneDrive/Documents/ChatGPT/MLB%20Prediction%20Intelligence/ENGINEERING-PLAN.md:21) correctly requires a forecast issued by cutoff, but [SOURCES.md, Weather](C:/Users/Quintin/OneDrive/Documents/ChatGPT/MLB%20Prediction%20Intelligence/SOURCES.md:15) groups archived forecast products together. [Open-Meteo says its Historical Forecast API stitches successive runs](https://open-meteo.com/en/docs/historical-forecast-api); its Single Runs API preserves a selected run. Name an archived run product and require its issue time and lead time in the first-slice evidence table. The cited weather page alone does not prove a T−60 reconstruction.\n\n3. **Medium — First-slice quote match.** [Plan § One bounded first slice](C:/Users/Quintin/OneDrive/Documents/ChatGPT/MLB%20Prediction%20Intelligence/ENGINEERING-PLAN.md:70) properly gates matching Puerto Rico Action quotes, but should make **failure to prove jurisdiction and Action designation an immediate stop**, before counting the 20-game sample as feasible. [The Odds API historical documentation](https://the-odds-api.com/liveapi/guides/v4/) describes bookmaker snapshots and warns that historical bookmaker availability starts only when that bookmaker was added; it does not establish Puerto Rico FanDuel Action coverage. The cited [FanDuel rules](https://www.fanduel.com/fanduel-sportsbook-house-rules-pr) are effective July 30, 2026, so sample dates also need that rule version or an archived predecessor.\n\nHistorical as-of availability for starters, lineups, bullpen status, roof status, matching odds, provider rights, and actual commercial cost remains unverified; the documents generally label these unknowns honestly. The Sportradar lineup page says historical Daily Summary returns **finalized** lineups, which does not itself establish pregame publication time. I made no paid calls or file edits.",
+      "toolRecords": 6
+    },
+    {
+      "id": "e3ca103c-5f71-43ac-b290-db44caf18436",
+      "crew": "law",
+      "model": "gpt-6-sol",
+      "effort": "medium",
+      "status": "finished",
+      "updatedAt": 1790217347463,
+      "result": "I read the saved [brief](<C:/Users/Quintin/OneDrive/Documents/ChatGPT/MLB Prediction Intelligence/PROJECT-BRIEF.md>), [plan](<C:/Users/Quintin/OneDrive/Documents/ChatGPT/MLB Prediction Intelligence/ENGINEERING-PLAN.md:5>), and [source register](<C:/Users/Quintin/OneDrive/Documents/ChatGPT/MLB Prediction Intelligence/SOURCES.md:3>). I changed only the plan and register, then read the corrected sections back from disk.\n\nThe plan now separates official game-winner labels from book win/loss/refund settlement, limits EV to supported settlement probabilities, and assigns those probabilities solely to the quantitative system. Its weather contract requires evidence that an individual forecast run was available at the T−60 cutoff. The [first slice](<C:/Users/Quintin/OneDrive/Documents/ChatGPT/MLB Prediction Intelligence/ENGINEERING-PLAN.md:68>) now stops before claiming 20-game feasibility unless Puerto Rico Action quotes and rules applicable to each sample date can be proved. The register records the targeted checks against [Open-Meteo’s Single Runs documentation](https://open-meteo.com/en/docs/single-runs-api) and [FanDuel Puerto Rico rules](https://www.fanduel.com/fanduel-sportsbook-house-rules-pr), which state an effective date of July 30, 2026.\n\n**Still unresolved:** historical quote jurisdiction and Action designation, date-matched rules, forecast availability evidence, and provider rights and costs. Vivi’s independent recheck of these corrected files remains pending. No code, paid calls, signups, wagers, or agent calls occurred.\n\nTool failures were local: `rg` and `python` were unavailable; an initial patch and a guarded text replacement did not match the saved text. Subsequent edits succeeded, and the affected sections were read back.",
+      "toolRecords": 20
+    },
+    {
+      "id": "843fdf7e-fb07-4be0-aba8-4fdf98182875",
+      "crew": "vivi",
+      "model": "gpt-6-sol",
+      "effort": "low",
+      "status": "finished",
+      "updatedAt": 1790217403251,
+      "result": "I reread the saved [brief](<C:/Users/Quintin/OneDrive/Documents/ChatGPT/MLB Prediction Intelligence/PROJECT-BRIEF.md>), [plan](<C:/Users/Quintin/OneDrive/Documents/ChatGPT/MLB Prediction Intelligence/ENGINEERING-PLAN.md>), and [source register](<C:/Users/Quintin/OneDrive/Documents/ChatGPT/MLB Prediction Intelligence/SOURCES.md>). The three prior documentation findings are resolved in the current text:\n\n- **Settlement and EV:** The plan separates official game-winner scoring from book win/loss/refund settlement and defers EV until the quantitative system can supply the required settlement probabilities.\n- **Weather:** The point-in-time contract calls for individual forecast runs and evidence that each run was actually available by the cutoff.\n- **First slice:** The 20-game feasibility sample stops unless FanDuel Puerto Rico Action designation, jurisdiction, and rules applicable to each sample date are proven.\n\nThe plan remains consistent with the brief: the quantitative model alone owns probabilities; Jev and Grok have research and review roles only. Rights, costs, historical availability, and matching quotes remain explicit unknowns.\n\n**Changed files:** I corrected stale “independent review pending” status wording in the plan and source register, then read back the replacements successfully. My initial patch failed because a source line did not match; the subsequent writes and readback succeeded. This is a **reviewable research plan**, not implementation acceptance.",
+      "toolRecords": 4
+    }
+  ],
+  "files": [
+    {
+      "name": "PROJECT-BRIEF.md",
+      "bytes": 2622,
+      "sha256": "3bacf49f65b507049913c41acc98ea22384cae5ea21983cf19de152a72ce0a77"
+    },
+    {
+      "name": "ENGINEERING-PLAN.md",
+      "bytes": 19046,
+      "sha256": "4952801fe6cc51c169cc292822302203a2279671d6454f1b7bdf810debf100b1"
+    },
+    {
+      "name": "SOURCES.md",
+      "bytes": 9634,
+      "sha256": "57a31843f20299a21a8709553f4ee9c5bb80cc9eb84530cb28201eec69e0b3e1"
+    },
+    {
+      "name": "WORKFLOW.md",
+      "bytes": 10913,
+      "sha256": "7df83aa492e911f4938ef3918342c345f8e6a14a13d5eee2351181608e0a17c4"
+    }
+  ],
+  "resolvedFindings": [
+    "Official game winner versus sportsbook win/loss/refund and EV",
+    "Individual forecast runs with evidence of cutoff-time availability",
+    "Stop before 20-game feasibility claim without jurisdiction, Action designation and date-qualified rules"
+  ],
+  "toolingRecoveries": [
+    "rg and python unavailable; available local alternatives used",
+    "Initial exact-text edits failed to match; subsequent writes read back",
+    "MLB folder is not a Git repository; no document commit claimed"
+  ],
+  "remainingGates": [
+    "Captain review",
+    "Provider-specific use and retention rights",
+    "Historical as-of coverage and matching quotes",
+    "Feed cost and entitlement decisions"
+  ],
+  "originalCoreFailureRecurred": false,
+  "implementationStarted": false,
+  "paidSportsOrJevGrokCalls": false,
+  "nativeUiVerification": {
+    "observedAt": "2026-09-24T02:38:39.156Z",
+    "status": "Ready to review",
+    "assignments": "8 of 8 (four historical attempts plus four new assignments)",
+    "finalReplyObserved": true,
+    "stopCrewAbsent": true,
+    "note": "An initial accessibility/capture observation lagged saved completion; native navigation and re-observation showed final status and reply without restarting work."
+  }
+}

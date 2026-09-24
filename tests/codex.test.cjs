@@ -1,6 +1,12 @@
 const {test}=require('node:test');const assert=require('node:assert/strict');const {PassThrough}=require('node:stream');const {EventEmitter}=require('node:events');
-const {CodexClient}=require('../desktop/codex.cjs');
+const {CodexClient,codexLaunchEnv}=require('../desktop/codex.cjs');
 function peer(){const child=new EventEmitter();child.stdin=new PassThrough();child.stdout=new PassThrough();child.stderr=new PassThrough();child.kill=()=>child.emit('exit',0);return child;}
+test('standalone Codex launch drops an inherited registered-app marker without changing other environment values',()=>{
+ const inherited={CODEX_WINDOWS_REGISTERED_CORE:'1',PATH:'test-path',SUNNY_TEST_VALUE:'keep'};
+ assert.equal(typeof codexLaunchEnv,'function');
+ assert.deepEqual(codexLaunchEnv(inherited),{PATH:'test-path',SUNNY_TEST_VALUE:'keep'});
+ assert.equal(inherited.CODEX_WINDOWS_REGISTERED_CORE,'1');
+});
 test('RPC assembles split lines and correlates out-of-order replies',async()=>{const p=peer();const c=new CodexClient();c.attach(p);const a=c.request('first',{}),b=c.request('second',{});p.stdout.write('{"id":2,"result":{"v":"b"}}\n{"id":');p.stdout.write('1,"result":{"v":"a"}}\n');assert.equal((await b).v,'b');assert.equal((await a).v,'a');c.close();});
 test('disconnect rejects pending requests instead of hanging',async()=>{const p=peer();const c=new CodexClient();c.attach(p);const promise=c.request('first',{});p.emit('exit',1);await assert.rejects(promise,/disconnect/i);});
 test('provider requests stay pending until explicitly answered',async()=>{const p=peer();const c=new CodexClient();c.attach(p);let outgoing='';p.stdin.on('data',x=>outgoing+=x);const event=new Promise(r=>c.once('request',r));p.stdout.write('{"id":"permission-1","method":"item/commandExecution/requestApproval","params":{"command":"npm test"}}\n');const request=await event;assert.equal(outgoing,'');c.respond(request.id,{decision:'decline'});assert.deepEqual(JSON.parse(outgoing),{id:'permission-1',result:{decision:'decline'}});c.close();});

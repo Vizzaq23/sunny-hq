@@ -7,6 +7,12 @@ function findCodex(home){
  for(const dir of (process.env.PATH||'').split(path.delimiter)){const exe=path.join(dir,'codex.exe');if(fs.existsSync(exe))return exe;}
  throw Error('Codex CLI was not found. Install Codex desktop, then reconnect.');
 }
+function codexLaunchEnv(environment){
+ const env={...environment};
+ // The standalone CLI cannot use the parent desktop app's registered Core identity.
+ delete env.CODEX_WINDOWS_REGISTERED_CORE;
+ return env;
+}
 class CodexClient extends EventEmitter {
  constructor(){super();this.seq=0;this.pending=new Map();this.buffer='';this.child=null;this.connected=false;this.connecting=null;this.diagnostic='';}
  attach(child){
@@ -27,10 +33,10 @@ class CodexClient extends EventEmitter {
  rejectRequest(id,message){this.send({id,error:{code:-32601,message}});}
  disconnect(reason){const child=this.child;const wasConnected=this.connected;if(!wasConnected&&!child)return;this.connected=false;this.child=null;for(const entry of this.pending.values()){clearTimeout(entry.timer);const error=Error(reason.includes('disconnect')?reason:'Codex disconnected: '+reason);error.code='RPC_DISCONNECTED';error.uncertain=true;entry.reject(error);}this.pending.clear();if(child)try{child.kill();}catch{}if(wasConnected)this.emit('disconnected',reason);}
  async connect(home){if(this.connecting)return this.connecting;if(this.connected)return;
-  this.connecting=(async()=>{const exe=findCodex(home);const child=spawn(exe,['app-server','--stdio'],{cwd:home,windowsHide:true,env:{...process.env,USERPROFILE:home},stdio:['pipe','pipe','pipe']});this.attach(child);
+  this.connecting=(async()=>{const exe=findCodex(home);const child=spawn(exe,['app-server','--stdio'],{cwd:home,windowsHide:true,env:codexLaunchEnv({...process.env,USERPROFILE:home}),stdio:['pipe','pipe','pipe']});this.attach(child);
    try{const info=await this.request('initialize',{clientInfo:{name:'sunny_hq',title:'Sunny HQ',version:'0.9.0'},capabilities:{experimentalApi:true}},45000);this.send({method:'initialized',params:{}});return info;}catch(e){this.close();throw e;}
   })();try{return await this.connecting;}finally{this.connecting=null;}
  }
  close(){this.disconnect('Codex disconnected by Sunny');}
 }
-module.exports={CodexClient,findCodex};
+module.exports={CodexClient,findCodex,codexLaunchEnv};

@@ -1,0 +1,14 @@
+{
+  "date": "2026-09-23T00:44:48Z",
+  "missionId": "0055a28a-e75a-4a8e-b0a9-167e7440461d",
+  "result": "not found",
+  "matchedRecords": 0,
+  "searchedSqliteFiles": 19,
+  "scope": [
+    "Current %LOCALAPPDATA%/Sunny HQ/sunny.sqlite profile",
+    "17 dated activation backups under .sunny-dev/activation-backups",
+    "Earlier 0.11.0 activation checkpoint profile"
+  ],
+  "query": "Opened SQLite files read-only and matched only missionBook.missions[].id to the exact PR #4 mission ID. No task text, transcript, project data, settings, or credentials were returned.",
+  "effects": "No profile or backup was modified. No .env file, Jev API key, credential, provider call, or mission acceptance was accessed or performed."
+}

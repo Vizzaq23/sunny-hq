@@ -1,0 +1,170 @@
+{
+  "observedAt": "2026-09-24T04:02:06.158Z",
+  "scope": "Renderer exit diagnostics and crash recovery, original spontaneous cause unconfirmed",
+  "localCommit": "71f7fae1a00f8864d74228e7674b787587af0c85",
+  "publishedCommit": "47c546ac17cb7903577c7e4445f5b6837532c2e9",
+  "tree": "db386dc6435e4ca44e2eccbb7b3eec4fbf6da13e",
+  "merge": "4f3b1985f5b450260a433aa339d7c67aa5d30384",
+  "pr": "https://github.com/Vizzaq23/sunny-hq/pull/13",
+  "ci": "https://github.com/Vizzaq23/sunny-hq/actions/runs/35952924582",
+  "ciConclusion": "success",
+  "nodeTests": 350,
+  "build": "passed; existing large chunk warning",
+  "packagedSmoke": "full suite passed; actual forced renderer crashed exit2, completed/unknown fixture messages and snapshot preserved",
+  "independentReview": "empty-fixture gap fixed; re-review no remaining actionable findings",
+  "package": ".sunny-dev/validated-release-renderer-recovery-2026-09-23",
+  "asarSha256": "c23f3077502133fef710a44921f103570631aef0f25c6b63b2a115ed1a3580b6",
+  "installerSha256": "552ed7311d0af2bf5fabd0ceb0de95ab33d1e58903f82c547b31597389b0c1e3",
+  "signed": false,
+  "packagedSourceMatches": 194,
+  "backupTasks": 83,
+  "activeTasksBeforeRestart": 0,
+  "normalApp": "New package running; four follow-up assignments finished and final result visible; no new lifecycle exit observed after diagnostic restart at this checkpoint",
+  "mlbOperatorRerun": "21 tests passed after activation",
+  "postUpdateInAppFollowup": {
+    "parent": "1df459f5-4ef9-4786-a64e-aa197d3de539",
+    "status": "finished",
+    "validation": "e2f58a57-e9f2-489f-bdb2-e416936cf5b1",
+    "review": "f777b298-ee3b-494c-a131-a4f02d45d73d",
+    "placementRepair": "6cf066c1-1d3c-42d2-a42f-986c0471a8a9",
+    "placementReview": "d231045a-7341-49b8-900d-2701b328aca0",
+    "checks": "21/21 tests,8/8 hashes,deterministic valid CLI,negative exits passed independently",
+    "deliveryDefect": "Report initially saved in project root; repaired and independently rechecked",
+    "report": "../MLB Prediction Intelligence/execution-trial/POST-UPDATE-CHECK.md",
+    "reportSha256": "f69b4fa882dfd794b587ae78e7eed6994534814cf1068720fcb8177dbd6f69e0",
+    "operatorHashes": [
+      {
+        "file": "audit.js",
+        "expected": "f19404a78a0b802cde3cfcea1d7ad2ee955310dcfc120c9c6ea2301c2da9db58",
+        "actual": "f19404a78a0b802cde3cfcea1d7ad2ee955310dcfc120c9c6ea2301c2da9db58",
+        "match": true
+      },
+      {
+        "file": "audit.test.js",
+        "expected": "48320e11cc603771d2186c940957a3377b9fd6ddc138f3ce760fee2dbaf3e509",
+        "actual": "48320e11cc603771d2186c940957a3377b9fd6ddc138f3ce760fee2dbaf3e509",
+        "match": true
+      },
+      {
+        "file": "cli.js",
+        "expected": "9463d4a76bbf2df720162769b7df7af921b9b1d9fa7833d0084cf3f1f221e289",
+        "actual": "9463d4a76bbf2df720162769b7df7af921b9b1d9fa7833d0084cf3f1f221e289",
+        "match": true
+      },
+      {
+        "file": "fixtures/invalid.json",
+        "expected": "8560f3fb9adadc0136d2d39bd188681b02c6b13718e598748ce99a5073757495",
+        "actual": "8560f3fb9adadc0136d2d39bd188681b02c6b13718e598748ce99a5073757495",
+        "match": true
+      },
+      {
+        "file": "fixtures/malformed.json",
+        "expected": "e9a940d3861c44250df52dfd9c5068444b3198ba5ffdeff2a1dd0688800630da",
+        "actual": "e9a940d3861c44250df52dfd9c5068444b3198ba5ffdeff2a1dd0688800630da",
+        "match": true
+      },
+      {
+        "file": "fixtures/valid.json",
+        "expected": "cac5a39845ccc2dce55c86047b7b495040ebb73027b465d20f7615d49aa6c41e",
+        "actual": "cac5a39845ccc2dce55c86047b7b495040ebb73027b465d20f7615d49aa6c41e",
+        "match": true
+      },
+      {
+        "file": "package.json",
+        "expected": "fa9acfe15c37446824af3935aaa29b22d26d71bfc6c0f8fe610f4ecbec982c7c",
+        "actual": "fa9acfe15c37446824af3935aaa29b22d26d71bfc6c0f8fe610f4ecbec982c7c",
+        "match": true
+      },
+      {
+        "file": "README.md",
+        "expected": "45c0250286dbe39c67d9d6b73a0f02ff971e0bb343e720ff091e168cd8bf8fde",
+        "actual": "45c0250286dbe39c67d9d6b73a0f02ff971e0bb343e720ff091e168cd8bf8fde",
+        "match": true
+      }
+    ],
+    "dateNote": "Correction heading is 2026-09-24 UTC; move observed about03:58 UTC, September23 local. Coordinator retained older session date."
+  },
+  "limits": [
+    "Original unexpected exit cause remains unknown",
+    "No reinstall or permission changes",
+    "No .env or secrets read",
+    "No real data or paid MLB integrations",
+    "Pre-existing dirty main workspace preserved"
+  ],
+  "recurrence": {
+    "at": "2026-09-24T03:53:00.152Z",
+    "reason": "crashed",
+    "exitCode": -36861,
+    "cause": "unknown",
+    "recovery": "Reload restored saved results; workers continued and completed without duplicate dispatch",
+    "consistentBackupTasks": 86,
+    "diagnosticRestart": "2026-09-24T03:55:48.722Z",
+    "temporaryRuntimeLog": ".sunny-dev/renderer-runtime.log"
+  },
+  "syntheticStreamProbe": [
+    {
+      "stage": "starting",
+      "pid": 41520
+    },
+    {
+      "profile": "C:\\Users\\Quintin\\.codex\\worktrees\\sunny-chart-view\\.sunny-dev\\stream-probe-4kjsuU",
+      "stateBytes": 13100011
+    },
+    {
+      "phase": "baseline",
+      "privateKB": 98512,
+      "elements": 216,
+      "workbench": true
+    },
+    {
+      "phase": "update-100",
+      "privateKB": 298492,
+      "elements": 216,
+      "workbench": true
+    },
+    {
+      "phase": "update-200",
+      "privateKB": 270876,
+      "elements": 216,
+      "workbench": true
+    },
+    {
+      "phase": "update-300",
+      "privateKB": 331276,
+      "elements": 216,
+      "workbench": true
+    },
+    {
+      "phase": "update-400",
+      "privateKB": 275908,
+      "elements": 216,
+      "workbench": true
+    },
+    {
+      "phase": "update-500",
+      "privateKB": 338348,
+      "elements": 216,
+      "workbench": true
+    },
+    {
+      "phase": "update-600",
+      "privateKB": 274188,
+      "elements": 216,
+      "workbench": true
+    },
+    {
+      "phase": "settled",
+      "privateKB": 277444,
+      "elements": 216,
+      "workbench": true
+    },
+    {
+      "finished": true,
+      "updates": 600,
+      "fullSnapshots": 60,
+      "accessibilityReads": 30,
+      "crashed": false
+    }
+  ],
+  "syntheticStreamProbeLimit": "Synthetic separate renderer only; no provider or production data. Passing does not reproduce or solve original crash."
+}

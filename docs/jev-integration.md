@@ -9,11 +9,16 @@ Requires a TypeSafe API key already configured in the launching process environm
 ```powershell
 $env:SUNNY_JEV_ENABLED = '1'
 $env:SUNNY_JEV_PROJECT_IDS = 'registered-project-id-1,registered-project-id-2'
+$env:SUNNY_JEV_ENGINEERING_ROUTING = '1' # optional additional coding-lane decision
 # TYPESAFE_API_KEY must already be set through your local secret environment.
 # Start the candidate Sunny HQ.exe from this session.
 ```
 
 Use exact registered Sunny project IDs, not folder names. Without the flag or an allowed project, no Jev request is made. With no key, Sunny records a fallback and uses the previous context path. Remove SUNNY_JEV_ENABLED to disable.
+
+The extra engineering-routing flag is off by default. It can add one bounded Jev request per turn for a selected project, so enable it only while evaluating whether routing quality justifies latency, token use and transmitting the task brief. Its question chooses NOT_ENGINEERING, SMALL, MEDIUM, HIGH or ESCALATE. The four coding lanes map to live-catalog GPT-6 Luna low/medium/high and GPT-6 Sol high respectively. Unsupported catalog combinations, low-confidence answers, malformed responses and timeouts keep the current execution and display a fallback. Explicit model or effort choices remain authoritative. The decision runs before `turn/start`; it never retries provider work.
+
+The lane supplies an evidence checklist to the worker. HIGH and ESCALATE also request fresh Sol High review before a mission is marked COMPLETE. That instruction is advisory: Sunny's deterministic check artifacts, mission stage gates and human acceptance still determine mission state. A direct conversation's finished turn does not establish mission completion. The new flag is not enabled in the current launcher or packaged release, and no live Jev accuracy or end-to-end benefit has been measured.
 
 Selected objective and at most ten locally retrieved journal candidates from the same project may be sent to TypeSafe. Pinned note content remains local and mandatory; only optional candidate content is scored. The current task message, mission criteria and project instructions remain intact. Global pinned notes retain their existing Sunny semantics.
 

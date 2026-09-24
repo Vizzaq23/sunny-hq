@@ -1,7 +1,7 @@
 const {test}=require('node:test');const assert=require('node:assert/strict');const {Hub}=require('../desktop/hub.cjs');
-function fixture(t,{prepare}={}){
+function fixture(t,{prepare,route}={}){
  let release,entered;const enteredPromise=new Promise(r=>entered=r),held=new Promise(r=>release=r);
- const calls=[];const hub=new Hub({home:process.cwd(),store:{load:()=>({}),save:()=>{},close:()=>{}},catalog:{discoverProjects:()=>[{id:'p',path:process.cwd(),name:'Fixture'}],discoverTools:()=>[],discoverAutomations:()=>[]},jevPrepare:async args=>{entered(args);return prepare?prepare(args):held;}});
+ const calls=[];const hub=new Hub({home:process.cwd(),store:{load:()=>({}),save:()=>{},close:()=>{}},catalog:{discoverProjects:()=>[{id:'p',path:process.cwd(),name:'Fixture'}],discoverTools:()=>[],discoverAutomations:()=>[]},jevPrepare:async args=>{entered(args);return prepare?prepare(args):held;},...(route?{engineeringRoute:route}:{})});
  hub.client.connected=true;hub.state.codex.status='connected';hub.client.request=async(method,params)=>{calls.push({method,params});if(method==='thread/start')return {thread:{id:'new-thread'}};if(method==='turn/start')return {turn:{id:'new-turn'}};if(method==='turn/interrupt')return {};throw Error('unexpected '+method);};
  const task={id:'t',threadId:'thread',projectId:'p',crewId:'franky',status:'finished',messages:[],updatedAt:1};hub.state.tasks.push(task);hub.loaded.add(task.id);t.after(()=>{if(!hub.closed)hub.close();});
  return {hub,task,calls,release:()=>release({status:'ok',journal:'Fictional selected context',suggestion:'',activity:'Jev fixture',revision:'1'}),enteredPromise};
@@ -19,3 +19,27 @@ test('new task cancelled during preparation is interrupted, not failed',async t=
 test('submitted uncertain turn is not retried and retains reservation',async t=>{const f=fixture(t);const original=f.hub.client.request;f.hub.client.request=async(method,params)=>{if(method==='turn/start'){f.calls.push({method,params});throw Object.assign(Error('uncertain'),{uncertain:true});}if(method==='thread/read')throw Error('disconnected');return original(method,params);};const sending=f.hub.send('t','objective');await entered(f,sending);f.release();await assert.rejects(sending,/uncertain/);assert.equal(f.calls.filter(c=>c.method==='turn/start').length,1);assert.equal(f.task.status,'unknown');assert.equal(f.hub.gate.active.has('t'),true);});
 test('project removal prevents pre-turn launch',async t=>{const f=fixture(t),sending=f.hub.send('t','objective');await entered(f,sending);f.hub.state.projects=[];f.release();await sending;assert.equal(f.calls.length,0);assert.equal(f.task.status,'unknown');});
 test('Morgans report packet bypasses Jev preparation',async t=>{const f=fixture(t);f.task.crewId='morgans';await f.hub.send('t','Saved-record packet',true);assert.equal(f.calls.length,1);assert.equal(f.calls[0].method,'turn/start');assert.equal(f.calls[0].params.input[0].text,'Saved-record packet');});
+test('Jev lane changes the actual provider turn before engineering work starts',async t=>{
+ const f=fixture(t,{prepare:async()=>({status:'disabled',journal:'',suggestion:'',activity:''}),route:async()=>({status:'selected',lane:'MEDIUM',execution:{model:'gpt-6-luna',effort:'medium'},reason:'Jev selected MEDIUM coding lane.'})});
+ f.hub.state.models=[{model:'gpt-6-luna',supportedReasoningEfforts:[{reasoningEffort:'medium'}]}];
+ await f.hub.send('t','Build a fixture');
+ const turn=f.calls.find(c=>c.method==='turn/start').params;
+ assert.equal(turn.model,'gpt-6-luna');assert.equal(turn.effort,'medium');
+ assert.match(f.task.selectionReason,/MEDIUM/);
+ assert.match(turn.input[0].text,/inspect the actual repository diff/i);
+});
+test('explicit model selection survives Jev lane advice',async t=>{
+ const f=fixture(t,{prepare:async()=>({status:'disabled',journal:'',suggestion:'',activity:''}),route:async()=>({status:'selected',lane:'HIGH',execution:{model:'gpt-6-luna',effort:'high'}})});
+ f.task.model='gpt-6-sol';f.task.effort='low';f.task.explicitExecution=true;
+ await f.hub.send('t','Review code');
+ const turn=f.calls.find(c=>c.method==='turn/start').params;
+ assert.equal(turn.model,'gpt-6-sol');assert.equal(turn.effort,'low');
+});
+test('routing failure preserves already selected journal context',async t=>{
+ const f=fixture(t,{prepare:async()=>({status:'ok',journal:'Selected fixture evidence',suggestion:'',activity:'Jev context prepared.'}),route:async()=>{throw Error('PRIVATE_ROUTER_ERROR');}});
+ await f.hub.send('t','Build a fixture');
+ const prompt=f.calls.find(c=>c.method==='turn/start').params.input[0].text;
+ assert.match(prompt,/Selected fixture evidence/);
+ assert.doesNotMatch(JSON.stringify(f.task),/PRIVATE_ROUTER_ERROR/);
+});
+

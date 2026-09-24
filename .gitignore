@@ -5,6 +5,7 @@ release-morgans/
 release-workflow/
 .sunny-dev/
 .superpowers/
+tmp/
 *.log
 .env
 .env.*

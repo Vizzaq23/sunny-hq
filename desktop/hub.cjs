@@ -3,6 +3,7 @@ const {CodexClient}=require('./codex.cjs');const {Growth}=require('./growth.cjs'
 const {selectExecution,routingContext}=require('./model-routing.cjs');
 const {createApproval,approvalResult}=require('./approvals.cjs');
 const {MissionBook}=require('./missions.cjs');
+const {CheckPreflightError}=require('./mission-evidence.cjs');
 const {ROLE_BINDINGS,resolveMissionRole,missionContext}=require('./mission-roles.cjs');
 const {createWorkReport}=require('./work-report.cjs');
 const {discussionConfig}=require('./crew-chat.cjs');
@@ -127,7 +128,7 @@ class Hub extends EventEmitter {
     if(input.script)current.checkExecution=undefined;
     this.missionBook.record(current,evidence.kind==='check'?(evidence.status==='passed'?'TEST_PASSED':'TEST_FAILED'):evidence.kind==='pull-request'?'PR_UPDATED':['deliverable','image'].includes(evidence.kind)?'DELIVERABLE_ATTACHED':evidence.kind==='deployment'?'DEPLOYMENT_INSPECTED':'GIT_INSPECTED',{artifactId:artifact.id});return artifact;
    });
-  }catch(error){if(!this.closed)this.missionMutation(()=>{const current=this.missionBook.get(mission.id);if(input.script&&!error.uncertain&&current.checkExecution){current.artifacts.push({id:randomUUID(),kind:'check',attemptId,projectId:project.id,producer:'sunny-local-verifier',script:input.script,command:'npm run '+input.script,status:'failed',exitCode:null,recordedAt:Date.now()});current.checkExecution=undefined;}this.missionBook.record(current,'EVIDENCE_FAILED',{message:String(error.message).slice(0,1000)});});throw error;}
+  }catch(error){const notStarted=error instanceof CheckPreflightError;if(!this.closed)this.missionMutation(()=>{const current=this.missionBook.get(mission.id);if(input.script&&!error.uncertain&&current.checkExecution){if(!notStarted)current.artifacts.push({id:randomUUID(),kind:'check',attemptId,projectId:project.id,producer:'sunny-local-verifier',script:input.script,command:'npm run '+input.script,status:'failed',exitCode:null,recordedAt:Date.now()});current.checkExecution=undefined;}this.missionBook.record(current,notStarted?'CHECK_NOT_STARTED':'EVIDENCE_FAILED',{script:input.script||null,message:String(error.message).slice(0,1000)});});throw error;}
   finally{this.checkRuns.delete(mission.id);if(!this.missionBook.get(mission.id).checkExecution){this.gate.release(lock);this.missionActions.delete(mission.id);}}
  }
  reconcileMissionCheck(input){

@@ -67,3 +67,11 @@ test('skip-worktree files cannot silently bypass source verification',async t=>{
  const {root,git}=repo(t);git('update-index','--skip-worktree','check.cjs');
  await assert.rejects(new MissionEvidence().gitState(root),/skip.worktree/i);
 });
+test('preflight source inspection failure is host-classified before check execution',async t=>{
+ const {root}=repo(t);let executions=0;const evidence=new MissionEvidence({execute:async()=>{executions++;return {exitCode:0};}});evidence.gitState=async()=>{throw Error('Fixture source inspection failed');};
+ await assert.rejects(evidence.runCheck(root,'test'),error=>error instanceof require('../desktop/mission-evidence.cjs').CheckPreflightError&&/source inspection/.test(error.message));assert.equal(executions,0);
+});
+test('source inspection after execution cannot masquerade as a preflight failure',async t=>{
+ const {root}=repo(t);let reads=0,executions=0;const evidence=new MissionEvidence({execute:async()=>{executions++;return {exitCode:0};}});evidence.gitState=async()=>{if(reads++)throw Error('Fixture result inspection failed');return {fingerprint:'source'};};
+ await assert.rejects(evidence.runCheck(root,'test'),error=>!(error instanceof require('../desktop/mission-evidence.cjs').CheckPreflightError)&&/result inspection/.test(error.message));assert.equal(executions,1);
+});

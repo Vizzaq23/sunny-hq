@@ -406,3 +406,17 @@ for(const invalid of [{title:'Invalid\ntitle',body:'Body'},{title:'Title',body:'
  await assert.rejects(hub.publication.act({missionId:mission.id,revision,previewId:'invalid-preview',confirmed:true},'publish'),/invalid.*PR/i);
  assert.equal(external,0);assert.equal(mission.revision,revision);assert.equal(saves.length,count);assert.equal(mission.prPublication.state,'prepared');assert.equal(mission.prPublication.authorizedAt,undefined);assert.equal(hub.gate.active.size,0);
 });
+test('script removed after durable reservation cannot poison acceptance before execution',async t=>{
+ const fs=require('node:fs'),os=require('node:os'),path=require('node:path');const root=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-preflight-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));const pkg=path.join(root,'package.json');fs.writeFileSync(pkg,JSON.stringify({scripts:{test:'fixture'}}));
+ const {hub,store,saves}=setup(t);hub.state.projects[0].path=root;const mission=hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ let executions=0;hub.evidence.execute=async()=>{executions++;return {exitCode:0};};const save=store.save;store.save=data=>{save(data);if(data.missionBook.missions[0].checkExecution)fs.writeFileSync(pkg,JSON.stringify({scripts:{}}));};
+ await assert.rejects(hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,script:'test'}),/unavailable/i);
+ assert.equal(executions,0);assert.equal(mission.checkExecution,undefined);assert.equal(mission.artifacts.length,0);assert.equal(hub.gate.active.size,0);assert.equal(mission.events.at(-1).type,'CHECK_NOT_STARTED');assert.equal(saves.at(-1).missionBook.missions[0].checkExecution,undefined);
+ await hub.acceptMission({missionId:mission.id,revision:mission.revision,criteria:[true]});assert.equal(mission.status,'COMPLETE');
+});
+test('arbitrary error phase claims cannot erase executed failure evidence',async t=>{
+ const {hub}=setup(t);const mission=hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ let executions=0;hub.evidence.gitState=async()=>({fingerprint:'source'});hub.evidence.execute=async()=>{executions++;throw Object.assign(Error('Fixture executed failure'),{name:'CheckPreflightError',phase:'preflight',notStarted:true,checkNotStarted:true});};
+ await assert.rejects(hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,script:'test'}),/executed failure/);assert.equal(executions,1);assert.equal(mission.artifacts.at(-1).status,'failed');
+ await assert.rejects(hub.acceptMission({missionId:mission.id,revision:mission.revision,criteria:[true]}),/passed|check/i);assert.equal(mission.status,'WAITING_FOR_REVIEW');
+});

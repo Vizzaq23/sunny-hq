@@ -14,7 +14,7 @@ app.whenReady().then(async()=>{
  const hub=new Hub({home:runtime,store,catalog:{discoverProjects:()=>[{id:'fixture',name:'Fixture project',path:projectRoot,category:'development'}],discoverTools:()=>[],discoverAutomations:()=>[]}});
  const win=new BrowserWindow({width:1280,height:900,show:false,webPreferences:{offscreen:true,backgroundThrottling:false,preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
  // All publishing transport is intercepted here: this fixture never pushes or creates a remote PR.
- const mergeViaUi=process.env.SUNNY_SMOKE_MERGE_UI==='1';let fixtureMerged=process.env.SUNNY_SMOKE_MERGE==='1'&&!mergeViaUi;const publicationCalls=[];hub.publisher.run=async(exe,args)=>{publicationCalls.push({exe,args});assert.notEqual(args[0],'api','No remote merge submission is allowed');return args[0]==='pr'?'https://github.com/fixture/sunny/pull/1\n':'';};
+ const mergeViaUi=process.env.SUNNY_SMOKE_MERGE_UI==='1';let fixtureMerged=process.env.SUNNY_SMOKE_MERGE==='1'&&!mergeViaUi;const publicationCalls=[];hub.publisher.run=async(exe,args)=>{publicationCalls.push({exe,args,...(args[0]==='pr'?{body:fs.readFileSync(args[args.indexOf('--body-file')+1],'utf8')}:{})});assert.notEqual(args[0],'api','No remote merge submission is allowed');return args[0]==='pr'?'https://github.com/fixture/sunny/pull/1\n':'';};
  const openedUrls=[];
  let failure;const mergeBound=process.env.SUNNY_SMOKE_MERGE==='1';const coordinated=process.env.SUNNY_SMOKE_COORDINATED==='1';let threadSequence=0,failNextBrief=true;
  hub.pullRequests.read=async()=>({number:1,url:'https://github.com/fixture/sunny/pull/1',state:fixtureMerged?'MERGED':'OPEN',mergedAt:fixtureMerged?'2026-09-21T12:00:00Z':null,headRefOid:git('rev-parse','HEAD').toString().trim(),headRefName:git('branch','--show-current').toString().trim(),baseRefName:'main',isDraft:false,reviewDecision:'APPROVED',statusCheckRollup:mergeBound?[{__typename:'CheckRun',status:'COMPLETED',conclusion:'SUCCESS'}]:[]});
@@ -34,6 +34,7 @@ app.whenReady().then(async()=>{
   if(action==='mission:recheckMerge')return hub.merger.act(args,'recheck');
   if(action==='dialog:openExternal'){openedUrls.push(args);return null;}
   if(action==='mission:preparePr')return hub.publication.act(args,'prepare');
+  if(action==='mission:editPr')return hub.publication.act(args,'edit');
   if(action==='mission:publishPr')return hub.publication.act(args,'publish');
   if(action==='mission:create'){if(failNextBrief){failNextBrief=false;throw Error('Fixture brief save unavailable');}return hub.createMission(args);}
   if(action==='mission:prepareBranch')return hub.prepareMissionBranch(args);
@@ -143,8 +144,17 @@ app.whenReady().then(async()=>{
   await wait(`document.querySelector(".mission-detail").dataset.revision===${JSON.stringify(String(hub.state.missions[0].revision))}`);
   await wait('!document.querySelector(".mission-prepare-pr").disabled');assert.equal(await js('document.querySelectorAll(".mission-prepare-pr").length'),1);await js('document.querySelector(".mission-prepare-pr").click()');await wait('Boolean(document.querySelector(".mission-publish-pr"))');
   assert.equal(publicationCalls.length,0);assert.equal(await js('document.querySelector(".mission-publish-pr").disabled'),true);
+  const originalPreview=structuredClone(hub.state.missions[0].prPublication);
+  await js('document.querySelector(".mission-publication input[type=checkbox]").click()');await wait('!document.querySelector(".mission-publish-pr").disabled');
+  const editedTitle='Captain literal $(command) `title`',editedBody=originalPreview.body+'\n\nCaptain literal review: $(command), `ticks`, \\n, and ${value}.\n';
+  await fill('[aria-label="PR title"]',editedTitle);await fill('[aria-label="PR description"]',editedBody);
+  assert.equal(await js('document.querySelector(".mission-publish-pr").disabled'),true);assert.equal(await js('document.querySelector(".mission-publication input[type=checkbox]").checked'),false);assert.equal(publicationCalls.length,0);
+  await js('document.querySelector(".mission-save-pr-preview").click()');await wait('!document.querySelector(".mission-save-pr-preview")');
+  const editedPreview=hub.state.missions[0].prPublication;assert.notEqual(editedPreview.id,originalPreview.id);assert.equal(editedPreview.title,editedTitle);assert.equal(editedPreview.body,editedBody);
+  for(const key of ['repository','branch','base','commit','fingerprint','attemptId'])assert.equal(editedPreview[key],originalPreview[key]);assert.equal(publicationCalls.length,0);assert.equal(await js('document.querySelector(".mission-publish-pr").disabled'),true);
+  await js('document.querySelector(".mission-publication").scrollIntoView({block:"center"})');await delay(200);fs.writeFileSync(path.join(output,'editable-pr-preview.png'),(await win.webContents.capturePage()).toPNG());
   await js('document.querySelector(".mission-publication input[type=checkbox]").click()');await wait('!document.querySelector(".mission-publish-pr").disabled');await js('document.querySelector(".mission-publish-pr").click()');await wait('document.querySelector(".mission-publication").textContent.includes("· published")');
-  assert.equal(publicationCalls.length,2);assert.equal(hub.state.missions[0].prPublication.state,'published');
+  assert.equal(publicationCalls.length,2);assert.equal(hub.state.missions[0].prPublication.state,'published');assert.equal(publicationCalls[1].body,editedBody);assert.equal(publicationCalls[1].args[publicationCalls[1].args.indexOf('--title')+1],editedTitle);
   await fill('[aria-label="Pull-request number"]','1');await js('document.querySelector(".mission-inspect-pr").click()');await wait('document.querySelector(".mission-evidence")?.textContent.includes("PR #1")');assert.equal(hub.state.missions[0].artifacts.findLast(a=>a.kind==='pull-request').checkStatus,mergeBound?'passed':'unavailable');
   if(mergeViaUi){
    await wait(`document.querySelector(".mission-detail").dataset.revision===${JSON.stringify(String(hub.state.missions[0].revision))}`);
@@ -196,7 +206,7 @@ app.whenReady().then(async()=>{
   assert.equal(await js('document.querySelector(".mission-brief input").value'),'Keep this unfinished brief');
   await delay(300);fs.writeFileSync(path.join(output,'mission-board.png'),(await win.webContents.capturePage()).toPNG());
   assert.deepEqual(appErrors,[],'No app errors may be hidden by later successful persistence');
-  console.log('SUNNY_MISSION '+JSON.stringify({passed:true,output,runtime,imageInput:process.env.SUNNY_SMOKE_IMAGE?'external-image':'synthetic-fixture',motionCheck,coordinated,mergeBound,mergeViaUi,checks:['missing-thread-confirmation','uncertain-check-confirmation','unknown-failed-attention-projection','illustrated-room-full-and-narrow','enter-project-room','keyboard-movement','open-room-board','create','prepare-real-branch','launch-through-hub','await-review','real-npm-check','fixture-pr-evidence','fixture-deployment-observation','post-acceptance-deployment-refresh','criteria-gate','written-deliverable-preview','native-image-deliverable-preview','explicit-acceptance','signal-acknowledgment','unseen-filter','signal-mission-navigation','persist','reload','project-scoped-brief-drafts','draft-navigation-and-reload','submitted-brief-clearing']}));
+  console.log('SUNNY_MISSION '+JSON.stringify({passed:true,output,runtime,imageInput:process.env.SUNNY_SMOKE_IMAGE?'external-image':'synthetic-fixture',motionCheck,coordinated,mergeBound,mergeViaUi,checks:['missing-thread-confirmation','uncertain-check-confirmation','unknown-failed-attention-projection','illustrated-room-full-and-narrow','enter-project-room','keyboard-movement','open-room-board','create','prepare-real-branch','launch-through-hub','await-review','real-npm-check','fixture-pr-evidence','fixture-deployment-observation','post-acceptance-deployment-refresh','criteria-gate','written-deliverable-preview','native-image-deliverable-preview','explicit-acceptance','signal-acknowledgment','unseen-filter','signal-mission-navigation','persist','reload','project-scoped-brief-drafts','draft-navigation-and-reload','submitted-brief-clearing','editable-exact-pr-preview','unsaved-preview-publication-block','edited-preview-fresh-confirmation']}));
  }catch(error){failure=error;console.error(error);fs.writeFileSync(path.join(output,'failure.png'),(await win.webContents.capturePage()).toPNG());}
  finally{hub.close();win.destroy();app.exit(failure?1:0);}
 }).catch(error=>{console.error(error);app.exit(1);});

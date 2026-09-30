@@ -32,6 +32,7 @@ async function handle(action,args={}){
  case 'mission:submitMerge':return hub.merger.act(args,'submit');
  case 'mission:recheckMerge':return hub.merger.act(args,'recheck');
  case 'mission:preparePr':return hub.publication.act(args,'prepare');
+ case 'mission:editPr':return hub.publication.act(args,'edit');
  case 'mission:publishPr':return hub.publication.act(args,'publish');
  case 'mission:reconcilePr':return hub.publication.act(args,'reconcile');
  case 'mission:signalSeen':return hub.markMissionSignalSeen(args);

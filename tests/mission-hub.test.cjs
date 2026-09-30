@@ -380,3 +380,22 @@ test('read-only check capabilities validate mission scope and report only config
  assert.throws(()=>hub.missionCheckCapabilities({missionId:'missing'}),/not found/i);
  assert.throws(()=>hub.missionCheckCapabilities({missionId:mission.id,projectId:'other'}),/Invalid/i);
 });
+test('editing a PR preview durably replaces identity and invalidates earlier confirmation',async t=>{
+ const {hub,saves}=setup(t);const mission=hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ let published=0;hub.publisher={prepare:async()=>({id:'old-preview',attemptId:mission.activeAttemptId,state:'prepared',expiresAt:Date.now()+10000,title:'Original',body:'Original body'}),validate:async()=>{},revise:async(_root,preview,title,body)=>({...preview,id:'edited-preview',title,body}),publish:async()=>{published++;return {number:7,url:'https://github.com/fixture/sunny/pull/7'};}};
+ await hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare');const revision=mission.revision;
+ await hub.publication.act({missionId:mission.id,revision,previewId:'old-preview',title:'Reviewed title',body:'Reviewed body'},'edit');
+ assert.equal(saves.at(-1).missionBook.missions[0].prPublication.body,'Reviewed body');assert.equal(mission.prPublication.id,'edited-preview');assert.ok(mission.revision>revision);
+ await assert.rejects(hub.publication.act({missionId:mission.id,revision,previewId:'old-preview',confirmed:true},'publish'),/changed/i);
+ await assert.rejects(hub.publication.act({missionId:mission.id,revision:mission.revision,previewId:'old-preview',confirmed:true},'publish'),/current|confirm/i);assert.equal(published,0);
+ await assert.rejects(hub.publication.act({missionId:mission.id,revision:mission.revision,previewId:'edited-preview',title:'Title',body:'Body',base:'other'},'edit'),/Invalid/i);
+ await hub.publication.act({missionId:mission.id,revision:mission.revision,previewId:'edited-preview',confirmed:true},'publish');assert.equal(published,1);
+ await assert.rejects(hub.publication.act({missionId:mission.id,revision:mission.revision,previewId:'edited-preview',title:'Later',body:'Later body'},'edit'),/prepared|preview|reconcile/i);
+});
+test('failed edited-preview checkpoint preserves old identity and never publishes',async t=>{
+ const {hub,store}=setup(t);const mission=hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ let remote=0;hub.publisher={prepare:async()=>({id:'old',attemptId:mission.activeAttemptId,state:'prepared',title:'Old',body:'Old body'}),revise:async(_root,preview,title,body)=>({...preview,id:'new',title,body}),publish:async()=>{remote++;}};
+ await hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare');const revision=mission.revision;store.save=()=>{throw Error('Disk full');};
+ await assert.rejects(hub.publication.act({missionId:mission.id,revision,previewId:'old',title:'New',body:'New body'},'edit'),/Disk full/);
+ assert.equal(hub.state.missions[0].prPublication.id,'old');assert.equal(hub.state.missions[0].revision,revision);assert.equal(remote,0);assert.equal(hub.gate.active.size,0);store.save=()=>{};
+});

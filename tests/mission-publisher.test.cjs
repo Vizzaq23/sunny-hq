@@ -21,3 +21,21 @@ test('draft describes review gaps and source-bound latest checks without claimin
  for(const field of ['Affected subsystem and files touched','Architecture impact','Security/IPC/permissions impact','Database migration','Risk level and rollback','Screenshots/video','Docs','Art bible and world bible'])assert.ok(body.includes(field),field);
  assert.match(body,/\[ \] Reload items/);assert.match(body,/Human merge approval is still required/);
 });
+test('revised preview preserves exact captain text and immutable source while renewing identity',async()=>{
+ const {publisher,calls}=setup();const preview=await publisher.prepare('fixture',mission,'main');preview.authorizedAt=1;
+ const title='  Captain `literal` $title  ',body='## Reviewed\r\nLiteral $(command), `ticks`, \\n and ${value}\n\n';
+ const revised=await publisher.revise('fixture',preview,title,body);
+ assert.equal(revised.title,title);assert.equal(revised.body,body);assert.notEqual(revised.id,preview.id);assert.equal(revised.authorizedAt,undefined);
+ for(const key of ['repository','branch','base','commit','fingerprint','attemptId'])assert.equal(revised[key],preview[key]);assert.equal(calls.length,0);
+});
+test('preview text validation and stale source prevent revisions without external commands',async()=>{
+ const {publisher,calls,evidence}=setup();const preview=await publisher.prepare('fixture',mission,'main');
+ for(const [title,body] of [['','body'],['x'.repeat(201),'body'],['bad\ntitle','body'],['Title',''],['Title','x'.repeat(100001)],['Title','nul\0body'],[17,'body'],['Title',{}]])await assert.rejects(publisher.revise('fixture',preview,title,body),/invalid.*PR/i);
+ evidence.gitState=async()=>({...source,commit:'b'.repeat(40)});await assert.rejects(publisher.revise('fixture',preview,'Title','Reviewed body'),/changed/i);assert.equal(calls.length,0);
+});
+test('publication passes edited multiline text literally through title argv and UTF-8 body file',async()=>{
+ const fs=require('node:fs');const {publisher}=setup();const original=await publisher.prepare('fixture',mission,'main');
+ const title='Captain $(literal) `title`',body='## Review\r\n$(literal) `ticks` \\n\n日本語 ⚓\n';const preview=await publisher.revise('fixture',original,title,body);let sawBody=false;
+ publisher.run=async(_exe,args)=>{if(args[0]==='pr'){assert.equal(args[args.indexOf('--title')+1],title);assert.equal(fs.readFileSync(args[args.indexOf('--body-file')+1],'utf8'),body);sawBody=true;return 'https://github.com/crew/sunny/pull/7';}return '';};
+ await publisher.publish('fixture',preview);assert.equal(sawBody,true);
+});

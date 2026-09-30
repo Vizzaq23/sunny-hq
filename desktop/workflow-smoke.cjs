@@ -49,6 +49,7 @@ ipcMain.handle('sunny:invoke',async(_event,action,args)=>{
   return {packet,task:reportTask};
  }
  if(action==='settings:update'){if(Object.hasOwn(args,'roomSoundEnabled'))state.settings.roomSoundEnabled=args.roomSoundEnabled;if(Object.hasOwn(args,'roomSoundVolume'))state.settings.roomSoundVolume=args.roomSoundVolume;emit();return state.settings;}
+ if(action==='mission:checks'){assert.deepEqual(Object.keys(args),['missionId']);assert.ok(state.missions?.some(mission=>mission.id===args.missionId));return []; }
  if(action==='task:history')return [];
  if(action==='app:diagnostic'||action==='asset:crewTexture')return null;
  throw Error('Unexpected smoke IPC: '+action);

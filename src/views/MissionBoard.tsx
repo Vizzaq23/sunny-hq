@@ -20,6 +20,8 @@ export function MissionBoard({snapshot,invoke,onOpen,focusMission}:{snapshot:Sna
  const [busy,setBusy]=useState(false),[error,setError]=useState('');const busyRef=useRef(false);
  const missions=snapshot.missions??[],selected=missions.find(m=>m.id===selectedId)??missions[0];
  const deploymentEvidence=selected?projectEvidence([selected],selected.projectId)[0]:undefined;
+ const publicationKey=selected?JSON.stringify(['publish',selected.id,selected.activeAttemptId,selected.prPublication?.id,selected.prPublication?.commit,selected.prPublication?.fingerprint,selected.prPublication?.repository,selected.prPublication?.branch,selected.prPublication?.base]):undefined;
+
  const [checkCapabilities,setCheckCapabilities]=useState<{missionId:string;revision:number;scripts:string[];error?:string}>();
  useEffect(()=>{
   let current=true;setCheckCapabilities(undefined);
@@ -56,7 +58,7 @@ export function MissionBoard({snapshot,invoke,onOpen,focusMission}:{snapshot:Sna
      {selected.branch?<p>Mission branch: <b>{selected.branch.name}</b> · {selected.branch.state}</p>:null}{selected.status==='DRAFT'?<button className="mission-prepare-branch small-button" disabled={busy} onClick={()=>void run(async()=>{await invoke('mission:prepareBranch',{missionId:selected.id,revision:selected.revision});})}>{selected.branch?'Recheck prepared branch':'Prepare a mission branch'}</button>:null}
      {['DRAFT','FAILED','CANCELLED','WAITING_FOR_REVIEW'].includes(selected.status)?<div className="mission-launch-controls"><label>Lead role<select aria-label="Mission lead" disabled={busy} value={availableRoles?.length?roleId:crewId} onChange={e=>availableRoles?.length?setRoleId(e.target.value):setCrewId(e.target.value)}>{availableRoles?.length?availableRoles.map(r=><option key={r.id} value={r.id}>{r.label} · {CREW.find(c=>c.id===r.crewId)?.name??r.crewId}</option>):CREW.map(c=><option key={c.id} value={c.id}>{c.name} · {c.role}</option>)}</select></label><button className="small-button mission-launch" disabled={busy||Boolean(selected.checkExecution)} onClick={()=>void launch()}>{selected.attempts.length?'Start a new attempt':'Send the crew'}</button></div>:null}
      {selected.attempts.map((attempt,index)=><section className="mission-attempt" key={attempt.id}><b>Attempt {index+1} · {attempt.status}</b>{attempt.routing?<p>{attempt.routing.roleId} · {attempt.routing.provider}<small>{attempt.routing.reason}</small></p>:null}{attempt.workflow?<ol aria-label="Coordinated stages">{attempt.workflow.stages.map(stage=><li key={stage.id}>{stage.id} · {stage.status}{stage.taskId?<button className="text-button" onClick={()=>onOpen(stage.taskId!)}>Inspect result</button>:null}</li>)}</ol>:null}{attempt.error?<p role="alert">{attempt.error}</p>:null}<div>{attempt.taskIds.map(id=>{const task=snapshot.tasks.find(t=>t.id===id);return task?<button className="text-button" key={id} onClick={()=>onOpen(id)}>{task.title} · {task.status} →</button>:null;})}</div></section>)}
-     {selected.status==='WAITING_FOR_REVIEW'?<MissionPublish key={`publish:${selected.id}:${selected.revision}`} mission={selected} busy={busy} invoke={invoke} run={run}/>:null}
+     {selected.status==='WAITING_FOR_REVIEW'?<MissionPublish key={publicationKey} mission={selected} busy={busy} invoke={invoke} run={run}/>:null}
      {selected.status==='WAITING_FOR_REVIEW'?<MissionMergeControl key={`merge:${selected.id}:${selected.revision}`} mission={selected} busy={busy} invoke={invoke} run={run}/>:null}
      <MissionImages key={`images:${selected.id}:${selected.revision}`} mission={selected} busy={busy} invoke={invoke} run={run} collect={collect}/>
      <MissionDeliverables key={`deliverables:${selected.id}:${selected.revision}`} mission={selected} busy={busy} invoke={invoke} run={run} collect={collect}/>
@@ -86,10 +88,12 @@ function CheckRecovery({mission,busy,invoke,run}:{mission:Mission;busy:boolean;i
 
 function MissionPublish({mission,busy,invoke,run}:{mission:Mission;busy:boolean;invoke:Invoke;run:(action:()=>Promise<void>)=>Promise<void>}){
  const preview=mission.prPublication;
- const [base,setBase]=useState(mission.branch?.baseBranch==='(detached)'?'':mission.branch?.baseBranch??''),[confirmed,setConfirmed]=useState(false),[number,setNumber]=useState('');
+ const [base,setBase]=useState(preview?.base??(mission.branch?.baseBranch==='(detached)'?'':mission.branch?.baseBranch??'')),[confirmed,setConfirmed]=useState(false),[number,setNumber]=useState('');
  const [prTitle,setPrTitle]=useState(preview?.title??mission.title),[prBody,setPrBody]=useState(preview?.body??'');
  const dirty=preview?.state==='prepared'&&(prTitle!==preview.title||prBody!==preview.body);
  const textValid=Boolean(prTitle.trim()&&prTitle.length<=200&&!/[\r\n\0]/.test(prTitle)&&prBody.trim()&&prBody.length<=60000&&!prBody.includes('\0'));
+ useEffect(()=>{setConfirmed(false);},[mission.revision]);
+
 
 
  const act=(action:string,args:object)=>run(async()=>{await invoke(action,{missionId:mission.id,revision:mission.revision,...args});});

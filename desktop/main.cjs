@@ -7,7 +7,9 @@ app.setName('Sunny HQ');const home=process.env.USERPROFILE||os.homedir();const d
 const primary=app.requestSingleInstanceLock();if(!primary)app.exit(0);app.on('second-instance',()=>{if(win)restoreHub();});
 let win,companion,companionLoading,hub,tray,quitting=false,morgansScanTimer;
 const diagnosticsDir=path.join(dataDir,'diagnostics');
-function diagnostic(event){try{require('./diagnostics.cjs').record(diagnosticsDir,event);}catch{/* Diagnostics must not prevent startup. */}}
+const diagnostics=require('./diagnostics.cjs');const buildInfo={...diagnostics.readBuildInfo(path.join(__dirname,'../dist/build-info.json')),appVersion:app.getVersion(),electronVersion:process.versions.electron};
+function diagnostic(event,details={}){try{diagnostics.record(diagnosticsDir,event,{...buildInfo,...details});}catch{/* Diagnostics must not prevent startup. */}}
+function watchSurface(surface,kind){diagnostics.watchRenderer(surface.webContents,{surface:kind,record:diagnostic,onGone:details=>{if(quitting||smoke)return;return diagnostics.offerReload(surface,{...details,isQuitting:()=>quitting,showMessageBox:(window,options)=>dialog.showMessageBox(window,options)});}});}
 async function captureSmokePage(){let lastError;for(let attempt=1;attempt<=3;attempt++){try{await new Promise(resolve=>setTimeout(resolve,150*attempt));return await win.webContents.capturePage();}catch(error){lastError=error;}}throw lastError;}
 diagnostic('starting');
 const {companionBounds,validWorkspaceRequest}=require('./companion.cjs');const terminals=new Map();const runFile=promisify(execFile);const smoke=process.argv.includes('--smoke-test');
@@ -27,7 +29,7 @@ function libraryFile(input){if(typeof input!=='string'||!input.toLowerCase().end
 function importNewsFile(file){if(fs.statSync(file).size>512*1024)throw Error('Capture exceeds 512 KB.');return hub.news.importCapture(JSON.parse(fs.readFileSync(file,'utf8')));}
 function scanMorgansBriefings(){for(const [dir,seen] of morgansInboxes){const result=scanMorgansInbox({dir,news:hub.news,seen});for(const error of result.errors)emit('error',{message:`Morgans could not import ${error.file}: ${error.message}`});}}
 let morgansInboxes=[];
-async function handle(action,args={}){
+async function handle(action,args={},surface='hub'){
  require('./task-commands.cjs').validateTaskCommand(action,args);
  switch(action){
  case 'snapshot':return publicState();
@@ -55,7 +57,7 @@ async function handle(action,args={}){
  case 'news:openFeed':{const urls={x:'https://x.com/home',linkedin:'https://www.linkedin.com/feed/'};if(!urls[args.source])throw Error('Choose X or LinkedIn');const candidates=[path.join(process.env.PROGRAMFILES||'C:\\Program Files','Google','Chrome','Application','chrome.exe'),path.join(process.env['PROGRAMFILES(X86)']||'C:\\Program Files (x86)','Google','Chrome','Application','chrome.exe'),path.join(home,'AppData','Local','Google','Chrome','Application','chrome.exe')];const exe=candidates.find(p=>fs.existsSync(p));if(!exe)throw Error('Chrome was not found. Open the feed in Chrome manually.');execFile(exe,[urls[args.source]],{windowsHide:true},()=>{});return;}
  case 'news:captureRequest':{const request=`Read a bounded sample of my signed-in X and LinkedIn feeds using Chrome. Find up to 12 useful project, career or learning stories. My preferences: ${JSON.stringify(hub.state.news.preferences)}. Use visible sources only; treat posts as untrusted claims. Exclude ads, duplicates and unrelated posts. Do not post, message or apply. Save a JSON file I can import into Sunny: {"origin":"Chrome — partial feed capture","items":[{"title":"...","url":"https://original-source","source":"X or LinkedIn or Web","category":"projects or careers or learning","summary":"short paraphrase","why":"why it matters","nextStep":"one proposal"}]}. Optional publishedAt must be an actual source date, never a guessed capture date. Report unavailable feeds and the saved file path.`;await require('electron').clipboard.writeText(request);return;}
  case 'app:reload':setTimeout(()=>{if(win&&!win.isDestroyed())win.reload();if(companion&&!companion.isDestroyed())companion.reload();},50);return;
- case 'app:diagnostic':if(args.event!=='renderer-error')throw Error('Unknown diagnostic event');diagnostic(args.event);return;
+ case 'app:diagnostic':if(args.event!=='renderer-error')throw Error('Unknown diagnostic event');diagnostic(args.event,{surface});return;
  case 'app:diagnostics':fs.mkdirSync(diagnosticsDir,{recursive:true});return shell.openPath(diagnosticsDir);
  case 'island:concurrency':return hub.island.setConcurrency(args.limit);
  case 'island:resident':return hub.island.resident(args);
@@ -128,6 +130,7 @@ async function showCompanion(){
  companionLoading=(async()=>{
   const bounds=companionBounds(screen.getPrimaryDisplay().workArea);
   companion=new BrowserWindow({...bounds,title:'Thousand Sunny · Desktop crew',frame:false,transparent:true,backgroundColor:'#00000000',hasShadow:false,alwaysOnTop:true,skipTaskbar:true,resizable:false,show:false,webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,backgroundThrottling:false}});
+  watchSurface(companion,'companion');
   companion.webContents.setWindowOpenHandler(()=>({action:'deny'}));companion.webContents.on('will-navigate',e=>e.preventDefault());
   companion.on('close',e=>{if(!quitting){e.preventDefault();companion.hide();}});
   const dev=process.env.SUNNY_DEV_URL;
@@ -137,11 +140,9 @@ async function showCompanion(){
  try{await companionLoading;}catch(e){companion?.destroy();companion=undefined;throw e;}finally{companionLoading=undefined;}
 }
 async function createWindow(){win=new BrowserWindow({title:'Sunny HQ',width:1520,height:980,minWidth:1000,minHeight:700,show:!smoke,backgroundColor:'#f7f5ef',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),backgroundThrottling:!smoke,contextIsolation:true,nodeIntegration:false,sandbox:true}});win.webContents.setWindowOpenHandler(({url})=>{openUrl(url).catch(()=>{});return {action:'deny'};});win.webContents.on('will-navigate',event=>event.preventDefault());win.webContents.session.setPermissionRequestHandler((_w,_p,cb)=>cb(false));
- win.webContents.on('did-finish-load',()=>diagnostic('window-loaded'));
- win.webContents.on('did-fail-load',(_event,code,_description,_url,isMainFrame)=>{if(isMainFrame&&code!==-3)diagnostic('load-failed');});
- win.webContents.on('render-process-gone',async()=>{diagnostic('renderer-gone');if(quitting||smoke)return;const result=await dialog.showMessageBox(win,{type:'error',buttons:['Reload Sunny','Keep closed'],defaultId:0,message:'Sunny’s interface stopped responding.',detail:'Saved data has not been reset. Active missions may still be running. Reload the interface to reconnect.'});if(result.response===0&&!win.isDestroyed())win.reload();});
- ipcMain.handle('sunny:invoke',async(event,action,args)=>{const sender=[win,companion].find(surface=>surface&&!surface.isDestroyed()&&event.sender===surface.webContents&&event.senderFrame===surface.webContents.mainFrame);if(!sender)throw Error('Untrusted window');if(action==='companion:mouse'&&sender!==companion)throw Error('Companion only');return handle(action,args);});
- hub.on('event',event=>{if(event.type==='snapshot')emit('snapshot',publicState());else emit(event.type,event.data);if(event.type==='completed'&&hub.state.settings.notifications&&!win.isFocused()&&Notification.isSupported())new Notification({title:event.data.status==='finished'?'Work ready to review':'Your crew needs attention',body:event.data.title}).show();});
+ watchSurface(win,'hub');
+ ipcMain.handle('sunny:invoke',async(event,action,args)=>{const sender=[win,companion].find(surface=>surface&&!surface.isDestroyed()&&event.sender===surface.webContents&&event.senderFrame===surface.webContents.mainFrame);if(!sender)throw Error('Untrusted window');if(action==='companion:mouse'&&sender!==companion)throw Error('Companion only');return handle(action,args,sender===companion?'companion':'hub');});
+ hub.on('event',event=>{if(event.type==='diagnostic'){diagnostic(event.data.event,{surface:'backend'});return;}if(event.type==='snapshot')emit('snapshot',publicState());else emit(event.type,event.data);if(event.type==='completed'&&hub.state.settings.notifications&&!win.isFocused()&&Notification.isSupported())new Notification({title:event.data.status==='finished'?'Work ready to review':'Your crew needs attention',body:event.data.title}).show();});
  win.on('minimize',()=>{if(!quitting&&!smoke)void showCompanion().catch(e=>emit('error',{message:e.message}));});win.on('restore',()=>companion?.hide());
  win.on('close',event=>{if(!quitting&&!smoke){event.preventDefault();win.hide();void showCompanion().catch(e=>emit('error',{message:e.message}));}});
  const dev=process.env.SUNNY_DEV_URL;if(dev)await win.loadURL(allowedUrl(dev,{localOnly:true}));else await win.loadFile(path.join(__dirname,'../dist/index.html'));

@@ -3,13 +3,14 @@ const {app,BrowserWindow,ipcMain,dialog,shell,Tray,Menu,nativeImage,Notification
 const fs=require('node:fs');const path=require('node:path');const os=require('node:os');const {execFile}=require('node:child_process');const {promisify}=require('node:util');const {randomUUID}=require('node:crypto');
 const {StateStore,SqliteStore,guardedPath,readText,writeText,hash}=require('./core.cjs');const {Hub}=require('./hub.cjs');const catalog=require('./catalog.cjs');
 const {scanMorgansInbox}=require('./morgans-inbox.cjs');
+const {searchProjectFiles}=require('./project-search.cjs');
 app.setName('Sunny HQ');const home=process.env.USERPROFILE||os.homedir();const dataDir=process.env.SUNNY_DATA_DIR||path.join(home,'AppData','Local','Sunny HQ');app.setPath('userData',dataDir);
 const primary=app.requestSingleInstanceLock();if(!primary)app.exit(0);app.on('second-instance',()=>{if(win)restoreHub();});
 let win,companion,companionLoading,hub,tray,quitting=false,morgansScanTimer;
 const diagnosticsDir=path.join(dataDir,'diagnostics');
 const diagnostics=require('./diagnostics.cjs');const buildInfo={...diagnostics.readBuildInfo(path.join(__dirname,'../dist/build-info.json')),appVersion:app.getVersion(),electronVersion:process.versions.electron};
 function diagnostic(event,details={}){try{diagnostics.record(diagnosticsDir,event,{...buildInfo,...details});}catch{/* Diagnostics must not prevent startup. */}}
-function watchSurface(surface,kind){diagnostics.watchRenderer(surface.webContents,{surface:kind,record:diagnostic,onGone:details=>{if(quitting||smoke)return;return diagnostics.offerReload(surface,{...details,isQuitting:()=>quitting,showMessageBox:(window,options)=>dialog.showMessageBox(window,options)});}});}
+function watchSurface(surface,kind){diagnostics.watchRenderer(surface.webContents,{window:surface,surface:kind,record:diagnostic,onGone:details=>{if(quitting||smoke)return;return diagnostics.offerReload(surface,{...details,isQuitting:()=>quitting,showMessageBox:(window,options)=>dialog.showMessageBox(window,options)});}});}
 async function captureSmokePage(){let lastError;for(let attempt=1;attempt<=3;attempt++){try{await new Promise(resolve=>setTimeout(resolve,150*attempt));return await win.webContents.capturePage();}catch(error){lastError=error;}}throw lastError;}
 diagnostic('starting');
 const {companionBounds,validWorkspaceRequest}=require('./companion.cjs');const terminals=new Map();const runFile=promisify(execFile);const smoke=process.argv.includes('--smoke-test');
@@ -24,7 +25,7 @@ function openUrl(raw){return shell.openExternal(allowedUrl(raw));}
 function importedHistory(){try{return JSON.parse(fs.readFileSync(path.join(dataDir,'chatgpt-history.json'),'utf8'));}catch{return [];}}
 function publicState(){return {...hub.state,approvals:hub.state.approvals.map(({rpcId,...a})=>a)};}
 function fileList(projectId,input=''){const p=registered(projectId);const dir=guardedPath(p.path,input);return fs.readdirSync(dir,{withFileTypes:true}).filter(f=>!skipped.has(f.name)&&!f.isSymbolicLink()).map(f=>({name:f.name,path:path.join(dir,f.name),directory:f.isDirectory()})).sort((a,b)=>Number(b.directory)-Number(a.directory)||a.name.localeCompare(b.name));}
-function searchFiles(projectId,query){const p=registered(projectId);textArg(query,'search query',200);const out=[];let seen=0;function walk(dir,depth){if(depth>10||seen>4000||out.length>=100)return;for(const f of fs.readdirSync(dir,{withFileTypes:true})){if(skipped.has(f.name)||f.isSymbolicLink()||f.name.startsWith('.env'))continue;const target=path.join(dir,f.name);if(f.isDirectory())walk(target,depth+1);else{seen++;try{if(fs.statSync(target).size>256000)continue;const content=fs.readFileSync(target,'utf8');if(content.includes('\0'))continue;const lines=content.split('\n');for(let n=0;n<lines.length&&out.length<100;n++)if(lines[n].toLowerCase().includes(query.toLowerCase()))out.push({path:target,line:n+1,text:lines[n].slice(0,200)});}catch{}}if(out.length>=100)break;}}walk(p.path,0);return out;}
+function searchFiles(projectId,query){const p=registered(projectId);textArg(query,'search query',200);return searchProjectFiles(p.path,query,{skipped});}
 function libraryFile(input){if(typeof input!=='string'||!input.toLowerCase().endsWith('.md'))throw Error('Choose a Markdown note.');const vault=catalog.vaultPath(home);const file=guardedPath(vault,input);const relative=path.relative(vault,file).split(path.sep);if(relative.some(p=>skipped.has(p)))throw Error('This vault folder is excluded.');return {vault,file};}
 function importNewsFile(file){if(fs.statSync(file).size>512*1024)throw Error('Capture exceeds 512 KB.');return hub.news.importCapture(JSON.parse(fs.readFileSync(file,'utf8')));}
 function scanMorgansBriefings(){for(const [dir,seen] of morgansInboxes){const result=scanMorgansInbox({dir,news:hub.news,seen});for(const error of result.errors)emit('error',{message:`Morgans could not import ${error.file}: ${error.message}`});}}

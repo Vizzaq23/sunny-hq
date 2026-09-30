@@ -4,13 +4,22 @@ const {sourceUrl}=require('./news.cjs');
 
 const maxBytes=512*1024;
 const briefingName=/^morgans-[a-z0-9-]*20\d{2}-\d{2}-\d{2}(?: \(\d+\))?\.json$/i;
+// Ephemeral position belongs to the caller's existing per-inbox seen map.
+// Rotate inspections, including unchanged files, so both older files and edits get a turn.
+const scanPositions=new WeakMap();
 
 function scanMorgansInbox({dir,news,seen=new Map(),now=Date.now()}){
  const result={added:0,imported:0,errors:[]};
  let entries;
  try{entries=fs.readdirSync(dir,{withFileTypes:true});}catch(error){if(error.code!=='ENOENT')result.errors.push({file:'Downloads',message:error.message});return result;}
- const candidates=entries.filter(entry=>entry.isFile()&&!entry.isSymbolicLink()&&briefingName.test(entry.name)).sort((a,b)=>b.name.localeCompare(a.name)).slice(0,100);
- for(const entry of candidates){
+ const candidates=entries.filter(entry=>entry.isFile()&&!entry.isSymbolicLink()&&briefingName.test(entry.name)).sort((a,b)=>b.name.localeCompare(a.name));
+ const previous=scanPositions.get(seen);
+ let start=previous?.dir===dir?candidates.findIndex(entry=>entry.name.localeCompare(previous.name)<0):0;
+ if(start<0)start=0;
+ const batchSize=Math.min(100,candidates.length);
+ if(batchSize)scanPositions.set(seen,{dir,name:candidates[(start+batchSize-1)%candidates.length].name});
+ for(let index=0;index<batchSize;index++){
+  const entry=candidates[(start+index)%candidates.length];
   const file=path.join(dir,entry.name);
   let fingerprint;
   try{

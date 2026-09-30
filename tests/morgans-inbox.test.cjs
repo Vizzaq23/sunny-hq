@@ -43,3 +43,24 @@ test('malformed and oversized files report once without blocking another briefin
  const result=scanMorgansInbox(x);assert.equal(result.added,1);assert.equal(result.errors.length,3);
  assert.equal(scanMorgansInbox(x).errors.length,0);
 });
+
+test('rotates through more than 100 briefing files without starving older captures',t=>{
+ const x=fixture(t);for(let index=0;index<101;index++)write(x.dir,`morgans-fixture-${String(index).padStart(3,'0')}-2026-09-30.json`,[{...story,url:`https://example.com/rotation/${index}`}]);
+ let opened=0;const original=fs.openSync;t.mock.method(fs,'openSync',(...args)=>{opened++;return original(...args);});
+ assert.equal(scanMorgansInbox(x).added,100);assert.equal(opened,100);opened=0;
+ assert.equal(scanMorgansInbox(x).added,1);assert.ok(opened<=100);assert.equal(x.news.data.items.length,101);
+});
+test('rotation notices changes to an already seen file after later batches',t=>{
+ const x=fixture(t);for(let index=0;index<101;index++)write(x.dir,`morgans-fixture-${String(index).padStart(3,'0')}-2026-09-30.json`,[{...story,url:`https://example.com/change/${index}`}]);
+ scanMorgansInbox(x);scanMorgansInbox(x);write(x.dir,'morgans-fixture-001-2026-09-30.json',[{...story,url:'https://example.com/changed-after-scan'}]);
+ assert.equal(scanMorgansInbox(x).added,1);assert.equal(x.news.data.items.length,102);
+});
+test('rotation survives deletion of its last inspected name and insertion of new files',t=>{
+ const x=fixture(t);for(let index=0;index<101;index++)write(x.dir,`morgans-fixture-${String(index).padStart(3,'0')}-2026-09-30.json`,[{...story,url:`https://example.com/deletion/${index}`}]);
+ scanMorgansInbox(x);fs.unlinkSync(path.join(x.dir,'morgans-fixture-001-2026-09-30.json'));write(x.dir,'morgans-fixture-999-2026-09-30.json',[{...story,url:'https://example.com/new-name'}]);
+ assert.equal(scanMorgansInbox(x).added,2);assert.equal(x.news.data.items.length,102);
+});
+test('a full malformed batch reports once and cannot starve a valid older file',t=>{
+ const x=fixture(t);write(x.dir,'morgans-fixture-000-2026-09-30.json');for(let index=1;index<=100;index++){const file=write(x.dir,`morgans-fixture-${String(index).padStart(3,'0')}-2026-09-30.json`);fs.writeFileSync(file,'invalid json');fs.utimesSync(file,new Date(0),new Date(0));}
+ assert.equal(scanMorgansInbox(x).errors.length,100);const next=scanMorgansInbox(x);assert.equal(next.errors.length,0);assert.equal(next.added,1);
+});

@@ -1,5 +1,6 @@
 const fs=require('node:fs');const path=require('node:path');
-const allowed=new Set(['starting','window-loaded','load-failed','renderer-gone','renderer-error','startup-failed','provider-decode-failed','provider-handler-failed']);
+const {performance}=require('node:perf_hooks');
+const allowed=new Set(['starting','window-loaded','load-failed','renderer-gone','renderer-error','renderer-unresponsive','renderer-responsive','startup-failed','provider-decode-failed','provider-handler-failed']);
 const reasons=new Set(['clean-exit','abnormal-exit','killed','crashed','oom','launch-failed','integrity-failure','memory-eviction']);
 function safeDetails(event,input={}){
  const details={};if(!input||typeof input!=='object')input={};
@@ -10,6 +11,7 @@ function safeDetails(event,input={}){
  if(typeof input.sourceDirty==='boolean')details.sourceDirty=input.sourceDirty;
  if(event==='renderer-gone'){details.reason=reasons.has(input.reason)?input.reason:'unknown';if(Number.isSafeInteger(input.exitCode))details.exitCode=input.exitCode;}
  if(event==='load-failed'&&Number.isSafeInteger(input.code))details.code=input.code;
+ if(event==='renderer-responsive'&&Number.isSafeInteger(input.durationMs)&&input.durationMs>=0&&input.durationMs<=86400000)details.durationMs=input.durationMs;
  return details;
 }
 function record(directory,event,input){
@@ -18,10 +20,14 @@ function record(directory,event,input){
  if(fs.existsSync(file)&&fs.statSync(file).size>128*1024)fs.renameSync(file,path.join(directory,'startup.previous.log'));
  const details=safeDetails(event,input);fs.appendFileSync(file,`${new Date().toISOString()} ${event}${Object.keys(details).length?' '+JSON.stringify(details):''}\n`);
 }
-function watchRenderer(contents,{surface,record,onGone}){
- contents.on('did-finish-load',()=>record('window-loaded',{surface}));
+function watchRenderer(contents,{surface,record,onGone,window,now=()=>performance.now()}){
+ let unresponsiveAt;
+ window?.on('unresponsive',()=>{if(unresponsiveAt!==undefined)return;unresponsiveAt=now();record('renderer-unresponsive',{surface});});
+ window?.on('responsive',()=>{if(unresponsiveAt===undefined)return;const durationMs=Math.round(now()-unresponsiveAt);unresponsiveAt=undefined;record('renderer-responsive',safeDetails('renderer-responsive',{surface,durationMs}));});
+ window?.on('closed',()=>{unresponsiveAt=undefined;});
+ contents.on('did-finish-load',()=>{unresponsiveAt=undefined;record('window-loaded',{surface});});
  contents.on('did-fail-load',(_event,code,_description,_url,isMainFrame)=>{if(isMainFrame&&code!==-3)record('load-failed',safeDetails('load-failed',{surface,code}));});
- contents.on('render-process-gone',(_event,input)=>{const details=safeDetails('renderer-gone',{...input,surface});record('renderer-gone',details);Promise.resolve().then(()=>onGone(details)).catch(()=>{/* Surface closure must not crash the main process. */});});
+ contents.on('render-process-gone',(_event,input)=>{unresponsiveAt=undefined;const details=safeDetails('renderer-gone',{...input,surface});record('renderer-gone',details);Promise.resolve().then(()=>onGone(details)).catch(()=>{/* Surface closure must not crash the main process. */});});
 }
 async function offerReload(win,{surface,reason,exitCode,isQuitting,showMessageBox}){
  if(isQuitting()||win.isDestroyed())return;

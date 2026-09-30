@@ -1,0 +1,178 @@
+{
+  "measuredUtc": "2026-09-30T19:31:52.649Z",
+  "synthetic": true,
+  "providerRequests": 0,
+  "electron": "44.4.3",
+  "node": "24.21.0",
+  "sourceBuild": {
+    "appVersion": "0.11.0",
+    "buildId": "056d039e16b4f761ad95bbde1405c6140c65885faf9961dc7de21ffb03d53993",
+    "fingerprintKind": "source-inputs-sha256",
+    "sourceCommit": "5b70fb24f20dbc52ee321e2b4717011341e19c6f",
+    "sourceDirty": true
+  },
+  "scenarios": [
+    {
+      "kind": "full-snapshot",
+      "tasks": 100,
+      "messagesPerTask": 16,
+      "bytes": 1739919,
+      "samples": [
+        {
+          "sendMs": 1.8842999999999392,
+          "ackMs": 15.334299999999985
+        },
+        {
+          "sendMs": 1.5684000000001106,
+          "ackMs": 14.97770000000014
+        },
+        {
+          "sendMs": 1.561200000000099,
+          "ackMs": 15.404399999999896
+        },
+        {
+          "sendMs": 1.572400000000016,
+          "ackMs": 15.480999999999995
+        },
+        {
+          "sendMs": 1.5648000000001048,
+          "ackMs": 15.498000000000047
+        }
+      ],
+      "sendP50Ms": 1.568,
+      "sendP95Ms": 1.884,
+      "renderAckP50Ms": 15.404,
+      "renderAckP95Ms": 15.498,
+      "mainLoopMaxMs": 15.54,
+      "rendererHeartbeatMaxLagMs": 0.7
+    },
+    {
+      "kind": "full-snapshot",
+      "tasks": 1000,
+      "messagesPerTask": 16,
+      "bytes": 17399019,
+      "samples": [
+        {
+          "sendMs": 10.033500000000004,
+          "ackMs": 63.83809999999994
+        },
+        {
+          "sendMs": 9.934200000000146,
+          "ackMs": 69.71129999999994
+        },
+        {
+          "sendMs": 9.794100000000071,
+          "ackMs": 58.7799
+        },
+        {
+          "sendMs": 10.10739999999987,
+          "ackMs": 61.93080000000009
+        },
+        {
+          "sendMs": 10.237800000000107,
+          "ackMs": 60.94489999999996
+        }
+      ],
+      "sendP50Ms": 10.034,
+      "sendP95Ms": 10.238,
+      "renderAckP50Ms": 61.931,
+      "renderAckP95Ms": 69.711,
+      "mainLoopMaxMs": 20.578,
+      "rendererHeartbeatMaxLagMs": 41.8
+    },
+    {
+      "kind": "full-snapshot",
+      "tasks": 3000,
+      "messagesPerTask": 16,
+      "bytes": 52205019,
+      "samples": [
+        {
+          "sendMs": 34.30879999999979,
+          "ackMs": 207.6327000000001
+        },
+        {
+          "sendMs": 35.22450000000026,
+          "ackMs": 206.2170000000001
+        },
+        {
+          "sendMs": 35.79349999999977,
+          "ackMs": 201.4094
+        },
+        {
+          "sendMs": 38.33609999999999,
+          "ackMs": 206.0599000000002
+        },
+        {
+          "sendMs": 33.85159999999996,
+          "ackMs": 198.95800000000008
+        }
+      ],
+      "sendP50Ms": 35.225,
+      "sendP95Ms": 38.336,
+      "renderAckP50Ms": 206.06,
+      "renderAckP95Ms": 207.633,
+      "mainLoopMaxMs": 49.644,
+      "rendererHeartbeatMaxLagMs": 157.6
+    },
+    {
+      "kind": "stream-task",
+      "tasks": 100,
+      "messagesInUpdatedTask": 2000,
+      "bytes": 2164065,
+      "samples": [
+        {
+          "sendMs": 1.694999999999709,
+          "ackMs": 17.3125
+        },
+        {
+          "sendMs": 2.0318999999999505,
+          "ackMs": 16.496100000000297
+        },
+        {
+          "sendMs": 1.5917999999996937,
+          "ackMs": 16.587999999999738
+        },
+        {
+          "sendMs": 1.9741000000003623,
+          "ackMs": 16.59830000000011
+        },
+        {
+          "sendMs": 1.5695999999998094,
+          "ackMs": 32.48739999999998
+        },
+        {
+          "sendMs": 1.6390999999994165,
+          "ackMs": 16.67790000000059
+        },
+        {
+          "sendMs": 1.6105999999999767,
+          "ackMs": 15.717799999999443
+        },
+        {
+          "sendMs": 1.7550000000001091,
+          "ackMs": 16.128900000000613
+        },
+        {
+          "sendMs": 2.027799999999843,
+          "ackMs": 16.61279999999988
+        },
+        {
+          "sendMs": 1.634200000000419,
+          "ackMs": 16.15819999999985
+        }
+      ],
+      "sendP95Ms": 2.032,
+      "renderAckP95Ms": 32.487,
+      "mainLoopMaxMs": 17.76,
+      "rendererHeartbeatMaxLagMs": 11
+    }
+  ],
+  "memory": {
+    "rss": 216715264,
+    "heapTotal": 116203520,
+    "heapUsed": 64113308,
+    "external": 2651075,
+    "arrayBuffers": 0
+  },
+  "fixtureDirectory": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-ipc-performance-39Vwuc"
+}

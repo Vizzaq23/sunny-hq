@@ -101,3 +101,19 @@ test('foreign thread resolution cannot remove a captain request',t=>{
  hub.notification({method:'serverRequest/resolved',params:{threadId:'foreign',requestId:1}});
  assert.equal(hub.state.approvals.length,1);
 });
+
+test('reconnect rejects old-transport approval but permits a fresh current-transport replay',async t=>{
+ const {hub,task}=fixture(t),{EventEmitter}=require('node:events'),{PassThrough}=require('node:stream');
+ const peer=()=>{const child=new EventEmitter();child.stdin=new PassThrough();child.stdout=new PassThrough();child.stderr=new PassThrough();child.kill=()=>{};return child;};
+ const old=peer(),current=peer(),writes=[],emit=(child,message)=>child.stdout.write(JSON.stringify(message)+'\n');
+ // Use actual CodexClient transport responses rather than the fixture's response interception.
+ hub.client.respond=require('../desktop/codex.cjs').CodexClient.prototype.respond;
+ const request={id:77,method:'item/commandExecution/requestApproval',params:{threadId:'thread',turnId:'turn',command:'fixture-only-command'}};
+ hub.client.attach(old);hub.state.codex.status='connected';emit(old,request);const prior=hub.state.approvals[0];assert.equal(task.status,'waiting');
+ hub.client.disconnect('fixture disconnect');assert.equal(task.status,'unknown');assert.equal(hub.state.approvals.length,0);assert.throws(()=>hub.respond({id:prior.id,decision:'accept'}),/no longer pending/);
+ hub.client.attach(current);hub.state.codex.status='connected';current.stdin.on('data',data=>{const m=JSON.parse(String(data));writes.push(m);if(m.method==='thread/read')emit(current,{id:m.id,result:{thread:{status:{type:'active',activeFlags:['waitingOnApproval']},turns:[{id:'turn',status:'inProgress',items:[]}]}}});});
+ await hub.checkStatus(task.id);assert.equal(task.status,'waiting');assert.equal(hub.state.approvals.length,0);
+ emit(old,request);assert.equal(hub.state.approvals.length,0);assert.equal(writes.some(m=>m.result),false);
+ emit(current,request);const replay=hub.state.approvals[0];assert.notEqual(replay.id,prior.id);assert.throws(()=>hub.respond({id:prior.id,decision:'accept'}),/no longer pending/);
+ hub.respond({id:replay.id,decision:'decline'});assert.equal(task.status,'working');assert.equal(hub.state.approvals.length,0);assert.deepEqual(writes.filter(m=>m.result),[{id:77,result:{decision:'decline'}}]);assert.equal(writes.some(m=>m.method==='turn/start'||m.method==='thread/resume'),false);
+});

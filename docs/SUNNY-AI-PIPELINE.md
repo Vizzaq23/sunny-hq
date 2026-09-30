@@ -157,3 +157,5 @@ Project charts and its filtering follow-up are source increments after the previ
 Finished mission conversations and coordinated stage results require **Start a new attempt** on the Mission Board before additional work or a crewmate handoff. Ordinary conversation handoffs remain available. This preserves the reviewed attempt's history.
 
 The board discovers the registered project's available npm checks and disables absent scripts with an explanation. A rejected unavailable script adds no failed check evidence; a check that actually executes and fails still blocks acceptance. Existing saved failed checks are retained. If package scripts change after discovery, execution validates availability again.
+
+Unsent Mission Board briefs are saved per project for the current window, including title, objective, criteria, and completion boundary. They survive navigation and reload. Closing the window ends these drafts; save a mission brief to retain it in Sunny's mission records. A failed save preserves the draft, and saving one project's brief does not clear another project's draft.

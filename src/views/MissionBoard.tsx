@@ -2,14 +2,18 @@ import {MissionImages} from '../components/MissionImages';
 import {projectEvidence} from '../projectEvidence';
 import {DeploymentObservation} from '../components/DeploymentObservation';
 import {useEffect,useRef,useState} from 'react';
+import {clearSubmittedDraft,useDraft} from '../useDraft';
 import type {Mission,Snapshot,Task} from '../shared';
 import {CREW} from '../data';
 import './mission-board.css';
 type Invoke=<T=unknown>(action:string,args?:unknown)=>Promise<T>;
 const labels:Record<string,string>={DRAFT:'Draft',RUNNING:'Running',NEEDS_USER:'Needs your attention',WAITING_FOR_REVIEW:'Ready for review',FAILED:'Failed',CANCELLED:'Stopped',BLOCKED:'Blocked',COMPLETE:'Complete'};
 export function MissionBoard({snapshot,invoke,onOpen,focusMission}:{snapshot:Snapshot;invoke:Invoke;onOpen:(taskId:string)=>void;focusMission?:{id:string;sequence:number}}){
- const [boundary,setBoundary]=useState<'review'|'merge'>('review');
- const [projectId,setProjectId]=useState(''),[title,setTitle]=useState(''),[objective,setObjective]=useState(''),[criteria,setCriteria]=useState('');
+ const [projectId,setProjectId]=useDraft('mission:last-project',snapshot.projects[0]?.id??'');
+ const project=snapshot.projects.find(p=>p.id===projectId)??snapshot.projects[0];
+ const draftKey=`mission:brief:${project?.id??'unselected'}`;
+ const [title,setTitle]=useDraft(`${draftKey}:title`),[objective,setObjective]=useDraft(`${draftKey}:objective`),[criteria,setCriteria]=useDraft(`${draftKey}:criteria`);
+ const [boundaryDraft,setBoundary]=useDraft(`${draftKey}:boundary`,'review');const boundary=boundaryDraft==='merge'?'merge':'review';
  const [selectedId,setSelectedId]=useState<string>(),[crewId,setCrewId]=useState('luffy'),[roleId,setRoleId]=useState('coordinator'),[prNumber,setPrNumber]=useState('');
  const availableRoles=snapshot.missionRoles?.filter(role=>role.id!=='reporter');
  useEffect(()=>{if(focusMission)setSelectedId(focusMission.id);},[focusMission]);
@@ -27,9 +31,9 @@ export function MissionBoard({snapshot,invoke,onOpen,focusMission}:{snapshot:Sna
  },[selected?.id,selected?.revision,selected?.status,invoke]);
  const checksReady=checkCapabilities?.missionId===selected?.id&&checkCapabilities?.revision===selected?.revision;
 
- const project=snapshot.projects.find(p=>p.id===projectId)??snapshot.projects[0];
+
  const run=async(action:()=>Promise<void>)=>{if(busyRef.current)return;busyRef.current=true;setBusy(true);setError('');try{await action();}catch(e){setError(e instanceof Error?e.message:String(e));}finally{busyRef.current=false;setBusy(false);}};
- const create=()=>run(async()=>{const mission=await invoke<Mission>('mission:create',{projectId:project?.id,title,objective,acceptanceCriteria:criteria.split('\n').map(c=>c.trim()).filter(Boolean),completionBoundary:boundary});setSelectedId(mission.id);setTitle('');setObjective('');setCriteria('');});
+ const create=()=>run(async()=>{const mission=await invoke<Mission>('mission:create',{projectId:project?.id,title,objective,acceptanceCriteria:criteria.split('\n').map(c=>c.trim()).filter(Boolean),completionBoundary:boundary});setSelectedId(mission.id);clearSubmittedDraft(`${draftKey}:title`,title);clearSubmittedDraft(`${draftKey}:objective`,objective);clearSubmittedDraft(`${draftKey}:criteria`,criteria);clearSubmittedDraft(`${draftKey}:boundary`,boundaryDraft);});
  const launch=()=>run(async()=>{if(selected)await invoke<Task>('mission:start',{missionId:selected.id,revision:selected.revision,...(availableRoles?.length?{roleId}:{crewId})});});
  const collect=(args:object)=>run(async()=>{if(selected)await invoke('mission:evidence',{missionId:selected.id,revision:selected.revision,...args});});
  return <section className="page mission-board" aria-label="Mission board">
@@ -40,7 +44,7 @@ export function MissionBoard({snapshot,invoke,onOpen,focusMission}:{snapshot:Sna
     <label>Mission title<input aria-label="Mission title" disabled={busy} maxLength={200} value={title} onChange={e=>setTitle(e.target.value)} placeholder="Build the inventory screen"/></label>
     <label>Objective<textarea aria-label="Mission objective" disabled={busy} maxLength={50000} value={objective} onChange={e=>setObjective(e.target.value)} placeholder="Describe the change and who it helps."/></label>
     <label>Acceptance criteria<textarea aria-label="Acceptance criteria" disabled={busy} value={criteria} onChange={e=>setCriteria(e.target.value)} placeholder={'One observable result per line\nItems survive a reload'}/></label>
-    <label>Mission finishes after<select aria-label="Completion boundary" disabled={busy} value={boundary} onChange={e=>setBoundary(e.target.value as 'review'|'merge')}><option value="review">Captain reviews the result</option><option value="merge">Pull request merged and checked</option></select></label><button className="primary-button mission-create" disabled={busy||!project||!title.trim()||!objective.trim()||!criteria.trim()} onClick={()=>void create()}>Save mission brief</button>
+    <label>Mission finishes after<select aria-label="Completion boundary" disabled={busy} value={boundary} onChange={e=>setBoundary(e.target.value)}><option value="review">Captain reviews the result</option><option value="merge">Pull request merged and checked</option></select></label><button className="primary-button mission-create" disabled={busy||!project||!title.trim()||!objective.trim()||!criteria.trim()} onClick={()=>void create()}>Save mission brief</button>
     {!project?<p>Import a project before creating a mission.</p>:null}
    </section>
    <section className="mission-log panel"><h3>Voyages</h3>

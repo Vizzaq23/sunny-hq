@@ -16,7 +16,7 @@ app.whenReady().then(async()=>{
  // All publishing transport is intercepted here: this fixture never pushes or creates a remote PR.
  const mergeViaUi=process.env.SUNNY_SMOKE_MERGE_UI==='1';let fixtureMerged=process.env.SUNNY_SMOKE_MERGE==='1'&&!mergeViaUi;const publicationCalls=[];hub.publisher.run=async(exe,args)=>{publicationCalls.push({exe,args});assert.notEqual(args[0],'api','No remote merge submission is allowed');return args[0]==='pr'?'https://github.com/fixture/sunny/pull/1\n':'';};
  const openedUrls=[];
- let failure;const mergeBound=process.env.SUNNY_SMOKE_MERGE==='1';const coordinated=process.env.SUNNY_SMOKE_COORDINATED==='1';let threadSequence=0;
+ let failure;const mergeBound=process.env.SUNNY_SMOKE_MERGE==='1';const coordinated=process.env.SUNNY_SMOKE_COORDINATED==='1';let threadSequence=0,failNextBrief=true;
  hub.pullRequests.read=async()=>({number:1,url:'https://github.com/fixture/sunny/pull/1',state:fixtureMerged?'MERGED':'OPEN',mergedAt:fixtureMerged?'2026-09-21T12:00:00Z':null,headRefOid:git('rev-parse','HEAD').toString().trim(),headRefName:git('branch','--show-current').toString().trim(),baseRefName:'main',isDraft:false,reviewDecision:'APPROVED',statusCheckRollup:mergeBound?[{__typename:'CheckRun',status:'COMPLETED',conclusion:'SUCCESS'}]:[]});
  const deploymentCalls=[];hub.deployments.read=async args=>{deploymentCalls.push(args);assert.equal(args[args.indexOf('--method')+1],'GET');const base='https://api.github.com/repos/fixture/sunny',url=base+'/deployments/42';return args.at(-1).includes('/statuses?')?[{id:43,url:url+'/statuses/43',deployment_url:url,state:'success',created_at:'2026-09-21T12:00:00Z'}]:[{id:42,url,repository_url:base,statuses_url:url+'/statuses',environment:'fixture-preview',sha:git('rev-parse','HEAD').toString().trim(),created_at:'2026-09-21T11:00:00Z'}];};
  hub.client.connected=true;hub.state.codex.status='connected';hub.state.settings.reducedMotion=true;
@@ -35,7 +35,7 @@ app.whenReady().then(async()=>{
   if(action==='dialog:openExternal'){openedUrls.push(args);return null;}
   if(action==='mission:preparePr')return hub.publication.act(args,'prepare');
   if(action==='mission:publishPr')return hub.publication.act(args,'publish');
-  if(action==='mission:create')return hub.createMission(args);
+  if(action==='mission:create'){if(failNextBrief){failNextBrief=false;throw Error('Fixture brief save unavailable');}return hub.createMission(args);}
   if(action==='mission:prepareBranch')return hub.prepareMissionBranch(args);
   if(action==='mission:start')return hub.startMission(args);
   if(action==='mission:accept')return hub.acceptMission(args);
@@ -86,8 +86,22 @@ app.whenReady().then(async()=>{
   assert.equal(await js('document.querySelector(".mission-brief select").options.length'),1);
   await delay(300);fs.writeFileSync(path.join(output,'project-room.png'),(await win.webContents.capturePage()).toPNG());
   await fill('[aria-label="Mission title"]','Fixture inventory');await fill('[aria-label="Mission objective"]','Track the captain inventory');await fill('[aria-label="Acceptance criteria"]','Items survive reload');
-  if(mergeBound)await js('(()=>{const e=document.querySelectorAll(".mission-brief select")[1];e.value="merge";e.dispatchEvent(new Event("change",{bubbles:true}));})()');
+  await js('(()=>{const e=document.querySelectorAll(".mission-brief select")[1];e.value="merge";e.dispatchEvent(new Event("change",{bubbles:true}));})()');
+  await js('Array.from(document.querySelectorAll("button")).find(b=>b.textContent.trim()==="Missions").click()');await wait('Boolean(document.querySelector(".mission-board"))');
+  assert.equal(await js('document.querySelector(".mission-brief input").value'),'Fixture inventory','mission title survives room-to-board navigation');
+  hub.state.projects.push({id:'draft-other',name:'Other draft fixture',path:projectRoot,category:'development'});hub.changed();await wait('document.querySelector(".mission-brief select").options.length===2');
+  await js('(()=>{const e=document.querySelector(".mission-brief select");e.value="draft-other";e.dispatchEvent(new Event("change",{bubbles:true}));})()');await delay(50);
+  assert.equal(await js('document.querySelector(".mission-brief input").value'),'');await fill('[aria-label="Mission title"]','Other project draft');
+  await js('(()=>{const e=document.querySelector(".mission-brief select");e.value="fixture";e.dispatchEvent(new Event("change",{bubbles:true}));})()');await delay(50);
+  assert.equal(await js('document.querySelector(".mission-brief input").value'),'Fixture inventory');
+  await win.reload();await wait('Boolean(document.querySelector(".home-page"))');await js('Array.from(document.querySelectorAll("button")).find(b=>b.textContent.trim()==="Missions").click()');await wait('Boolean(document.querySelector(".mission-board"))');
+  assert.equal(await js('document.querySelectorAll(".mission-brief textarea")[0].value'),'Track the captain inventory');assert.equal(await js('document.querySelectorAll(".mission-brief textarea")[1].value'),'Items survive reload');assert.equal(await js('document.querySelectorAll(".mission-brief select")[1].value'),'merge');
+  hub.state.projects=hub.state.projects.filter(p=>p.id!=='draft-other');hub.changed();
+  await js('Array.from(document.querySelectorAll("button")).find(b=>b.textContent.trim()==="The Island").click()');await wait('Boolean(document.querySelector(".island-project-doors button"))');await js('document.querySelector(".island-project-doors button").click()');await wait('Boolean(document.querySelector(".project-room-scene"))');await js('Array.from(document.querySelectorAll("button")).find(b=>b.textContent.trim()==="Open mission board").click()');await wait('Boolean(document.querySelector(".mission-board"))');
+  if(!mergeBound)await js('(()=>{const e=document.querySelectorAll(".mission-brief select")[1];e.value="review";e.dispatchEvent(new Event("change",{bubbles:true}));})()');
+  await js('document.querySelector(".mission-create").click()');await wait('document.querySelector(".mission-error")?.textContent.includes("Fixture brief save unavailable")');assert.equal(await js('document.querySelector(".mission-brief input").value'),'Fixture inventory');assert.equal(hub.state.missions.length,0);
   await js('document.querySelector(".mission-create").click()');await wait('document.querySelector(".mission-board").textContent.includes("Fixture inventory")');
+  assert.equal(await js('document.querySelector(".mission-brief input").value'),'');assert.equal(await js('document.querySelectorAll(".mission-brief textarea")[0].value'),'');assert.equal(await js('document.querySelectorAll(".mission-brief textarea")[1].value'),'');assert.equal(await js('sessionStorage.getItem("sunny:draft:v1:mission:brief:draft-other:title")'),'Other project draft');
   await fill('[aria-label="Mission title"]','Keep this unfinished brief');await js('document.querySelector(".room-health-mission").click()');await delay(100);assert.equal(await js(`document.querySelector('[aria-label="Mission title"]').value`),'Keep this unfinished brief');
   await js('document.querySelector(".mission-prepare-branch").click()');await wait('document.querySelector(".mission-detail").textContent.includes("ready")');assert.match(hub.state.missions[0].branch.name,/^codex\/sunny-/);
   await js(`(()=>{const e=document.querySelector(".mission-launch-controls select");e.value=${JSON.stringify(coordinated?'coordinator':'builder')};e.dispatchEvent(new Event("change",{bubbles:true}));})()`);await delay(50);
@@ -179,9 +193,10 @@ app.whenReady().then(async()=>{
   await js('document.querySelector(".room-event-log").scrollIntoView({block:"center"})');await delay(300);fs.writeFileSync(path.join(output,'transponder-signals.png'),(await win.webContents.capturePage()).toPNG());
   await js('document.querySelector(".room-health").scrollIntoView({block:"center"})');await delay(300);fs.writeFileSync(path.join(output,'project-health.png'),(await win.webContents.capturePage()).toPNG());
   await win.reload();await wait('Boolean(document.querySelector(".home-page,.island-page"))');await js('Array.from(document.querySelectorAll("button")).find(b=>b.textContent.trim()==="Missions").click()');await wait('document.querySelector(".mission-board")?.textContent.includes("Complete")');
+  assert.equal(await js('document.querySelector(".mission-brief input").value'),'Keep this unfinished brief');
   await delay(300);fs.writeFileSync(path.join(output,'mission-board.png'),(await win.webContents.capturePage()).toPNG());
   assert.deepEqual(appErrors,[],'No app errors may be hidden by later successful persistence');
-  console.log('SUNNY_MISSION '+JSON.stringify({passed:true,output,runtime,imageInput:process.env.SUNNY_SMOKE_IMAGE?'external-image':'synthetic-fixture',motionCheck,coordinated,mergeBound,mergeViaUi,checks:['missing-thread-confirmation','uncertain-check-confirmation','unknown-failed-attention-projection','illustrated-room-full-and-narrow','enter-project-room','keyboard-movement','open-room-board','create','prepare-real-branch','launch-through-hub','await-review','real-npm-check','fixture-pr-evidence','fixture-deployment-observation','post-acceptance-deployment-refresh','criteria-gate','written-deliverable-preview','native-image-deliverable-preview','explicit-acceptance','signal-acknowledgment','unseen-filter','signal-mission-navigation','persist','reload']}));
+  console.log('SUNNY_MISSION '+JSON.stringify({passed:true,output,runtime,imageInput:process.env.SUNNY_SMOKE_IMAGE?'external-image':'synthetic-fixture',motionCheck,coordinated,mergeBound,mergeViaUi,checks:['missing-thread-confirmation','uncertain-check-confirmation','unknown-failed-attention-projection','illustrated-room-full-and-narrow','enter-project-room','keyboard-movement','open-room-board','create','prepare-real-branch','launch-through-hub','await-review','real-npm-check','fixture-pr-evidence','fixture-deployment-observation','post-acceptance-deployment-refresh','criteria-gate','written-deliverable-preview','native-image-deliverable-preview','explicit-acceptance','signal-acknowledgment','unseen-filter','signal-mission-navigation','persist','reload','project-scoped-brief-drafts','draft-navigation-and-reload','submitted-brief-clearing']}));
  }catch(error){failure=error;console.error(error);fs.writeFileSync(path.join(output,'failure.png'),(await win.webContents.capturePage()).toPNG());}
  finally{hub.close();win.destroy();app.exit(failure?1:0);}
 }).catch(error=>{console.error(error);app.exit(1);});

@@ -1,6 +1,6 @@
 # Parallel project crew — design decision, 2026-09-29
 
-Status: proposed for captain review. The captain approved the approach and asked that the existing project and crew specialties inform the design. This document is not evidence that parallel project execution exists.
+Status: proposed for captain review. The captain approved the approach, asked that the existing project and crew specialties inform the design, and requested autonomous execution with a reviewer. This document is not evidence that parallel project execution exists.
 
 ## Objective and acceptance
 
@@ -51,7 +51,7 @@ Recruited residents retain their configured roles and recruitment checks. Suppor
 New parallel attempts use workflow version 2; version 1 attempts retain their existing interpretation.
 
 1. Nami produces a bounded plan: assignments, crew bindings, owned repository-relative paths, acceptance criteria, dependencies and shared interface agreements.
-2. Luffy submits a validated assignment batch through a Sunny tool. Maximum 16 assignment records per attempt, including planner, final validator and reviewer. At most one active assignment per crew member within an attempt. No recursive worker spawning.
+2. Luffy submits a validated assignment batch through a Sunny tool. Maximum 16 initial assignment records, including planner, final validator and reviewer; repair work follows the total attempt budget below. At most one active assignment per crew member within an attempt. No recursive worker spawning.
 3. The main process validates the complete acyclic dependency graph and reserves the logical project before dispatch. Assignments with overlapping owned paths cannot run in the same wave. Shared contracts and lockfiles have a single owner; downstream workers start from a checkpoint containing those changes.
 4. Persist batch and launch reservations before provider submission. Ready independent assignments run up to the configured global specialist capacity; others remain visibly queued. The scheduler, rather than individual model tool calls, owns dispatch.
 5. Gather actual task results and inspect worktree diffs. Finished output alone is insufficient for integration. Reject changes outside declared ownership, changes to protected policy/metadata, missing results and unexpected branch/base changes. Preserve rejected changes for inspection.
@@ -60,6 +60,18 @@ New parallel attempts use workflow version 2; version 1 attempts retain their ex
 8. Return WAITING_FOR_REVIEW with deliverables, actual checks and remaining blockers. Human acceptance and existing consequential-action gates remain authoritative.
 
 The assignment API must bind batch/call ID, parent task, current turn, attempt and revision. Replayed calls return saved results without new workers. Validate input sizes, path normalization, duplicate IDs, crew eligibility, dependency cycles, unknown fields and supported model/effort combinations. Text from workers cannot alter policy or broaden authority.
+
+## Autonomous local execution and independent reviewer
+
+The captain supplies the goal and acceptance criteria once. Within that authorized scope, Luffy automatically plans, dispatches ready assignments, gathers changes, integrates them locally, requests validation and review, and routes actionable findings back to their file owner. Routine local phases do not require repeated captain confirmation. Missing essential requirements, conflicting criteria, uncertain execution or actions beyond the authorized scope block with a clear explanation.
+
+Zoro is the independent final reviewer and cannot be the author of the implementation being reviewed. The reviewer receives the original criteria, exact combined base/head commits, full diff, recorded deterministic checks and relevant worker results. Require a runtime-validated structured verdict: approve, request-changes or blocked, with findings tied to concrete evidence and affected paths. Missing, malformed, stale or unsupported verdicts block readiness. Reviewer text is attributed evidence; it cannot authorize an action or substitute for required checks.
+
+Luffy assigns each actionable finding to an appropriate specialist. Fixes create new recorded assignments and local integration snapshots. Usopp reruns affected checks and the required combined-source checks; Zoro then reviews the resulting exact source again. Allow at most three repair cycles and 32 total assignment launches per attempt, including the initial maximum 16-record batch and all final validation/review tasks. Exhausting either limit blocks and reports remaining findings. Persist counters before launches so restarting cannot reset the bounds. The same worker-capacity limit applies throughout. A failed deterministic check cannot be waived by a model verdict.
+
+After all criteria have current evidence and Zoro approves the exact combined revision, stop automatically at WAITING_FOR_REVIEW with a clear captain notification and reviewable artifacts. Autonomous execution does not silently accept the mission on the captain's behalf. Merge, production deployment, spending, external messages, publishing, credentials, significant deletion and production infrastructure retain explicit human authorization under AGENTS.md. The automated reviewer cannot grant that authorization. Existing approved action-specific flows remain separate from this local execution loop.
+
+Add verification for reviewer independence, malformed verdicts, findings-to-owner routing, exact-source binding, stale-review rejection, three-cycle and launch-budget exhaustion, persisted counters, unresolved findings and attempts to bypass human authority. Show the current repair cycle, reviewer verdict and reason for any stop in the assignment panel.
 
 ## Capacity and provider failures
 

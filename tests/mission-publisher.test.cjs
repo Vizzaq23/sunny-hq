@@ -39,3 +39,14 @@ test('publication passes edited multiline text literally through title argv and 
  publisher.run=async(_exe,args)=>{if(args[0]==='pr'){assert.equal(args[args.indexOf('--title')+1],title);assert.equal(fs.readFileSync(args[args.indexOf('--body-file')+1],'utf8'),body);sawBody=true;return 'https://github.com/crew/sunny/pull/7';}return '';};
  await publisher.publish('fixture',preview);assert.equal(sawBody,true);
 });
+test('generated invalid or oversized previews stay repairable but cannot publish directly',async()=>{
+ const {publisher,calls}=setup();const generated=await publisher.prepare('fixture',{...mission,title:'Multiline\nmission title',objective:'x'.repeat(50000),acceptanceCriteria:Array(20).fill('y'.repeat(1000))},'main');
+ assert.ok(generated.body.length>60000);assert.equal(generated.state,'prepared');await assert.rejects(publisher.publish('fixture',generated),/invalid.*PR/i);assert.equal(calls.length,0);
+ const repaired=await publisher.revise('fixture',generated,'Single line title','Reviewed body');assert.notEqual(repaired.id,generated.id);await publisher.publish('fixture',repaired);assert.equal(calls.length,2);
+});
+test('PR description application cap is enforced before any remote operation',async()=>{
+ const {publisher,calls}=setup();const preview=await publisher.prepare('fixture',mission,'main');
+ await assert.rejects(publisher.revise('fixture',preview,'Title','x'.repeat(60001)),/invalid.*PR/i);
+ await assert.rejects(publisher.publish('fixture',{...preview,body:'x'.repeat(60001)}),/invalid.*PR/i);assert.equal(calls.length,0);
+ const boundary=await publisher.revise('fixture',preview,'Title','x'.repeat(60000));assert.equal(boundary.body.length,60000);
+});

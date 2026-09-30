@@ -265,14 +265,14 @@ test('failed branch intent persistence prevents git mutation',async t=>{
 
 test('PR publication needs exact confirmation and durable authorization before remote submission',async t=>{
  const {hub,saves}=setup(t);const mission=hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
- let published=0;hub.publisher={prepare:async()=>({id:'preview',attemptId:mission.activeAttemptId,state:'prepared',expiresAt:Date.now()+10000}),validate:async()=>{},publish:async()=>{published++;assert.equal(saves.at(-1).missionBook.missions[0].prPublication.state,'publishing');return {number:7,url:'https://github.com/fixture/sunny/pull/7'};}};
+ let published=0;hub.publisher={prepare:async()=>({id:'preview',attemptId:mission.activeAttemptId,state:'prepared',title:'Fixture PR',body:'Fixture description',expiresAt:Date.now()+10000}),validate:async()=>{},publish:async()=>{published++;assert.equal(saves.at(-1).missionBook.missions[0].prPublication.state,'publishing');return {number:7,url:'https://github.com/fixture/sunny/pull/7'};}};
  await hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare');await assert.rejects(hub.publication.act({missionId:mission.id,revision:mission.revision,previewId:'preview',confirmed:false},'publish'),/confirm/);assert.equal(published,0);
  await hub.publication.act({missionId:mission.id,revision:mission.revision,previewId:'preview',confirmed:true},'publish');assert.equal(published,1);assert.equal(mission.prPublication.state,'published');
  await assert.rejects(hub.publication.act({missionId:mission.id,revision:mission.revision,previewId:'preview',confirmed:true},'publish'),/confirm/);assert.equal(published,1);
 });
 test('uncertain PR publication cannot automatically retry or restart work',async t=>{
  const {hub}=setup(t);const mission=hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
- let published=0;hub.publisher={prepare:async()=>({id:'preview',attemptId:mission.activeAttemptId,state:'prepared',expiresAt:Date.now()+10000}),validate:async()=>{},publish:async()=>{published++;throw Error('Timeout');}};
+ let published=0;hub.publisher={prepare:async()=>({id:'preview',attemptId:mission.activeAttemptId,state:'prepared',title:'Fixture PR',body:'Fixture description',expiresAt:Date.now()+10000}),validate:async()=>{},publish:async()=>{published++;throw Error('Timeout');}};
  await hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare');await assert.rejects(hub.publication.act({missionId:mission.id,revision:mission.revision,previewId:'preview',confirmed:true},'publish'),/may have reached/);assert.equal(mission.prPublication.state,'uncertain');
  await assert.rejects(hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare'),/Reconcile/);await assert.rejects(hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'}),/Reconcile/);assert.equal(published,1);
 });
@@ -282,7 +282,7 @@ test('a new attempt can prepare and reconcile a previously published PR at its n
  await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
  const oldAttempt=mission.activeAttemptId;mission.prPublication={id:'old',attemptId:oldAttempt,state:'published',number:7};
  await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
- hub.publisher.prepare=async()=>({id:'new',attemptId:mission.activeAttemptId,state:'prepared',repository:'fixture/sunny',commit:'b'.repeat(40),base:'main'});
+ hub.publisher.prepare=async()=>({id:'new',attemptId:mission.activeAttemptId,state:'prepared',title:'Fixture PR',body:'Fixture description',repository:'fixture/sunny',commit:'b'.repeat(40),base:'main'});
  await hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare');
  hub.pullRequests.inspect=async()=>({kind:'pull-request',repository:'fixture/sunny',number:7,url:'https://github.com/fixture/sunny/pull/7',commit:'b'.repeat(40),baseBranch:'main'});
  await hub.publication.act({missionId:mission.id,revision:mission.revision,prNumber:7},'reconcile');
@@ -291,12 +291,12 @@ test('a new attempt can prepare and reconcile a previously published PR at its n
 
 test('failed PR authorization persistence prevents remote submission',async t=>{
  const {hub,store}=setup(t);const mission=hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
- let calls=0;hub.publisher={prepare:async()=>({id:'preview',attemptId:mission.activeAttemptId,state:'prepared',expiresAt:Date.now()+10000}),validate:async()=>{},publish:async()=>{calls++;}};await hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare');
+ let calls=0;hub.publisher={prepare:async()=>({id:'preview',attemptId:mission.activeAttemptId,state:'prepared',title:'Fixture PR',body:'Fixture description',expiresAt:Date.now()+10000}),validate:async()=>{},publish:async()=>{calls++;}};await hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare');
  store.save=()=>{throw Error('Disk full');};await assert.rejects(hub.publication.act({missionId:mission.id,revision:mission.revision,previewId:'preview',confirmed:true},'publish'),/Disk full/);assert.equal(calls,0);store.save=()=>{};
 });
 test('expired PR previews cannot be authorized',async t=>{
  const {hub}=setup(t);const mission=hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
- let calls=0;hub.publisher={prepare:async()=>({id:'preview',attemptId:mission.activeAttemptId,state:'prepared',expiresAt:1}),validate:async()=>{calls++;}};await hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare');await assert.rejects(hub.publication.act({missionId:mission.id,revision:mission.revision,previewId:'preview',confirmed:true},'publish'),/unexpired/);assert.equal(calls,0);
+ let calls=0;hub.publisher={prepare:async()=>({id:'preview',attemptId:mission.activeAttemptId,state:'prepared',title:'Fixture PR',body:'Fixture description',expiresAt:1}),validate:async()=>{calls++;}};await hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare');await assert.rejects(hub.publication.act({missionId:mission.id,revision:mission.revision,previewId:'preview',confirmed:true},'publish'),/unexpired/);assert.equal(calls,0);
 });
 
 test('signal receipt persists before broadcast and rolls back on save failure',t=>{
@@ -398,4 +398,11 @@ test('failed edited-preview checkpoint preserves old identity and never publishe
  await hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare');const revision=mission.revision;store.save=()=>{throw Error('Disk full');};
  await assert.rejects(hub.publication.act({missionId:mission.id,revision,previewId:'old',title:'New',body:'New body'},'edit'),/Disk full/);
  assert.equal(hub.state.missions[0].prPublication.id,'old');assert.equal(hub.state.missions[0].revision,revision);assert.equal(remote,0);assert.equal(hub.gate.active.size,0);store.save=()=>{};
+});
+for(const invalid of [{title:'Invalid\ntitle',body:'Body'},{title:'Title',body:'x'.repeat(60001)}])test(`invalid prepared PR ${invalid.title.includes('\n')?'title':'body'} cannot authorize or enter uncertain publication`,async t=>{
+ const {hub,saves}=setup(t);const mission=hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ let external=0;hub.publisher={prepare:async()=>({id:'invalid-preview',attemptId:mission.activeAttemptId,state:'prepared',expiresAt:Date.now()+10000,...invalid}),validate:async()=>{},publish:async()=>{external++;return {number:7};}};
+ await hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare');const revision=mission.revision,count=saves.length;
+ await assert.rejects(hub.publication.act({missionId:mission.id,revision,previewId:'invalid-preview',confirmed:true},'publish'),/invalid.*PR/i);
+ assert.equal(external,0);assert.equal(mission.revision,revision);assert.equal(saves.length,count);assert.equal(mission.prPublication.state,'prepared');assert.equal(mission.prPublication.authorizedAt,undefined);assert.equal(hub.gate.active.size,0);
 });

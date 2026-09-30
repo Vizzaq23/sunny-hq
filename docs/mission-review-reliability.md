@@ -1,0 +1,11 @@
+# Mission review reliability decision — 2026-09-30
+
+Mission-task handoffs enforce the same reviewed-attempt continuation lock as direct follow-ups. A finished coordinated stage, review-ready attempt, or accepted attempt must start a new attempt from the Mission Board before more work can be dispatched. Ordinary conversation handoffs remain available.
+
+Project check discovery is a read-only, mission-scoped `mission:checks` action returning only supported, nonempty npm script names (`test`, `build`, `typecheck`, `lint`). Discovery does not change mission revision or evidence. The renderer disables absent checks and rejects stale discovery responses after changing selection. Check execution revalidates package availability before acquiring a reservation or persisting execution intent, and the runner independently validates again immediately before execution. An unavailable script therefore cannot create failed acceptance evidence. Executed failed/stale checks and unresolved-process reservations still block acceptance.
+
+An alternative was recording unsupported requests as failed checks. That falsely claimed execution and created an acceptance gate the captain could not satisfy. No artifact or mission event is recorded for a rejected preflight request; the caller receives the error. A package change after execution intent is persisted still fails conservatively, retaining existing recovery semantics.
+
+No persisted schema, provider behavior, merge authority, or dependency changes. Existing saved evidence remains unchanged; this does not automatically erase historical failed checks. Rollback consists of reverting the source change and rebuilding, with no database restore.
+
+Verification in the isolated clone based on d1779c2: handoff regressions failed before the guard and passed afterward; unavailable lint produced one failed artifact before preflight and none afterward, allowing acceptance. Full `npm test`: 370 passed, 0 failed. `npm run build`: passed (existing large-chunk warning). Native `desktop/mission-smoke.cjs`: passed including capability controls, real disposable npm check, uncertainty recovery, acceptance, persistence and reload. Provider/GitHub transport are synthetic fixtures; no live provider or publication occurred. Screen reader behavior was not tested.

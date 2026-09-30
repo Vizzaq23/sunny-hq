@@ -346,3 +346,37 @@ test('image tool activity is visible without leaking image payloads or granting 
  hub.notification({method:'item/completed',params:{threadId:'thread',turnId:'turn',item:{...item,status:'failed'}}});assert.match(task.messages.find(m=>m.id==='activity:image-call').text,/failed/);
  assert.equal(JSON.stringify(task.messages).includes('PRIVATE_'),false);assert.equal(mission.status,'RUNNING');assert.equal(mission.artifacts.length,0);
 });
+for(const accepted of [false,true])test(`mission handoff cannot dispatch unlinked work from ${accepted?'accepted':'review-ready'} attempt`,async t=>{
+ const {hub}=setup(t);const mission=hub.createMission(brief);const task=await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});
+ hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ if(accepted)await hub.acceptMission({missionId:mission.id,revision:mission.revision,criteria:[true]});
+ let calls=0;hub.client.request=async()=>{calls++;return {thread:{id:'handoff'},turn:{id:'handoff-turn'}};};
+ const count=hub.state.tasks.length,revision=mission.revision;
+ await assert.rejects(hub.handoff({taskId:task.id,crewId:'usopp',prompt:'Continue this mission.'}),/new attempt|mission board/i);
+ assert.equal(calls,0);assert.equal(hub.state.tasks.length,count);assert.equal(mission.revision,revision);assert.equal(hub.gate.active.size,0);
+});
+test('completed coordinated stage cannot hand off while coordinator still runs',async t=>{
+ const {hub}=setup(t);const mission=hub.createMission(brief);const attempt=hub.missionBook.begin(mission.id,mission.revision);attempt.workflowVersion=1;
+ const child={id:'builder-child',projectId:'p',parentTaskId:attempt.taskId,crewId:'franky',threadId:'builder-thread',status:'finished',messages:[]};
+ attempt.taskIds.push(child.id);hub.state.tasks.push(child);let calls=0;hub.client.request=async()=>{calls++;return {thread:{id:'handoff'},turn:{id:'turn'}};};
+ await assert.rejects(hub.handoff({taskId:child.id,crewId:'usopp',prompt:'Continue this mission.'}),/new attempt|mission board/i);assert.equal(calls,0);assert.equal(hub.state.tasks.length,1);
+});
+test('ordinary finished conversation retains explicit handoff',async t=>{
+ const {hub}=setup(t);const task=await hub.start({projectId:'p',crewId:'franky',prompt:'Fixture work'});
+ hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ const next=await hub.handoff({taskId:task.id,crewId:'usopp',prompt:'Review fixture work'});assert.notEqual(next.id,task.id);assert.equal(next.crewId,'usopp');assert.equal(next.status,'working');
+});
+test('unavailable checks leave review acceptance and attempt evidence intact',async t=>{
+ const {hub}=setup(t);const mission=hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});
+ hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ let executions=0;hub.evidence.execute=async()=>{executions++;return {exitCode:0};};const revision=mission.revision;
+ await assert.rejects(hub.collectMissionEvidence({missionId:mission.id,revision,script:'lint'}),/unavailable/i);
+ assert.equal(executions,0);assert.equal(mission.checkExecution,undefined);assert.equal(mission.artifacts.length,0);assert.equal(mission.revision,revision);assert.equal(hub.gate.active.size,0);
+ await hub.acceptMission({missionId:mission.id,revision:mission.revision,criteria:[true]});assert.equal(mission.status,'COMPLETE');
+});
+test('read-only check capabilities validate mission scope and report only configured scripts',t=>{
+ const {hub}=setup(t);const mission=hub.createMission(brief);
+ assert.deepEqual(hub.missionCheckCapabilities({missionId:mission.id}),['test','build']);
+ assert.throws(()=>hub.missionCheckCapabilities({missionId:'missing'}),/not found/i);
+ assert.throws(()=>hub.missionCheckCapabilities({missionId:mission.id,projectId:'other'}),/Invalid/i);
+});

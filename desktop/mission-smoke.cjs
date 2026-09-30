@@ -40,6 +40,7 @@ app.whenReady().then(async()=>{
   if(action==='mission:start')return hub.startMission(args);
   if(action==='mission:accept')return hub.acceptMission(args);
   if(action==='mission:previewDeliverable')return hub.previewMissionDeliverable(args);
+  if(action==='mission:checks')return hub.missionCheckCapabilities(args);
   if(action==='mission:evidence')return hub.collectMissionEvidence(args);
   if(action==='mission:reconcileCheck')return hub.reconcileMissionCheck(args);
   throw Error('Unexpected fixture command '+action);
@@ -114,11 +115,15 @@ app.whenReady().then(async()=>{
   completeTask(rootTask);
   await wait('Boolean(document.querySelector(".mission-accept"))');if(coordinated){assert.equal(await js('document.querySelectorAll(".mission-attempt ol li").length'),4);}
   const originalCheck=hub.evidence.runCheck.bind(hub.evidence);hub.evidence.runCheck=async()=>{throw Object.assign(Error('Fixture uncertain cleanup'),{uncertain:true});};
+  await wait('!document.querySelector(".mission-run-test")?.disabled');
+  assert.equal(await js('document.querySelector(".mission-run-lint").disabled'),true);
+  assert.equal(await js('document.querySelector(".mission-run-typecheck").disabled'),true);
+  assert.match(await js('document.querySelector(".mission-check-capabilities").textContent'),/lint.*typecheck|typecheck.*lint/);
   await js('document.querySelector(".mission-run-test").click()');await wait('Boolean(document.querySelector(".mission-check-recovery"))');await wait('document.querySelector(".mission-error")?.textContent.includes("Fixture uncertain cleanup")');
   assert.equal(hub.gate.blocked(projectRoot),true);assert.equal(await js('document.querySelector(".mission-check-recovery button").disabled'),true);
   await js('document.querySelector(".mission-check-recovery").scrollIntoView({block:"center"})');await delay(150);fs.writeFileSync(path.join(output,'check-recovery.png'),(await win.webContents.capturePage()).toPNG());
   await js('document.querySelector(".mission-check-recovery input").click()');await wait('!document.querySelector(".mission-check-recovery button").disabled');await js('document.querySelector(".mission-check-recovery button").click()');await wait('!document.querySelector(".mission-check-recovery")');assert.equal(hub.gate.blocked(projectRoot),false);hub.evidence.runCheck=originalCheck;
-  await js('document.querySelector(".mission-run-test").click()');
+  await wait('!document.querySelector(".mission-run-test")?.disabled');await js('document.querySelector(".mission-run-test").click()');
   await wait('document.querySelector(".mission-evidence")?.textContent.includes("passed")');
   assert.equal(hub.state.missions[0].artifacts.findLast(a=>a.kind==='check').status,'passed');await wait('document.querySelector(".room-health").textContent.includes("passed")');
   await wait(`document.querySelector(".mission-detail").dataset.revision===${JSON.stringify(String(hub.state.missions[0].revision))}`);

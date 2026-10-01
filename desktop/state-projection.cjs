@@ -1,5 +1,5 @@
 const {randomUUID}=require('node:crypto');
-const {MAX_TEXT_BYTES,readTranscriptPage,validatePageRequest,boundary}=require('./transcript-pages.cjs');
+const {MAX_TEXT_BYTES,readTranscriptPage,validatePageRequest,validateMessageMetadata,boundary}=require('./transcript-pages.cjs');
 const TASK_FIELDS=['id','title','projectId','crewId','threadId','status','createdAt','updatedAt','turnId','external','error','jobId','model','effort','selectionReason','captain','parentTaskId'];
 const SKILL_FIELDS=['id','revision','name','path','category','purpose'];
 const TOKEN_FIELDS=['totalTokens','inputTokens','outputTokens','cachedInputTokens','reasoningOutputTokens'];
@@ -56,8 +56,9 @@ function createStateProjection({epoch=randomUUID()}={}){
  function transcriptChanged(task,change={kind:'invalidate'}){
   const seeded=tasks.has(task.id),entry=tracked(task),baseRevision=entry.revision;
   if(baseRevision===Number.MAX_SAFE_INTEGER)throw Error('Transcript revision exhausted.');
-  const delta={epoch,sequence:nextSequence(),taskId:task.id,baseRevision,revision:++entry.revision,kind:'invalidate'};
   const m=task.messages.find(m=>m.id===change.messageId),old=entry.messages.get(change.messageId);
+  if(m&&['appendMessage','appendText'].includes(change.kind))validateMessageMetadata(m);
+  const delta={epoch,sequence:nextSequence(),taskId:task.id,baseRevision,revision:++entry.revision,kind:'invalidate'};
   let text;
   if(seeded&&m&&change.kind==='appendMessage'&&!old&&task.messages.length===entry.count+1&&task.messages.at(-1)===m)text=m.text;
   if(seeded&&m&&old&&change.kind==='appendText'&&task.messages.length===entry.count&&change.offset===old.length&&typeof change.text==='string'&&change.text.length<=MAX_TEXT_BYTES&&Buffer.byteLength(change.text,'utf8')<=MAX_TEXT_BYTES&&m.text.length===old.length+change.text.length&&boundary(m.text,change.offset)&&m.role===old.role&&m.time===old.time&&m.text.slice(change.offset)===change.text)text=change.text;

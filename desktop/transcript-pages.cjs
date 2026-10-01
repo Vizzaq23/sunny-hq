@@ -9,6 +9,9 @@ function boundary(text,offset){return integer(offset)&&offset<=text.length&&!(of
 function high(code){return code>=0xd800&&code<=0xdbff;}
 function low(code){return code>=0xdc00&&code<=0xdfff;}
 function shape(value,keys,label){if(!plainObject(value)||Object.keys(value).some(key=>!keys.includes(key)))throw Error('Invalid '+label+'.');}
+function validateMessageMetadata(message){
+ if(!['user','assistant','system'].includes(message?.role)||typeof message.time!=='number'||!Number.isFinite(message.time))throw Error('Invalid transcript message metadata.');
+}
 function validatePageRequest(request){
  shape(request,['projectId','taskId','epoch','revision','cursor','direction','limit'],'transcript page request');
  if(!identifier(request.projectId)||!identifier(request.taskId)||!identifier(request.epoch)||!integer(request.revision)||!['older','newer'].includes(request.direction))throw Error('Invalid transcript page request.');
@@ -56,6 +59,7 @@ function readTranscriptPage({epoch,task,revision},request){
  while(index>=0&&index<messages.length&&segments.length<limit){
   const m=messages[index];
   if(typeof m.text!=='string'||!identifier(m.id))throw Error('Invalid transcript message.');
+  validateMessageMetadata(m);
   if(m.text.length&&(request.direction==='newer'?offset===m.text.length:offset===0)){
    index+=request.direction==='newer'?1:-1;
    if(index>=0&&index<messages.length)offset=request.direction==='newer'?0:messages[index].text.length;
@@ -79,4 +83,4 @@ function readTranscriptPage({epoch,task,revision},request){
  return {...result,segments,complete:request.direction==='older'?!older:!newer};
 }
 
-module.exports={DEFAULT_PAGE_LIMIT,MAX_PAGE_LIMIT,MAX_TEXT_BYTES,readTranscriptPage,validatePageRequest,boundary};
+module.exports={DEFAULT_PAGE_LIMIT,MAX_PAGE_LIMIT,MAX_TEXT_BYTES,readTranscriptPage,validatePageRequest,validateMessageMetadata,boundary};

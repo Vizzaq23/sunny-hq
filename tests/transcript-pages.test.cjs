@@ -54,3 +54,13 @@ test('empty_history_is_complete_and_message_private_fields_are_not_exposed',()=>
  assert.equal(result.complete,true);assert.equal(result.segments[0].rpc,undefined);
  assert.equal(result.segments[0].replyRef,undefined,'canonical reply refs must be added by main from full authoritative messages');
 });
+
+test('page_rejects_nested_or_invalid_role_and_timestamp_without_rewriting_history',()=>{
+ page(fixture([message('valid','text')]),request());
+ for(const fields of [{role:{privateRpcToken:'role-secret'}},{role:['assistant']},{role:'operator'},{role:null},{time:{privateRpcToken:'time-secret'}},{time:'1'},{time:NaN},{time:Infinity},{time:undefined}]){
+  const m={...message('m','exact 😀 history'),...fields},c=fixture([m]);
+  assert.throws(()=>page(c,request()),/Invalid transcript message metadata/);
+  assert.equal(c.task.messages[0],m);assert.equal(m.text,'exact 😀 history');
+  for(const key of Object.keys(fields))assert.equal(m[key],fields[key]);
+ }
+});

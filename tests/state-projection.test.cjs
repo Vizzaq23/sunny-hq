@@ -110,3 +110,18 @@ test('deleted_task_invalidates_cursor_and_project_membership_precedes_stale_summ
  assert.throws(()=>p.page(state,{...req,projectId:'else',revision:0}),/project|membership/i);
  state.tasks=[];p.forgetTask('t');assert.throws(()=>p.page(state,req),/task|deleted/i);
 });
+
+test('append_deltas_reject_nested_or_invalid_message_metadata_before_advancing_sequence',()=>{
+ for(const fields of [{role:{privateRpcToken:'role-secret'}},{role:['assistant']},{role:'operator'},{role:null},{time:{privateRpcToken:'time-secret'}},{time:'1'},{time:NaN},{time:Infinity},{time:undefined}]){
+  for(const kind of ['appendMessage','appendText']){
+   const p=producer(),t=task();p.summary(t);
+   const m=kind==='appendMessage'?{...message('new','exact 😀 history'),...fields}:Object.assign(t.messages[0],fields,{text:'hello exact 😀 history'});
+   if(kind==='appendMessage')t.messages.push(m);
+   const change=kind==='appendMessage'?{kind,messageId:m.id}:{kind,messageId:m.id,offset:5,text:' exact 😀 history'};
+   assert.throws(()=>p.transcriptChanged(t,change),/Invalid transcript message metadata/);
+   assert.equal(p.sequence,0);assert.equal(p.summary(t).transcriptRevision,1);
+   assert.equal(t.messages.at(-1),m);assert.equal(m.text,kind==='appendMessage'?'exact 😀 history':'hello exact 😀 history');
+   for(const key of Object.keys(fields))assert.equal(m[key],fields[key]);
+  }
+ }
+});

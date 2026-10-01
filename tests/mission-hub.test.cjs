@@ -7,6 +7,87 @@ function setup(t,initial={}){
  return {hub,store,saves};
 }
 const brief={projectId:'p',title:'Inventory',objective:'Track items',acceptanceCriteria:['Saved items reload'],completionBoundary:'review'};
+const resultHash=text=>require('node:crypto').createHash('sha256').update(text,'utf8').digest('hex');
+async function finishedReply(hub,mission){
+ const task=await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});
+ hub.notification({method:'item/completed',params:{threadId:task.threadId,item:{type:'agentMessage',id:'result-'+task.id,text:'Implemented saved-item reload; review the fixture result.'}}});
+ hub.notification({method:'turn/completed',params:{threadId:task.threadId,turn:{id:task.turnId,status:'completed'}}});return task;
+}
+async function selectReply(hub,mission,task){const message=task.messages.find(m=>m.role==='assistant');return hub.selectMissionResult({missionId:mission.id,revision:mission.revision,ref:{kind:'reply',taskId:task.id,messageId:message.id,sha256:resultHash(message.text)}});}
+function acceptanceInput(mission){return {missionId:mission.id,revision:mission.revision,resultId:mission.selectedResult?.id,resultSha256:mission.selectedResult?.ref.sha256,criteria:[true]};}
+function recordFixtureReply(hub,mission){const task=hub.task(mission.attempts.at(-1).taskId);hub.notification({method:'item/completed',params:{threadId:task.threadId,item:{type:'agentMessage',id:'fixture-result-'+task.id,text:'Fixture output: saved inventory persists after reload.'}}});return task;}
+async function selectFixtureReply(hub,mission){return selectReply(hub,mission,recordFixtureReply(hub,mission));}
+async function selectDeliverable(hub,mission,artifact){return hub.selectMissionResult({missionId:mission.id,revision:mission.revision,producerTaskId:mission.attempts.at(-1).taskId,ref:{kind:'deliverable',artifactId:artifact.id,sha256:artifact.sha256}});}
+
+test('selected reply acceptance persists matching receipt identity and does not publish',async t=>{
+ const {hub,saves}=setup(t),mission=hub.createMission(brief),task=await finishedReply(hub,mission);await selectReply(hub,mission,task);
+ const selectedId=mission.selectedResult.id;await hub.acceptMission(acceptanceInput(mission));
+ assert.equal(mission.acceptance.resultId,selectedId);assert.equal(mission.acceptance.resultSha256,mission.selectedResult.ref.sha256);assert.ok(mission.acceptance.id);assert.equal(mission.acceptance.acceptedAt,mission.acceptedAt);assert.equal(mission.acceptance.reviewedRevision,mission.revision-1);
+ assert.equal(saves.at(-1).missionBook.missions[0].status,'COMPLETE');assert.equal(mission.prPublication,undefined);assert.equal(new (require('../desktop/missions.cjs').MissionBook)(saves.at(-1).missionBook).get(mission.id).acceptance.id,mission.acceptance.id);
+ await assert.rejects(hub.acceptMission(acceptanceInput(mission)),/not ready/i);
+ const receipt=structuredClone(mission.acceptance),result=structuredClone(mission.selectedResult);await assert.rejects(hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'}),/running|active|complete/i);assert.deepEqual(hub.missionBook.get(mission.id).acceptance,receipt);assert.deepEqual(hub.missionBook.get(mission.id).selectedResult,result);
+});
+test('acceptance_save_failure_rolls_back',async t=>{
+ const {hub,store}=setup(t),mission=hub.createMission(brief),task=await finishedReply(hub,mission);await selectReply(hub,mission,task);const command=acceptanceInput(mission),events=[];hub.on('event',event=>events.push(structuredClone(event)));store.save=()=>{throw Error('Disk full');};
+ await assert.rejects(hub.acceptMission(command),/Disk full/);const saved=hub.missionBook.get(mission.id);assert.equal(saved.status,'WAITING_FOR_REVIEW');assert.equal(saved.acceptance,undefined);assert.equal(saved.acceptedAt,undefined);assert.equal(saved.events.some(e=>e.type==='MISSION_COMPLETE'),false);assert.equal(events.some(e=>e.data?.missions?.some(m=>m.status==='COMPLETE')),false);assert.equal(saved.selectedResult.id,command.resultId);store.save=()=>{};
+});
+test('unattached_result_cannot_accept even when every criterion is confirmed',async t=>{
+ const {hub}=setup(t),mission=hub.createMission(brief);await finishedReply(hub,mission);await assert.rejects(hub.acceptMission({missionId:mission.id,revision:mission.revision,criteria:[true]}),/result|selected/i);assert.equal(mission.status,'WAITING_FOR_REVIEW');
+});
+test('changed selected reply cannot accept and forged identity cannot replace selection',async t=>{
+ const {hub}=setup(t),mission=hub.createMission(brief),task=await finishedReply(hub,mission);await selectReply(hub,mission,task);const command=acceptanceInput(mission);
+ await assert.rejects(hub.acceptMission({...command,resultId:'forged'}),/selected|result/i);await assert.rejects(hub.acceptMission({...command,resultSha256:'f'.repeat(64)}),/selected|result/i);
+ task.messages.find(m=>m.role==='assistant').text+=' Changed';await assert.rejects(hub.acceptMission(command),/changed|hash/i);assert.equal(mission.status,'WAITING_FOR_REVIEW');
+});
+test('rework_prompt_persists_on_new_attempt_before_dispatch',async t=>{
+ const {hub,saves}=setup(t),mission=hub.createMission(brief),task=await finishedReply(hub,mission);await selectReply(hub,mission,task);const previousAttempt=mission.attempts.at(-1),artifacts=structuredClone(mission.artifacts),requestedChanges='Keep the saved items after reload';let prompt;
+ hub.client.request=async(method,params)=>{if(method==='thread/start'){assert.equal(saves.at(-1).missionBook.missions[0].attempts.at(-1).requestedChanges,requestedChanges);return {thread:{id:'rework'}};}if(method==='turn/start'){prompt=params.input[0].text;return {turn:{id:'rework-turn'}};}return {};};
+ await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder',requestedChanges});assert.notEqual(mission.activeAttemptId,previousAttempt.id);assert.equal(mission.attempts.at(-1).requestedChanges,requestedChanges);assert.equal(mission.selectedResult,undefined);assert.equal(mission.objective,brief.objective);assert.deepEqual(mission.acceptanceCriteria,brief.acceptanceCriteria);assert.deepEqual(mission.artifacts,artifacts);assert.ok(prompt.includes(requestedChanges));assert.match(prompt,/captain.*changes/i);
+});
+test('rework reacquires authoritative mission after rollback during async preparation',async t=>{
+ const {hub,store,saves}=setup(t),mission=hub.createMission(brief);await finishedReply(hub,mission);const priorAttemptId=mission.activeAttemptId,requestedChanges='CRITICAL CAPTAIN REWORK',originalEnsure=hub.ensure.bind(hub);let finishPreparation,pause=true,prompt;
+ hub.ensure=()=>pause?new Promise(resolve=>{finishPreparation=()=>{pause=false;resolve();};}):originalEnsure();
+ hub.client.request=async(method,params)=>{if(method==='thread/start')return {thread:{id:'rework-thread'}};if(method==='turn/start'){prompt=params.input[0].text;return {turn:{id:'rework-turn'}};}return {};};
+ const pending=hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder',requestedChanges});
+ store.save=()=>{throw Error('Concurrent disk full');};assert.throws(()=>hub.markMissionSignalSeen({missionId:mission.id,revision:mission.revision,eventId:mission.events[0].id}),/Concurrent disk full/);store.save=data=>saves.push(structuredClone(data));
+ const current=hub.missionBook.get(mission.id);assert.notEqual(current,mission);finishPreparation();const task=await pending,attempt=current.attempts.at(-1),saved=saves.at(-1).missionBook.missions[0];
+ assert.notEqual(attempt.id,priorAttemptId);assert.equal(task.id,attempt.taskId);assert.equal(saved.attempts.at(-1).requestedChanges,requestedChanges);assert.ok(prompt.includes(requestedChanges),'provider prompt must include the exact saved rework text');assert.ok(prompt.includes(brief.objective));assert.equal(saved.events.filter(event=>event.type==='ROUTING_DECIDED').length,2);assert.equal(saved.events.at(-1).attemptId,attempt.id);
+});
+test('revision changes during async rework preparation still prevent provider dispatch',async t=>{
+ const {hub}=setup(t),mission=hub.createMission(brief);await finishedReply(hub,mission);let finishPreparation,calls=0;hub.ensure=()=>new Promise(resolve=>{finishPreparation=resolve;});hub.client.request=async()=>{calls++;throw Error('Unexpected provider dispatch');};
+ const pending=hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder',requestedChanges:'Keep saved items'});hub.markMissionSignalSeen({missionId:mission.id,revision:mission.revision,eventId:mission.events[0].id});finishPreparation();await assert.rejects(pending,/changed/i);assert.equal(calls,0);const current=hub.missionBook.get(mission.id);assert.equal(current.status,'WAITING_FOR_REVIEW');assert.equal(current.attempts.length,1);assert.equal(current.events.filter(event=>event.type==='ROUTING_DECIDED').length,1);
+});
+test('rework rejects invalid phase, stale revision and invalid bounded changes',async t=>{
+ const {hub}=setup(t),mission=hub.createMission(brief);await assert.rejects(hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder',requestedChanges:'Change'}),/review|rework/i);assert.equal(mission.attempts.length,0);await finishedReply(hub,mission);
+ for(const requestedChanges of ['', ' ', 'x'.repeat(50001),42,'bad\0change'])await assert.rejects(hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder',requestedChanges}),/changes|rework/i);
+ await assert.rejects(hub.startMission({missionId:mission.id,revision:mission.revision-1,roleId:'builder',requestedChanges:'Change'}),/changed/i);assert.equal(mission.attempts.length,1);
+});
+test('selection and acceptance reject stale async reads and keep concurrent actions locked',async t=>{
+ const {hub}=setup(t),mission=hub.createMission(brief),task=await finishedReply(hub,mission);await selectReply(hub,mission,task);
+ mission.artifacts.push({id:'check',kind:'check',attemptId:mission.activeAttemptId,status:'passed',script:'test',fingerprint:'source'});let finish;hub.evidence.gitState=()=>new Promise(resolve=>{finish=resolve;});const command=acceptanceInput(mission),pending=hub.acceptMission(command);
+ assert.equal(hub.gate.blocked(process.cwd()),true);await assert.rejects(selectReply(hub,mission,task),/current mission action/i);await assert.rejects(hub.acceptMission(command),/check|evidence/i);hub.missionBook.record(mission,'EXTERNAL_FIXTURE_CHANGE');finish({fingerprint:'source'});await assert.rejects(pending,/changed/i);assert.equal(mission.status,'WAITING_FOR_REVIEW');assert.equal(mission.acceptance,undefined);assert.equal(hub.gate.blocked(process.cwd()),false);
+});
+test('result selection save failure and stale artifact read keep prior selection',async t=>{
+ const {hub,store}=setup(t),mission=hub.createMission(brief),task=await finishedReply(hub,mission);await selectReply(hub,mission,task);const selected=structuredClone(mission.selectedResult);
+ store.save=()=>{throw Error('Selection disk full');};await assert.rejects(selectReply(hub,mission,task),/disk full/);store.save=()=>{};const current=hub.missionBook.get(mission.id);assert.deepEqual(current.selectedResult,selected);
+ current.artifacts.push({id:'file',kind:'deliverable',projectId:'p',attemptId:current.activeAttemptId,filePath:'fixture.md',sha256:resultHash('fixture')});let finish;hub.readMissionResultArtifact=()=>new Promise(resolve=>{finish=resolve;});const pending=selectDeliverable(hub,current,current.artifacts.at(-1));assert.equal(hub.gate.blocked(process.cwd()),true);hub.missionBook.record(current,'EXTERNAL_FIXTURE_CHANGE');finish({sha256:resultHash('fixture')});await assert.rejects(pending,/changed/i);assert.deepEqual(current.selectedResult,selected);assert.equal(hub.gate.active.size,0);
+});
+test('reply changed between resolution and durable selection is rejected',async t=>{
+ const {hub}=setup(t),mission=hub.createMission(brief),task=await finishedReply(hub,mission),pending=selectReply(hub,mission,task);task.messages.find(m=>m.role==='assistant').text+=' Changed before save';await assert.rejects(pending,/changed/i);assert.equal(hub.missionBook.get(mission.id).selectedResult,undefined);
+});
+test('acceptance takes a detached intent snapshot across asynchronous verification',async t=>{
+ const {hub}=setup(t),mission=hub.createMission(brief),task=await finishedReply(hub,mission);await selectReply(hub,mission,task);mission.artifacts.push({id:'check',kind:'check',attemptId:mission.activeAttemptId,status:'passed',script:'test',fingerprint:'source'});let finish;hub.evidence.gitState=()=>new Promise(resolve=>{finish=resolve;});const command=acceptanceInput(mission),pending=hub.acceptMission(command);command.criteria[0]=false;command.resultId='mutated';finish({fingerprint:'source'});await pending;assert.deepEqual(mission.acceptance.criteria,[true]);assert.equal(mission.acceptance.resultId,mission.selectedResult.id);
+});
+test('result commands cannot smuggle provider authority or release an uncertain writer',async t=>{
+ const {hub}=setup(t),mission=hub.createMission(brief),task=await finishedReply(hub,mission);await selectReply(hub,mission,task);const message=task.messages.find(m=>m.role==='assistant');
+ await assert.rejects(hub.selectMissionResult({missionId:mission.id,revision:mission.revision,ref:{kind:'reply',taskId:task.id,messageId:message.id,sha256:resultHash(message.text)},provider:'injected'}),/Invalid/);await assert.rejects(hub.acceptMission({...acceptanceInput(mission),approved:true}),/Invalid/);
+ const uncertain={id:'uncertain',projectId:'p',status:'unknown'};hub.reserveWriter(uncertain);await assert.rejects(hub.acceptMission(acceptanceInput(mission)),/checkout|already writing/i);assert.equal(hub.gate.active.has(uncertain.id),true);assert.equal(mission.acceptance,undefined);
+});
+test('a historical result cannot authorize a later rework attempt',async t=>{
+ const {hub}=setup(t),mission=hub.createMission(brief),task=await finishedReply(hub,mission);await selectReply(hub,mission,task);const old=acceptanceInput(mission),oldResult=structuredClone(mission.selectedResult),oldArtifacts=structuredClone(mission.artifacts);
+ await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder',requestedChanges:' Preserve all saved items. '});const nextTask=hub.task(mission.attempts.at(-1).taskId);nextTask.status='finished';hub.gate.release(nextTask.id);hub.changed();
+ await assert.rejects(hub.acceptMission({...old,revision:mission.revision}),/result|selected/i);await assert.rejects(hub.selectMissionResult({missionId:mission.id,revision:mission.revision,ref:oldResult.ref}),/attempt|member/i);assert.deepEqual(mission.artifacts,oldArtifacts);assert.equal(mission.attempts.at(-1).requestedChanges,' Preserve all saved items. ');assert.equal(mission.status,'WAITING_FOR_REVIEW');
+});
 
 test('missing-thread recovery persists interruption before release and rolls back failed saves',async t=>{
  const {hub,store,saves}=setup(t,{tasks:[{id:'legacy',projectId:'p',crewId:'franky',status:'starting',updatedAt:10,messages:[]}]});
@@ -53,7 +134,7 @@ test('uncertain check stays reserved across restart until exact captain confirma
  assert.equal(restored.hub.state.missions[0].artifacts.at(-1).status,'failed');
  await assert.rejects(restored.hub.acceptMission({missionId:m.id,revision:restored.hub.state.missions[0].revision,criteria:[true]}),/check|passed/);
  restored.hub.evidence.runCheck=async()=>({kind:'check',script:'test',status:'passed',fingerprint:'new-source'});restored.hub.evidence.gitState=async()=>({fingerprint:'new-source'});
- await restored.hub.collectMissionEvidence({missionId:m.id,revision:restored.hub.state.missions[0].revision,script:'test'});await restored.hub.acceptMission({missionId:m.id,revision:restored.hub.state.missions[0].revision,criteria:[true]});assert.equal(restored.hub.state.missions[0].status,'COMPLETE');
+ await restored.hub.collectMissionEvidence({missionId:m.id,revision:restored.hub.state.missions[0].revision,script:'test'});await selectFixtureReply(restored.hub,restored.hub.state.missions[0]);await restored.hub.acceptMission(acceptanceInput(restored.hub.state.missions[0]));assert.equal(restored.hub.state.missions[0].status,'COMPLETE');
 });
 
 test('pending check cannot be manually cleared and failure to save intent prevents execution',async t=>{
@@ -120,7 +201,8 @@ test('image evidence keeps provenance without image bytes and refuses changed-fi
  await assert.rejects(hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,imagePath:'art.png'}),/notes/);
  const a=await hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,imagePath:'art.png',provenance:{source:'Fixture',usage:'Test only'}});assert.equal(a.kind,'image');assert.equal(a.dataUrl,undefined);assert.equal(saves.at(-1).missionBook.missions[0].artifacts[0].dataUrl,undefined);assert.equal(a.provenance.source,'Fixture');
  assert.match(hub.previewMissionDeliverable({missionId:mission.id,revision:mission.revision,artifactId:a.id}).dataUrl,/^data:image\/png;base64,/);
- const changed=Buffer.from(png);changed[45]^=1;fs.writeFileSync(path.join(root,'art.png'),changed);assert.throws(()=>hub.previewMissionDeliverable({missionId:mission.id,revision:mission.revision,artifactId:a.id}),/changed/i);await assert.rejects(hub.acceptMission({missionId:mission.id,revision:mission.revision,criteria:[true]}),/changed/i);assert.equal(mission.status,'WAITING_FOR_REVIEW');
+ await selectDeliverable(hub,mission,a);
+ const changed=Buffer.from(png);changed[45]^=1;fs.writeFileSync(path.join(root,'art.png'),changed);assert.throws(()=>hub.previewMissionDeliverable({missionId:mission.id,revision:mission.revision,artifactId:a.id}),/changed/i);await assert.rejects(hub.acceptMission(acceptanceInput(mission)),/changed/i);assert.equal(mission.status,'WAITING_FOR_REVIEW');
 });
 
 test('deployment observations attach to current attempt without granting acceptance and survive reload',async t=>{
@@ -132,7 +214,7 @@ test('deployment observations attach to current attempt without granting accepta
 });
 
 test('deployment refresh after acceptance preserves acceptance and failed lookup releases the lock',async t=>{
- const {hub}=setup(t);const mission=hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,crewId:'franky'});hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});await hub.acceptMission({missionId:mission.id,revision:mission.revision,criteria:[true]});const accepted=structuredClone(mission.acceptance);
+ const {hub}=setup(t);const mission=hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,crewId:'franky'});hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});await selectFixtureReply(hub,mission);await hub.acceptMission(acceptanceInput(mission));const accepted=structuredClone(mission.acceptance);
  hub.deployments.inspect=async()=>{throw Error('Lookup unavailable');};await assert.rejects(hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,deployment:true}),/Lookup unavailable/);assert.equal(hub.missionActions.has(mission.id),false);assert.equal(hub.gate.blocked(process.cwd()),false);assert.equal(mission.artifacts.length,0);
  hub.deployments.inspect=async()=>({kind:'deployment',deployments:[],recordedAt:1});await hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,deployment:true});assert.equal(mission.status,'COMPLETE');assert.deepEqual(mission.acceptance,accepted);
 });
@@ -142,7 +224,7 @@ test('mission launches real Hub task and persists evidence before snapshot',asyn
  assert.equal(task.projectId,'p');assert.equal(task.id,mission.attempts[0].taskId);
  hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
  assert.equal(mission.status,'WAITING_FOR_REVIEW');assert.equal(saves.at(-1).missionBook.missions[0].status,'WAITING_FOR_REVIEW');
- await hub.acceptMission({missionId:mission.id,revision:mission.revision,criteria:[true]});
+ await selectFixtureReply(hub,mission);await hub.acceptMission(acceptanceInput(mission));
  assert.equal(saves.at(-1).missionBook.missions[0].status,'COMPLETE');
 });
 test('failed durable begin never submits provider work',async t=>{
@@ -230,7 +312,7 @@ test('merge-bound acceptance refreshes exact PR evidence and records the proof',
  hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
  let reads=0;hub.pullRequests.inspect=async()=>{reads++;return {kind:'pull-request',number:1,url:'https://github.com/fixture/sunny/pull/1',repository:'fixture/sunny',commit:'a'.repeat(40),fingerprint:'source',state:reads>1?'MERGED':'OPEN',mergedAt:reads>1?'2026-09-21T12:00:00Z':null,checkStatus:'passed'};};
  await hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,prNumber:1});
- await hub.acceptMission({missionId:mission.id,revision:mission.revision,criteria:[true]});
+ await selectFixtureReply(hub,mission);await hub.acceptMission(acceptanceInput(mission));
  assert.equal(reads,2);assert.equal(mission.status,'COMPLETE');assert.equal(mission.acceptance.prArtifactId,mission.artifacts.at(-1).id);
 });
 test('unmerged or changed PR cannot satisfy merge-bound acceptance',async t=>{
@@ -327,12 +409,13 @@ test('creative text evidence previews exact bytes and blocks changed output at a
  const artifact=await hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,filePath:'welcome.md'});
  assert.equal(artifact.kind,'deliverable');assert.equal(artifact.text,undefined);assert.equal(saves.at(-1).missionBook.missions[0].artifacts[0].text,undefined);
  assert.match(hub.previewMissionDeliverable({missionId:mission.id,revision:mission.revision,artifactId:artifact.id}).text,/Welcome aboard/);
+ await selectDeliverable(hub,mission,artifact);
  const other=hub.createMission(brief);assert.throws(()=>hub.previewMissionDeliverable({missionId:other.id,revision:other.revision,artifactId:artifact.id}),/not found/i);
  fs.appendFileSync(path.join(root,'welcome.md'),' Updated.');
  assert.throws(()=>hub.previewMissionDeliverable({missionId:mission.id,revision:mission.revision,artifactId:artifact.id}),/changed/i);
- await assert.rejects(hub.acceptMission({missionId:mission.id,revision:mission.revision,criteria:[true]}),/changed/i);assert.equal(mission.status,'WAITING_FOR_REVIEW');mission=hub.missionBook.get(mission.id);
- await hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,filePath:'welcome.md'});
- await hub.acceptMission({missionId:mission.id,revision:mission.revision,criteria:[true]});assert.equal(mission.status,'COMPLETE');assert.equal(hub.gate.active.size,0);
+ await assert.rejects(hub.acceptMission(acceptanceInput(mission)),/changed/i);assert.equal(mission.status,'WAITING_FOR_REVIEW');mission=hub.missionBook.get(mission.id);
+ const currentArtifact=await hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,filePath:'welcome.md'});await selectDeliverable(hub,mission,currentArtifact);
+ await hub.acceptMission(acceptanceInput(mission));assert.equal(mission.status,'COMPLETE');assert.equal(hub.gate.active.size,0);assert.equal(mission.acceptance.resultId,mission.selectedResult.id);assert.equal(mission.acceptance.resultSha256,currentArtifact.sha256);
 });
 
 test('image tool activity is visible without leaking image payloads or granting mission acceptance',async t=>{

@@ -7,8 +7,11 @@ function text(value,label,max=10000){
 }
 class MissionBook {
  constructor(saved){
-  if(saved!==undefined&&(saved?.version!==1||!Array.isArray(saved.missions)))throw Error('Unsupported mission data version. Preserve the saved data and use a compatible Sunny version.');
-  this.data=saved===undefined?{version:1,missions:[]}:structuredClone(saved);
+  if(saved!==undefined&&(saved?.version!==2||!Array.isArray(saved.missions)))throw Error('Unsupported mission data version. Preserve the saved data and use a compatible Sunny version.');
+  const {emptyWorkspace,validateWorkspace,validateMissionBookAuthority}=require('./mission-profile.cjs');
+  this.data=saved===undefined?{version:2,missions:[],workspace:emptyWorkspace()}:structuredClone(saved);
+  validateWorkspace(this.data.workspace);
+  validateMissionBookAuthority(this.data);
   for(const mission of this.data.missions){
    if(!mission.id||!Array.isArray(mission.attempts)||!Array.isArray(mission.events)||!Array.isArray(mission.acceptanceCriteria)||!Number.isInteger(mission.revision))throw Error('Invalid saved mission data. Restore a verified backup.');
    const check=mission.checkExecution;if(check&&(typeof check.id!=='string'||!check.id||!['test','build','typecheck','lint'].includes(check.script)||!Number.isFinite(check.startedAt)||!mission.attempts.some(a=>a.id===check.attemptId)))throw Error('Invalid saved check reservation. Preserve the profile for recovery.');
@@ -50,18 +53,19 @@ class MissionBook {
   (mission.seenEventIds??=[]).push(eventId);mission.revision++;
   return mission;
  }
- begin(id,revision){
+ begin(id,revision,requestedChanges){
   const mission=this.get(id);this.check(mission,revision);
+  if(requestedChanges!==undefined){if(typeof requestedChanges!=='string'||!requestedChanges.trim()||requestedChanges.length>50000||requestedChanges.includes('\0'))throw Error('Provide nonempty bounded captain requested changes.');if(mission.status!=='WAITING_FOR_REVIEW')throw Error('Captain rework changes require a mission waiting for review.');}
   if(!['DRAFT','FAILED','CANCELLED','WAITING_FOR_REVIEW','BLOCKED'].includes(mission.status))throw Error('Mission is running, active, or already complete.');
   if(mission.checkExecution)throw Error('Reconcile the unresolved project check before retrying.');
   const prior=mission.attempts.at(-1);
   if(prior&&!TERMINAL.has(prior.status))throw Error('Reconcile the active attempt before retrying.');
   if(['submitting','uncertain'].includes(mission.mergeRequest?.state))throw Error('Reconcile the merge request before retrying.');
   if(['publishing','uncertain'].includes(mission.prPublication?.state))throw Error('Reconcile the PR publication before retrying.');
-  const attempt={id:randomUUID(),taskId:randomUUID(),status:'starting',startedAt:Date.now(),taskIds:[]};
+  const attempt={id:randomUUID(),taskId:randomUUID(),status:'starting',startedAt:Date.now(),taskIds:[],...(requestedChanges!==undefined?{requestedChanges}:{})};
   if(mission.mergeRequest){(mission.mergeHistory??=[]).push(mission.mergeRequest);mission.mergeRequest=undefined;}
   if(mission.prPublication){(mission.publicationHistory??=[]).push(mission.prPublication);mission.prPublication=undefined;}
-  mission.attempts.push(attempt);mission.activeAttemptId=attempt.id;mission.status='RUNNING';mission.connection='connected';mission.acceptedAt=undefined;mission.acceptance=undefined;
+  mission.attempts.push(attempt);mission.activeAttemptId=attempt.id;mission.status='RUNNING';mission.connection='connected';mission.acceptedAt=undefined;mission.acceptance=undefined;mission.selectedResult=undefined;
   mission.taskIds.push(attempt.taskId);attempt.taskIds.push(attempt.taskId);
   this.record(mission,'MISSION_STARTED',{taskId:attempt.taskId});return attempt;
  }
@@ -103,14 +107,18 @@ class MissionBook {
   }
   return changed;
  }
- accept(id,revision,criteria,mergedProof){
+ accept(id,revision,criteria,resultProof,mergedProof){
   const mission=this.get(id);this.check(mission,revision);
   if(mission.status!=='WAITING_FOR_REVIEW')throw Error('Mission is not ready for review.');
   if(mission.checkExecution)throw Error('Resolve the project check before acceptance.');
   if(!Array.isArray(criteria)||criteria.length!==mission.acceptanceCriteria.length||!criteria.every(value=>value===true))throw Error('Confirm every acceptance criteria item after reviewing the evidence.');
   // Proof is supplied only by Hub after a fresh read, never by the renderer command.
   if(mission.completionBoundary==='merge'&&(!mergedProof||!mission.artifacts.includes(mergedProof)||mergedProof.attemptId!==mission.activeAttemptId||mergedProof.state!=='MERGED'||mergedProof.checkStatus!=='passed'))throw Error('Verify the merged pull request before completing this mission.');
-  mission.status='COMPLETE';mission.acceptedAt=Date.now();mission.acceptance={attemptId:mission.activeAttemptId,criteria:[...criteria],reviewedRevision:revision,actor:'captain',...(mergedProof?{prArtifactId:mergedProof.id}:{})};
+  const selected=mission.selectedResult;
+  if(!selected||!resultProof||resultProof.resultId!==selected.id||selected.attemptId!==mission.activeAttemptId||resultProof.attemptId!==selected.attemptId||resultProof.producerTaskId!==selected.producerTaskId)throw Error('Review and select the exact active mission result before acceptance.');
+  const proofRef=require('./mission-results.cjs').validateMissionResultRef(resultProof.ref),selectedRef=require('./mission-results.cjs').validateMissionResultRef(selected.ref);
+  if(Object.keys(selectedRef).some(key=>selectedRef[key]!==proofRef[key]))throw Error('Selected mission result changed. Review the exact current result.');
+  mission.status='COMPLETE';mission.acceptedAt=Date.now();mission.acceptance={id:randomUUID(),attemptId:mission.activeAttemptId,resultId:selected.id,resultSha256:selected.ref.sha256,criteria:[...criteria],reviewedRevision:revision,acceptedAt:mission.acceptedAt,actor:'captain',...(mergedProof?{prArtifactId:mergedProof.id}:{})};
   this.record(mission,'MISSION_COMPLETE');return mission;
  }
 }

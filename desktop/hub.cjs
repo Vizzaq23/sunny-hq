@@ -3,6 +3,7 @@ const {CodexClient}=require('./codex.cjs');const {Growth}=require('./growth.cjs'
 const {selectExecution,routingContext}=require('./model-routing.cjs');
 const {createApproval,approvalResult}=require('./approvals.cjs');
 const {MissionBook}=require('./missions.cjs');
+const {applyWorkspaceUpdate,claimAcceptanceCue}=require('./workspace-state.cjs');
 const {ROLE_BINDINGS,resolveMissionRole,missionContext}=require('./mission-roles.cjs');
 const skillCatalog=require('./skill-catalog.cjs');
 const roles={luffy:'General assistant and mission planning',zoro:'Code review and security review',nami:'Planning and prioritization',usopp:'Tests and browser checks',sanji:'Interface design and product polish',chopper:'Debugging and failure investigation',robin:'Research and documentation',franky:'Feature implementation and architecture',brook:'Creative content and media workflows',jinbe:'Infrastructure and release preparation'};
@@ -10,7 +11,7 @@ Object.assign(roles,Object.fromEntries(require('./island-residents.json').map(r=
 class Hub extends EventEmitter {
  constructor({home,store,catalog,jevPrepare,engineeringRoute}){super();this.home=home;this.store=store;this.catalog=catalog;this.client=new CodexClient();this.gate=new TaskGate(3);this.loaded=new Set();this.taskActions=new Set();this.captain=new (require('./captain.cjs').Captain)(this);this.saveTimer=null;this.preparingTurns=new Map();this.jevPrepare=jevPrepare||require('./jev-context.cjs').prepareJevContext;this.engineeringRoute=engineeringRoute||require('./engineering-routing.cjs').routeEngineering;this.routeEnabled=engineeringRoute?()=>true:require('./engineering-routing.cjs').engineeringRoutingEnabled;this.jevEnabled=jevPrepare?()=>true:require('./jev-context.cjs').enabledFor;
   const saved=store.load();this.growth=new Growth(saved.growth);this.discussionRun=null;this.state={news:require('./news.cjs').initialNews(saved.news),world:require('./island.cjs').initialWorld(saved.world),growth:this.growth.data,discussions:(saved.discussions||[]).map(e=>({...e,status:e.status==='working'?'interrupted':e.status})),projects:saved.projects||catalog.discoverProjects(home),tasks:(saved.tasks||[]).map(t=>({...t,status:['working','waiting','starting'].includes(t.status)?'unknown':t.status})),tools:catalog.discoverTools(home),settings:{reducedMotion:false,notifications:true,roomSoundEnabled:false,roomSoundVolume:.32,routingPolicy:'efficient',...saved.settings},codex:{status:'disconnected'},approvals:[],models:[],usage:null,automations:catalog.discoverAutomations(home)};
-  this.missionBook=new MissionBook(saved.missionBook);this.state.missions=this.missionBook.data.missions;this.state.missionRoles=ROLE_BINDINGS;this.missionPersistencePending=this.missionBook.recover(this.state.tasks);
+  this.missionBook=new MissionBook(saved.missionBook);this.state.missions=this.missionBook.data.missions;this.state.workspace=this.missionBook.data.workspace;this.state.persistence={state:'saved',failures:0};this.state.missionRoles=ROLE_BINDINGS;this.missionPersistencePending=this.missionBook.recover(this.state.tasks);
   this.evidence=new (require('./mission-evidence.cjs').MissionEvidence)({git:catalog.getExecutable?.('git',home)||'git'});this.branches=new (require('./mission-branch.cjs').MissionBranch)(this.evidence);this.missionActions=new Set();this.pullRequests=new (require('./pull-request-evidence.cjs').PullRequestEvidence)({evidence:this.evidence,gh:catalog.getExecutable?.('gh',home)||'gh'});
   this.deployments=new (require('./deployment-evidence.cjs').DeploymentEvidence)({evidence:this.evidence,gh:catalog.getExecutable?.('gh',home)||'gh'});
   this.imageReader=require('./image-deliverables.cjs').readImageDeliverable;
@@ -23,14 +24,18 @@ class Hub extends EventEmitter {
  }
  changed(){if(this.closed)return;clearTimeout(this.streamTimer);this.streamTimer=null;this.streamTasks?.clear();this.missionPersistencePending=this.missionBook.sync(this.state.tasks,this.state.approvals)||this.missionPersistencePending;if(this.missionPersistencePending){try{this.persist();}catch(error){this.scheduleSave();this.emit('event',{type:'error',data:{message:error.message}});return;}}this.scheduleSave();this.emit('event',{type:'snapshot',data:this.state});}
  scheduleSave(){if(this.closed)return;clearTimeout(this.saveTimer);this.saveTimer=setTimeout(()=>this.savePending(),250);if(!this.checkpointTimer)this.checkpointTimer=setTimeout(()=>this.savePending(),1000);}
- savePending(){clearTimeout(this.saveTimer);clearTimeout(this.checkpointTimer);clearTimeout(this.saveRetryTimer);this.saveTimer=null;this.checkpointTimer=null;this.saveRetryTimer=null;if(this.closed)return;try{this.persist();}catch(e){this.saveFailures=(this.saveFailures||0)+1;this.saveRetryTimer=setTimeout(()=>this.savePending(),Math.min(30000,1000*2**Math.min(this.saveFailures-1,5)));if(this.saveFailures===1)this.emit('event',{type:'error',data:{message:e.message}});}}
+ savePending(){clearTimeout(this.saveTimer);clearTimeout(this.checkpointTimer);clearTimeout(this.saveRetryTimer);this.saveTimer=null;this.checkpointTimer=null;this.saveRetryTimer=null;if(this.closed)return;const recovering=this.state.persistence.state==='unsaved';try{this.persist();if(recovering)this.emit('event',{type:'snapshot',data:this.state});}catch(e){this.saveFailures=(this.saveFailures||0)+1;this.saveRetryTimer=setTimeout(()=>this.savePending(),Math.min(30000,1000*2**Math.min(this.saveFailures-1,5)));if(this.saveFailures===1)this.emit('event',{type:'error',data:{message:e.message}});}}
  streamChanged(task){if(this.closed)return;this.streamTasks??=new Map();this.streamTasks.set(task.id,task);if(!this.streamTimer)this.streamTimer=setTimeout(()=>{this.streamTimer=null;for(const next of this.streamTasks.values())this.emit('event',{type:'task',data:next});this.streamTasks.clear();},50);this.scheduleSave();}
- persist(){this.store.save({missionBook:this.missionBook.data,news:this.state.news,world:this.state.world,projects:this.state.projects,tasks:this.state.tasks,settings:this.state.settings,growth:this.growth.data,discussions:this.state.discussions});this.missionPersistencePending=false;clearTimeout(this.saveTimer);clearTimeout(this.checkpointTimer);clearTimeout(this.saveRetryTimer);this.saveTimer=null;this.checkpointTimer=null;this.saveRetryTimer=null;this.saveFailures=0;}
+ persist(){try{this.store.save({missionBook:this.missionBook.data,news:this.state.news,world:this.state.world,projects:this.state.projects,tasks:this.state.tasks,settings:this.state.settings,growth:this.growth.data,discussions:this.state.discussions});}catch(error){this.state.persistence={state:'unsaved',failures:this.state.persistence.failures+1};this.publishPersistence();throw error;}this.missionPersistencePending=false;clearTimeout(this.saveTimer);clearTimeout(this.checkpointTimer);clearTimeout(this.saveRetryTimer);this.saveTimer=null;this.checkpointTimer=null;this.saveRetryTimer=null;this.saveFailures=0;const recovering=this.state.persistence.state==='unsaved';this.state.persistence={state:'saved',failures:0};if(recovering)this.publishPersistence();}
  missionMutation(run){
   const previous=structuredClone(this.missionBook.data);
-  let result;try{result=run();this.persist();}catch(error){this.missionBook=new MissionBook(previous);this.state.missions=this.missionBook.data.missions;throw error;}
+  let result;try{result=run();this.persist();}catch(error){this.missionBook=new MissionBook(previous);this.state.missions=this.missionBook.data.missions;this.state.workspace=this.missionBook.data.workspace;this.scheduleSave();this.emit('event',{type:'snapshot',data:this.state});throw error;}
   this.changed();return result;
  }
+ publishPersistence(){try{this.emit('event',{type:'persistence',data:this.state.persistence});}catch{/* A disposed surface cannot change the outcome of a durable save. */}}
+ commitWorkspace(next,result){const previous=this.missionBook.data.workspace;try{this.missionBook.data.workspace=next;this.state.workspace=next;this.persist();}catch(error){this.missionBook.data.workspace=previous;this.state.workspace=previous;this.scheduleSave();this.emit('event',{type:'snapshot',data:this.state});throw error;}this.changed();return result;}
+ updateWorkspace(input){if(this.closed)throw Error('Sunny is closed. Preserve your draft and reopen it.');const next=applyWorkspaceUpdate(this.missionBook.data.workspace,input,this.state);return this.commitWorkspace(next,next);}
+ claimAcceptanceCue(input){if(this.closed)return {play:false};const claim=claimAcceptanceCue(this.missionBook.data.workspace,input,this.state);if(!claim.play)return {play:false};return this.commitWorkspace(claim.workspace,{play:true});}
  markMissionSignalSeen(input){this.validateMissionAction(input,['missionId','revision','eventId']);if(this.missionActions.has(input.missionId))throw Error('Wait for the current mission action before marking this signal seen.');return this.missionMutation(()=>this.missionBook.markSignalSeen(input.missionId,input.revision,input.eventId));}
  createMission(input){this.project(input?.projectId);return this.missionMutation(()=>this.missionBook.create(input));}
  async prepareMissionBranch(input){
@@ -54,20 +59,40 @@ class Hub extends EventEmitter {
   }finally{this.gate.release(lock);this.missionActions.delete(mission.id);}
  }
  async startMission(input){
-  this.validateMissionAction(input,['missionId','revision','crewId','roleId','selectedSkills']);
+  this.validateMissionAction(input,['missionId','revision','crewId','roleId','selectedSkills','requestedChanges']);
   if(this.missionActions.has(input.missionId))throw Error('Wait for the mission evidence check to finish.');
   const route=resolveMissionRole(input);
-  const mission=this.missionBook.get(input.missionId);if(['submitting','uncertain'].includes(mission.mergeRequest?.state))throw Error('Reconcile the merge request before starting another attempt.');if(['publishing','uncertain'].includes(mission.prPublication?.state))throw Error('Reconcile the uncertain PR publication before starting another attempt.');const project=this.project(mission.projectId);if(mission.branch)await this.branches.validate(project.path,mission.branch);
+  const mission=this.missionBook.get(input.missionId);this.missionBook.check(mission,input.revision);
+  if(input.requestedChanges!==undefined){if(typeof input.requestedChanges!=='string'||!input.requestedChanges.trim()||input.requestedChanges.length>50000||input.requestedChanges.includes('\0'))throw Error('Provide nonempty bounded captain requested changes.');if(mission.status!=='WAITING_FOR_REVIEW')throw Error('Captain rework changes require a mission waiting for review.');}
+  if(['submitting','uncertain'].includes(mission.mergeRequest?.state))throw Error('Reconcile the merge request before starting another attempt.');if(['publishing','uncertain'].includes(mission.prPublication?.state))throw Error('Reconcile the uncertain PR publication before starting another attempt.');const project=this.project(mission.projectId);if(mission.branch)await this.branches.validate(project.path,mission.branch);
   await this.ensure();const selectedSkills=await skillCatalog.resolveSelectedSkills(this.client,project.path,this.home,input.selectedSkills);
   if(route.roleId!=='coordinator'&&selectedSkills.some(skill=>!skill.roles.includes(route.roleId)))throw Error('The selected skill does not fit this mission role. Review the skill choices.');
-  const attempt=this.missionMutation(()=>{const next=this.missionBook.begin(mission.id,input.revision);next.routing=route;next.selectedSkills=selectedSkills.map(skill=>({...skill}));if(route.roleId==='coordinator')next.workflowVersion=1;this.missionBook.record(mission,'ROUTING_DECIDED',{roleId:route.roleId,crewId:route.crewId,provider:route.provider,reason:route.reason,skills:selectedSkills.map(skill=>skill.id)});return next;});
-  try{return await this.start({projectId:mission.projectId,crewId:route.crewId,title:mission.title,selectionReason:route.reason,prompt:missionContext(mission,route)},{id:attempt.taskId,mission:true,resolvedSkills:selectedSkills});}
-  catch(error){if(!this.state.tasks.some(t=>t.id===attempt.taskId))this.missionMutation(()=>this.missionBook.launchFailed(mission.id,attempt.id,error.message));throw error;}
+  const {mission:launchMission,attempt}=this.missionMutation(()=>{const current=this.missionBook.get(input.missionId);const next=this.missionBook.begin(current.id,input.revision,input.requestedChanges);next.routing=route;next.selectedSkills=selectedSkills.map(skill=>({...skill}));if(route.roleId==='coordinator')next.workflowVersion=1;this.missionBook.record(current,'ROUTING_DECIDED',{roleId:route.roleId,crewId:route.crewId,provider:route.provider,reason:route.reason,skills:selectedSkills.map(skill=>skill.id)});return {mission:current,attempt:next};});
+  try{return await this.start({projectId:launchMission.projectId,crewId:route.crewId,title:launchMission.title,selectionReason:route.reason,prompt:missionContext(launchMission,route)},{id:attempt.taskId,mission:true,resolvedSkills:selectedSkills});}
+  catch(error){if(!this.state.tasks.some(t=>t.id===attempt.taskId))this.missionMutation(()=>this.missionBook.launchFailed(input.missionId,attempt.id,error.message));throw error;}
+ }
+ readMissionResultArtifact(project,artifact){return artifact.kind==='image'?require('./mission-deliverables.cjs').readProjectFile(project.path,artifact.filePath,{extensions:['.png'],limit:8*1024*1024}):require('./mission-deliverables.cjs').readDeliverable(project.path,artifact.filePath);}
+ async selectMissionResult(input){
+  this.validateMissionAction(input,['missionId','revision','ref','producerTaskId']);
+  const {resolveMissionResult,validateMissionResultRef}=require('./mission-results.cjs'),ref=validateMissionResultRef(input.ref);
+  if(this.missionActions.has(input.missionId))throw Error('Wait for the current mission action before selecting its result.');
+  const mission=this.missionBook.get(input.missionId);this.missionBook.check(mission,input.revision);
+  if(mission.status!=='WAITING_FOR_REVIEW')throw Error('Mission is not ready for review.');
+  const project=this.project(mission.projectId),lock='mission-result:'+mission.id,attemptId=mission.activeAttemptId;
+  this.gate.acquire(lock,project.path);this.missionActions.add(mission.id);
+  try{
+   const result=await resolveMissionResult({mission,tasks:this.state.tasks,ref,producerTaskId:input.producerTaskId,readArtifact:artifact=>this.readMissionResultArtifact(project,artifact)});
+   if(this.closed)throw Error('Sunny closed before result selection could be saved.');
+   return this.missionMutation(()=>{const current=this.missionBook.get(mission.id);this.missionBook.check(current,input.revision);if(current.activeAttemptId!==attemptId)throw Error('Mission attempt changed during result review.');require('./mission-results.cjs').verifyMissionResultCurrent({mission:current,tasks:this.state.tasks,...result,readArtifact:artifact=>this.readMissionResultArtifact(project,artifact)});current.selectedResult={id:randomUUID(),attemptId,...result,selectedAt:Date.now()};this.missionBook.record(current,'RESULT_SELECTED',{resultId:current.selectedResult.id,producerTaskId:result.producerTaskId});return current;});
+  }finally{this.gate.release(lock);this.missionActions.delete(mission.id);}
  }
  async acceptMission(input){
-  this.validateMissionAction(input,['missionId','revision','criteria']);
+  this.validateMissionAction(input,['missionId','revision','resultId','resultSha256','criteria']);
+  input={...input,criteria:Array.isArray(input.criteria)?[...input.criteria]:input.criteria};
   if(this.missionActions.has(input.missionId))throw Error('Wait for the mission evidence check to finish.');
   const mission=this.missionBook.get(input.missionId);this.missionBook.check(mission,input.revision);
+  if(mission.status!=='WAITING_FOR_REVIEW')throw Error('Mission is not ready for review.');
+  if(mission.checkExecution)throw Error('Resolve the project check before acceptance.');
   if(['submitting','uncertain'].includes(mission.mergeRequest?.state))throw Error('Reconcile the merge request before accepting the mission.');if(['publishing','uncertain'].includes(mission.prPublication?.state))throw Error('Reconcile PR publication before accepting the mission.');
   const project=this.project(mission.projectId),lock='mission-accept:'+mission.id;
   this.gate.acquire(lock,project.path);this.missionActions.add(mission.id);
@@ -85,12 +110,16 @@ class Hub extends EventEmitter {
     if(merged.state!=='MERGED'||!Number.isFinite(Date.parse(merged.mergedAt)))throw Error('The pull request has not been verified as merged.');
     if(merged.checkStatus!=='passed')throw Error('The merged pull request must have passing checks before completion.');
    }
+   const selected=mission.selectedResult;
+   if(!selected||typeof input.resultId!=='string'||input.resultId!==selected.id||typeof input.resultSha256!=='string'||input.resultSha256!==selected.ref.sha256)throw Error('Review and select the exact mission result before acceptance.');
+   const result=await require('./mission-results.cjs').resolveMissionResult({mission,tasks:this.state.tasks,ref:selected.ref,producerTaskId:selected.producerTaskId,readArtifact:artifact=>this.readMissionResultArtifact(project,artifact)});
    if(this.closed)throw Error('Sunny closed before acceptance could be saved.');
    return this.missionMutation(()=>{
     const current=this.missionBook.get(input.missionId);this.missionBook.check(current,input.revision);
+    require('./mission-results.cjs').verifyMissionResultCurrent({mission:current,tasks:this.state.tasks,...result,readArtifact:artifact=>this.readMissionResultArtifact(project,artifact)});
     let proof;if(merged){proof={...merged,id:randomUUID(),attemptId:current.activeAttemptId,projectId:project.id,producer:'sunny-local-verifier'};current.artifacts.push(proof);}
    for(const artifact of deliverables.values())if((artifact.kind==='image'?require('./mission-deliverables.cjs').readProjectFile(project.path,artifact.filePath,{extensions:['.png'],limit:8*1024*1024}):require('./mission-deliverables.cjs').readDeliverable(project.path,artifact.filePath)).sha256!==artifact.sha256)throw Error('Deliverable changed since review. Attach and review its current version.');
-    return this.missionBook.accept(input.missionId,input.revision,input.criteria,proof);
+    return this.missionBook.accept(input.missionId,input.revision,input.criteria,{...result,resultId:selected.id,attemptId:selected.attemptId},proof);
    });
   }finally{this.gate.release(lock);this.missionActions.delete(mission.id);}
  }

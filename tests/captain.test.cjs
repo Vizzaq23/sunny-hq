@@ -37,7 +37,8 @@ test('coordinated mission dispatch enforces and records planner worker validator
   assert.equal(mission.attempts[0].workflow.stages[index].status,'complete');
  }
  complete(hub,parent);assert.equal(mission.status,'WAITING_FOR_REVIEW');assert.equal(mission.attempts[0].workflow.complete,true);
- await hub.acceptMission({missionId:mission.id,revision:mission.revision,criteria:[true]});assert.equal(mission.status,'COMPLETE');
+ const reply=parent.messages.find(m=>m.role==='assistant');await hub.selectMissionResult({missionId:mission.id,revision:mission.revision,ref:{kind:'reply',taskId:parent.id,messageId:reply.id,sha256:require('node:crypto').createHash('sha256').update(reply.text,'utf8').digest('hex')}});
+ await hub.acceptMission({missionId:mission.id,revision:mission.revision,resultId:mission.selectedResult.id,resultSha256:mission.selectedResult.ref.sha256,criteria:[true]});assert.equal(mission.status,'COMPLETE');
 });
 
 test('coordinator ending without required stages fails instead of exposing captain acceptance',async t=>{

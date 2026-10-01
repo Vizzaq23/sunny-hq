@@ -101,3 +101,10 @@ test('foreign thread resolution cannot remove a captain request',t=>{
  hub.notification({method:'serverRequest/resolved',params:{threadId:'foreign',requestId:1}});
  assert.equal(hub.state.approvals.length,1);
 });
+test('result acceptance never answers an unrelated provider approval',async t=>{
+ const {hub,task,sent,request}=fixture(t);request();const approval=structuredClone(hub.state.approvals[0]);
+ const mission=hub.createMission({projectId:'p',title:'Result review fixture',objective:'Review only this bounded result',acceptanceCriteria:['Review the assistant output']});const attempt=hub.missionBook.begin(mission.id,mission.revision),text='Finished bounded fixture output';
+ const producer={id:attempt.taskId,projectId:'p',status:'finished',messages:[{id:'result',role:'assistant',text}]};hub.state.tasks.push(producer);hub.missionBook.sync(hub.state.tasks,hub.state.approvals);
+ const sha256=require('node:crypto').createHash('sha256').update(text,'utf8').digest('hex');await hub.selectMissionResult({missionId:mission.id,revision:mission.revision,ref:{kind:'reply',taskId:producer.id,messageId:'result',sha256}});
+ await hub.acceptMission({missionId:mission.id,revision:mission.revision,resultId:mission.selectedResult.id,resultSha256:sha256,criteria:[true]});assert.equal(mission.status,'COMPLETE');assert.deepEqual(hub.state.approvals[0],approval);assert.deepEqual(sent,[]);assert.equal(task.status,'waiting');
+});

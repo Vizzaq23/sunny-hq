@@ -31,13 +31,14 @@ export function useSunny(){
     let alive=true;
     if(!window.sunny){setReady(true);return;}
     let receivedUpdate=false;
-    const earlyTasks=new Map<string,Task>();let initialPending=true;
-    void window.sunny.invoke('snapshot').then((next:Snapshot)=>{if(alive&&!receivedUpdate){for(const task of earlyTasks.values())next={...next,tasks:upsertTask(next.tasks,task)};setSnapshot(next);}}).catch((error)=>{if(alive&&!receivedUpdate)setLoadError(error instanceof Error?error.message:String(error));}).finally(()=>{initialPending=false;earlyTasks.clear();if(alive)setReady(true);});
+    const earlyTasks=new Map<string,Task>();let initialPending=true;let earlyPersistence:Snapshot['persistence']|undefined;
+    void window.sunny.invoke('snapshot').then((next:Snapshot)=>{if(alive&&!receivedUpdate){for(const task of earlyTasks.values())next={...next,tasks:upsertTask(next.tasks,task)};if(earlyPersistence)next={...next,persistence:earlyPersistence};setSnapshot(next);}}).catch((error)=>{if(alive&&!receivedUpdate)setLoadError(error instanceof Error?error.message:String(error));}).finally(()=>{initialPending=false;earlyTasks.clear();earlyPersistence=undefined;if(alive)setReady(true);});
     const unsubscribe=window.sunny.subscribe(event=>{
       if(!alive)return;
       if(event.type==='snapshot'){receivedUpdate=true;setLoadError('');setReady(true);setSnapshot(event.data as Snapshot);}
       if(event.type==='task'){if(initialPending)earlyTasks.set(event.data.id,event.data as Task);setSnapshot(prev=>({...prev,tasks:upsertTask(prev.tasks,event.data as Task)}));}
       if(event.type==='approval')setSnapshot(prev=>({...prev,approvals:[...prev.approvals.filter(a=>a.id!==event.data.id),event.data]}));
+      if(event.type==='persistence'){if(initialPending)earlyPersistence=event.data as Snapshot['persistence'];setSnapshot(prev=>({...prev,persistence:event.data as Snapshot['persistence']}));}
       if(event.type==='error')toast(event.data?.message??'Sunny HQ encountered an error.','error');
     });
     return()=>{alive=false;unsubscribe?.();};

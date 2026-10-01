@@ -4,7 +4,7 @@ const {MissionBook}=require('../desktop/missions.cjs');
 const brief={projectId:'p',title:'Build inventory',objective:'Track the captain inventory',acceptanceCriteria:['Items survive reload'],completionBoundary:'review'};
 function running(){const book=new MissionBook();const mission=book.create(brief);const attempt=book.begin(mission.id,mission.revision);return {book,mission,attempt};}
 test('new ledger is additive and rejects unknown saved schema',()=>{
- assert.deepEqual(new MissionBook().data,{version:1,missions:[]});
+ assert.deepEqual(new MissionBook().data,{version:2,missions:[],workspace:{version:1,revision:0,context:null,drafts:[],seenAcceptanceIds:[]}});
  assert.throws(()=>new MissionBook({version:9,missions:[]}),/version/i);
 });
 test('mission launch is single-use and allocates a distinct attempt',()=>{
@@ -18,7 +18,9 @@ test('coding completion awaits revision-bound captain acceptance',()=>{
  assert.equal(mission.status,'WAITING_FOR_REVIEW');assert.equal(attempt.status,'finished');
  assert.throws(()=>book.accept(mission.id,launchRevision,[true]),/changed|revision/i);
  assert.throws(()=>book.accept(mission.id,mission.revision,[false]),/criteria/i);
- book.accept(mission.id,mission.revision,[true]);assert.equal(mission.status,'COMPLETE');
+ assert.throws(()=>book.accept(mission.id,mission.revision,[true]),/result|select/i);
+ const ref={kind:'reply',taskId:attempt.taskId,messageId:'reviewed',sha256:require('node:crypto').createHash('sha256').update('reviewed result').digest('hex')};mission.selectedResult={id:'result',attemptId:attempt.id,producerTaskId:attempt.taskId,ref,selectedAt:Date.now()};
+ book.accept(mission.id,mission.revision,[true],{resultId:'result',attemptId:attempt.id,producerTaskId:attempt.taskId,ref});assert.equal(mission.status,'COMPLETE');assert.equal(mission.acceptance.resultId,'result');
 });
 test('merge objective cannot complete from coding or a generic acceptance',()=>{
  const book=new MissionBook();const mission=book.create({...brief,completionBoundary:'merge'});const attempt=book.begin(mission.id,mission.revision);

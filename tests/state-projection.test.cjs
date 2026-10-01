@@ -10,6 +10,7 @@ test('public_projection_retains_uncertainty_and_pending_acceptance_without_inten
  const p=producer(),state={tasks:[task()],persistence:{state:'unsaved',failures:1,uncertain:true},missions:[{id:'mission',status:'WAITING_FOR_REVIEW',pendingAcceptance:{id:'intent',syntheticPrivate:'excluded'}}]};
  const projected=p.snapshot(state);assert.equal(projected.persistence.uncertain,true);assert.equal(projected.missions[0].acceptancePending,true);assert.equal(projected.missions[0].pendingAcceptance,undefined);assert.equal(JSON.stringify(projected).includes('excluded'),false);
  state.missions[0].pendingAcceptance=undefined;state.missions[0].acceptancePending=true;assert.equal(p.snapshot(state).missions[0].acceptancePending,false);
+ state.missions[0].acceptanceRecovery={id:'fence',syntheticPrivate:'excluded'};assert.equal(p.snapshot(state).missions[0].acceptancePending,true);assert.equal(p.snapshot(state).missions[0].acceptanceRecovery,undefined);
 });
 
 test('summary_has_no_transcript_or_private_rpc_fields',()=>{

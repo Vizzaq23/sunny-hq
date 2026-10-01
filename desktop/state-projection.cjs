@@ -52,7 +52,7 @@ function createStateProjection({epoch=randomUUID()}={}){
  }
  function snapshot(state){
   const projected=project(state,stateSchema);
-  if(projected.missions)projected.missions=projected.missions.map((mission,index)=>({...mission,acceptancePending:Boolean(state.missions[index]?.pendingAcceptance)}));
+  if(projected.missions)projected.missions=projected.missions.map((mission,index)=>({...mission,acceptancePending:Boolean(state.missions[index]?.pendingAcceptance||state.missions[index]?.acceptanceRecovery)}));
   return {...projected,protocolVersion:2,epoch,sequence,taskSummaries:(state.tasks||[]).map(summary)};
  }
  function nextSequence(){if(sequence===Number.MAX_SAFE_INTEGER)throw Error('Public producer sequence exhausted.');return ++sequence;}

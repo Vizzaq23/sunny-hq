@@ -27,6 +27,9 @@ test('changed_or_duplicate_reply_is_unavailable_even_with_selected_receipt',asyn
 test('pending_acceptance_never_reads_as_available',async()=>{
  const f=fixture();f.mission.pendingAcceptance={id:'intent'};const result=await api().getMissionResultStatus(f.context,f.args);assert.equal(result.available,false);assert.match(result.unavailable,/pending|recovery/i);
 });
+test('fenced_acceptance_never_reads_as_available',async()=>{
+ const f=fixture();f.mission.acceptanceRecovery={reason:'binding-changed'};const result=await api().getMissionResultStatus(f.context,f.args);assert.equal(result.available,false);assert.match(result.unavailable,/recovery/i);
+});
 test('malformed_selected_ref_never_exposes_opaque_private_fields',async()=>{
  const f=fixture();f.mission.selectedResult.ref.privateRpc={synthetic:'excluded'};const result=await api().getMissionResultStatus(f.context,f.args);assert.equal(result.available,false);assert.equal(result.ref,undefined);assert.equal(JSON.stringify(result).includes('excluded'),false);
 });

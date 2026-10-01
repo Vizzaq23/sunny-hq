@@ -13,7 +13,7 @@ function lookup(context,args){
  const matches=state.missions.filter(mission=>mission.id===args.missionId);if(matches.length!==1||matches[0].projectId!==args.projectId)throw Error('Choose a unique mission in this project.');
  const mission=matches[0];if(mission.revision!==args.revision)throw Error('Mission revision changed. Review its current result.');return {state,mission};
 }
-const binding=mission=>JSON.stringify({id:mission.id,projectId:mission.projectId,revision:mission.revision,status:mission.status,activeAttemptId:mission.activeAttemptId,acceptanceCriteria:mission.acceptanceCriteria,completionBoundary:mission.completionBoundary,selectedResult:mission.selectedResult,acceptance:mission.acceptance,pendingAcceptance:mission.pendingAcceptance});
+const binding=mission=>JSON.stringify({id:mission.id,projectId:mission.projectId,revision:mission.revision,status:mission.status,activeAttemptId:mission.activeAttemptId,acceptanceCriteria:mission.acceptanceCriteria,completionBoundary:mission.completionBoundary,selectedResult:mission.selectedResult,acceptance:mission.acceptance,pendingAcceptance:mission.pendingAcceptance,acceptanceRecovery:mission.acceptanceRecovery});
 const projectBinding=(state,projectId)=>JSON.stringify(state.projects.filter(project=>project.id===projectId).map(project=>({id:project.id,path:project.path})));
 const artifactBinding=artifact=>JSON.stringify({id:artifact.id,kind:artifact.kind,projectId:artifact.projectId,attemptId:artifact.attemptId,filePath:artifact.filePath,sha256:artifact.sha256,bytes:artifact.bytes});
 // Read-only observation. This cannot accept work or replace the fresh checks in
@@ -22,7 +22,7 @@ async function getMissionResultStatus(context,args){
  const {state,mission}=lookup(context,args),result=mission.selectedResult;
  let ref;try{if(result)ref=validateMissionResultRef(result.ref);}catch{/* Invalid opaque metadata is never a public reference. */}
  const base={missionId:mission.id,revision:mission.revision,...(id(mission.activeAttemptId)?{attemptId:mission.activeAttemptId}:{}),...(result&&id(result.id)?{resultId:result.id}:{}),...(result&&id(result.producerTaskId)?{producerTaskId:result.producerTaskId}:{}),...(ref?{ref}:{})};
- if(mission.pendingAcceptance)return {...base,available:false,unavailable:'Acceptance pending storage recovery.'};
+ if(mission.pendingAcceptance||mission.acceptanceRecovery)return {...base,available:false,unavailable:'Acceptance needs storage recovery.'};
  if(!result)return {...base,available:false,unavailable:'No result selected. Review an original crew result.'};
  if(!['WAITING_FOR_REVIEW','COMPLETE'].includes(mission.status))return {...base,available:false,unavailable:'Mission is not ready for result review.'};
  const expected=binding(mission),expectedProject=projectBinding(state,args.projectId);let proof;
@@ -47,7 +47,7 @@ function attachCanonicalReplyRefs(context,request,page){
  const state=context.getState(),task=member(state,request.projectId,request.taskId);
  if(page.taskId!==task.id)throw Error('Page task does not match the requested task.');
  if(page.stale)return {...page};
- const eligible=task.status==='finished'&&!task.external&&state.missions.some(mission=>mission.projectId===task.projectId&&mission.status==='WAITING_FOR_REVIEW'&&!mission.pendingAcceptance&&mission.taskIds.includes(task.id)&&mission.attempts.some(attempt=>attempt.id===mission.activeAttemptId&&attempt.status==='finished'&&attempt.taskIds.includes(task.id))&&(task.missionId===undefined||task.missionId===mission.id)&&(task.attemptId===undefined||task.attemptId===mission.activeAttemptId));
+ const eligible=task.status==='finished'&&!task.external&&state.missions.some(mission=>mission.projectId===task.projectId&&mission.status==='WAITING_FOR_REVIEW'&&!mission.pendingAcceptance&&!mission.acceptanceRecovery&&mission.taskIds.includes(task.id)&&mission.attempts.some(attempt=>attempt.id===mission.activeAttemptId&&attempt.status==='finished'&&attempt.taskIds.includes(task.id))&&(task.missionId===undefined||task.missionId===mission.id)&&(task.attemptId===undefined||task.attemptId===mission.activeAttemptId));
  const selected=new Map(page.segments.map(segment=>[segment.messageId,{count:0,message:null}]));
  if(eligible)for(const message of task.messages){const entry=selected.get(message.id);if(entry){entry.count++;entry.message=message;}}
  const refs=new Map();for(const [messageId,entry] of selected){const message=entry.message;if(entry.count===1&&message.role==='assistant'&&typeof message.text==='string'&&message.text.trim())refs.set(messageId,{kind:'reply',taskId:task.id,messageId,sha256:createHash('sha256').update(message.text,'utf8').digest('hex')});}

@@ -47,7 +47,9 @@ parentPort.on('message',message=>{
   if(inspectMissionProfile(normalized).mode!=='v2')throw Error('Invalid serialized mission profile');
   const stateSha256=createHash('sha256').update(compact).digest('hex');
   post({type:'prepared',sequence:message.sequence,stateSha256});writeStarted=true;
-  store.save(normalized);lastSequence=message.sequence;
+  // Preserve explicit undefined overrides through the adapter's opaque merge.
+  // Passing normalized here would restore omitted old fields after hashing.
+  store.save(merged);lastSequence=message.sequence;
   post({type:'committed',sequence:lastSequence,receipt:{epoch,sequence:lastSequence,stateSha256,durableAt:Date.now()}});
  }catch(error){post({type:'failed',sequence:message?.sequence,error:error.message,uncertain:writeStarted});finish();}
 });

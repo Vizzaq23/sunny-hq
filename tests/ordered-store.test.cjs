@@ -115,3 +115,13 @@ test('close_drains_accepted_barriers_and_rejects_new_images',{timeout:15000},asy
  await assert.rejects(store.checkpoint(image('too late')),error=>error.code==='STORE_CLOSED');gate.release();await Promise.all([first,second,closing]);assert.deepEqual((await open(f)).load(),saved);
  const cached=f.stores.at(-1).load();cached.tasks[0].messages[0].text='mutated load';assert.deepEqual(f.stores.at(-1).load(),saved);
 });
+for(const kind of ['sqlite','json'])test('receipt_hash_matches_persisted_bytes_when_opaque_field_is_explicitly_undefined '+kind,{timeout:15000},async t=>{
+ const f=fixture(t,kind),store=await open(f),saved=image();saved.opaque={retained:'keep'};await store.barrier(saved,'workspace');
+ const next={...image('changed'),opaque:undefined},receipt=await store.barrier(next,'mission');await store.close();
+ const reopened=await open(f),persisted=reopened.load();assert.equal(receipt.stateSha256,digest(persisted));
+ const expected=JSON.parse(JSON.stringify(next));assert.deepEqual(persisted,expected);assert.equal(Object.hasOwn(persisted,'opaque'),false);
+ const compact=kind==='json'?fs.readFileSync(f.options.file,'utf8'):(()=>{const {DatabaseSync}=require('node:sqlite');const db=new DatabaseSync(f.options.file,{readOnly:true});try{return db.prepare('SELECT value FROM state WHERE id=1').get().value;}finally{db.close();}})();
+ assert.equal(receipt.stateSha256,createHash('sha256').update(compact).digest('hex'));assert.equal(compact,JSON.stringify(expected));
+ const later=image('later');delete later.opaque;const laterReceipt=await reopened.barrier(later,'mission');await reopened.close();const final=(await open(f)).load();
+ assert.deepEqual(final,later);assert.equal(laterReceipt.stateSha256,digest(final));assert.equal(Object.hasOwn(final,'opaque'),false);
+});

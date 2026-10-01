@@ -13,7 +13,8 @@ function lookup(context,args){
  const matches=state.missions.filter(mission=>mission.id===args.missionId);if(matches.length!==1||matches[0].projectId!==args.projectId)throw Error('Choose a unique mission in this project.');
  const mission=matches[0];if(mission.revision!==args.revision)throw Error('Mission revision changed. Review its current result.');return {state,mission};
 }
-const binding=mission=>JSON.stringify({id:mission.id,revision:mission.revision,status:mission.status,activeAttemptId:mission.activeAttemptId,selectedResult:mission.selectedResult,acceptance:mission.acceptance,pendingAcceptance:mission.pendingAcceptance});
+const binding=mission=>JSON.stringify({id:mission.id,projectId:mission.projectId,revision:mission.revision,status:mission.status,activeAttemptId:mission.activeAttemptId,acceptanceCriteria:mission.acceptanceCriteria,completionBoundary:mission.completionBoundary,selectedResult:mission.selectedResult,acceptance:mission.acceptance,pendingAcceptance:mission.pendingAcceptance});
+const projectBinding=(state,projectId)=>JSON.stringify(state.projects.filter(project=>project.id===projectId).map(project=>({id:project.id,path:project.path})));
 const artifactBinding=artifact=>JSON.stringify({id:artifact.id,kind:artifact.kind,projectId:artifact.projectId,attemptId:artifact.attemptId,filePath:artifact.filePath,sha256:artifact.sha256,bytes:artifact.bytes});
 // Read-only observation. This cannot accept work or replace the fresh checks in
 // select/accept. COMPLETE is examined through a detached review view, never reopened.
@@ -24,15 +25,17 @@ async function getMissionResultStatus(context,args){
  if(mission.pendingAcceptance)return {...base,available:false,unavailable:'Acceptance pending storage recovery.'};
  if(!result)return {...base,available:false,unavailable:'No result selected. Review an original crew result.'};
  if(!['WAITING_FOR_REVIEW','COMPLETE'].includes(mission.status))return {...base,available:false,unavailable:'Mission is not ready for result review.'};
- const expected=binding(mission);let proof;
+ const expected=binding(mission),expectedProject=projectBinding(state,args.projectId);let proof;
  try{
   validateMissionAuthority(mission);
   const review={...mission,status:'WAITING_FOR_REVIEW'};
   await resolveMissionResult({mission:review,tasks:state.tasks,ref:result.ref,producerTaskId:result.producerTaskId,readArtifact:typeof context.readArtifact==='function'?async artifact=>{const identity=artifactBinding(artifact),observed=await context.readArtifact(artifact);proof={identity,observed};return observed;}:undefined});
  }catch{return {...base,available:false,unavailable:'Selected result unavailable or changed. Review its current content.'};}
  const current=lookup(context,args);
+ if(projectBinding(current.state,args.projectId)!==expectedProject)throw Error('Project root changed during result review.');
  if(binding(current.mission)!==expected)throw Error('Mission result changed during review.');
  try{
+  validateMissionAuthority(current.mission);
   verifyMissionResultCurrent({mission:{...current.mission,status:'WAITING_FOR_REVIEW'},tasks:current.state.tasks,ref:result.ref,producerTaskId:result.producerTaskId,readArtifact:artifact=>{if(!proof||artifactBinding(artifact)!==proof.identity)throw Error('Artifact binding changed during review.');return proof.observed;}});
   const task=member(current.state,args.projectId,result.producerTaskId),text=result.ref.kind==='reply'?task.messages.find(message=>message.id===result.ref.messageId).text:undefined;
   return {...base,available:true,...(text===undefined?{}:{preview:preview(text)})};
@@ -43,6 +46,7 @@ async function getMissionResultStatus(context,args){
 function attachCanonicalReplyRefs(context,request,page){
  const state=context.getState(),task=member(state,request.projectId,request.taskId);
  if(page.taskId!==task.id)throw Error('Page task does not match the requested task.');
+ if(page.stale)return {...page};
  const eligible=task.status==='finished'&&!task.external&&state.missions.some(mission=>mission.projectId===task.projectId&&mission.status==='WAITING_FOR_REVIEW'&&!mission.pendingAcceptance&&mission.taskIds.includes(task.id)&&mission.attempts.some(attempt=>attempt.id===mission.activeAttemptId&&attempt.status==='finished'&&attempt.taskIds.includes(task.id))&&(task.missionId===undefined||task.missionId===mission.id)&&(task.attemptId===undefined||task.attemptId===mission.activeAttemptId));
  const selected=new Map(page.segments.map(segment=>[segment.messageId,{count:0,message:null}]));
  if(eligible)for(const message of task.messages){const entry=selected.get(message.id);if(entry){entry.count++;entry.message=message;}}

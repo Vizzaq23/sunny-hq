@@ -42,6 +42,14 @@ test('file_drift_and_missing_reader_do_not_return_available',async()=>{
  const f=fixture(),artifact={id:'file',kind:'deliverable',attemptId:f.attempt.id,projectId:'p',filePath:'result.md',sha256:sha('file')};f.mission.artifacts.push(artifact);f.mission.selectedResult.ref={kind:'deliverable',artifactId:'file',sha256:artifact.sha256};
  assert.equal((await api().getMissionResultStatus(f.context,f.args)).available,false);f.context.readArtifact=async()=>({sha256:sha('changed')});assert.equal((await api().getMissionResultStatus(f.context,f.args)).available,false);
 });
+test('file_status_rejects_project_root_replacement_during_read',async()=>{
+ const f=fixture(),artifact={id:'file',kind:'deliverable',attemptId:f.attempt.id,projectId:'p',filePath:'result.md',sha256:sha('file')};f.state.projects[0].path='C:/old';f.mission.artifacts.push(artifact);f.mission.selectedResult.ref={kind:'deliverable',artifactId:'file',sha256:artifact.sha256};
+ let resolve;f.context.readArtifact=()=>new Promise(yes=>{resolve=yes;});const pending=api().getMissionResultStatus(f.context,f.args);await new Promise(yes=>setImmediate(yes));f.state.projects=[{id:'p',path:'C:/new'}];resolve({sha256:artifact.sha256});await assert.rejects(pending,/project|changed/i);
+});
+test('file_status_revalidates_replaced_current_completed_authority',async()=>{
+ const f=fixture(),artifact={id:'file',kind:'deliverable',attemptId:f.attempt.id,projectId:'p',filePath:'result.md',sha256:sha('file')};f.mission.artifacts.push(artifact);f.mission.selectedResult.ref={kind:'deliverable',artifactId:'file',sha256:artifact.sha256};f.book.accept(f.mission.id,f.mission.revision,[true],{resultId:f.mission.selectedResult.id,attemptId:f.attempt.id,producerTaskId:f.task.id,ref:f.mission.selectedResult.ref});f.args.revision=f.mission.revision;
+ let resolve;f.context.readArtifact=()=>new Promise(yes=>{resolve=yes;});const pending=api().getMissionResultStatus(f.context,f.args);await new Promise(yes=>setImmediate(yes));f.state.missions=[{...f.mission,acceptanceCriteria:['Exact result','New criterion']}];resolve({sha256:artifact.sha256});let rejected=false;const result=await pending.catch(()=>{rejected=true;});assert.equal(rejected||result.available===false,true);
+});
 test('page_reply_reference_hashes_full_message_not_segment_or_forged_metadata',()=>{
  const f=fixture(),page={epoch:'e',taskId:f.task.id,revision:1,segments:[{messageId:'reply',role:'assistant',offset:0,text:'Current',totalLength:f.task.messages[0].text.length,replyRef:{sha256:'forged'}}]};
  const result=api().attachCanonicalReplyRefs(f.context,{projectId:'p',taskId:f.task.id},page);assert.equal(result.segments[0].replyRef.sha256,sha(f.task.messages[0].text));assert.notEqual(result.segments[0].replyRef.sha256,sha('Current'));assert.equal(page.segments[0].replyRef.sha256,'forged');

@@ -6,6 +6,12 @@ const message=(id,text)=>({id,role:'assistant',time:1,text});
 const task=(id='t')=>({id,projectId:'p',crewId:'robin',title:'Read',status:'working',createdAt:1,updatedAt:2,messages:[message('m','hello')]});
 const producer=()=>{assert.equal(typeof createStateProjection,'function','public state producer must exist');return createStateProjection({epoch:'session'});};
 
+test('public_projection_retains_uncertainty_and_pending_acceptance_without_intent_details',()=>{
+ const p=producer(),state={tasks:[task()],persistence:{state:'unsaved',failures:1,uncertain:true},missions:[{id:'mission',status:'WAITING_FOR_REVIEW',pendingAcceptance:{id:'intent',syntheticPrivate:'excluded'}}]};
+ const projected=p.snapshot(state);assert.equal(projected.persistence.uncertain,true);assert.equal(projected.missions[0].acceptancePending,true);assert.equal(projected.missions[0].pendingAcceptance,undefined);assert.equal(JSON.stringify(projected).includes('excluded'),false);
+ state.missions[0].pendingAcceptance=undefined;state.missions[0].acceptancePending=true;assert.equal(p.snapshot(state).missions[0].acceptancePending,false);
+});
+
 test('summary_has_no_transcript_or_private_rpc_fields',()=>{
  const p=producer(),t=task();t.secret='retained';t.executionId='private';t.rpc={token:'private'};
  t.selectedSkills=[{id:'s',revision:'r',name:'Read',path:'read.md',category:'research',purpose:'Read',roles:['robin'],secret:'private'}];

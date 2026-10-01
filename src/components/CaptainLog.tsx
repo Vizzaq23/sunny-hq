@@ -9,6 +9,8 @@ export function CaptainLog({snapshot,context,onContext,onOpenResult,onRequestCha
  const [query,setQuery]=useState(''),[filter,setFilter]=useState('all'),[preview,setPreview]=useState<{filePath:string;text:string;sha256:string}>(),[error,setError]=useState('');
  const mission=(snapshot.missions??[]).find(m=>m.id===context?.missionId),attempt=mission?.attempts.find(a=>a.id===context?.attemptId);
  const task=snapshot.tasks.find(t=>t.id===context?.taskId);
+ const longGoal=Boolean(mission&&(mission.objective.length>300||mission.objective.split(/\r?\n/).length>3));
+ const goalPreview=mission?.objective.split(/\r?\n/).slice(0,3).join('\n').slice(0,300);
  const stage=attempt?.workflow?.stages.find(s=>!['finished','completed','complete'].includes(s.status));
  const owner=snapshot.tasks.find(t=>t.id===stage?.taskId);
  const entries=useMemo(()=>workEntries(snapshot.missions??[],snapshot.tasks),[snapshot.missions,snapshot.tasks]);
@@ -25,11 +27,12 @@ export function CaptainLog({snapshot,context,onContext,onOpenResult,onRequestCha
   <header><span className="eyebrow">Aboard the Sunny</span><h2>Captain's log</h2></header>
   {unavailable?<p className="captain-unavailable" role="alert">{unavailable}</p>:null}
   {mission?<section className="captain-current" data-mission-id={mission.id} data-attempt-id={attempt?.id}>
-   <small>{snapshot.projects.find(p=>p.id===mission.projectId)?.name??'Project unavailable'}</small><h3>{mission.title}</h3><p>{mission.objective}</p>
+   <small>{snapshot.projects.find(p=>p.id===mission.projectId)?.name??'Project unavailable'}</small><h3>{mission.title}</h3>
    <p className="captain-log-status" role="status" aria-live="polite">{labels[mission.status]??mission.status}{mission.connection==='reconciling'?' — Connection needs reconciliation':''}</p>
    <p className="captain-stage">{stage?`${stage.id}: ${owner?.crewId??'Awaiting assignment'} · ${stage.status}`:attempt?.workflow?.complete?'All linked stages reported results':attempt?'Inspect linked crew tasks':'No attempt started'}</p>
    <ul className="captain-criteria">{mission.acceptanceCriteria.map((criterion,i)=><li key={i}>{criterion}</li>)}</ul>
    {attempt?.workflow?<ol aria-label="Linked mission stages">{attempt.workflow.stages.map(s=><li key={s.id}><span>{s.id} · {s.status}</span>{s.taskId?<button onClick={()=>onOpenResult(s.taskId!)}>Open {snapshot.tasks.find(t=>t.id===s.taskId)?.crewId??'crew'} result</button>:null}</li>)}</ol>:null}
+   {longGoal?<><p className="captain-goal-preview">{goalPreview+'…'}</p><details className="captain-goal-details" key={mission.id}><summary>Read full goal</summary><p className="captain-goal-full">{mission.objective}</p></details></>:<p className="captain-goal">{mission.objective}</p>}
    {result?<section className="captain-selected-result"><h4>Selected result</h4><p>{ref?.kind==='reply'?'Crew reply':'Recorded file'} · {result.attemptId===mission.activeAttemptId?'Current attempt':'Earlier attempt'}</p><code>{ref?.sha256}</code>{ref?.kind==='reply'?<>{replyDisplay?.id===result.id&&replyDisplay.text===reply?.[0]?.text?<pre>{replyDisplay.text}</pre>:<p>{replyDisplay?.id===result.id?replyDisplay.unavailable??'Verifying selected reply…':'Verifying selected reply…'}</p>}<button className="captain-open-result" onClick={()=>onOpenResult(ref.taskId)}>Open selected reply</button></>:<><button className="captain-open-result" onClick={()=>void inspectFile()}>Preview selected file</button>{preview?<><p>{preview.filePath} · {preview.sha256}</p><pre>{preview.text}</pre></>:null}</>}</section>:mission.status==='WAITING_FOR_REVIEW'?<p>Select a crew reply or recorded file before acceptance.</p>:null}
    {mission.acceptance?<p className="captain-acceptance">{mission.acceptance.legacy?'Historical acceptance — result binding unavailable':'Captain accepted the bound result'}{mission.acceptedAt?` · ${new Date(mission.acceptedAt).toLocaleString()}`:''}</p>:null}
    <button className="captain-review-mission" disabled={Boolean(unavailable)} onClick={openMission}>{mission.status==='WAITING_FOR_REVIEW'?'Review and accept result':mission.status==='DRAFT'?'Review brief and send crew':'Open mission controls'}</button>

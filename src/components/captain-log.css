@@ -20,3 +20,8 @@
 .continuous-shell .topbar-actions{min-width:0;max-width:100%;gap:10px}
 .continuous-shell .topbar-actions>button{height:auto;min-height:36px;line-height:1.4;white-space:normal;max-width:100%}
 .continuous-shell .topbar-actions .float-ship-button{position:static;left:auto;bottom:auto;z-index:auto;width:auto;flex:0 1 auto}
+
+/* Long goals preserve full text behind an explicit native disclosure. */
+.captain-goal-preview{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;max-height:4.65em;overflow:hidden;white-space:pre-wrap}
+.captain-goal,.captain-goal-full{white-space:pre-wrap}
+.captain-goal-details>summary{cursor:pointer;font-size:13px;padding:4px 0;overflow-wrap:anywhere}

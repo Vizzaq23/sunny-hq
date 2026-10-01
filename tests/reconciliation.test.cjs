@@ -1,9 +1,10 @@
+const {receiptStore}=require('./helpers/receipt-store.cjs');
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const {Hub}=require('../desktop/hub.cjs');
 
 function fixture(t,read){
- const hub=new Hub({home:process.cwd(),store:{load:()=>({}),save(){},close(){}},catalog:{discoverProjects:()=>[{id:'p',path:process.cwd()}],discoverTools:()=>[],discoverAutomations:()=>[]}});
+ const hub=new Hub({home:process.cwd(),store:receiptStore({load:()=>({}),save(){},close(){}}),catalog:{discoverProjects:()=>[{id:'p',path:process.cwd()}],discoverTools:()=>[],discoverAutomations:()=>[]}});
  t.after(()=>hub.close());hub.client.connected=true;hub.state.codex.status='connected';
  const parent={id:'parent',threadId:'captain-thread',projectId:'p',crewId:'luffy',captain:true,captainVersion:3,status:'unknown',messages:[]};
  const child={id:'child',threadId:'child-thread',projectId:'p',crewId:'chopper',parentTaskId:parent.id,status:'unknown',messages:[]};

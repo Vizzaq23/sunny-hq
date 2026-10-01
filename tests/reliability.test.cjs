@@ -1,10 +1,11 @@
+const {receiptStore}=require('./helpers/receipt-store.cjs');
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');const os=require('node:os');const path=require('node:path');
 const {PassThrough}=require('node:stream');const {EventEmitter}=require('node:events');
 const diagnostics=require('../desktop/diagnostics.cjs');const {Hub}=require('../desktop/hub.cjs');const {CodexClient}=require('../desktop/codex.cjs');
 function fixture(t){const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-reliability-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));return dir;}
-function hubFixture(t,store){const hub=new Hub({home:process.cwd(),store,catalog:{discoverProjects:()=>[{id:'p',path:process.cwd()}],discoverTools:()=>[],discoverAutomations:()=>[]}});t.after(()=>hub.close());return hub;}
+function hubFixture(t,store){const hub=new Hub({home:process.cwd(),store:receiptStore(store),catalog:{discoverProjects:()=>[{id:'p',path:process.cwd()}],discoverTools:()=>[],discoverAutomations:()=>[]}});t.after(()=>hub.close());return hub;}
 function peer(){const p=new EventEmitter();p.stdin=new PassThrough();p.stdout=new PassThrough();p.stderr=new PassThrough();p.kill=()=>{};return p;}
 test('renderer diagnostics retain build and surface evidence while excluding private fields',t=>{
  const dir=fixture(t);diagnostics.record(dir,'renderer-gone',{surface:'companion',appVersion:'0.11.0',electronVersion:'44.4.3',buildId:'a'.repeat(64),sourceCommit:'b'.repeat(40),sourceDirty:true,reason:'crashed',exitCode:-1073741819,url:'https://private.test',description:'SECRET',prompt:'SECRET'});
@@ -26,15 +27,15 @@ test('renderer recovery reload requires an explicit choice and a live non-quitti
  quitting=false;await diagnostics.offerReload(win,{surface:'hub',isQuitting:()=>quitting,showMessageBox:async()=>{destroyed=true;return {response:0};}});assert.equal(reloads,0);
  destroyed=false;await diagnostics.offerReload(win,{surface:'hub',isQuitting:()=>quitting,showMessageBox:async()=>({response:0})});assert.equal(reloads,1);
 });
-test('a transient idle state-save failure retries the latest state without provider work',t=>{
+test('a transient idle state-save failure retries the latest state without provider work',async t=>{
  t.mock.timers.enable({apis:['setTimeout']});const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-reliability-'));const file=path.join(dir,'state.json');const {StateStore}=require('../desktop/core.cjs');const actual=new StateStore(file);let blocked=true,writes=0;
  const hub=hubFixture(t,{load:()=>({}),save:value=>{writes++;if(blocked)throw Error('fixture disk temporarily unavailable');actual.save(value);},close(){}});t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));const calls=[];hub.client.request=async method=>{calls.push(method);throw Error('No provider work expected');};
- hub.state.settings.fixtureValue='first';hub.changed();t.mock.timers.tick(250);assert.equal(writes,1);assert.equal(fs.existsSync(file),false);
- hub.state.settings.fixtureValue='latest';blocked=false;t.mock.timers.tick(1000);assert.equal(actual.load().settings?.fixtureValue,'latest');assert.deepEqual(calls,[]);const saved=writes;t.mock.timers.tick(5000);assert.equal(writes,saved);
+ hub.state.settings.fixtureValue='first';hub.changed();t.mock.timers.tick(250);await new Promise(setImmediate);assert.equal(writes,1);assert.equal(fs.existsSync(file),false);
+ hub.state.settings.fixtureValue='latest';blocked=false;t.mock.timers.tick(1000);await new Promise(setImmediate);assert.equal(actual.load().settings?.fixtureValue,'latest');assert.deepEqual(calls,[]);const saved=writes;t.mock.timers.tick(5000);await new Promise(setImmediate);assert.equal(writes,saved);
 });
-test('a persistent state-save failure has one bounded retry and shutdown cancels it',t=>{
+test('a persistent state-save failure has one bounded retry and shutdown cancels it',async t=>{
  t.mock.timers.enable({apis:['setTimeout']});let blocked=true,writes=0;const hub=hubFixture(t,{load:()=>({}),save(){writes++;if(blocked)throw Error('fixture disk unavailable');},close(){}});
- hub.changed();t.mock.timers.tick(250);assert.equal(writes,1);t.mock.timers.tick(999);assert.equal(writes,1);t.mock.timers.tick(1);assert.equal(writes,2);t.mock.timers.tick(999);assert.equal(writes,2);blocked=false;hub.close();const closedWrites=writes;t.mock.timers.tick(10000);assert.equal(writes,closedWrites);
+ hub.changed();t.mock.timers.tick(250);await new Promise(setImmediate);assert.equal(writes,1);t.mock.timers.tick(999);await new Promise(setImmediate);assert.equal(writes,1);t.mock.timers.tick(1);await new Promise(setImmediate);assert.equal(writes,2);t.mock.timers.tick(999);await new Promise(setImmediate);assert.equal(writes,2);blocked=false;await hub.close();const closedWrites=writes;t.mock.timers.tick(10000);await new Promise(setImmediate);assert.equal(writes,closedWrites);
 });
 test('a valid provider message whose consumer fails is classified separately and disconnects uncertain work',t=>{
  const hub=hubFixture(t,{load:()=>({}),save(){},close(){}});const task={id:'t',projectId:'p',threadId:'thread',status:'working',crewId:'franky',messages:[]};hub.state.tasks.push(task);hub.gate.acquire(task.id,process.cwd());const events=[];hub.on('event',event=>events.push(event));const p=peer();hub.client.attach(p);hub.client.on('notification',()=>{throw Error('SECRET callback failure');});

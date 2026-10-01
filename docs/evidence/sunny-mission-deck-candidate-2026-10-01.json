@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "recordedAtUtc": "2026-10-01T05:19:00Z",
+  "recordedAtUtc": "2026-10-01T05:34:00Z",
   "status": "partial-not-ready-for-promotion",
   "candidate": {
     "branch": "codex/sunny-experience-repairs-20260930",
@@ -87,14 +87,24 @@
       "provesOutstandingWalRestore": false
     },
     "rendererRecovery": {
-      "status": "functional-pass-fixture-incomplete",
+      "status": "pass-bounded-synthetic-renderer-slice",
       "forcedOwnedRendererCrash": true,
       "recordedReason": "crashed",
       "recordedExitCode": 2,
       "reloadPreservedMissionDraftContext": true,
       "providerDispatch": 0,
-      "finalScreenshot": "failed: Current display surface not available",
-      "raw": "../sunny-session-20261001/renderer-crash-2026-10-01T04-40-48-737Z/result.json"
+      "raw": "../sunny-session-20261001/renderer-crash-2026-10-01T05-30-43-121Z/result.json",
+      "independentAudit": "../sunny-session-20261001/renderer-crash-final-evidence.json",
+      "finalScreenshot": {
+        "width": 1504,
+        "height": 941,
+        "sha256": "c734a834a026ccf393d985a68cab80243c2e441b3b1b7d9683c049e925630471",
+        "inspected": true
+      },
+      "priorIncompleteFixture": "../sunny-session-20261001/renderer-crash-2026-10-01T04-40-48-737Z/result.json",
+      "provesLiveProviderRecovery": false,
+      "provesMainProcessRestart": false,
+      "provesPackagedRecovery": false
     },
     "instrumentedSmallRun": {
       "passed": 56,
@@ -124,7 +134,7 @@
         "fullSuiteRun": false,
         "captainAccepted": false,
         "noRemote": true,
-        "sourceBoundEvidenceRequiresRecollection": true
+        "sourceBoundEvidenceRequiresRecollection": false
       },
       {
         "name": "MLB",
@@ -140,17 +150,38 @@
         "fullTestsPassed": 70,
         "captainAccepted": false,
         "noRemote": true,
-        "sourceBoundEvidenceRequiresRecollection": true
+        "sourceBoundEvidenceRequiresRecollection": false
       }
-    ]
+    ],
+    "sourceEvidenceRecollection": {
+      "recordedAtUtc": "2026-10-01T05:29:39Z",
+      "method": "Production Hub.collectMissionEvidence on stopped actual-profile copy, no native/provider",
+      "raw": "../sunny-session-20261001/source-evidence-refresh-2026-10-01T05-29-34-978Z/report.json",
+      "reopenedAudit": "../sunny-session-20261001/source-evidence-refresh-2026-10-01T05-29-34-978Z/reopened-verification.json",
+      "gitArtifacts": [
+        "7cd2093a-b1cf-4a75-9ae6-a230138fca64",
+        "e8d742e8-0dee-4de1-a3b8-8c85f3240994"
+      ],
+      "mlbPassedNativeCheck": "897806bb-fa4c-4b55-8fcd-c375ceab3777",
+      "mlbFreshFullTests": 70,
+      "tradingFreshIndependentTests": 3,
+      "tradingNativeNpmCheck": "unsupported: package.json absent",
+      "originalProfilePreserved": true,
+      "providerCalls": 0,
+      "captainAcceptances": [
+        null,
+        null
+      ],
+      "appliesOnlyToCopiedProfile": true
+    }
   },
   "blockers": [
     "Strict 100 ms native main-loop gate failed; later instrumented pass does not erase it.",
     "30 MiB SQLite persistence p95 223.02 ms (write-only 167.02 ms); separate 52,205,019-byte snapshot ack p95 207.63 ms remain unresolved.",
     "Actual user's intermittent crash cause not established.",
     "Packaging/promotion withheld under approved Task 6 load gate.",
-    "Real project results await refreshed source-bound evidence and explicit captain acceptance.",
-    "Broader visual A/B direction remains undecided."
+    "Broader visual A/B direction remains undecided.",
+    "Fresh evidence is saved in the copied profile only; original actual profile intentionally unchanged. Captain acceptance remains pending; Trading native npm checking unsupported."
   ],
   "protection": {
     "sourceSunnyCommit": "5c8c6cb99943d0be58873c353dacd7937fc504e7",
@@ -163,11 +194,11 @@
   },
   "library": {
     "reportId": "libfile_2e2b4dd9af8481918de7bf792f2f7dc5",
-    "reportVersion": 1,
     "correctedDeckId": "libfile_016a3083eb2c8191a32423ca8955ffa8",
     "missionBoardLogId": "libfile_edee4e3520448191ba2dd036c2ededed",
     "enlargedDeckId": "libfile_60789fc20e948191b22f7fd31c85e801",
     "nativeFallbackConfirmed": true,
-    "windowsXattrsUnsupported": true
+    "windowsXattrsUnsupported": true,
+    "recoveryScreenshotId": "libfile_a5fa95f11e508191a0276476e525b6a8"
   }
 }

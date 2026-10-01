@@ -48,6 +48,7 @@ async function openOrderedStore(options){
   if(waiting){const next=waiting;waiting=null;dispatch(next);}else settleIdle();
  }
  try{
+  // Custom factories must retain native postMessage's synchronous clone contract.
   worker=(options.workerFactory||((file,settings)=>new Worker(file,settings)))(path.join(__dirname,'persistence-worker.cjs'),{workerData:{kind:options.kind,file:options.file,backupDir:options.backupDir,epoch}});
   if(!worker||typeof worker.on!=='function'||typeof worker.postMessage!=='function'||typeof worker.terminate!=='function')throw Error('Persistence worker is unavailable');
   worker.on('message',onMessage);worker.on('error',error=>fail(current?uncertain(error.message):error));
@@ -58,7 +59,9 @@ async function openOrderedStore(options){
   if(terminal)return Promise.reject(terminal);if(closing||closed)return Promise.reject(failure('STORE_CLOSED','Ordered store is closing'));
   if(reason!==null&&!reasons.has(reason))return Promise.reject(failure('INVALID_BARRIER','Invalid storage barrier reason'));
   if(waiting&&waiting.reason!==null)return Promise.reject(failure('STORE_SATURATED','Ordered storage waiting image is occupied by a required barrier'));
-  let captured;try{captured=structuredClone(image);}catch(error){return Promise.reject(error);}
+  // Idle dispatch captures synchronously in postMessage. Waiting images need
+  // their own snapshot now because the caller can mutate before later dispatch.
+  let captured;try{captured=current?structuredClone(image):image;}catch(error){return Promise.reject(error);}
   const entry={...deferred(),image:captured,reason};
   if(waiting)waiting.reject(failure('CHECKPOINT_SUPERSEDED','Background checkpoint superseded before persistence'));
   if(current)waiting=entry;else dispatch(entry);return entry.promise;

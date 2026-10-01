@@ -1,7 +1,7 @@
 // Renderer pages are display data. They never prove result identity or acceptance.
 export interface TranscriptSelection {projectId:string;taskId:string;epoch:string;revision:number;}
 export interface TranscriptCursor {epoch:string;taskId:string;revision:number;messageId:string;offset:number;}
-export interface TranscriptSegment {messageId:string;role:'user'|'assistant'|'system';time:number;offset:number;text:string;totalLength:number;}
+export interface TranscriptSegment {messageId:string;role:'user'|'assistant'|'system';time:number;offset:number;text:string;totalLength:number;replyRef?:{kind:'reply';taskId:string;messageId:string;sha256:string};}
 export interface TranscriptPage {epoch:string;taskId:string;revision:number;segments:TranscriptSegment[];nextCursor?:TranscriptCursor;previousCursor?:TranscriptCursor;complete:boolean;}
 export interface StaleTranscriptPage {stale:true;epoch:string;taskId:string;revision:number;summary?:{transcriptRevision:number};}
 export interface TranscriptRequest {id:number;selection:TranscriptSelection;direction:'older'|'newer';cursor?:TranscriptCursor;}
@@ -46,8 +46,9 @@ export function transcriptReducer(state:TranscriptState,action:TranscriptAction)
  if(typeof event.text!=='string'||!event.messageId||new TextEncoder().encode(event.text).length>256*1024)return invalidate(next,revision);
  let pages=state.pages.map(page=>({...page,revision,nextCursor:advanceCursor(page.nextCursor,revision),previousCursor:advanceCursor(page.previousCursor,revision),segments:page.segments.map(s=>({...s}))}));
  if(event.kind==='appendText'){
-  if(!Number.isSafeInteger(event.offset)||event.offset!<0)return invalidate(next,revision);
+  if(event.offset===undefined||!Number.isSafeInteger(event.offset)||event.offset<0)return invalidate(next,revision);
   for(const page of pages)for(const s of page.segments)if(s.messageId===event.messageId){
+   delete s.replyRef; // A hash of older complete content cannot describe the appended reply.
    if(s.totalLength!==event.offset)return invalidate(next,revision);
    if(s.offset+s.text.length===event.offset){if(!validTextBoundary(s.text,event.text))return invalidate(next,revision);s.text+=event.text;}
    s.totalLength=event.offset!+event.text.length;
@@ -77,7 +78,7 @@ export function publicStateReducer(state:PublicState|null,action:PublicAction):P
  if(action.type==='snapshot'){
   if(state?.retiredEpochs?.includes(action.snapshot.epoch))return state;
   if(state?.earlyEvents){
-   let next:PublicState|null={snapshot:action.snapshot,needsSnapshot:state.needsSnapshot,retiredEpochs:state.retiredEpochs};
+   let next:PublicState|null={snapshot:action.snapshot,needsSnapshot:state.needsSnapshot,retiredEpochs:state.snapshot.epoch!==action.snapshot.epoch?[...(state.retiredEpochs??[]),state.snapshot.epoch]:state.retiredEpochs};
    for(const event of state.earlyEvents)if(event.epoch===action.snapshot.epoch&&event.sequence>action.snapshot.sequence)next=publicStateReducer(next,{type:'event',event});
    return next;
   }

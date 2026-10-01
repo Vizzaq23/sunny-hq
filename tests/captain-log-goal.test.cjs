@@ -5,7 +5,7 @@ function loadComponent(name){const filename=path.resolve(__dirname,'../src/compo
 function renderGoal(objective){
  const {CaptainLog}=loadComponent('CaptainLog'),React=require('react'),{renderToStaticMarkup}=require('react-dom/server');
  const mission={id:'m',title:'Goal fixture',objective,projectId:'p',status:'WAITING_FOR_REVIEW',activeAttemptId:'a',attempts:[{id:'a',taskIds:['t'],workflow:{stages:[{id:'review',status:'working',taskId:'t'}]}}],acceptanceCriteria:['Exact criterion'],events:[],taskIds:['t'],updatedAt:2};
- const snapshot={projects:[{id:'p',name:'Project'}],missions:[mission],tasks:[{id:'t',title:'Inspect work',crewId:'zoro',projectId:'p',status:'working',messages:[],updatedAt:1}],workspace:{drafts:[]}};
+ const snapshot={projects:[{id:'p',name:'Project'}],missions:[mission],tasks:[{id:'t',title:'Inspect work',crewId:'zoro',projectId:'p',status:'working',transcriptRevision:1,messageCount:0,updatedAt:1}],workspace:{drafts:[]}};
  return {objective:mission.objective,html:renderToStaticMarkup(React.createElement(CaptainLog,{snapshot,context:{projectId:'p',missionId:'m',attemptId:'a',surface:'deck',returnTo:{view:'ship'}},onContext(){},onOpenResult(){},onRequestChanges(){},invoke:async()=>{}}))};
 }
 test('50k goal is a compact preview with closed native disclosure and exact full text after workflow status',()=>{

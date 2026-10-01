@@ -1,5 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
-import type {CrewId,Task} from './shared';
+import type {CrewId,TaskSummary as Task} from './shared';
 
 export const ACTIONS:Partial<Record<CrewId,{label:string;row:number}>>={luffy:{label:'Gear 5',row:0},zoro:{label:'Bandana & haki',row:1},nami:{label:'Wink & hair flip',row:2},robin:{label:'Bloom hands',row:3},sanji:{label:'Diable Jambe',row:4}};
 export type Moment={real?:boolean;id:number;cast:CrewId[];lines:{crew:CrewId;text:string}[];title:string};

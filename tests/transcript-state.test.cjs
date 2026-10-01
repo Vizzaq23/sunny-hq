@@ -28,6 +28,11 @@ test('retired_epoch_snapshot_cannot_replace_restarted_public_state',()=>{
  s=api.publicStateReducer(s,{type:'snapshot',snapshot:{epoch:'new',sequence:0,taskSummaries:[]}});
  assert.equal(api.publicStateReducer(s,{type:'snapshot',snapshot:{epoch:'e',sequence:3,taskSummaries:[]}}),s);
 });
+test('live_restart_after_early_event_rejects_old_pending_initial_snapshot',()=>{
+ setup();let s=api.publicStateReducer(null,{type:'event',event:{epoch:'e',sequence:1,type:'task',data:{id:'t',transcriptRevision:1}}});
+ s=api.publicStateReducer(s,{type:'snapshot',snapshot:{epoch:'new',sequence:0,taskSummaries:[]}});
+ assert.equal(api.publicStateReducer(s,{type:'snapshot',snapshot:{epoch:'e',sequence:0,taskSummaries:[]}}),s);
+});
 test('old_page_cannot_replace_new_selection',()=>{
  let s=select(setup());const request={id:1,selection:s.selection,direction:'older'};s=api.transcriptReducer(s,{type:'request',request});s=select(s,identity('other'));
  assert.equal(api.transcriptReducer(s,{type:'page',request,page:{epoch:'e',taskId:'t',revision:1,segments:[segment()],complete:true}}),s);

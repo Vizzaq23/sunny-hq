@@ -13,7 +13,7 @@ function findElement(element,predicate){if(!element||typeof element!=='object')r
 test('specialist handoff publishes new task ID for persisted navigation',async()=>{
  global.window={sunny:{},confirm:()=>true,location:{href:'https://fixture.invalid/'},addEventListener(){},removeEventListener(){}};global.location=window.location;global.sessionStorage={getItem:()=>null};
  const Workbench=componentForNode(),calls=[],opened=[];
- const snapshot={projects:[{id:'p',name:'Fixture project'}],tasks:[{id:'old',projectId:'p',crewId:'franky',status:'finished',messages:[]}],approvals:[],settings:{reducedMotion:true},workspace:{version:1,revision:0,context:null,drafts:[],seenAcceptanceIds:[]},world:{residents:[]}};
+ const snapshot={projects:[{id:'p',name:'Fixture project'}],tasks:[{id:'old',projectId:'p',crewId:'franky',status:'finished',transcriptRevision:1,messageCount:0}],approvals:[],settings:{reducedMotion:true},workspace:{version:1,revision:0,context:null,drafts:[],seenAcceptanceIds:[]},world:{residents:[]}};
  const element=Workbench({snapshot,initial:{taskId:'old',projectId:'p'},invoke:async(action,args)=>{calls.push({action,args});return {id:'new',projectId:'p',crewId:'robin'};},toast(){},onClose(){},onTaskChange:id=>opened.push(id)});
  const select=findElement(element,e=>e.type==='select'&&e.props['aria-label']==='Assigned crewmate');assert.ok(select);assert.equal(select.props.disabled,false);
  select.props.onChange({target:{value:'robin'}});await new Promise(resolve=>setImmediate(resolve));
@@ -23,9 +23,17 @@ test('specialist handoff publishes new task ID for persisted navigation',async()
 test('existing task never seeds its follow-up from a submitted conversation template',()=>{
  global.window={sunny:{},confirm:()=>true,location:{href:'https://fixture.invalid/'},addEventListener(){},removeEventListener(){}};global.location=window.location;let saved=null;global.sessionStorage={getItem:()=>saved};
  const Workbench=componentForNode();
- const snapshot={projects:[{id:'p',name:'Fixture project'}],tasks:[{id:'started',projectId:'p',crewId:'robin',status:'working',messages:[]}],approvals:[],settings:{reducedMotion:true},workspace:{version:1,revision:0,context:null,drafts:[],seenAcceptanceIds:[]},world:{residents:[]}};
+ const snapshot={projects:[{id:'p',name:'Fixture project'}],tasks:[{id:'started',projectId:'p',crewId:'robin',status:'working',transcriptRevision:1,messageCount:0}],approvals:[],settings:{reducedMotion:true},workspace:{version:1,revision:0,context:null,drafts:[],seenAcceptanceIds:[]},world:{residents:[]}};
  const props={snapshot,initial:{taskId:'started',projectId:'p',prompt:'Submitted template'},invoke:async()=>{},toast(){},onClose(){}};
  const composer=()=>findElement(Workbench(props),e=>e.type==='textarea');
  assert.equal(composer().props.value,'');
  saved='My unsent follow-up';assert.equal(composer().props.value,saved,'saved task draft takes precedence');
+});
+
+test('Workbench passes selected summary identity to paged conversation and leaves saved composer draft intact',()=>{
+ global.window={sunny:{},confirm:()=>true,location:{href:'https://fixture.invalid/'},addEventListener(){},removeEventListener(){}};global.location=window.location;global.sessionStorage={getItem:()=> 'Keep the unsent draft'};
+ const Workbench=componentForNode(),snapshot={protocolVersion:2,epoch:'e',sequence:4,projects:[{id:'p',name:'Fixture'}],tasks:[{id:'selected',projectId:'p',crewId:'robin',status:'finished',transcriptRevision:3,messageCount:120}],approvals:[],settings:{reducedMotion:true},workspace:{version:1,revision:0,context:null,drafts:[],seenAcceptanceIds:[]},world:{residents:[]}};
+ const element=Workbench({snapshot,initial:{taskId:'selected',projectId:'p'},invoke:async()=>{},toast(){},onClose(){}});
+ const conversation=findElement(element,e=>typeof e.type==='function'&&e.type.name==='Conversation');assert.ok(conversation);assert.equal(conversation.props.transcript.loading,true);assert.deepEqual(conversation.props.transcript.segments,[]);assert.equal(conversation.props.task.messageCount,120);
+ assert.equal(findElement(element,e=>e.type==='textarea').props.value,'Keep the unsent draft');
 });

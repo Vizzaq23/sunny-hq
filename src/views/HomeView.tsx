@@ -1,6 +1,6 @@
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowRight,CheckCircle2,ChevronRight,Compass,FolderPlus,LoaderCircle,Search,Send,Sparkles,Users} from 'lucide-react';
-import type {CrewId,Mission,SkillChoice,Snapshot,Task} from '../shared';
+import type {CrewId,Mission,SkillChoice,Snapshot,TaskSummary as Task} from '../shared';
 import {SkillPicker} from '../components/SkillPicker';
 import {ALL_CREW,CREW_BY_ID,formatRelative} from '../data';
 import {CrewBadge} from '../components/Chrome';
@@ -79,9 +79,9 @@ function FamilyCard({family,snapshot,onOpen}:{family:TaskFamily;snapshot:Snapsho
  const attention=children.find(child=>['waiting','awaiting-approval','unknown','failed'].includes(child.status)||child.error);
  const target=attention??task;
  const guidance=taskGuidance(target);
- const latest=[...task.messages].reverse().find(message=>message.role==='assistant'&&message.text.trim());
+ const latest=task.lastAssistantPreview;
  return <article className={`home-task ${phase}`}><div className="home-task-top">{crew?<CrewBadge crew={crew} size="small"/>:<Users size={22}/>}<button className="home-task-title" onClick={()=>onOpen(task.id)}><h4>{task.title}</h4><span>{snapshot.projects.find(project=>project.id===task.projectId)?.name??'Project unavailable'} <i>·</i> {crew?.name??task.crewId} <i>·</i> {formatRelative(family.updatedAt)}</span></button><span className={`task-label ${phase}`}>{attention?`${CREW_BY_ID.get(attention.crewId)?.name??'Crew'} needs attention`:phase==='active'?'In progress':taskLabel(task)}</span></div>
-  {task.error?<p className="home-task-error">{task.error}</p>:latest?<p className="home-task-preview">{latest.text}</p>:<p className="home-task-preview">{guidance.detail}</p>}
+  {task.error?<p className="home-task-error">{task.error}</p>:latest?<p className="home-task-preview">{latest}</p>:<p className="home-task-preview">{guidance.detail}</p>}
   <footer><div className="family-crew">{children.length?<><span>{children.length} assignment{children.length===1?'':'s'}</span>{children.map(child=><button key={child.id} onClick={()=>onOpen(child.id)} title={`${CREW_BY_ID.get(child.crewId)?.name}: ${child.title} · ${taskLabel(child)}`}><span className={`task-state ${child.status}`}/>{CREW_BY_ID.get(child.crewId)?.name??child.crewId}</button>)}</>:<span>{task.captain?'Luffy coordinates this conversation':'Conversation'}</span>}</div><button className="home-task-open" onClick={()=>onOpen(attention?.id??task.id)}>{phase==='active'?'Follow progress':guidance.action}<ArrowRight size={15}/></button></footer>
  </article>;
 }

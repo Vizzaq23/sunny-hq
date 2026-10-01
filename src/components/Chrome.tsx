@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
 import {Anchor,BookOpen,Box,Compass,Inbox,LayoutDashboard,Newspaper,Menu,Settings,ShipWheel,Sparkles,Users,X} from 'lucide-react';
-import type {Crew,Project,Task} from '../shared';
+import type {Crew,Project,TaskSummary as Task} from '../shared';
 import {formatRelative} from '../data';
 import {useCrewTexture} from '../crewTexture';
 import {taskLabel,taskNeedsAttention} from '../taskFlow';

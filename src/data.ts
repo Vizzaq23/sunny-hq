@@ -19,6 +19,7 @@ export const ALL_CREW=[...CREW,...RESIDENT_CATALOG];
 export const CREW_BY_ID = new Map<CrewId,Crew>(ALL_CREW.map(member=>[member.id,member]));
 
 export const EMPTY_SNAPSHOT: Snapshot = {
+  protocolVersion:2,epoch:'',sequence:0,
   workspace:{version:1,revision:0,context:null,drafts:[],seenAcceptanceIds:[]},persistence:{state:'saved',failures:0},
   projects:[],tasks:[],tools:[],approvals:[],models:[],usage:null,automations:[],
   settings:{reducedMotion:false,notifications:true,roomSoundEnabled:false,roomSoundVolume:.32,model:undefined},

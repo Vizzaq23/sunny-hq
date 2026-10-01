@@ -1,4 +1,4 @@
-import type {Snapshot,Task,WorkContext} from './shared';
+import type {Snapshot,TaskSummary as Task,WorkContext} from './shared';
 import {projectMission,type MissionProjection} from './missionProjection.ts';
 const activeStatuses=new Set(['starting','working','running','in-progress','waiting','awaiting-approval','unknown']);
 export function roomCrew(snapshot:Snapshot,projectId:string,crewId:string,context:WorkContext|null|undefined=snapshot.workspace?.context){

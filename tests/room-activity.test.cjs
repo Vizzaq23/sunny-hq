@@ -1,5 +1,5 @@
 const {test}=require('node:test');const assert=require('node:assert/strict');const {roomCrew,roomSignals}=require('../src/roomActivity.ts');
-const task=(id,status,extra={})=>({id,status,projectId:'p',crewId:'nami',title:id,updatedAt:1,createdAt:1,messages:[],...extra});
+const task=(id,status,extra={})=>({id,status,projectId:'p',crewId:'nami',title:id,updatedAt:1,createdAt:1,transcriptRevision:1,messageCount:0,...extra});
 const snapshot=(tasks,extra={})=>({tasks,projects:[{id:'p'},{id:'other'}],approvals:[],missions:[],...extra});
 test('room isolates projects and gives approvals priority over other assignments',()=>{const s=snapshot([task('new','working',{updatedAt:10}),task('ask','waiting'),task('foreign','working',{projectId:'other'})],{approvals:[{taskId:'ask'}]});const row=roomCrew(s,'p','nami');assert.equal(row.task.id,'ask');assert.equal(row.state,'Needs you');assert.equal(row.activeCount,2);assert.equal(roomCrew(s,'other','franky').state,'Idle');});
 test('unknown work remains uncertain and outranks ordinary active work',()=>{const row=roomCrew(snapshot([task('new','working',{updatedAt:99}),task('lost','unknown')]),'p','nami');assert.equal(row.task.id,'lost');assert.equal(row.state,'Check connection');});

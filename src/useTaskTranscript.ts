@@ -23,7 +23,10 @@ export function useTaskTranscript(options:TaskTranscriptOptions){
   send({type:'request',request});
   void dependencies.current.invoke('transcript:page',{...selection,direction,...(cursor?{cursor}:{} )}).then(value=>{
    const page=value as TranscriptPage|StaleTranscriptPage;
-   if('stale' in page&&sameSelection(current.current.selection,request.selection))dependencies.current.onStale?.(page);
+   if('stale' in page&&sameSelection(current.current.selection,request.selection)){
+    dependencies.current.onStale?.(page);
+    if(typeof window!=='undefined'&&page.epoch!==request.selection.epoch)window.dispatchEvent(new Event('sunny:refresh-snapshot'));
+   }
    send({type:'page',request,page});
   }).catch(error=>send({type:'failure',request,error:error instanceof Error?error.message:String(error)}));
  },[send]);
@@ -49,9 +52,10 @@ export function useTaskTranscript(options:TaskTranscriptOptions){
  const loadOlder=useCallback(()=>{const cursor=current.current.pages[0]?.previousCursor;if(cursor)requestPage('older',cursor);},[requestPage]);
  const loadNewer=useCallback(()=>{const cursor=current.current.pages.at(-1)?.nextCursor;if(cursor)requestPage('newer',cursor);},[requestPage]);
  const retry=useCallback(()=>{const last=lastRequest.current;if(last&&sameSelection(last.selection,current.current.selection))requestPage(last.direction,last.cursor);else requestPage('older');},[requestPage]);
+ const reload=useCallback(()=>{const selection=current.current.selection;if(!selection)return;const sequence=current.current.sequence;send({type:'select',selection:null});send({type:'select',selection,sequence});requestPage('older');},[send,requestPage]);
  // Hide a previous selection immediately, before React runs the selection effect.
  const selected=state.selection;
  const matching=selected&&selected.projectId===projectId&&selected.taskId===taskId&&selected.epoch===epoch&&selected.revision>=(revision??0);
- return {segments:matching?transcriptSegments(state):[],loading:matching?state.loading:Boolean(taskId),error:matching?state.error:'',loadOlder,loadNewer,retry,
+ return {segments:matching?transcriptSegments(state):[],loading:matching?state.loading:Boolean(taskId),error:matching?state.error:'',loadOlder,loadNewer,retry,reload,
   hasOlder:Boolean(matching&&state.pages[0]?.previousCursor),hasNewer:Boolean(matching&&state.pages.at(-1)?.nextCursor),revision:selected?.revision};
 }

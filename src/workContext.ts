@@ -1,4 +1,4 @@
-import type {MissionResultRef,Snapshot,Task,WorkContext} from './shared';
+import type {Mission,MissionResultRef,MissionResultStatus,Snapshot,WorkContext} from './shared';
 export function resolveWorkContext(context:WorkContext|null,snapshot:Snapshot):{context:WorkContext|null;unavailable?:string}{
  if(!context)return {context:null};
  const unavailable=(item:string)=>({context,unavailable:`${item} unavailable. Your saved selection is retained.`});
@@ -11,12 +11,23 @@ export function resolveWorkContext(context:WorkContext|null,snapshot:Snapshot):{
  if(context.taskId&&(!task||task.projectId!==context.projectId||attempt&&!attempt.taskIds.includes(context.taskId)||mission&&!mission.taskIds.includes(context.taskId)))return unavailable('Task');
  return {context};
 }
-export async function resolveReplyDisplay(ref:Extract<MissionResultRef,{kind:'reply'}>,task:Task|undefined):Promise<{text?:string;unavailable?:string}>{
- const matches=task?.messages.filter(m=>m.id===ref.messageId)??[];
- if(task?.id!==ref.taskId||task.status!=='finished'||matches.length!==1||matches[0].role!=='assistant'||!matches[0].text.trim())return {unavailable:'Selected reply unavailable. Inspect the original task.'};
- const text=matches[0].text,bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text));
- const hash=Array.from(new Uint8Array(bytes),byte=>byte.toString(16).padStart(2,'0')).join('');
- return hash===ref.sha256?{text}:{unavailable:'Selected reply changed. Review and select its current content again.'};
+export function sameResultRef(a:MissionResultRef|undefined,b:MissionResultRef|undefined):boolean {
+ if(!a||!b||a.kind!==b.kind||a.sha256!==b.sha256)return false;
+ return a.kind==='reply'&&b.kind==='reply'?a.taskId===b.taskId&&a.messageId===b.messageId:a.kind==='deliverable'&&b.kind==='deliverable'&&a.artifactId===b.artifactId;
+}
+export function resultStatusKey(snapshot:Snapshot,mission:Mission):string {
+ const result=mission.selectedResult,producer=snapshot.tasks.find(t=>t.id===result?.producerTaskId);
+ return JSON.stringify([snapshot.epoch,mission.projectId,mission.id,mission.revision,mission.activeAttemptId,mission.acceptancePending,result?.id,result?.attemptId,result?.producerTaskId,result?.ref,producer?.transcriptRevision,producer?.status]);
+}
+export function boundResultStatus(snapshot:Snapshot,mission:Mission):MissionResultStatus|undefined {
+ const entry=snapshot.resultStatuses?.[mission.id],result=mission.selectedResult,status=entry?.status;
+ if(!result||entry?.state!=='ready'||entry.key!==resultStatusKey(snapshot,mission)||!status||mission.acceptancePending&&status.available||status.epoch!==snapshot.epoch||status.missionId!==mission.id||status.revision!==mission.revision||status.attemptId!==mission.activeAttemptId||status.resultId!==result.id||status.producerTaskId!==result.producerTaskId||!sameResultRef(status.ref,result.ref))return;
+ return status;
+}
+export async function resolveReplyDisplay(ref:Extract<MissionResultRef,{kind:'reply'}>,status:MissionResultStatus|undefined):Promise<{text?:string;unavailable?:string}>{
+ if(!status||!status.available)return {unavailable:status?.unavailable??'Selected reply unavailable. Inspect the original task.'};
+ if(!sameResultRef(ref,status.ref))return {unavailable:'Selected reply changed. Review and select its current content again.'};
+ return {text:status.preview??''};
 }
 
 export function workspaceReturnTarget(context:WorkContext|null,selection:{projectId:string;missionId?:string;taskId?:string},view:string,embedded:boolean):WorkContext['returnTo']{

@@ -1,15 +1,19 @@
-import type {Mission,Project,Task} from './shared';
+import type {Mission,Project,Snapshot,TaskSummary as Task} from './shared';
+import {projectMission} from './missionProjection.ts';
 
 export type WorkPhase='attention'|'active'|'review'|'accepted'|'conversation';
-export function missionPhase(mission:Pick<Mission,'status'|'acceptance'>):WorkPhase{
- if(mission.status==='COMPLETE'&&mission.acceptance)return 'accepted';
+export function missionPhase(mission:Pick<Mission,'status'|'acceptance'>,snapshot?:Snapshot):WorkPhase{
+ if(mission.status==='COMPLETE'){
+  const full=mission as Mission;
+  return snapshot&&projectMission(snapshot,{projectId:full.projectId,missionId:full.id,surface:'deck',returnTo:{view:'ship'}}).state==='accepted'?'accepted':'review';
+ }
  if(mission.status==='WAITING_FOR_REVIEW')return 'review';
  if(mission.status==='RUNNING')return 'active';
  return 'attention';
 }
-export function workEntries(missions:Mission[],tasks:Task[]){
+export function workEntries(missions:Mission[],tasks:Task[],snapshot?:Snapshot){
  const claimed=new Set(missions.flatMap(m=>m.taskIds));
- const voyages=missions.map(m=>({id:m.id,kind:'mission' as const,title:m.title,projectId:m.projectId,phase:missionPhase(m),updatedAt:m.updatedAt,mission:m}));
+ const voyages=missions.map(m=>({id:m.id,kind:'mission' as const,title:m.title,projectId:m.projectId,phase:missionPhase(m,snapshot),updatedAt:m.updatedAt,mission:m}));
  const conversations=taskFamilies(tasks.filter(t=>!t.external&&!claimed.has(t.id))).map(f=>({id:f.task.id,kind:'conversation' as const,title:f.task.title,projectId:f.task.projectId,phase:f.phase==='done'?'conversation' as const:f.phase,updatedAt:f.updatedAt,task:f.task}));
  return [...voyages,...conversations].sort((a,b)=>b.updatedAt-a.updatedAt);
 }

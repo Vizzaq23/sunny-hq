@@ -8,7 +8,7 @@ function project(snapshot,context){
  return api.projectMission(snapshot,context);
 }
 const context=(extra={})=>({projectId:'p',surface:'franky',returnTo:{view:'deck',projectId:'p'},...extra});
-const task=(id='root',status='working',extra={})=>({id,status,projectId:'p',crewId:'franky',title:'Work',createdAt:1,updatedAt:1,messages:[],...extra});
+const task=(id='root',status='working',extra={})=>({id,status,projectId:'p',crewId:'franky',title:'Work',createdAt:1,updatedAt:1,transcriptRevision:1,messageCount:0,...extra});
 const attempt=(extra={})=>({id:'a',taskId:'root',taskIds:['root'],status:'working',startedAt:1,...extra});
 const mission=(extra={})=>({id:'m',projectId:'p',title:'Voyage',objective:'Build',acceptanceCriteria:['Works'],completionBoundary:'review',status:'RUNNING',connection:'connected',revision:4,createdAt:1,updatedAt:1,taskIds:['root'],activeAttemptId:'a',attempts:[attempt()],artifacts:[],events:[],...extra});
 const snapshot=(extra={})=>({projects:[{id:'p',name:'Project',path:'fixture',category:'coding'}],tasks:[task()],missions:[],approvals:[],workspace:{version:1,revision:0,context:null,drafts:[],seenAcceptanceIds:[]},settings:{reducedMotion:false,notifications:false},persistence:{state:'saved',failures:0},codex:{status:'connected'},tools:[],models:[],usage:{},automations:[],...extra});
@@ -21,12 +21,14 @@ function coordinated(stage='work',status='working'){
 }
 function accepted(refKind='reply'){
  const text='A saved result';const sha256=createHash('sha256').update(text,'utf8').digest('hex');
- const t=task('root','finished',{messages:[{id:'message',role:'assistant',text,time:2}]});
+ const t=task('root','finished',{transcriptRevision:1,messageCount:1});delete t.messages;
  const ref=refKind==='reply'?{kind:'reply',taskId:'root',messageId:'message',sha256}:{kind:'deliverable',artifactId:'artifact',sha256};
  const result={id:'result',attemptId:'a',producerTaskId:'root',ref,selectedAt:2};
  const receipt={id:'receipt',actor:'captain',attemptId:'a',reviewedRevision:3,resultId:'result',resultSha256:sha256,criteria:[true],acceptedAt:3};
  const m=mission({status:'COMPLETE',attempts:[attempt({status:'finished'})],selectedResult:result,acceptance:receipt,acceptedAt:3,artifacts:refKind==='deliverable'?[{id:'artifact',kind:'deliverable',projectId:'p',attemptId:'a',producer:'Franky',sha256,recordedAt:2}]:[]});
- return snapshot({tasks:[t],missions:[m]});
+ const s=snapshot({epoch:'e',tasks:[t],missions:[m]});
+ s.resultStatuses={m:{key:require('../src/workContext.ts').resultStatusKey(s,m),state:'ready',status:{epoch:'e',missionId:'m',revision:m.revision,attemptId:'a',resultId:'result',producerTaskId:'root',ref,available:true,preview:text}}};
+ return s;
 }
 
 test('project context without a selection is idle even with newer active work and a saved workspace selection',()=>{
@@ -157,11 +159,20 @@ test('malformed, mismatched or unbound acceptance never yields accepted state or
  for(const mutate of mutations){const s=accepted();mutate(s.missions[0]);const p=project(s,context({missionId:'m'}));assert.notEqual(p.state,'accepted');assert.equal(p.working,false);assert.equal(p.acceptanceId,undefined);}
 });
 
-test('accepted result reference must remain uniquely available in its own task or artifact',()=>{
- for(const mutate of [s=>s.tasks[0].messages=[],s=>s.tasks[0].messages.push({...s.tasks[0].messages[0]}),s=>s.tasks[0].messages[0].role='user',s=>s.tasks[0].messages[0].text=' ',s=>s.tasks[0].external=true]){
+test('accepted result requires main-held unique available reply and current artifact status',()=>{
+ for(const unavailable of ['Reply removed','Duplicate reply IDs','Wrong reply role','Blank reply','Changed full reply hash']){
+  const s=accepted();s.resultStatuses.m.status={...s.resultStatuses.m.status,available:false,unavailable};const p=project(s,context({missionId:'m'}));assert.notEqual(p.state,'accepted');assert.equal(p.acceptanceId,undefined);
+ }
+ const external=accepted();external.tasks[0].external=true;assert.notEqual(project(external,context({missionId:'m'})).state,'accepted');
+ for(const change of [{projectId:'other'},{attemptId:'other'},{kind:'check'},{sha256:'c'.repeat(64)}]){const s=accepted('deliverable');Object.assign(s.missions[0].artifacts[0],change);assert.notEqual(project(s,context({missionId:'m'})).state,'accepted');}
+});
+test('unknown or stale main result status withholds accepted projection and cue despite saved receipt',()=>{
+ for(const mutate of [s=>delete s.resultStatuses,s=>s.resultStatuses.m.state='loading',s=>s.resultStatuses.m.state='error',s=>s.resultStatuses.m.status.epoch='old',s=>s.tasks[0].transcriptRevision++]){
   const s=accepted();mutate(s);const p=project(s,context({missionId:'m'}));assert.notEqual(p.state,'accepted');assert.equal(p.acceptanceId,undefined);
  }
- for(const change of [{projectId:'other'},{attemptId:'other'},{kind:'check'},{sha256:'c'.repeat(64)}]){const s=accepted('deliverable');Object.assign(s.missions[0].artifacts[0],change);assert.notEqual(project(s,context({missionId:'m'})).state,'accepted');}
+});
+test('pending acceptance receipt cannot retain previous available result or accepted cue',()=>{
+ const s=accepted();s.missions[0].acceptancePending=true;const p=project(s,context({missionId:'m'}));assert.notEqual(p.state,'accepted');assert.equal(p.acceptanceId,undefined);assert.match(p.label,/pending|recovery/i);
 });
 
 test('approval or uncertainty prevents even a saved receipt from showing accepted',()=>{

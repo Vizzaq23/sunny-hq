@@ -1,4 +1,5 @@
-import type {Mission,MissionAttempt,MissionResult,Snapshot,Task,WorkContext} from './shared';
+import type {Mission,MissionAttempt,MissionResult,Snapshot,TaskSummary as Task,WorkContext} from './shared';
+import {boundResultStatus} from './workContext.ts';
 
 export type MissionProjectionState='idle'|'starting'|'working'|'input'|'approval'|'waiting'|'unknown'|'failed'|'stopped'|'review'|'accepted';
 export type MissionStage='plan'|'work'|'validate'|'review';
@@ -11,6 +12,7 @@ export interface MissionProjection {
  label:string;
  working:boolean;
  acceptanceId?:string;
+ acceptanceCueEligible?:boolean;
  result?:MissionResult;
  stage?:MissionStage;
 }
@@ -34,7 +36,7 @@ function taskState(status:string):MissionProjectionState {
  return 'unknown';
 }
 
-function selectedResult(mission:Mission,attempt:MissionAttempt,members:Task[]):MissionResult|undefined {
+function selectedResult(snapshot:Snapshot,mission:Mission,attempt:MissionAttempt,members:Task[]):MissionResult|undefined {
  const result=mission.selectedResult;
  if(!result||!validId(result.id)||result.attemptId!==attempt.id||attempt.status!=='finished'||!Number.isFinite(result.selectedAt)||result.selectedAt<0||!memberIds(attempt).includes(result.producerTaskId)||!mission.taskIds.includes(result.producerTaskId))return;
  const producer=unique(members.filter(task=>task.id===result.producerTaskId));
@@ -43,15 +45,14 @@ function selectedResult(mission:Mission,attempt:MissionAttempt,members:Task[]):M
  if(!ref||typeof ref.sha256!=='string'||!/^[a-f0-9]{64}$/.test(ref.sha256))return;
  if(ref.kind==='reply'){
   if(ref.taskId!==producer.id||!validId(ref.messageId))return;
-  const message=unique((producer.messages??[]).filter(value=>value.id===ref.messageId));
-  if(!message||message.role!=='assistant'||typeof message.text!=='string'||!message.text.trim())return;
  }else if(ref.kind==='deliverable'){
   if(!validId(ref.artifactId))return;
   const artifact=unique((mission.artifacts??[]).filter(value=>value.id===ref.artifactId));
   if(!artifact||!['deliverable','image'].includes(artifact.kind)||artifact.attemptId!==attempt.id||artifact.projectId!==mission.projectId||artifact.sha256!==ref.sha256)return;
  }else return;
- // This projects the backend receipt. Fresh message/file hashing remains with the
- // existing result resolver and acceptance command, never with animation.
+ // Explicit main-held status verifies whole reply/file content. Missing pages cannot
+ // disprove a result, and renderer previews cannot prove one.
+ if(boundResultStatus(snapshot,mission)?.available!==true)return;
  return result;
 }
 
@@ -140,6 +141,7 @@ export function projectMission(snapshot:Snapshot,context:WorkContext):MissionPro
   if(requests.some(value=>value.method!=='item/tool/requestUserInput')||members.some(value=>value.status==='awaiting-approval'))return show('approval');
   if(requests.length)return show('input');
   const current=mission.activeAttemptId===attempt.id;
+  if(current&&mission.acceptancePending)return show('unknown','Acceptance pending storage recovery');
   if(missingStageResult)return unavailable('Stage result');
   if(attempt.status==='unknown'||members.some(value=>taskState(value.status)==='unknown')||current&&mission.connection==='reconciling')return show('unknown');
   if(current&&(mission.mergeRequest?.attemptId===attempt.id&&['uncertain','submitting'].includes(mission.mergeRequest.state)||mission.prPublication?.attemptId===attempt.id&&mission.prPublication.state==='uncertain'))return show('unknown');
@@ -148,9 +150,9 @@ export function projectMission(snapshot:Snapshot,context:WorkContext):MissionPro
   if(current&&mission.status==='BLOCKED')return show('waiting','Blocked; inspect saved work');
   if(attempt.status==='failed'||members.some(value=>value.status==='failed')||current&&mission.status==='FAILED')return show('failed');
   if(attempt.status==='interrupted'||members.some(value=>value.status==='interrupted')||current&&mission.status==='CANCELLED')return show('stopped');
-  const result=selectedResult(mission,attempt,members);
+  const result=selectedResult(snapshot,mission,attempt,members);
   const receiptId=acceptanceId(mission,attempt,result);
-  if(receiptId)return {...show('accepted'),acceptanceId:receiptId,result};
+  if(receiptId)return {...show('accepted'),acceptanceId:receiptId,acceptanceCueEligible:snapshot.liveAcceptanceIds?.includes(receiptId)===true,result};
   if(current&&mission.status==='COMPLETE')return show('review',mission.acceptance?.legacy===true?'Historical completion; result unavailable':'Acceptance unavailable; inspect saved result');
   if(attempt.status==='finished'||current&&mission.status==='WAITING_FOR_REVIEW')return {...show('review'),...(result?{result}:{})};
   if(coordinatorPending)return show('waiting','Waiting for coordinator result');

@@ -64,6 +64,6 @@ export function frankyFoot(progress:number){
  return FRANKY_ROOM_GEOMETRY.bench;
 }
 export async function claimLiveAcceptanceCue(previous:MissionProjection|undefined,current:MissionProjection,claim:()=>Promise<boolean>,reducedMotion=false){
- if(reducedMotion||!previous||current.state!=='accepted'||!current.acceptanceId||!current.result||previous.missionId!==current.missionId||previous.attemptId!==current.attemptId||previous.acceptanceId===current.acceptanceId)return false;
+ if(reducedMotion||!previous||current.state!=='accepted'||current.acceptanceCueEligible!==true||!current.acceptanceId||!current.result||previous.missionId!==current.missionId||previous.attemptId!==current.attemptId||previous.acceptanceId===current.acceptanceId)return false;
  return claim();
 }

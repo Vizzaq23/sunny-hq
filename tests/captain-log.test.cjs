@@ -5,7 +5,18 @@ test('CaptainLog renders actual stage owner and distinct review history with dir
  const {CaptainLog}=loadComponent('CaptainLog');assert.equal(typeof CaptainLog,'function');
  const React=require('react');const {renderToStaticMarkup}=require('react-dom/server');
  const mission={id:'m',title:'Build a real result',objective:'Keep the brief',projectId:'p',status:'WAITING_FOR_REVIEW',activeAttemptId:'a',attempts:[{id:'a',taskIds:['t'],workflow:{stages:[{id:'review',status:'working',taskId:'t'}]}}],acceptanceCriteria:['Visible file'],events:[],taskIds:['t'],updatedAt:2};
- const snapshot={projects:[{id:'p',name:'Exact project'}],missions:[mission],tasks:[{id:'t',title:'Inspect work',crewId:'zoro',projectId:'p',status:'working',messages:[],updatedAt:1}],workspace:{drafts:[]}};
+ const snapshot={projects:[{id:'p',name:'Exact project'}],missions:[mission],tasks:[{id:'t',title:'Inspect work',crewId:'zoro',projectId:'p',status:'working',transcriptRevision:1,messageCount:0,updatedAt:1}],workspace:{drafts:[]}};
  const html=renderToStaticMarkup(React.createElement(CaptainLog,{snapshot,context:{projectId:'p',missionId:'m',attemptId:'a',surface:'deck',returnTo:{view:'ship'}},onContext(){},onOpenResult(){},onRequestChanges(){},invoke:async()=>{}}));
  assert.match(html,/Build a real result/);assert.match(html,/Exact project/);assert.match(html,/Visible file/);assert.match(html,/zoro/i);assert.match(html,/data-phase="review"/);assert.match(html,/captain-review-mission/);
+});
+test('CaptainLog withholds accepted labels until exact main-held result status verifies the receipt',()=>{
+ const {CaptainLog}=loadComponent('CaptainLog'),React=require('react'),{renderToStaticMarkup}=require('react-dom/server'),{resultStatusKey}=require('../src/workContext.ts');
+ const ref={kind:'reply',taskId:'t',messageId:'reply',sha256:'a'.repeat(64)},result={id:'r',attemptId:'a',producerTaskId:'t',ref,selectedAt:2};
+ const mission={id:'m',title:'Saved result',objective:'Review it',projectId:'p',revision:4,status:'COMPLETE',connection:'connected',activeAttemptId:'a',attempts:[{id:'a',status:'finished',taskId:'t',taskIds:['t']}],acceptanceCriteria:['Exact criterion'],events:[],artifacts:[],taskIds:['t'],selectedResult:result,acceptance:{id:'receipt',actor:'captain',attemptId:'a',reviewedRevision:3,resultId:'r',resultSha256:ref.sha256,criteria:[true],acceptedAt:3},updatedAt:3};
+ const snapshot={epoch:'e',projects:[{id:'p',name:'Project'}],approvals:[],missions:[mission],tasks:[{id:'t',title:'Result',crewId:'robin',projectId:'p',status:'finished',transcriptRevision:1,messageCount:1,updatedAt:2}],workspace:{drafts:[]}};
+ const props={snapshot,context:{projectId:'p',missionId:'m',attemptId:'a',surface:'deck',returnTo:{view:'ship'}},onContext(){},onOpenResult(){},onRequestChanges(){},invoke:async()=>{}};
+ const render=()=>renderToStaticMarkup(React.createElement(CaptainLog,props));let html=render();assert.match(html,/Verifying selected result/);assert.doesNotMatch(html,/Captain accepted the bound result|data-phase="accepted"/);
+ snapshot.resultStatuses={m:{key:resultStatusKey(snapshot,mission),state:'ready',status:{epoch:'e',missionId:'m',revision:4,attemptId:'a',resultId:'r',producerTaskId:'t',ref,available:false,unavailable:'Selected reply changed'}}};
+ html=render();assert.match(html,/Selected reply changed/);assert.doesNotMatch(html,/Captain accepted the bound result|data-phase="accepted"/);
+ snapshot.resultStatuses.m.status={...snapshot.resultStatuses.m.status,available:true,preview:'Verified bounded preview'};html=render();assert.match(html,/Captain accepted the bound result/);assert.match(html,/Verified bounded preview/);assert.match(html,/data-phase="accepted"/);
 });

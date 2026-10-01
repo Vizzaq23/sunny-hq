@@ -1,0 +1,173 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-01T05:19:00Z",
+  "status": "partial-not-ready-for-promotion",
+  "candidate": {
+    "branch": "codex/sunny-experience-repairs-20260930",
+    "validatedProductSourceCommit": "f8681ea8d80527eb937b76ae3bb1b7b5e6c920b1",
+    "buildId": "493d8e43e75f9e637dab1b2666f3e9a939f9a634383151f1141b9ef3ce6f08c0",
+    "appVersion": "0.11.0",
+    "electronVersion": "44.4.3",
+    "electronExecutableSha256": "BF0FE749904CA9F713CCFB2427C519FA39D0BBD0337BA411BA08785802E8D548",
+    "nativeHarnessSha256": "F4ADBDBAC91F92DA9C426731C8F43211D6B8C15FF37CDAECF95F03770A9A9DF0",
+    "archiveSha256": null,
+    "packaged": false,
+    "installedAppReplaced": false,
+    "published": false
+  },
+  "gates": {
+    "fullTests": {
+      "passed": 527,
+      "failed": 0,
+      "skipped": 0,
+      "log": "../sunny-session-20261001/integrated-tests-ship-final.log"
+    },
+    "typecheckAndBuild": {
+      "status": "pass",
+      "log": "../sunny-session-20261001/candidate-build-ship-final-elevated.log",
+      "sandboxAttempt": "access denied before Vite configuration load; preserved separately"
+    },
+    "existingNativeWorkflow": {
+      "passed": 31,
+      "failed": 0,
+      "syntheticTransport": true,
+      "raw": ".sunny-dev/workflow-check/2026-10-01T04-37-02.513Z/result.json",
+      "finalRendererRerun": false
+    },
+    "roomAndJourney": {
+      "passed": 55,
+      "failed": 1,
+      "aggregateStatus": "fail",
+      "syntheticTransport": true,
+      "screenshots": 43,
+      "unexpectedErrors": 0,
+      "maxMainLoopStallMs": 100.7379,
+      "limitMs": 100,
+      "ackP95Ms": 10.4,
+      "raw": ".sunny-dev/mission-deck-check/2026-10-01T04-38-45-741Z/result.json",
+      "finalRendererRerun": false
+    },
+    "longGoalPresentation": {
+      "passed": 8,
+      "failed": 0,
+      "syntheticTransport": true,
+      "raw": "../sunny-session-20261001/long-goal-native-2026-10-01T04-58-38-017Z/result.json"
+    },
+    "shipContainment": {
+      "passed": 18,
+      "failed": 0,
+      "syntheticTransport": true,
+      "raw": "../sunny-session-20261001/ship-containment-native-2026-10-01T05-10-46-352Z/result.json",
+      "buildId": "493d8e43e75f9e637dab1b2666f3e9a939f9a634383151f1141b9ef3ce6f08c0",
+      "preCommitMetadata": {
+        "sourceCommit": "4f91be6ddffe60caef3e11cefb331a5345eb1f93",
+        "sourceDirty": true
+      },
+      "afterCommitRendererInputFingerprintUnchanged": true
+    },
+    "finalVisualCapture": {
+      "status": "inspected",
+      "captureOnly": true,
+      "screenshots": 6,
+      "raw": "../sunny-session-20261001/ship-containment-capture-2026-10-01T05-12-28-901Z/result.json",
+      "enlargedTextRequiresVerticalScroll": true
+    },
+    "profileRestart": {
+      "status": "pass-bounded-backend-slice",
+      "checks": 74,
+      "freshNodeProcesses": 14,
+      "providerDispatch": 0,
+      "backends": [
+        "JSON",
+        "SQLite"
+      ],
+      "raw": "../sunny-session-20261001/profile-restart-2026-10-01T04-07-36-116Z/profile-restart-evidence.json",
+      "provesElectronMainRestart": false,
+      "provesLiveProviderRecovery": false,
+      "provesOutstandingWalRestore": false
+    },
+    "rendererRecovery": {
+      "status": "functional-pass-fixture-incomplete",
+      "forcedOwnedRendererCrash": true,
+      "recordedReason": "crashed",
+      "recordedExitCode": 2,
+      "reloadPreservedMissionDraftContext": true,
+      "providerDispatch": 0,
+      "finalScreenshot": "failed: Current display surface not available",
+      "raw": "../sunny-session-20261001/renderer-crash-2026-10-01T04-40-48-737Z/result.json"
+    },
+    "instrumentedSmallRun": {
+      "passed": 56,
+      "failed": 0,
+      "maxMainLoopStallMs": 92.1553,
+      "ackP95Ms": 10.1,
+      "raw": "../sunny-session-20261001/performance-spans/runs/2026-10-01T04-51-19-538Z",
+      "clearsPriorFailures": false,
+      "exactNativeCaptureCauseProven": false
+    }
+  },
+  "actualProvider": {
+    "provider": "codex_work_desktop/0.159.0",
+    "frozenBuildId": "93795916337b00084c12e92eea154d54204cfc35ee4bd0f20feb5c2bf4a988d1",
+    "sourceCommit": "e21a460bd192932ed7f414becc9d880ffa95845d",
+    "syntheticTransport": false,
+    "raw": "../sunny-session-20261001/real-use-terminal-results.json",
+    "projects": [
+      {
+        "name": "Trading",
+        "missionId": "8dde45d3-ee81-4bd1-bcb9-068287ee3b6d",
+        "changedFiles": [
+          "README.md"
+        ],
+        "commit": "1422f15a81dfbdfc3f43d3980ed7e1927977a421",
+        "focusedTestsPassed": 3,
+        "fullSuiteRun": false,
+        "captainAccepted": false,
+        "noRemote": true,
+        "sourceBoundEvidenceRequiresRecollection": true
+      },
+      {
+        "name": "MLB",
+        "missionId": "22da1478-6edd-473d-9d0c-ff24e22f330a",
+        "successfulReworkAttempt": "488cfd6d-8dcf-4342-a6c3-9d489d345511",
+        "firstAttemptMetObjective": false,
+        "changedFiles": [
+          "slate-cli.js",
+          "slate.test.js"
+        ],
+        "commit": "e7a6f1ea86591b2891759b06545dbefe33695e35",
+        "focusedTestsPassed": 11,
+        "fullTestsPassed": 70,
+        "captainAccepted": false,
+        "noRemote": true,
+        "sourceBoundEvidenceRequiresRecollection": true
+      }
+    ]
+  },
+  "blockers": [
+    "Strict 100 ms native main-loop gate failed; later instrumented pass does not erase it.",
+    "30 MiB SQLite persistence p95 223.02 ms (write-only 167.02 ms); separate 52,205,019-byte snapshot ack p95 207.63 ms remain unresolved.",
+    "Actual user's intermittent crash cause not established.",
+    "Packaging/promotion withheld under approved Task 6 load gate.",
+    "Real project results await refreshed source-bound evidence and explicit captain acceptance.",
+    "Broader visual A/B direction remains undecided."
+  ],
+  "protection": {
+    "sourceSunnyCommit": "5c8c6cb99943d0be58873c353dacd7937fc504e7",
+    "installedAsarSha256": "E70B60892095E41E03AE851D893F7BE8A84BDE7725E004E68CC63C4083866819",
+    "sourceTradingCommit": "a268650b7fed12c039579ee7c47b14773f0f82c8",
+    "sourceMlbCommit": "1115869cc7de5e0c03e34f925c82c910bd22d48a",
+    "allFiveRepositoriesClean": true,
+    "ownedSessionProcessesAt051540": 0,
+    "raw": "../sunny-session-20261001/final-protection-audit.json"
+  },
+  "library": {
+    "reportId": "libfile_2e2b4dd9af8481918de7bf792f2f7dc5",
+    "reportVersion": 1,
+    "correctedDeckId": "libfile_016a3083eb2c8191a32423ca8955ffa8",
+    "missionBoardLogId": "libfile_edee4e3520448191ba2dd036c2ededed",
+    "enlargedDeckId": "libfile_60789fc20e948191b22f7fd31c85e801",
+    "nativeFallbackConfirmed": true,
+    "windowsXattrsUnsupported": true
+  }
+}

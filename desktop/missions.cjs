@@ -16,6 +16,11 @@ class MissionBook {
    if(!mission.id||!Array.isArray(mission.attempts)||!Array.isArray(mission.events)||!Array.isArray(mission.acceptanceCriteria)||!Number.isInteger(mission.revision))throw Error('Invalid saved mission data. Restore a verified backup.');
    const check=mission.checkExecution;if(check&&(typeof check.id!=='string'||!check.id||!['test','build','typecheck','lint'].includes(check.script)||!Number.isFinite(check.startedAt)||!mission.attempts.some(a=>a.id===check.attemptId)))throw Error('Invalid saved check reservation. Preserve the profile for recovery.');
    if(mission.seenEventIds!==undefined&&(!Array.isArray(mission.seenEventIds)||mission.seenEventIds.length>500||mission.seenEventIds.some(id=>typeof id!=='string'||!mission.events.some(event=>event.id===id))))throw Error('Invalid saved signal receipts.');
+   if(mission.pendingAcceptance!==undefined){
+    const intent=mission.pendingAcceptance,selected=mission.selectedResult,fields=['id','attemptId','reviewedRevision','resultId','resultSha256','producerTaskId','ref','criteria','createdAt'];
+    if(!intent||typeof intent!=='object'||Array.isArray(intent)||Object.keys(intent).length!==fields.length||Object.keys(intent).some(key=>!fields.includes(key))||typeof intent.id!=='string'||!intent.id||intent.id.length>200||mission.status!=='WAITING_FOR_REVIEW'||mission.acceptance!==undefined||!selected||intent.attemptId!==mission.activeAttemptId||intent.resultId!==selected.id||intent.resultSha256!==selected.ref.sha256||intent.producerTaskId!==selected.producerTaskId||!Number.isSafeInteger(intent.reviewedRevision)||intent.reviewedRevision<0||intent.reviewedRevision>mission.revision||!Number.isFinite(intent.createdAt)||intent.createdAt<0||!Array.isArray(intent.criteria)||intent.criteria.length!==mission.acceptanceCriteria.length||!intent.criteria.every(value=>value===true))throw Error('Invalid saved pending acceptance intent. Preserve the profile for recovery.');
+    const ref=require('./mission-results.cjs').validateMissionResultRef(intent.ref);if(JSON.stringify(ref)!==JSON.stringify(require('./mission-results.cjs').validateMissionResultRef(selected.ref)))throw Error('Invalid saved pending acceptance result binding.');
+   }
   }
  }
  get(id){const mission=this.data.missions.find(m=>m.id===id);if(!mission)throw Error('Mission not found.');return mission;}
@@ -58,6 +63,7 @@ class MissionBook {
   if(requestedChanges!==undefined){if(typeof requestedChanges!=='string'||!requestedChanges.trim()||requestedChanges.length>50000||requestedChanges.includes('\0'))throw Error('Provide nonempty bounded captain requested changes.');if(mission.status!=='WAITING_FOR_REVIEW')throw Error('Captain rework changes require a mission waiting for review.');}
   if(!['DRAFT','FAILED','CANCELLED','WAITING_FOR_REVIEW','BLOCKED'].includes(mission.status))throw Error('Mission is running, active, or already complete.');
   if(mission.checkExecution)throw Error('Reconcile the unresolved project check before retrying.');
+  if(mission.pendingAcceptance)throw Error('Reconcile the unresolved acceptance before retrying.');
   const prior=mission.attempts.at(-1);
   if(prior&&!TERMINAL.has(prior.status))throw Error('Reconcile the active attempt before retrying.');
   if(['submitting','uncertain'].includes(mission.mergeRequest?.state))throw Error('Reconcile the merge request before retrying.');

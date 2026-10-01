@@ -114,7 +114,7 @@ async function handle(action,args={},surface='hub'){
  case 'terminal:close':{terminals.get(args.id)?.kill();terminals.delete(args.id);return;}
  case 'tools:refresh':return hub.refreshTools();
  case 'tools:open':{const tool=hub.state.tools.find(t=>t.id===args.toolId);if(!tool)throw Error('Tool not found');if(tool.url)return openUrl(tool.url);if(tool.path){if(args.projectId&&/cursor/i.test(tool.name)){const project=registered(args.projectId);return shell.openExternal('cursor://file/'+project.path.replace(/\\/g,'/'));}const err=await shell.openPath(tool.path);if(err)throw Error(err);return;}throw Error(tool.status==='available in Codex'?'This connection is available inside crew conversations. Mention its name in your task.':'This tool needs setup in its original application.');}
- case 'tools:call':{const t=hub.task(args.taskId);if(!t.threadId)throw Error('Start a task first');return hub.client.request('mcpServer/tool/call',{threadId:t.threadId,server:textArg(args.server,'server',100),name:textArg(args.name,'tool name',200),arguments:args.arguments||{}});}
+ case 'tools:call':return hub.callTool({taskId:args.taskId,server:textArg(args.server,'server',100),name:textArg(args.name,'tool name',200),arguments:args.arguments||{}});
  case 'library:search':return catalog.searchLibrary(home,typeof args.query==='string'?args.query:'');
  case 'library:read':{const {vault,file}=libraryFile(args.path);return readText(vault,file);}
  case 'library:write':{const {vault,file}=libraryFile(args.path);return writeText(vault,file,args.text,args.hash);}

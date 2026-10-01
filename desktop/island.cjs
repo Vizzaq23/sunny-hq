@@ -3,7 +3,7 @@ const residents=require('./island-residents.json');
 const core=['luffy','zoro','nami','usopp','sanji','chopper','robin','franky','brook','jinbe'];
 const districts=['harbor','research','engineering','creative','market','garden'];
 const active=t=>['working','waiting','starting','unknown'].includes(t?.status);
-function initialWorld(saved={}){return {version:1,paused:true,maxConcurrentJobs:Number.isInteger(saved.maxConcurrentJobs)&&saved.maxConcurrentJobs>=1&&saved.maxConcurrentJobs<=3?saved.maxConcurrentJobs:1,residents:residents.map(r=>({...r,recruited:false,...(saved.residents||[]).find(x=>x.id===r.id),id:r.id})),jobs:(saved.jobs||[]).map(j=>({...j,status:['running','stopping'].includes(j.status)?'blocked':j.status,error:['running','stopping'].includes(j.status)?'App restarted. Reconcile the previous mission before running again.':j.error})),ledger:saved.ledger||[]};}
+function initialWorld(saved={}){return {...saved,version:1,paused:true,maxConcurrentJobs:Number.isInteger(saved.maxConcurrentJobs)&&saved.maxConcurrentJobs>=1&&saved.maxConcurrentJobs<=3?saved.maxConcurrentJobs:1,residents:residents.map(r=>({...r,recruited:false,...(saved.residents||[]).find(x=>x.id===r.id),id:r.id})),jobs:(saved.jobs||[]).map(j=>({...j,status:['running','stopping'].includes(j.status)?'blocked':j.status,error:['running','stopping'].includes(j.status)?'App restarted. Reconcile the previous mission before running again.':j.error})),ledger:saved.ledger||[]};}
 function bounded(value,min,max,label){if(!Number.isInteger(value)||value<min||value>max)throw Error(`${label} must be ${min}–${max}.`);return value;}
 class Island{
  constructor(hub,now=()=>Date.now()){this.hub=hub;this.now=now;this.launching=false;this.ticking=false;this.closed=false;this.timer=setInterval(()=>void this.tick().catch(e=>{this.hub.state.world.error=e.message;this.hub.changed();}),15000);this.timer.unref?.();}
@@ -26,8 +26,8 @@ class Island{
   catch(e){j.status='blocked';j.enabled=false;j.error=e.message;j.runs.at(-1).status='blocked';throw e;}
   finally{this.launching=false;this.hub.changed();}
  }
- async stop(id,reason='Paused by you.'){const j=this.job(id);j.cancelRequested=true;j.enabled=false;j.status='stopping';this.hub.changed();try{const task=this.hub.state.tasks.find(t=>t.id===j.activeTaskId);if(task&&active(task))await this.hub.interrupt(task.id);j.error=reason;}catch(e){j.error='Stop needs attention: '+e.message;}finally{j.status='blocked';if(j.runs.length)j.runs.at(-1).status='stopped';this.hub.changed();}}
- async setPaused(paused){if(typeof paused!=='boolean')throw Error('Choose paused or running.');this.data.paused=paused;this.hub.changed();if(paused)for(const j of this.data.jobs.filter(j=>['running','stopping'].includes(j.status)))await this.stop(j.id);}
+ async stop(id,reason='Paused by you.'){const j=this.job(id);j.cancelRequested=true;j.enabled=false;j.status='stopping';this.hub.changed();try{const task=this.hub.state.tasks.find(t=>t.id===j.activeTaskId);if(task&&active(task))await this.hub.interrupt(task.id);j.error=reason;}catch(e){j.error='Stop needs attention: '+e.message;}finally{j.status='blocked';if(j.runs.length)j.runs.at(-1).status='stopped';this.hub.changed();await this.hub.persist('reservation-release');}}
+ async setPaused(paused){if(typeof paused!=='boolean')throw Error('Choose paused or running.');this.data.paused=paused;this.hub.changed();if(paused)for(const j of this.data.jobs.filter(j=>['running','stopping'].includes(j.status)))await this.stop(j.id);await this.hub.persist('mission');}
  async tick(){
   if(this.closed||this.ticking)return;this.ticking=true;
   try{
@@ -35,10 +35,11 @@ class Island{
     const task=this.hub.state.tasks.find(t=>t.id===j.activeTaskId);
     // Reconcile terminal results before applying limits to still-running work.
     if(task&&!active(task)){
+     await this.hub.taskDurable(task);
      j.status=task.status==='finished'?(j.requiresReview?'review':j.enabled?'ready':'paused'):'blocked';
      if(task.status!=='finished')j.enabled=false;
      j.error=task.error;if(j.runs.length)j.runs.at(-1).status=task.status;
-     j.nextAt=j.enabled&&j.status==='ready'?this.now()+j.intervalMinutes*60000:null;this.hub.changed();continue;
+     j.nextAt=j.enabled&&j.status==='ready'?this.now()+j.intervalMinutes*60000:null;this.hub.changed();await this.hub.persist('reservation-release');continue;
     }
     if(task?.status==='unknown'){j.status='blocked';j.enabled=false;j.error='Mission status is uncertain. Reconcile it before continuing.';this.hub.changed();continue;}
     if(this.now()-j.startedAt>=j.maxRunMinutes*60000){await this.stop(j.id,'Run time limit reached.');continue;}

@@ -86,7 +86,7 @@ test('result commands cannot smuggle provider authority or release an uncertain 
 });
 test('a historical result cannot authorize a later rework attempt',async t=>{
  const {hub}=setup(t),mission=await hub.createMission(brief),task=await finishedReply(hub,mission);await selectReply(hub,mission,task);const old=acceptanceInput(mission),oldResult=structuredClone(mission.selectedResult),oldArtifacts=structuredClone(mission.artifacts);
- await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder',requestedChanges:' Preserve all saved items. '});const nextTask=hub.task(mission.attempts.at(-1).taskId);nextTask.status='finished';hub.gate.release(nextTask.id);hub.changed();await hub.persist();
+ await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder',requestedChanges:' Preserve all saved items. '});const nextTask=hub.task(mission.attempts.at(-1).taskId);nextTask.status='finished';hub.gate.release(nextTask.id);hub.changed();await hub.persist();await hub.awaitMissionSync();
  await assert.rejects(hub.acceptMission({...old,revision:mission.revision}),/result|selected/i);await assert.rejects(hub.selectMissionResult({missionId:mission.id,revision:mission.revision,ref:oldResult.ref}),/attempt|member/i);assert.deepEqual(mission.artifacts,oldArtifacts);assert.equal(mission.attempts.at(-1).requestedChanges,' Preserve all saved items. ');assert.equal(mission.status,'WAITING_FOR_REVIEW');
 });
 

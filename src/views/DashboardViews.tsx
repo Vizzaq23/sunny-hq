@@ -1,6 +1,6 @@
 import {useEffect,useState} from 'react';
 import {ArrowRight,BookOpen,Box,BriefcaseBusiness,Braces,ChevronRight,Clock3,FolderPlus,History,Layers3,Plus,Search,Send,ShipWheel,Sparkles,Target,Users,X} from 'lucide-react';
-import type {CrewId,Project,Snapshot,Task} from '../shared';
+import type {CrewId,Project,Snapshot,Task,WorkContext} from '../shared';
 import {ALL_CREW,CREW,CREW_BY_ID,MISSIONS,shortPath} from '../data';
 import {CrewBadge,EmptyState,TaskRow} from '../components/Chrome';
 import {useCrewTexture} from '../crewTexture';
@@ -8,14 +8,14 @@ import {ACTIONS,useCrewLife} from '../crewLife';
 import {CrewJournal} from '../components/CrewJournal';
 import {CrewAssignments} from '../components/CrewAssignments';
 import {DeckCrew} from '../components/DeckCrew';
-import {useDeckMotion,crewStatus} from '../useDeckMotion';
+import {useDeckMotion,crewStatus,crewProjection} from '../useDeckMotion';
 import {taskIsBusy,taskNeedsAttention} from '../taskFlow';
 
 type OpenWorkspace=(options:{taskId?:string;projectId?:string;crewId?:CrewId;prompt?:string})=>void;
 type Invoke=<T=unknown>(action:string,args?:unknown)=>Promise<T>;
 const CREW_GREETINGS:Record<CrewId,string>={luffy:'Hey! What adventure are we starting?',zoro:'Point me at the part that needs cutting.',nami:'Tell me the destination. I’ll chart the route.',usopp:'I’ve got a bold idea—and a backup plan.',sanji:'Give me the brief. I’ll make it sing.',chopper:'Something broken? Let’s figure it out together.',robin:'There is always more context. Let’s find it.',franky:'Ready to build something super useful?',brook:'Shall we give this idea a little soul?',jinbe:'Let’s choose the calm, decisive course.'};
 
-export function ShipView({snapshot,onWorkspace,onNavigate,onImport,compact=false,invoke=async(action,args)=>{if(!window.sunny)throw new Error('Desktop app required');return window.sunny.invoke(action,args);},toast=()=>{}}:{compact?:boolean;snapshot:Snapshot;onWorkspace:OpenWorkspace;onNavigate:(v:any)=>void;onImport:()=>void;invoke?:Invoke;toast?:(message:string,tone?:'default'|'success'|'error')=>void}){
+export function ShipView({snapshot,context=snapshot.workspace?.context,onWorkspace,onNavigate,onImport,compact=false,invoke=async(action,args)=>{if(!window.sunny)throw new Error('Desktop app required');return window.sunny.invoke(action,args);},toast=()=>{}}:{compact?:boolean;context?:WorkContext|null;snapshot:Snapshot;onWorkspace:OpenWorkspace;onNavigate:(v:any)=>void;onImport:()=>void;invoke?:Invoke;toast?:(message:string,tone?:'default'|'success'|'error')=>void}){
   const [paused,setPaused]=useState(false),[journal,setJournal]=useState<CrewId|null>(null);
   const life=useCrewLife(snapshot.tasks,paused||snapshot.settings.reducedMotion);
   const actionsTexture=useCrewTexture(new URL(`${import.meta.env.BASE_URL}assets/crew-actions.png`,window.location.href).href,'actions');
@@ -26,7 +26,7 @@ export function ShipView({snapshot,onWorkspace,onNavigate,onImport,compact=false
   const active=snapshot.tasks.filter(t=>['working','in-progress','running'].includes(t.status));
   const recent=[...snapshot.tasks].sort((a,b)=>b.updatedAt-a.updatedAt).slice(0,4);
   const [selectedCrew,setSelectedCrew]=useState<CrewId|null>(null),[dialogProject,setDialogProject]=useState(snapshot.projects[0]?.id??''),[dialogText,setDialogText]=useState(''),[sending,setSending]=useState(false),[localTaskId,setLocalTaskId]=useState<string>();
-  const walkers=useDeckMotion(snapshot,life.moment,paused,selectedCrew,hoveredCrew);
+  const walkers=useDeckMotion(snapshot,life.moment,paused,selectedCrew,hoveredCrew,context);
   const spriteUrl=new URL(`${import.meta.env.BASE_URL}assets/crew-deck-sprites.png`,window.location.href).href;
   const chopperPetUrl=new URL(`${import.meta.env.BASE_URL}assets/chopper-pet.webp`,window.location.href).href;
   const crewTexture=useCrewTexture(spriteUrl);
@@ -46,10 +46,10 @@ export function ShipView({snapshot,onWorkspace,onNavigate,onImport,compact=false
       <div className="ship-art"><img src={compact?(shipTexture??undefined):new URL(`${import.meta.env.BASE_URL}assets/ship-deck.png`,window.location.href).href} onError={event=>{if(compact)return;const fallback=new URL(`${import.meta.env.BASE_URL}assets/thousand-sunny.png`,window.location.href).href;if(event.currentTarget.src!==fallback)event.currentTarget.src=fallback;}} alt="The open deck of the Thousand Sunny"/><div className="ship-fallback"><ShipWheel/><span>Thousand Sunny</span></div></div>
       <div className="ocean-lines"/>
       <div className={`crew-deck ${selectedCrew?'has-dialog':''}`}>
-        {CREW.map((crew,index)=><DeckCrew key={crew.id} crew={crew} index={index} walker={walkers[index]} state={crewStatus(snapshot,crew.id)} selected={selectedCrew===crew.id} moment={life.moment} line={life.line} textures={{walk:walkTexture,pet:petTexture,actions:actionsTexture,fallback:crewTexture,chopper:chopperPetUrl}} onSelect={()=>selectCrew(crew.id)} onHover={value=>setHoveredCrew(value?crew.id:null)}/>)} 
+        {CREW.map((crew,index)=><DeckCrew key={crew.id} crew={crew} index={index} walker={walkers[index]} state={crewStatus(snapshot,crew.id,context)} projection={crewProjection(snapshot,crew.id,context)} selected={selectedCrew===crew.id} moment={life.moment} line={life.line} textures={{walk:walkTexture,pet:petTexture,actions:actionsTexture,fallback:crewTexture,chopper:chopperPetUrl}} onSelect={()=>selectCrew(crew.id)} onHover={value=>setHoveredCrew(value?crew.id:null)}/>)}
       </div>
       <div className="crew-life-controls" data-interactive="true"><button onClick={()=>{setPaused(p=>!p);life.stop();}} aria-pressed={paused}>{paused?'▶ Crew life':'Ⅱ Pause crew'}</button><select aria-label="Play a crew animation" defaultValue="" onChange={event=>{if(event.target.value){setPaused(false);life.play(event.target.value as CrewId|'rivalry');event.target.value='';}}}><option value="">Crew actions…</option><option value="rivalry">Sanji × Zoro</option>{Object.entries(ACTIONS).map(([id,action])=><option key={id} value={id}>{CREW_BY_ID.get(id as CrewId)?.name} · {action?.label}</option>)}</select></div>
-      {life.moment?<div className="crew-scene-caption" aria-live="polite">{life.moment.real?'Crew discussion':'Crew banter'} · {life.moment.title}</div>:null}
+      {life.moment?<div className="crew-scene-caption" aria-live="polite">{life.moment.real?'Crew discussion':'Ambient entertainment'} · {life.moment.title}</div>:null}
       {selected?<section className="deck-dialog"><header><CrewBadge crew={selected}/><div><span className="eyebrow">{selected.station}</span><h3>{selected.name}</h3><p>{selected.role}</p></div><button onClick={()=>setSelectedCrew(null)} aria-label="Close conversation"><X/></button></header><div className="dialogue-scroll"><button className="character-action journal-open" onClick={()=>setJournal(selected.id)}>✧ Memories & relationships · {snapshot.growth?.profiles[selected.id]?.xp??0} XP</button>{ACTIONS[selected.id]?<button className="character-action" onClick={()=>{setPaused(false);life.play(selected.id);}}>✦ {ACTIONS[selected.id]!.label}</button>:null}<p className="character-greeting">“{CREW_GREETINGS[selected.id]}”</p>{latest?<article className="live-mission"><span className={`task-state ${latest.status}`}/><div><b>{latest.title}</b><small>{latest.status.replaceAll('-',' ')} · {snapshot.projects.find(project=>project.id===latest.projectId)?.name??'Project'}</small>{latestAssistant?<p>{latestAssistant.text}</p>:null}</div></article>:<p className="no-crew-task">No mission with {selected.name} in this project yet. Your next message will start one.</p>}{latest?<CrewAssignments task={latest} tasks={snapshot.tasks} onOpen={id=>onWorkspace({taskId:id})}/>:null}</div><label className="deck-project"><span>Working in</span><select value={dialogProject} onChange={event=>{setDialogProject(event.target.value);setLocalTaskId(undefined);}}><option value="">Choose a project…</option>{snapshot.projects.map(project=><option value={project.id} key={project.id}>{project.name}</option>)}</select></label><div className="deck-composer"><textarea value={dialogText} disabled={taskBusy} onChange={event=>setDialogText(event.target.value)} onKeyDown={event=>{if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();void speak();}}} placeholder={taskBusy?`${selected.name} is busy—open the workspace to follow along.`:`Message ${selected.name}…`}/><button disabled={!dialogText.trim()||!dialogProject||sending||taskBusy} onClick={()=>void speak()}><Send/></button></div><button className="open-workspace" onClick={()=>onWorkspace(latest?{taskId:latest.id,prompt:dialogText}:{projectId:dialogProject,crewId:selected.id,prompt:dialogText})}>{taskBusy?'Follow in full workspace':'Open full workspace'} <ArrowRight/></button></section>:null}
       <div className="board-stat"><span>{snapshot.projects.length}</span><small>projects aboard</small><i/><span>{active.length}</span><small>missions underway</small></div>
     </section>

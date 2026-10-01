@@ -15,7 +15,7 @@ export const SCENES:Omit<Moment,'id'>[]=[
 ];
 export function useCrewLife(tasks:Task[],paused:boolean){
  const [moment,setMoment]=useState<Moment|null>(null),[beat,setBeat]=useState(0);
- const serial=useRef(0),scene=useRef(0),lastStatuses=useRef(new Map<string,string>());
+ const serial=useRef(0),scene=useRef(0);
  useEffect(()=>window.sunny?.subscribe(event=>{if(event.type==='crew:line'){setBeat(0);setMoment({id:++serial.current,real:true,cast:[event.data.crewId],lines:[{crew:event.data.crewId,text:event.data.text.slice(0,180)+(event.data.text.length>180?'…':'')}],title:'From the crew lounge'});}}),[]);
  const play=(id:CrewId|'rivalry')=>{
   const chosen=id==='rivalry'?SCENES[0]:SCENES.find(s=>s.cast[0]===id&&s.cast.length===1)??SCENES.find(s=>s.cast[0]===id)??SCENES.find(s=>s.cast.includes(id))!;
@@ -32,9 +32,5 @@ export function useCrewLife(tasks:Task[],paused:boolean){
   const end=window.setTimeout(()=>setMoment(null),moment.lines.length*3200+300);
   return()=>{clearInterval(timer);clearTimeout(end);};
  },[moment]);
- useEffect(()=>{
-  for(const task of tasks){const before=lastStatuses.current.get(task.id);if(!paused&&before&&before!==task.status&&task.status==='finished'){play(task.crewId);break;}}
-  lastStatuses.current=new Map(tasks.map(t=>[t.id,t.status]));
- },[tasks,paused]);
  return {moment,line:moment?.lines[Math.min(beat,moment.lines.length-1)],play,stop:()=>setMoment(null)};
 }

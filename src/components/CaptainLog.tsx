@@ -2,7 +2,6 @@ import {useEffect,useMemo,useState} from 'react';
 import type {Snapshot,WorkContext} from '../shared';
 import {workEntries} from '../taskFlow';
 import {resolveReplyDisplay,resolveWorkContext} from '../workContext';
-import {updateWorkspace} from '../useDraft';
 import './captain-log.css';
 type Invoke=<T=unknown>(action:string,args?:unknown)=>Promise<T>;
 const labels:Record<string,string>={DRAFT:'Brief saved — ready to send',RUNNING:'Crew working',WAITING_FOR_REVIEW:'Ready for captain review',NEEDS_USER:'Needs your input',FAILED:'Attempt failed',CANCELLED:'Stopped',BLOCKED:'Blocked',COMPLETE:'Accepted'};
@@ -19,7 +18,6 @@ export function CaptainLog({snapshot,context,onContext,onOpenResult,onRequestCha
  const reply=ref?.kind==='reply'?replyTask?.messages.filter(m=>m.id===ref.messageId):undefined;
  const [replyDisplay,setReplyDisplay]=useState<{id:string;text?:string;unavailable?:string}>();
  useEffect(()=>{let cancelled=false;if(ref?.kind==='reply'&&result)void resolveReplyDisplay(ref,replyTask).then(display=>{if(!cancelled)setReplyDisplay({id:result.id,...display});}).catch(()=>{if(!cancelled)setReplyDisplay({id:result!.id,unavailable:'Selected reply could not be verified.'});});return()=>{cancelled=true;};},[result?.id,ref?.sha256,replyTask?.status,reply?.length,reply?.[0]?.text]);
- useEffect(()=>{const acceptance=mission?.acceptance;if(acceptance&&!acceptance.legacy&&acceptance.id&&window.sunny&&!snapshot.workspace.seenAcceptanceIds.includes(acceptance.id))void updateWorkspace(invoke,{seenAcceptanceId:acceptance.id}).catch(()=>{});},[mission?.acceptance,snapshot.workspace.revision]);
  useEffect(()=>{setPreview(undefined);setError('');},[result?.id,mission?.revision]);
  const inspectFile=async()=>{if(!mission||ref?.kind!=='deliverable')return;try{setPreview(await invoke('mission:previewDeliverable',{missionId:mission.id,revision:mission.revision,artifactId:ref.artifactId}));}catch(e){setError(e instanceof Error?e.message:String(e));}};
  const openMission=()=>{if(mission&&context)onContext({...context,surface:'deck',taskId:undefined});};

@@ -89,3 +89,11 @@ Each of the ten core crew stations has a short original Web Audio arrival signat
 ## First illustrated crew conversation room — 2026-09-23
 
 The first complete illustrated conversation-room set is admitted. Each role has distinct architecture, props and color treatment while retaining the established Sunny art style. The art communicates character/place only; authoritative task status remains in normal controls and records. This increment does not add collision-safe island-to-room travel or complete captain acceptance of the whole world.
+
+## Franky's honest one-room pilot — 2026-10-01
+
+The selected persisted work context can open Franky's shipwright workshop while keeping the captain log opaque and directly accessible. The shared mission projection follows the exact selected mission/attempt/task and structured stage owner. A newer unrelated assignment cannot replace it; approval and unknown state stop purposeful work. Nami planning, Usopp validation and Zoro review remain their own stages with Franky still. Missing/conflicting selections stay unavailable. A finished provider turn remains ready for captain review; only a modern captain receipt bound to the selected result represents accepted work.
+
+The one room reuses the existing uncropped3:2 illustration and existing Franky atlas; root-reviewed measured floor anchors/route and in-memory padded silhouette extraction are recorded in the art bible and ARTWORK.md. Franky holds a wrench beside the bench without a fabricated tabletop strike. Inspect work, input/approval and Stop work remain direct controls. Pause visuals calls no interrupt. System/Sunny reduced motion removes travel, frame loops and the acceptance glow. The room and companion compete through one backend durable first-claim command for a brief live-acceptance cue; mount/reload/history never manufactures a reward. The captain log displays the receipt without consuming its cue.
+
+Automatic crew victory on a finished provider turn has been removed. Captain-requested/timed deck scenes remain explicitly labelled ambient entertainment and cannot alter mission state. This isolated source pilot remains subject to native visual/truth review and the independent performance promotion gates; it does not replace the installed app or claim packaged rollout.

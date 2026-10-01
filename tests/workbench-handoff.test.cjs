@@ -19,3 +19,13 @@ test('specialist handoff publishes new task ID for persisted navigation',async()
  select.props.onChange({target:{value:'robin'}});await new Promise(resolve=>setImmediate(resolve));
  assert.deepEqual(calls.map(call=>call.action),['task:handoff']);assert.equal(calls[0].args.taskId,'old');assert.equal(calls[0].args.crewId,'robin');assert.deepEqual(opened,['new']);
 });
+
+test('existing task never seeds its follow-up from a submitted conversation template',()=>{
+ global.window={sunny:{},confirm:()=>true,location:{href:'https://fixture.invalid/'},addEventListener(){},removeEventListener(){}};global.location=window.location;let saved=null;global.sessionStorage={getItem:()=>saved};
+ const Workbench=componentForNode();
+ const snapshot={projects:[{id:'p',name:'Fixture project'}],tasks:[{id:'started',projectId:'p',crewId:'robin',status:'working',messages:[]}],approvals:[],settings:{reducedMotion:true},workspace:{version:1,revision:0,context:null,drafts:[],seenAcceptanceIds:[]},world:{residents:[]}};
+ const props={snapshot,initial:{taskId:'started',projectId:'p',prompt:'Submitted template'},invoke:async()=>{},toast(){},onClose(){}};
+ const composer=()=>findElement(Workbench(props),e=>e.type==='textarea');
+ assert.equal(composer().props.value,'');
+ saved='My unsent follow-up';assert.equal(composer().props.value,saved,'saved task draft takes precedence');
+});

@@ -28,7 +28,7 @@ export function Workbench({snapshot,initial,invoke,toast,onClose,onSettings,onOp
   const [activeTaskId,setActiveTaskId]=useState(initial.taskId);
   const [selectedSkills,setSelectedSkills]=useState<SkillChoice[]>([]);
   const [skillsReady,setSkillsReady]=useState(false);
-  const [prompt,setPrompt,messageDraft]=useDraft(activeTaskId?`task:${activeTaskId}`:initial.draftKey??`new:${projectId}`,activeTaskId&&activeTaskId!==initial.taskId?'':initial.prompt??'',initial.missionId&&activeTaskId?{id:'message:'+activeTaskId,projectId,taskId:activeTaskId,workspace:snapshot.workspace,invoke}:undefined);
+  const [prompt,setPrompt,messageDraft]=useDraft(activeTaskId?`task:${activeTaskId}`:initial.draftKey??`new:${projectId}`,activeTaskId?'':initial.prompt??'',initial.missionId&&activeTaskId?{id:'message:'+activeTaskId,projectId,taskId:activeTaskId,workspace:snapshot.workspace,invoke}:undefined);
   const activeTask=snapshot.tasks.find(item=>item.id===activeTaskId);
   const project=snapshot.projects.find(item=>item.id===(activeTask?.projectId??projectId));
   const crew=CREW_BY_ID.get(activeTask?.crewId??crewId)!;

@@ -2,6 +2,15 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const {taskIsBusy,taskNeedsAttention,taskFamilies,filterFamilies,taskGuidance}=require('../src/taskFlow.ts');
 const task=(id,status,extra={})=>({id,status,title:id,crewId:'luffy',projectId:'p1',createdAt:1,updatedAt:1,messages:[],...extra});
+test('ready_review_stays_actionable and accepted history is separate',()=>{
+ const {missionPhase,workEntries}=require('../src/taskFlow.ts');
+ assert.equal(typeof missionPhase,'function');
+ assert.equal(missionPhase({status:'WAITING_FOR_REVIEW'}),'review');
+ assert.equal(missionPhase({status:'COMPLETE',acceptance:{legacy:true}}),'accepted');
+ const missions=[{id:'m',title:'Mission',projectId:'p1',status:'WAITING_FOR_REVIEW',taskIds:['t'],updatedAt:2}];
+ const entries=workEntries(missions,[task('t','finished'),task('ordinary','finished')]);
+ assert.deepEqual(entries.map(e=>[e.kind,e.phase]),[['mission','review'],['conversation','conversation']]);
+});
 
 test('stopped tasks offer continuation rather than claiming a result is ready',()=>{
  assert.equal(typeof taskGuidance,'function');assert.equal(taskGuidance(task('stopped','interrupted')).action,'Continue task');

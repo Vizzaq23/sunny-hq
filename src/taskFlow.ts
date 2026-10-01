@@ -1,4 +1,18 @@
-import type {Project,Task} from './shared';
+import type {Mission,Project,Task} from './shared';
+
+export type WorkPhase='attention'|'active'|'review'|'accepted'|'conversation';
+export function missionPhase(mission:Pick<Mission,'status'|'acceptance'>):WorkPhase{
+ if(mission.status==='COMPLETE'&&mission.acceptance)return 'accepted';
+ if(mission.status==='WAITING_FOR_REVIEW')return 'review';
+ if(mission.status==='RUNNING')return 'active';
+ return 'attention';
+}
+export function workEntries(missions:Mission[],tasks:Task[]){
+ const claimed=new Set(missions.flatMap(m=>m.taskIds));
+ const voyages=missions.map(m=>({id:m.id,kind:'mission' as const,title:m.title,projectId:m.projectId,phase:missionPhase(m),updatedAt:m.updatedAt,mission:m}));
+ const conversations=taskFamilies(tasks.filter(t=>!t.external&&!claimed.has(t.id))).map(f=>({id:f.task.id,kind:'conversation' as const,title:f.task.title,projectId:f.task.projectId,phase:f.phase==='done'?'conversation' as const:f.phase,updatedAt:f.updatedAt,task:f.task}));
+ return [...voyages,...conversations].sort((a,b)=>b.updatedAt-a.updatedAt);
+}
 
 export type TaskPhase='attention'|'active'|'done';
 export type TaskFamily={task:Task;children:Task[];phase:TaskPhase;updatedAt:number};

@@ -1,12 +1,13 @@
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowRight,CheckCircle2,ChevronRight,Compass,FolderPlus,LoaderCircle,Search,Send,Sparkles,Users} from 'lucide-react';
-import type {CrewId,SkillChoice,Snapshot,Task} from '../shared';
+import type {CrewId,Mission,SkillChoice,Snapshot,Task} from '../shared';
 import {SkillPicker} from '../components/SkillPicker';
 import {ALL_CREW,CREW_BY_ID,formatRelative} from '../data';
 import {CrewBadge} from '../components/Chrome';
 import {filterFamilies,taskFamilies,taskLabel,taskGuidance,type TaskFamily} from '../taskFlow';
 import {clearSubmittedDraft,useDraft} from '../useDraft';
 import './home.css';
+import {MissionBoard} from './MissionBoard';
 
 type Invoke=<T=unknown>(action:string,args?:unknown)=>Promise<T>;
 const starters=[
@@ -15,7 +16,7 @@ const starters=[
  {label:'Research an idea',prompt:'Research this idea and give me a practical recommendation: ',crew:'robin'},
  {label:'Plan my next steps',prompt:'Help me prioritize and complete these tasks: ',crew:'nami'},
 ];
-export function HomeView({launchPending,onLaunchPending,snapshot,invoke,onWorkspace,onImport,onExplore,onSettings}:{launchPending:boolean;onLaunchPending:(pending:boolean)=>void;snapshot:Snapshot;invoke:Invoke;onWorkspace:(init:{taskId?:string;projectId?:string;crewId?:CrewId;prompt?:string})=>void;onImport:()=>void;onExplore:()=>void;onSettings:()=>void}){
+export function HomeView({launchPending,onLaunchPending,snapshot,invoke,onWorkspace,onImport,onExplore,onSettings,onMission}:{launchPending:boolean;onLaunchPending:(pending:boolean)=>void;snapshot:Snapshot;invoke:Invoke;onWorkspace:(init:{taskId?:string;projectId?:string;crewId?:CrewId;prompt?:string})=>void;onImport:()=>void;onExplore:()=>void;onSettings:()=>void;onMission?:(mission:Mission)=>void}){
  const [projectId,setProjectId]=useState(()=>{try{return sessionStorage.getItem('sunny:last-project')??snapshot.projects[0]?.id??'';}catch{return snapshot.projects[0]?.id??'';}});
  const selectedProject=snapshot.projects.find(project=>project.id===projectId);
  const [mode,setMode]=useDraft('home:routing','delegate'),[crewId,setCrewId]=useDraft('home:specialist','franky');
@@ -50,6 +51,8 @@ export function HomeView({launchPending,onLaunchPending,snapshot,invoke,onWorksp
   <section className="home-heading"><div><span className="eyebrow">Your crew. One clear course.</span><h2>What are we getting done?</h2><p>Bring the goal. Your crew will help you get there.</p></div><button className="home-explore" onClick={onExplore}><Compass size={18}/> Visit the island <ArrowRight size={16}/></button></section>
   {window.sunny&&snapshot.codex.status!=='connected'?<div className="home-connection" role="status"><span><b>{snapshot.codex.status==='Sample data'?'Review the upgrade safely':snapshot.codex.status==='connecting'?'Connecting to Codex…':'Your crew needs a connection'}</b><small>{snapshot.codex.error??'Your draft is safe here. Check Settings to connect or sign in.'}</small></span><button onClick={onSettings}>Open Settings <ChevronRight size={16}/></button></div>:null}
   {launchedTask?<div className="launch-receipt" role="status"><span><b>Task created</b><small>{launchedTask.title} · {taskLabel(launchedTask)}</small></span><button onClick={()=>onWorkspace({taskId:launchedTask.id})}>Open task <ArrowRight size={16}/></button></div>:null}
+  <MissionBoard briefOnly snapshot={snapshot} invoke={invoke} onOpen={(taskId,selection)=>onWorkspace({taskId,...selection})} onSelectMission={onMission}/>
+  <details className="home-conversations"><summary>Conversations and past turns</summary>
   <section className="launch-card" aria-label="Start a task">
    <div className="launch-main"><div className="launch-heading"><span className="launch-icon"><Sparkles size={21}/></span><div><h3>Give your crew a goal</h3><p>A sentence is enough to get started.</p></div></div>
     <textarea ref={input} aria-label="Task brief" maxLength={100000} value={prompt} disabled={sending} onChange={event=>setPrompt(event.target.value)} onKeyDown={event=>{if(event.key==='Enter'&&(event.ctrlKey||event.metaKey)&&!event.nativeEvent.isComposing){event.preventDefault();void submit();}}} placeholder="What should we build, fix, research, or organize? Add what a good result looks like."/>
@@ -69,7 +72,7 @@ export function HomeView({launchPending,onLaunchPending,snapshot,invoke,onWorksp
    {visible.length?<div className="home-task-list">{visible.slice(0,limit).map(family=><FamilyCard key={family.task.id} family={family} snapshot={snapshot} onOpen={taskId=>onWorkspace({taskId})}/>)}</div>:<div className="home-empty"><CheckCircle2 size={30}/><h4>{families.length?'Nothing in this view':'A fresh start for your next idea'}</h4><p>{families.length?'Try another filter or search.':'Write a goal above. Your task and crew assignments will appear here.'}</p>{families.length?<button onClick={()=>{setQuery('');setFilterProject('');choosePhase('all');}}>Show all tasks</button>:null}</div>}
    {visible.length>limit?<button className="load-tasks" onClick={()=>setLimit(value=>value+12)}>Show more tasks ({visible.length-limit} remaining)</button>:null}
   </section>
- </div>;
+ </details></div>;
 }
 function FamilyCard({family,snapshot,onOpen}:{family:TaskFamily;snapshot:Snapshot;onOpen:(id:string)=>void}){
  const {task,children,phase}=family,crew=CREW_BY_ID.get(task.crewId);
@@ -79,6 +82,6 @@ function FamilyCard({family,snapshot,onOpen}:{family:TaskFamily;snapshot:Snapsho
  const latest=[...task.messages].reverse().find(message=>message.role==='assistant'&&message.text.trim());
  return <article className={`home-task ${phase}`}><div className="home-task-top">{crew?<CrewBadge crew={crew} size="small"/>:<Users size={22}/>}<button className="home-task-title" onClick={()=>onOpen(task.id)}><h4>{task.title}</h4><span>{snapshot.projects.find(project=>project.id===task.projectId)?.name??'Project unavailable'} <i>·</i> {crew?.name??task.crewId} <i>·</i> {formatRelative(family.updatedAt)}</span></button><span className={`task-label ${phase}`}>{attention?`${CREW_BY_ID.get(attention.crewId)?.name??'Crew'} needs attention`:phase==='active'?'In progress':taskLabel(task)}</span></div>
   {task.error?<p className="home-task-error">{task.error}</p>:latest?<p className="home-task-preview">{latest.text}</p>:<p className="home-task-preview">{guidance.detail}</p>}
-  <footer><div className="family-crew">{children.length?<><span>{children.length} assignment{children.length===1?'':'s'}</span>{children.map(child=><button key={child.id} onClick={()=>onOpen(child.id)} title={`${CREW_BY_ID.get(child.crewId)?.name}: ${child.title} · ${taskLabel(child)}`}><span className={`task-state ${child.status}`}/>{CREW_BY_ID.get(child.crewId)?.name??child.crewId}</button>)}</>:<span>{task.captain?'Luffy coordinates this task':'Direct conversation'}</span>}</div><button className="home-task-open" onClick={()=>onOpen(attention?.id??task.id)}>{phase==='active'?'Follow progress':guidance.action}<ArrowRight size={15}/></button></footer>
+  <footer><div className="family-crew">{children.length?<><span>{children.length} assignment{children.length===1?'':'s'}</span>{children.map(child=><button key={child.id} onClick={()=>onOpen(child.id)} title={`${CREW_BY_ID.get(child.crewId)?.name}: ${child.title} · ${taskLabel(child)}`}><span className={`task-state ${child.status}`}/>{CREW_BY_ID.get(child.crewId)?.name??child.crewId}</button>)}</>:<span>{task.captain?'Luffy coordinates this conversation':'Conversation'}</span>}</div><button className="home-task-open" onClick={()=>onOpen(attention?.id??task.id)}>{phase==='active'?'Follow progress':guidance.action}<ArrowRight size={15}/></button></footer>
  </article>;
 }

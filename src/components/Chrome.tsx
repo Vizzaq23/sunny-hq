@@ -28,7 +28,7 @@ export function Sidebar({view,onView,projects,tasks,activeProjectId,onProject,op
     </nav>
     <div className="sidebar-projects">
       <div className="nav-section-title"><span>Recent projects</span><button onClick={()=>onView('projects')}>View all</button></div>
-      {projects.slice(0,4).map(project=><button key={project.id} className={`project-nav ${activeProjectId===project.id?'active':''}`} onClick={()=>onProject(project.id)}><span className="project-gem">{project.name.charAt(0).toUpperCase()}</span><span><b>{project.name}</b><small>{tasks.filter(t=>t.projectId===project.id).length} missions</small></span></button>)}
+      {projects.slice(0,4).map(project=><button key={project.id} className={`project-nav ${activeProjectId===project.id?'active':''}`} onClick={()=>onProject(project.id)}><span className="project-gem">{project.name.charAt(0).toUpperCase()}</span><span><b>{project.name}</b><small>{tasks.filter(t=>t.projectId===project.id).length} conversations</small></span></button>)}
       {projects.length===0?<p className="nav-empty">Your imported projects will live here.</p>:null}
     </div>
     <div className="sidebar-foot">

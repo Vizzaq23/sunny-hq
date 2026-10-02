@@ -10,6 +10,7 @@ const root=path.resolve(__dirname,'..');
 const fixtureFile=path.resolve(root,'../sunny-responsive-session-20261001/worker-diagnostic/fixture.cjs');
 const protocolFile=path.resolve(root,'../sunny-responsive-session-20261001/A4-measurement-protocol.md');
 const SAMPLES=20,WARMUPS=3,WATCHDOG_MS=240000;
+const FROZEN_FIXTURE_SHA256='219f75242146fb32b8ed8452a0b792b1c76207311b67f74b947b267cc8581590';
 const sha=value=>createHash('sha256').update(value).digest('hex');
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 function summarize(values){
@@ -20,6 +21,21 @@ function parseSize(args){
  const values=args.filter(arg=>arg.startsWith('--mib='));
  if(values.length!==1||!/^--mib=(1|10|30)$/.test(values[0]))throw Error('Run exactly one --mib=1, --mib=10 or --mib=30 in a fresh Electron process.');
  return Number(values[0].slice(6));
+}
+function validateFrozenTextShape(state){
+ assert.ok(Array.isArray(state?.tasks)&&state.tasks.length>0,'Frozen fixture must contain tasks');
+ let messages=0;
+ for(const task of state.tasks){
+  assert.ok(Array.isArray(task.messages)&&task.messages.length===40,'Frozen fixture requires 40 messages per task');
+  for(const message of task.messages){
+   assert.equal(typeof message.text,'string');
+   assert.equal(message.text.length,1024,'Frozen initial message must contain 1024 characters');
+   const nonAscii=Array.from(message.text).map(character=>character.codePointAt(0)).filter(codepoint=>codepoint>127);
+   assert.deepEqual(nonAscii,[8212],'Frozen message requires exactly one U+2014 and otherwise ASCII codepoints');
+   assert.equal(Buffer.byteLength(message.text,'utf8'),1026,'Frozen initial message must contain 1026 UTF-8 bytes');messages++;
+  }
+ }
+ return {initialTasks:state.tasks.length,initialMessages:messages,messagesPerTask:40,initialTextCharacters:1024,initialTextUtf8Bytes:1026,nonAsciiCodepoint:8212,nonAsciiPerInitialMessage:1};
 }
 // Electron's app-entry loader can leave require.main pointing at its bootstrap.
 // Match the explicit entry script too, while keeping helper imports inert.
@@ -32,6 +48,17 @@ function isDirectEntry(runtime,main,current,filename){
 }
 function failure(error){return {name:error?.name||'Error',code:error?.code||null,message:String(error?.message||error),stack:String(error?.stack||error)};}
 function explicitFailure(reply){return Boolean(reply&&typeof reply==='object'&&(reply.success===false||reply.ok===false||reply.failure||reply.error));}
+async function finalizeAndExit({cleanup,evidence,write,beforeExit=()=>{},exit}){
+ const report=(phase,error)=>{
+  evidence.errors.push({phase,...failure(error)});evidence.passed=false;
+  try{write();}catch(writeError){evidence.errors.push({phase:'final-evidence-write',...failure(writeError)});console.error('SUNNY_ORDERED_CONTROL_FINAL_WRITE_FAILED',failure(writeError));}
+ };
+ try{await cleanup();}catch(error){report('final-cleanup',error);}
+ finally{
+  try{beforeExit();}catch(error){report('final-exit-preparation',error);}
+  finally{exit(evidence.passed===true?0:1);}
+ }
+}
 // Start before any background/authority image capture and stay armed through all
 // awaited control receipts. Sample the outstanding deadline at settlement too:
 // a last synchronous capture can finish in a microtask before its timer callback.
@@ -138,6 +165,9 @@ async function run(){
  const project=path.join(runtime,'project');fs.mkdirSync(project);fs.writeFileSync(path.join(project,'fixture.txt'),'SYNTHETIC offline read fixture\n');
  const file=path.join(runtime,'state.sqlite'),workers=new Set(),timers=new Set();
  const evidence={synthetic:true,sizeMiB:mib,startedAt:new Date().toISOString(),output,source:sourceProof(),runtime:{electron:process.versions.electron,node:process.versions.node,chrome:process.versions.chrome,executable:process.execPath,executableSha256:sha(fs.readFileSync(process.execPath)),platform:process.platform,arch:process.arch,cpu:os.cpus()[0]?.model},method:{samplesPerControl:SAMPLES,warmupsPerControl:WARMUPS,percentile:'nearest-rank',controls:['task:interrupt','approval:respond'],pendingBackground:'At actual control IPC entry, inject one production Hub checkpoint, then yield one setImmediate before the real Hub control. Require actual native checkpoint promise pending and authority queue active at control admission. If already settled, retain the raw rejected sample as invalid load. Worker/receipt delivery unmodified.',rtt:'Renderer performance.now immediately before await window.sunny.invoke to fulfilled/rejected settlement; includes background load injection/capture, authority queue waiting and all required durable receipts; executeJavaScript overhead excluded',timer:'Continuous independent 1ms monitor starts before background prepare/image capture and stays armed through real Hub control and every required receipt; records every raw observation plus settlement-tail deadline excess. All raw max <=100ms. Supplementary per-submit/admission/handler timers and twenty idle controls are retained without subtraction.',heartbeat:'Separate continuous 5ms interval across the same main control window, with settlement-tail observation; never substitutes for the 1ms metric',excludedFromMainMonitor:'Renderer executeJavaScript return/frame overhead, readonly proof workers and result/log JSON serialization after Hub control settlement',mutation:'Append 64 ASCII x characters outside each warmup/sample',noGC:true,noNetwork:true,sqlite:'production WAL/FULL; existing compact single-row state'},assertions:[],errors:[],ipcCalls:[],providerCalls:[],submissions:[],warmups:[],samples:[],timerControls:[]};
+ evidence.method.fixtureDescription='Exact frozen predominantly ASCII fixture: 40 messages per task; each initial message is 1024 characters / 1026 UTF-8 bytes, with exactly one U+2014 em dash and otherwise ASCII codepoints. Fixture contents are unchanged.';
+ evidence.method.fixtureSha256=FROZEN_FIXTURE_SHA256;
+ evidence.method.fixtureDescriptionCorrection='The earlier ASCII-only descriptor was incorrect for the frozen source. The failed ASCII bootstrap is retained as failure evidence. This corrects workload labeling and shape validation; it does not replace the fixture or change samples, queue/load, timing, durability, or the 100ms/200ms gates.';
  let hub,store,win,transport,finished=false,cleanupPromise,currentSample=null,stopMainMonitors;
  const write=()=>fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(evidence,null,2));
  const log=(kind,details)=>{fs.appendFileSync(path.join(output,'events.jsonl'),JSON.stringify({kind,...details})+'\n');};
@@ -146,14 +176,20 @@ async function run(){
  async function cleanup(){
   if(cleanupPromise)return cleanupPromise;
   cleanupPromise=(async()=>{
+   evidence.cleanup={runtimeRetainedPath:runtime,userDataRetainedPath:path.join(runtime,'electron-profile'),runtimeRetained:true,windowsDestroyed:false,orderedStoreClosed:false,readonlyWorkersTerminated:0};
+   const recordCleanupError=(phase,error)=>{evidence.errors.push({phase,...failure(error)});evidence.passed=false;};
    stopMainMonitors?.();stopMainMonitors=null;
    for(const timer of timers)clearTimeout(timer);timers.clear();
-   if(win&&!win.isDestroyed())win.destroy();
-   try{if(hub)await hub.close();else await store?.close();}catch(error){evidence.errors.push({phase:'cleanup',...failure(error)});evidence.passed=false;try{await store?.close();}catch{}}
-   for(const worker of workers)await worker.terminate();workers.clear();
+   try{if(win&&!win.isDestroyed())win.destroy();evidence.cleanup.windowsDestroyed=!win||win.isDestroyed();}catch(error){recordCleanupError('cleanup-window',error);}
+   try{if(hub)await hub.close();else await store?.close();evidence.cleanup.orderedStoreClosed=true;}catch(error){
+    recordCleanupError('cleanup-storage',error);
+    try{await store?.close();evidence.cleanup.orderedStoreClosed=true;}catch(closeError){recordCleanupError('cleanup-storage-retry',closeError);}
+   }
+   for(const worker of [...workers])try{await worker.terminate();workers.delete(worker);evidence.cleanup.readonlyWorkersTerminated++;}catch(error){recordCleanupError('cleanup-readonly-worker',error);}
+   evidence.cleanup.readonlyWorkersRemaining=workers.size;
    evidence.finishedAt=new Date().toISOString();write();
-   // This generated absolute Temp path is the only recursive cleanup target.
-   assert.ok(path.resolve(runtime).startsWith(path.resolve(os.tmpdir())+path.sep));fs.rmSync(runtime,{recursive:true,force:true});
+   // Chromium still owns userData files until app.exit. Retain this synthetic
+   // runtime for review; never recursively delete a live Electron profile.
   })();return cleanupPromise;
  }
  const watchdog=setTimeout(()=>{
@@ -169,9 +205,11 @@ async function run(){
   session.defaultSession.webRequest.onBeforeRequest((details,callback)=>{const local=/^(file:|devtools:)/.test(details.url);if(!local)evidence.errors.push({phase:'network-denied',scheme:details.url.split(':')[0]});callback({cancel:!local});});
   session.defaultSession.setPermissionRequestHandler((_contents,_permission,callback)=>callback(false));
   store=await openOrderedStore({kind:'sqlite',file,backupDir:path.join(runtime,'backups')});
+  assert.equal(evidence.source.fixtureSha256,FROZEN_FIXTURE_SHA256,'Declared frozen fixture source hash must match');
+  assert.equal(sha(fs.readFileSync(fixtureFile)),FROZEN_FIXTURE_SHA256,'Frozen fixture source must remain unchanged before samples');
   const initial=fixture(mib,runtime);
-  evidence.fixture={initialCompactBytes:Buffer.byteLength(JSON.stringify(initial)),initialTasks:initial.tasks.length,messagesPerTask:40,initialTextCharacters:1024,asciiText:initial.tasks.every(task=>task.messages.every(message=>/^[\x00-\x7f]*$/.test(message.text))),missionTasks:initial.missionBook.missions[0].taskIds,initialMissionStatus:initial.missionBook.missions[0].status};
-  assert.ok(evidence.fixture.asciiText);initial.projects[0].path=project;
+  evidence.fixture={initialCompactBytes:Buffer.byteLength(JSON.stringify(initial)),...validateFrozenTextShape(initial),fixtureSha256:FROZEN_FIXTURE_SHA256,missionTasks:initial.missionBook.missions[0].taskIds,initialMissionStatus:initial.missionBook.missions[0].status};
+  check('exact declared frozen workload shape and hash validated before samples',true,evidence.fixture);initial.projects[0].path=project;
   evidence.initialReceipt=await store.checkpoint(initial);
   // Hub reads OrderedStore's initialization image. Reopen after the exact initial receipt.
   await store.close();
@@ -291,7 +329,7 @@ async function run(){
   check('no runtime errors',evidence.errors.length===0,{errors:evidence.errors});
   evidence.passed=evidence.assertions.every(item=>item.status==='pass');write();
  }catch(error){evidence.errors.push({phase:'run',...failure(error)});evidence.passed=false;write();}
- finally{await cleanup();clearTimeout(watchdog);finished=true;console.log('SUNNY_ORDERED_CONTROL_RESULT '+JSON.stringify({sizeMiB:mib,passed:evidence.passed===true,output}));app.exit(evidence.passed===true?0:1);}
+ finally{await finalizeAndExit({cleanup,evidence,write,beforeExit:()=>{clearTimeout(watchdog);finished=true;console.log('SUNNY_ORDERED_CONTROL_RESULT '+JSON.stringify({sizeMiB:mib,passed:evidence.passed===true,output}));},exit:code=>app.exit(code)});}
 }
 if(isDirectEntry(process,require.main,module,__filename))run().catch(error=>{console.error(error);process.exitCode=1;});
-module.exports={parseSize,isDirectEntry,summarize,explicitFailure,startControlMonitors,rendererControl,makeDispatch,readonlyProof,READONLY_PROOF};
+module.exports={parseSize,isDirectEntry,validateFrozenTextShape,summarize,explicitFailure,finalizeAndExit,startControlMonitors,rendererControl,makeDispatch,readonlyProof,READONLY_PROOF};

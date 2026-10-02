@@ -2,7 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const {Script}=require('node:vm');
 const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 const {createHash}=require('node:crypto');
-const {parseSize,isDirectEntry,summarize,explicitFailure,startControlMonitors,rendererControl,makeDispatch,readonlyProof}=require('../scripts/ordered-control-check.cjs');
+const {parseSize,isDirectEntry,validateFrozenTextShape,summarize,explicitFailure,finalizeAndExit,startControlMonitors,rendererControl,makeDispatch,readonlyProof}=require('../scripts/ordered-control-check.cjs');
 const {createPublicTransport}=require('../desktop/public-transport.cjs');
 const deferred=()=>{let resolve;const promise=new Promise(yes=>resolve=yes);return {promise,resolve};};
 
@@ -35,6 +35,28 @@ test('actual entry bootstrap runs Electron argv entry even when require.main dif
  }
  assert.ok(source.includes('show:false'));
  assert.ok(source.includes('offscreen:true,backgroundThrottling:false'));
+});
+
+test('production workload validation enforces the declared U+2014 and UTF-8 shape without importing a session fixture',()=>{
+ const text='SYNTHETIC 0:0 \u2014 deterministic transcript. '.padEnd(1024,'x');
+ const state={tasks:[{messages:Array.from({length:40},()=>({text}))}]};
+ const shape=validateFrozenTextShape(state);
+ assert.equal(shape.initialTasks,1);assert.equal(shape.initialMessages,40);assert.equal(shape.initialTextCharacters,1024);assert.equal(shape.initialTextUtf8Bytes,1026);assert.equal(shape.nonAsciiCodepoint,8212);assert.equal(shape.nonAsciiPerInitialMessage,1);
+ for(const invalid of [text.replace('\u2014','-'),text.replace('x','\u2014'),text.replace('x','\u00e9'),text.slice(1),text+'x']){
+  const altered=structuredClone(state);altered.tasks[0].messages[0].text=invalid;assert.throws(()=>validateFrozenTextShape(altered));
+ }
+ const missing=structuredClone(state);missing.tasks[0].messages.pop();assert.throws(()=>validateFrozenTextShape(missing));
+ assert.throws(()=>validateFrozenTextShape({tasks:[]}));
+});
+
+test('cleanup rejection remains failed evidence and cannot prevent the final process exit',async()=>{
+ const evidence={passed:true,errors:[]},calls=[];
+ await finalizeAndExit({cleanup:async()=>{throw Object.assign(Error('SYNTHETIC profile still locked'),{code:'EPERM'});},evidence,write:()=>calls.push('write'),beforeExit:()=>calls.push('before-exit'),exit:code=>calls.push('exit:'+code)});
+ assert.equal(evidence.passed,false);assert.equal(evidence.errors[0].phase,'final-cleanup');assert.equal(evidence.errors[0].code,'EPERM');assert.equal(evidence.errors[0].message,'SYNTHETIC profile still locked');
+ assert.deepEqual(calls,['write','before-exit','exit:1']);
+ const source=fs.readFileSync(path.resolve(__dirname,'../scripts/ordered-control-check.cjs'),'utf8');
+ assert.equal(source.includes('fs.rmSync(runtime'),false,'Electron userData is retained until process exit');
+ assert.ok(source.includes('runtimeRetainedPath:runtime'));
 });
 
 test('production facade rejects foreign frames and awaits pending load and exact Hub completion',async()=>{

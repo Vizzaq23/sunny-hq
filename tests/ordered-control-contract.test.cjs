@@ -2,7 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const {Script}=require('node:vm');
 const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 const {createHash}=require('node:crypto');
-const {parseSize,summarize,explicitFailure,startControlMonitors,rendererControl,makeDispatch,readonlyProof}=require('../scripts/ordered-control-check.cjs');
+const {parseSize,isDirectEntry,summarize,explicitFailure,startControlMonitors,rendererControl,makeDispatch,readonlyProof}=require('../scripts/ordered-control-check.cjs');
 const {createPublicTransport}=require('../desktop/public-transport.cjs');
 const deferred=()=>{let resolve;const promise=new Promise(yes=>resolve=yes);return {promise,resolve};};
 
@@ -13,6 +13,28 @@ test('control matrix fixes one fresh-process size and nearest-rank gates',()=>{
  assert.equal(summary.p95,19);assert.equal(summary.count,20);assert.deepEqual(summary.raw,samples);
  for(const reply of [{success:false},{ok:false},{error:'raw failure'},{failure:{code:'STORE_FAILED'}}])assert.equal(explicitFailure(reply),true);
  assert.equal(explicitFailure({status:'interrupted'}),false);
+});
+
+test('actual entry bootstrap runs Electron argv entry even when require.main differs, and keeps imports inert',async()=>{
+ const filename=path.resolve(__dirname,'../scripts/ordered-control-check.cjs');
+ const source=fs.readFileSync(filename,'utf8');
+ const bootstrap=source.split(/\r?\n/).find(line=>line.startsWith('if(isDirectEntry('));
+ assert.ok(bootstrap,'Execute the production entry bootstrap itself');
+ const script=new Script(bootstrap),current={},electronLoader={},cases=[
+  {label:'Electron direct script with nonmatching require.main',electron:'44.4.3',entry:filename,main:electronLoader,expected:1},
+  {label:'Electron helper imported by another entry script',electron:'44.4.3',entry:path.join(__dirname,'other-entry.cjs'),main:electronLoader,expected:0},
+  {label:'Node helper import',entry:filename,main:electronLoader,expected:0},
+  {label:'Node direct main script',entry:filename,main:current,expected:1},
+  {label:'Electron missing entry argument',electron:'44.4.3',main:electronLoader,expected:0},
+ ];
+ for(const item of cases){
+  let runs=0;
+  const runtime={platform:process.platform,argv:['synthetic-executable',item.entry,'--mib=1'],versions:item.electron?{electron:item.electron}:{}};
+  script.runInNewContext({isDirectEntry,process:runtime,require:{main:item.main},module:current,__filename:filename,run:()=>{runs++;return Promise.resolve();},console});
+  await Promise.resolve();assert.equal(runs,item.expected,item.label);
+ }
+ assert.ok(source.includes('show:false'));
+ assert.ok(source.includes('offscreen:true,backgroundThrottling:false'));
 });
 
 test('production facade rejects foreign frames and awaits pending load and exact Hub completion',async()=>{

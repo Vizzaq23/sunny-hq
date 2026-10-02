@@ -21,6 +21,15 @@ function parseSize(args){
  if(values.length!==1||!/^--mib=(1|10|30)$/.test(values[0]))throw Error('Run exactly one --mib=1, --mib=10 or --mib=30 in a fresh Electron process.');
  return Number(values[0].slice(6));
 }
+// Electron's app-entry loader can leave require.main pointing at its bootstrap.
+// Match the explicit entry script too, while keeping helper imports inert.
+function isDirectEntry(runtime,main,current,filename){
+ if(main===current)return true;
+ const entry=runtime.argv?.[1];
+ if(!runtime.versions?.electron||typeof entry!=='string'||!entry)return false;
+ const normalize=file=>runtime.platform==='win32'?path.resolve(file).toLowerCase():path.resolve(file);
+ return normalize(entry)===normalize(filename);
+}
 function failure(error){return {name:error?.name||'Error',code:error?.code||null,message:String(error?.message||error),stack:String(error?.stack||error)};}
 function explicitFailure(reply){return Boolean(reply&&typeof reply==='object'&&(reply.success===false||reply.ok===false||reply.failure||reply.error));}
 // Start before any background/authority image capture and stay armed through all
@@ -193,7 +202,7 @@ async function run(){
   };
   hub.client.respond=(id,result)=>{evidence.providerCalls.push({method:'respond',sampleId:currentSample?.id,id,result:structuredClone(result)});};
   hub.on('event',event=>{if(event.type==='error')evidence.errors.push({phase:'hub',message:event.data?.message});if(win&&!win.isDestroyed())win.webContents.send('sunny:event',transport.event(event.type,event.data));});
-  win=new BrowserWindow({title:'Sunny OFFLINE ordered control verification',width:1520,height:980,show:true,webPreferences:{preload:path.join(root,'desktop','preload.cjs'),contextIsolation:true,sandbox:true,nodeIntegration:false}});
+  win=new BrowserWindow({title:'Sunny OFFLINE ordered control verification',width:1520,height:980,show:false,webPreferences:{preload:path.join(root,'desktop','preload.cjs'),contextIsolation:true,sandbox:true,nodeIntegration:false,offscreen:true,backgroundThrottling:false}});
   win.webContents.setWindowOpenHandler(()=>({action:'deny'}));win.webContents.on('will-navigate',event=>event.preventDefault());
   ipcMain.handle('sunny:invoke',makeDispatch({getHub:()=>hub,getTransport:()=>transport,getWindow:()=>win,records:evidence.ipcCalls,onControl:async(action,args)=>{
    assert.ok(currentSample,'Control invocation requires a declared sample');assert.equal(action,currentSample.action);assert.equal(args.taskId||currentSample.taskId,currentSample.taskId);
@@ -284,5 +293,5 @@ async function run(){
  }catch(error){evidence.errors.push({phase:'run',...failure(error)});evidence.passed=false;write();}
  finally{await cleanup();clearTimeout(watchdog);finished=true;console.log('SUNNY_ORDERED_CONTROL_RESULT '+JSON.stringify({sizeMiB:mib,passed:evidence.passed===true,output}));app.exit(evidence.passed===true?0:1);}
 }
-if(require.main===module)run().catch(error=>{console.error(error);process.exitCode=1;});
-module.exports={parseSize,summarize,explicitFailure,startControlMonitors,rendererControl,makeDispatch,readonlyProof,READONLY_PROOF};
+if(isDirectEntry(process,require.main,module,__filename))run().catch(error=>{console.error(error);process.exitCode=1;});
+module.exports={parseSize,isDirectEntry,summarize,explicitFailure,startControlMonitors,rendererControl,makeDispatch,readonlyProof,READONLY_PROOF};

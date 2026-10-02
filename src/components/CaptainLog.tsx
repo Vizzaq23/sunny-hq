@@ -1,7 +1,7 @@
 import {useEffect,useMemo,useState} from 'react';
 import type {Snapshot,WorkContext} from '../shared';
 import {workEntries} from '../taskFlow';
-import {boundResultStatus,resolveWorkContext} from '../workContext';
+import {boundResultStatus,resolveWorkContext,storageOutcomeUncertain} from '../workContext';
 import {projectMission} from '../missionProjection';
 import {requestMissionResultStatus} from '../useMissionResultStatus';
 import './captain-log.css';
@@ -22,7 +22,7 @@ export function CaptainLog({snapshot,context,onContext,onOpenResult,onRequestCha
  const verification=mission?boundResultStatus(snapshot,mission):undefined;
  const verificationEntry=mission?snapshot.resultStatuses?.[mission.id]:undefined;
  const projection=mission&&context?projectMission(snapshot,context):undefined;
- const verificationText=verification?verification.available?'Selected result verified in main.':verification.unavailable??'Selected result unavailable.':verificationEntry?.state==='error'?verificationEntry.error??'Selected result could not be verified.':'Verifying selected result...';
+ const verificationText=storageOutcomeUncertain(snapshot)?'Storage outcome is uncertain. Keep this window open to copy or export drafts, then restart Sunny to recover saved work.':verification?verification.available?'Selected result verified in main.':verification.unavailable??'Selected result unavailable.':verificationEntry?.state==='error'?verificationEntry.error??'Selected result could not be verified.':'Verifying selected result...';
  useEffect(()=>{setPreview(undefined);setError('');},[result?.id,mission?.revision]);
  const inspectFile=async()=>{if(!mission||ref?.kind!=='deliverable')return;try{setPreview(await invoke('mission:previewDeliverable',{missionId:mission.id,revision:mission.revision,artifactId:ref.artifactId}));}catch(e){setError(e instanceof Error?e.message:String(e));}};
  const openMission=()=>{if(mission&&context)onContext({...context,surface:'deck',taskId:undefined});};

@@ -1,6 +1,6 @@
 import {useEffect,useRef,useState} from 'react';
 import type {MissionResultStatus,ResultStatusEntry,Snapshot} from './shared';
-import {boundResultStatus,resultStatusKey} from './workContext';
+import {boundResultStatus,resultStatusKey,storageOutcomeUncertain} from './workContext';
 
 // One bounded cache per mounted public state consumer; main and companion use the same contract.
 export function requestMissionResultStatus(missionId:string){window.dispatchEvent(new CustomEvent('sunny:result-selection',{detail:{missionId}}));}
@@ -18,6 +18,11 @@ export function useMissionResultStatuses(snapshot:Snapshot,invoke:(action:string
   let alive=true;
   const pending=selected.filter(m=>generation>0||entries[m.id]?.state==='loading'||entries[m.id]?.key!==resultStatusKey(snapshot,m));
   const retained:Record<string,ResultStatusEntry>=Object.fromEntries(Object.entries(entries).filter(([id])=>id!==requestedId).slice(-2));
+  if(storageOutcomeUncertain(snapshot)){
+   const recovery:Record<string,ResultStatusEntry>={};
+   for(const mission of selected)recovery[mission.id]={key:resultStatusKey(snapshot,mission),state:'error',error:'Storage outcome is uncertain. Keep this window open to copy or export drafts, then restart Sunny to recover saved work.'};
+   setEntries(recovery);return()=>{alive=false;};
+  }
   for(const mission of selected){const key=resultStatusKey(snapshot,mission);retained[mission.id]=pending.includes(mission)?{key,state:'loading'}:entries[mission.id];}
   setEntries(retained);
   // Limit concurrent read-only full-result resolutions. No transcript or file body is cached here.

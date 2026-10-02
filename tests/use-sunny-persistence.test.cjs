@@ -50,3 +50,23 @@ test('initial stored acceptance is historical while new broadcast receipt is eli
  f.emit({type:'snapshot',epoch:'session',sequence:1,data:snapshot({sequence:1,missions:[stored,{id:'next',status:'COMPLETE',acceptance:{legacy:false,id:'new-receipt'}}]})});
  assert.deepEqual(plain(f.current.liveAcceptanceIds),['new-receipt']);
 });
+
+test('gap snapshot and recovery snapshot never grant live receipt cues',async()=>{
+ for(const priorGap of [false,true]){
+  const f=hookFixture();await f.deliverInitial(snapshot({missions:[]}));
+  if(priorGap)f.emit({type:'persistence',epoch:'session',sequence:2,data:{state:'saved',failures:0}});
+  f.emit({type:'snapshot',epoch:'session',sequence:3,data:snapshot({sequence:3,missions:[{id:'m',acceptance:{id:'historical',legacy:false}}]})});
+  assert.deepEqual(plain(f.current.liveAcceptanceIds),[]);
+  f.emit({type:'snapshot',epoch:'session',sequence:4,data:snapshot({sequence:4,missions:[{id:'m',acceptance:{id:'historical',legacy:false}},{id:'next',acceptance:{id:'consecutive',legacy:false}}]})});
+  assert.deepEqual(plain(f.current.liveAcceptanceIds),['consecutive']);
+ }
+});
+test('uncertain receipt remains historical after storage recovery while ordinary pending permits consecutive receipt',async()=>{
+ const f=hookFixture();await f.deliverInitial(snapshot({missions:[]}));
+ f.emit({type:'snapshot',epoch:'session',sequence:1,data:snapshot({sequence:1,persistence:{state:'unsaved',uncertain:true,failures:1},missions:[{id:'m',acceptance:{id:'uncertain',legacy:false}}]})});
+ assert.deepEqual(plain(f.current.liveAcceptanceIds),[]);
+ f.emit({type:'snapshot',epoch:'session',sequence:2,data:snapshot({sequence:2,missions:[{id:'m',acceptance:{id:'uncertain',legacy:false}}]})});
+ assert.deepEqual(plain(f.current.liveAcceptanceIds),[]);
+ f.emit({type:'snapshot',epoch:'session',sequence:3,data:snapshot({sequence:3,persistence:{state:'pending',failures:0},missions:[{id:'m',acceptance:{id:'uncertain',legacy:false}},{id:'next',acceptance:{id:'ordinary',legacy:false}}]})});
+ assert.deepEqual(plain(f.current.liveAcceptanceIds),['ordinary']);
+});

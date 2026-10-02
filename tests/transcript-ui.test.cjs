@@ -28,3 +28,11 @@ test('conversation renders huge reply segments and visible history recovery cont
  const html=renderToStaticMarkup(React.createElement(Conversation,{task,crewId:'robin',reducedMotion:true,transcript:{...baseTranscript,segments,error:'History unavailable; retry'}}));
  assert.ok(html.indexOf('First 😀')<html.indexOf('continued text'));assert.match(html,/Continued reply/);assert.match(html,/Load older history/);assert.match(html,/Load newer history/);assert.match(html,/Retry history/);assert.match(html,/role="alert"/);assert.doesNotMatch(html,/Mission opened/);
 });
+
+test('uncertain storage disables new reply selection while retaining navigation and recovery instructions',()=>{
+ const {MissionResultSelection}=load('MissionBoard',{...baseTranscript,segments:[{messageId:'large',role:'assistant',time:1,offset:0,text:'excerpt',totalLength:1000000,replyRef:ref}]});
+ const element=MissionResultSelection({mission,snapshot:{epoch:'e',sequence:1,tasks:[task],persistence:{state:'unsaved',uncertain:true,failures:1}},busy:false,invoke:async()=>{},run:async fn=>fn(),onOpen(){}});
+ assert.equal(find(element,e=>e.props?.className?.includes('mission-select-reply')).props.disabled,true);
+ assert.equal(find(element,e=>e.type==='button'&&e.props.children==='Open full reply').props.disabled,undefined);
+ assert.ok(find(element,e=>e.props?.role==='status'&&typeof e.props.children==='string'&&/restart Sunny/.test(e.props.children)));
+});

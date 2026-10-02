@@ -41,7 +41,7 @@ export function useSunny(){
       if(Array.isArray(rest.missions)&&!state.earlyEvents){
         const ids=new Set<string>(rest.missions.map(m=>m.acceptance?.legacy===false||m.acceptance?.legacy===undefined?m.acceptance?.id:undefined).filter((id):id is string=>typeof id==='string'));
         if(baselineEpoch!==rest.epoch){baselineEpoch=rest.epoch;knownAcceptanceIds=ids;liveAcceptanceIds=[];}
-        else{if(live&&!state.needsSnapshot)liveAcceptanceIds=[...liveAcceptanceIds,...[...ids].filter(id=>!knownAcceptanceIds.has(id))].slice(-100);knownAcceptanceIds=ids;}
+        else{const health=rest.persistence as Snapshot['persistence'];if(health?.uncertain||health?.state==='uncertain')liveAcceptanceIds=[];else if(live&&!state.needsSnapshot)liveAcceptanceIds=[...liveAcceptanceIds,...[...ids].filter(id=>!knownAcceptanceIds.has(id))].slice(-100);knownAcceptanceIds=ids;}
       }
       setSnapshot({...EMPTY_SNAPSHOT,...rest,tasks:taskSummaries,liveAcceptanceIds} as Snapshot);
     };
@@ -51,7 +51,8 @@ export function useSunny(){
     const unsubscribe=window.sunny.subscribe(event=>{
       if(!alive)return;
       if(typeof event.epoch==='string'&&typeof event.sequence==='number'){
-        state=publicStateReducer(state,{type:'event',event:{...event,epoch:event.epoch,sequence:event.sequence}});publish(event.type==='snapshot');
+        const consecutive=Boolean(state&&!state.earlyEvents&&!state.needsSnapshot&&state.snapshot.epoch===event.epoch&&event.sequence===state.snapshot.sequence+1);
+        state=publicStateReducer(state,{type:'event',event:{...event,epoch:event.epoch,sequence:event.sequence}});publish(event.type==='snapshot'&&consecutive);
         if(event.type==='snapshot'){setLoadError('');setReady(true);}
         if(state?.needsSnapshot){resyncBudget=1;void refresh();}
       }

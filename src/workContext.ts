@@ -15,11 +15,13 @@ export function sameResultRef(a:MissionResultRef|undefined,b:MissionResultRef|un
  if(!a||!b||a.kind!==b.kind||a.sha256!==b.sha256)return false;
  return a.kind==='reply'&&b.kind==='reply'?a.taskId===b.taskId&&a.messageId===b.messageId:a.kind==='deliverable'&&b.kind==='deliverable'&&a.artifactId===b.artifactId;
 }
+export function storageOutcomeUncertain(snapshot:Snapshot):boolean {return snapshot.persistence?.uncertain===true||snapshot.persistence?.state==='uncertain';}
 export function resultStatusKey(snapshot:Snapshot,mission:Mission):string {
  const result=mission.selectedResult,producer=snapshot.tasks.find(t=>t.id===result?.producerTaskId);
- return JSON.stringify([snapshot.epoch,mission.projectId,mission.id,mission.revision,mission.activeAttemptId,mission.acceptancePending,result?.id,result?.attemptId,result?.producerTaskId,result?.ref,producer?.transcriptRevision,producer?.status]);
+ return JSON.stringify([snapshot.epoch,mission.projectId,mission.id,mission.revision,mission.activeAttemptId,mission.acceptancePending,storageOutcomeUncertain(snapshot),result?.id,result?.attemptId,result?.producerTaskId,result?.ref,producer?.transcriptRevision,producer?.status]);
 }
 export function boundResultStatus(snapshot:Snapshot,mission:Mission):MissionResultStatus|undefined {
+ if(storageOutcomeUncertain(snapshot))return;
  const entry=snapshot.resultStatuses?.[mission.id],result=mission.selectedResult,status=entry?.status;
  if(!result||entry?.state!=='ready'||entry.key!==resultStatusKey(snapshot,mission)||!status||mission.acceptancePending&&status.available||status.epoch!==snapshot.epoch||status.missionId!==mission.id||status.revision!==mission.revision||status.attemptId!==mission.activeAttemptId||status.resultId!==result.id||status.producerTaskId!==result.producerTaskId||!sameResultRef(status.ref,result.ref))return;
  return status;

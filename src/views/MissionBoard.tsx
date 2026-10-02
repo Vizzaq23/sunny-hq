@@ -8,7 +8,7 @@ import {CREW} from '../data';
 import {updateWorkspace,useWorkspaceDraft} from '../useDraft';
 import {missionPhase,taskIsBusy} from '../taskFlow';
 import {useTaskTranscript} from '../useTaskTranscript';
-import {boundResultStatus} from '../workContext';
+import {boundResultStatus,storageOutcomeUncertain} from '../workContext';
 import {requestMissionResultStatus} from '../useMissionResultStatus';
 import './mission-board.css';
 type Invoke=<T=unknown>(action:string,args?:unknown)=>Promise<T>;
@@ -30,7 +30,7 @@ export function MissionBoard({snapshot,invoke,onOpen,focusMission,onSelectMissio
  useEffect(()=>setConfirmedLaunch(false),[selected?.id,selected?.activeAttemptId]);
  useEffect(()=>{setSelectedSkills([]);setSkillsReady(false);},[selected?.id]);
  const selectedResultStatus=selected?boundResultStatus(snapshot,selected):undefined;
- const missionLabel=(mission:Mission)=>mission.status==='COMPLETE'?(missionPhase(mission,snapshot)==='accepted'?'Accepted by captain':mission.acceptance?.legacy?'Historical completion':boundResultStatus(snapshot,mission)?.available===false?'Selected result unavailable':'Verifying selected result...'):labels[mission.status]??mission.status;
+ const missionLabel=(mission:Mission)=>storageOutcomeUncertain(snapshot)?'Storage outcome uncertain; restart to recover saved work':mission.status==='COMPLETE'?(missionPhase(mission,snapshot)==='accepted'?'Accepted by captain':mission.acceptance?.legacy?'Historical completion':boundResultStatus(snapshot,mission)?.available===false?'Selected result unavailable':'Verifying selected result...'):labels[mission.status]??mission.status;
  const deploymentEvidence=selected?projectEvidence([selected],selected.projectId)[0]:undefined;
  const project=snapshot.projects.find(p=>p.id===projectId);
  const run=async(action:()=>Promise<void>)=>{if(busyRef.current)return;busyRef.current=true;setBusy(true);setError('');try{await action();}catch(e){setError(e instanceof Error?e.message:String(e));}finally{busyRef.current=false;setBusy(false);}};
@@ -71,7 +71,7 @@ export function MissionBoard({snapshot,invoke,onOpen,focusMission,onSelectMissio
       {selected.artifacts.some(a=>a.kind!=='deliverable'&&a.kind!=='deployment'&&a.kind!=='image')?<ul>{selected.artifacts.filter(a=>a.kind!=='deliverable'&&a.kind!=='deployment'&&a.kind!=='image').map(artifact=><li key={artifact.id}><strong>{artifact.kind==='check'?`${artifact.command} · ${artifact.status}`:artifact.kind==='pull-request'?`PR #${artifact.number} · ${artifact.state}`:`Git · ${artifact.branch}`}</strong><small>{artifact.commit?.slice(0,12)} · {new Date(artifact.recordedAt).toLocaleString()}{artifact.attemptId!==selected.activeAttemptId?' · Earlier attempt':''}{artifact.kind==='check'?` · exit ${artifact.exitCode??'unavailable'}`:''}</small>{artifact.kind==='pull-request'?<span>Checks: {artifact.checkStatus} · Review: {artifact.reviewDecision}<button className="text-button" onClick={()=>void run(async()=>{await invoke('dialog:openExternal',{url:artifact.url});})}>Open pull request →</button></span>:null}{artifact.kind==='git'?<span>{artifact.dirty?`${artifact.paths?.length??0} changed files`:'Clean working tree'}</span>:null}</li>)}</ul>:<p>No check evidence collected yet.</p>}
      </section>
      </details>
-     {selected.status==='WAITING_FOR_REVIEW'?<MissionAcceptance key={`acceptance:${selected.id}:${selected.revision}`} mission={selected} busy={busy||selectedResultStatus?.available!==true||Boolean(selected.checkExecution)||!selected.selectedResult||selected.selectedResult.attemptId!==selected.activeAttemptId} onAccept={checks=>run(async()=>{await invoke('mission:accept',{missionId:selected.id,revision:selected.revision,resultId:selected.selectedResult?.id,resultSha256:selected.selectedResult?.ref.sha256,criteria:checks});})}/>:<ul>{selected.acceptanceCriteria.map((c,i)=><li key={i}>{c}</li>)}</ul>}
+     {selected.status==='WAITING_FOR_REVIEW'?<MissionAcceptance key={`acceptance:${selected.id}:${selected.revision}`} mission={selected} busy={busy||storageOutcomeUncertain(snapshot)||selectedResultStatus?.available!==true||Boolean(selected.checkExecution)||!selected.selectedResult||selected.selectedResult.attemptId!==selected.activeAttemptId} onAccept={checks=>run(async()=>{await invoke('mission:accept',{missionId:selected.id,revision:selected.revision,resultId:selected.selectedResult?.id,resultSha256:selected.selectedResult?.ref.sha256,criteria:checks});})}/>:<ul>{selected.acceptanceCriteria.map((c,i)=><li key={i}>{c}</li>)}</ul>}
      <details><summary>Mission history</summary><ol>{selected.events.slice(-15).reverse().map(event=><li key={event.id}>{event.type.replaceAll('_',' ').toLowerCase()} · {new Date(event.time).toLocaleString()}</li>)}</ol></details>
     </article>:null}
    </section>:null}
@@ -123,8 +123,9 @@ export function MissionResultSelection({mission,snapshot,busy,invoke,run,onOpen}
  const seen=new Set<string>();
  const replies=transcript.segments.filter(segment=>{const ref=segment.replyRef;if(!replyTask||segment.role!=='assistant'||!ref||ref.kind!=='reply'||ref.taskId!==replyTask.id||ref.messageId!==segment.messageId||!/^[a-f0-9]{64}$/.test(ref.sha256)||seen.has(ref.messageId))return false;seen.add(ref.messageId);return true;});
  const files=mission.artifacts.filter(a=>a.kind==='deliverable'&&a.attemptId===mission.activeAttemptId&&a.sha256);
- const status=boundResultStatus(snapshot,mission),entry=snapshot.resultStatuses?.[mission.id];
- return <section className="mission-results" aria-label="Mission result selection"><h4>Review a result</h4>{mission.selectedResult?<><p className="mission-selected-result">Selected {mission.selectedResult.ref.kind} <code>{mission.selectedResult.ref.sha256}</code>{mission.selectedResult.attemptId!==mission.activeAttemptId?' Earlier attempt':''}</p>{!status?.available?<p role="status">{status?.unavailable??entry?.error??'Verifying selected result...'}</p>:null}{!status?.available&&entry?.retry?<button type="button" disabled={entry.state==='loading'} onClick={entry.retry}>Retry result verification</button>:null}</>:<p>Select a finished crew reply or a verified recorded file. The backend verifies its active attempt and exact content.</p>}
+ const status=boundResultStatus(snapshot,mission),entry=snapshot.resultStatuses?.[mission.id],uncertain=storageOutcomeUncertain(snapshot);
+ busy=busy||uncertain;
+ return <section className="mission-results" aria-label="Mission result selection"><h4>Review a result</h4>{uncertain?<p role="status">Storage outcome is uncertain. Keep this window open to copy or export drafts, then restart Sunny to recover saved work.</p>:null}{mission.selectedResult?<><p className="mission-selected-result">Selected {mission.selectedResult.ref.kind} <code>{mission.selectedResult.ref.sha256}</code>{mission.selectedResult.attemptId!==mission.activeAttemptId?' Earlier attempt':''}</p>{!status?.available?<p role="status">{status?.unavailable??entry?.error??'Verifying selected result...'}</p>:null}{!status?.available&&entry?.retry?<button type="button" disabled={entry.state==='loading'} onClick={entry.retry}>Retry result verification</button>:null}</>:<p>Select a finished crew reply or a verified recorded file. The backend verifies its active attempt and exact content.</p>}
   {mission.status==='WAITING_FOR_REVIEW'?<>
    <label>Reply task<select aria-label="Reply producer task" value={replyTaskId} onChange={event=>setReplyTaskId(event.target.value)}><option value="">Choose a finished crew task</option>{tasks.map(task=><option key={task.id} value={task.id}>{task.crewId} - {task.title}</option>)}</select></label>
    {replyTask?<button type="button" disabled={transcript.loading} onClick={transcript.reload}>Refresh replies</button>:null}

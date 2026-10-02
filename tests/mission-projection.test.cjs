@@ -222,3 +222,18 @@ test('explicit missing stage result or unrecognized member status remains unknow
  const s=coordinated();s.tasks.find(t=>t.id==='work').status='finished';s.missions[0].attempts[0].workflow.stages[1].status='result-missing';assert.equal(project(s,context({missionId:'m'})).state,'unknown');
  const other=coordinated();other.tasks.find(t=>t.id==='plan').status='unrecognized';const p=project(other,context({missionId:'m'}));assert.equal(p.state,'unknown');assert.equal(p.working,false);
 });
+
+test('global uncertain storage withholds current acceptance while retaining audit and requiring fresh recovery proof',()=>{
+ for(const health of [{state:'unsaved',failures:1,uncertain:true},{state:'uncertain',failures:1}]){
+  const s=accepted();s.liveAcceptanceIds=['receipt'];const receipt=structuredClone(s.missions[0].acceptance);
+  s.persistence=health;
+  assert.equal(require('../src/workContext.ts').boundResultStatus(s,s.missions[0]),undefined);
+  const p=project(s,context({missionId:'m'}));assert.equal(p.state,'unknown');assert.match(p.label,/storage.*recover/i);assert.notEqual(p.acceptanceCueEligible,true);assert.equal(p.result,undefined);
+  assert.deepEqual(s.missions[0].acceptance,receipt);
+  s.resultStatuses.m.key=require('../src/workContext.ts').resultStatusKey(s,s.missions[0]);
+  s.persistence={state:'saved',failures:0};assert.notEqual(project(s,context({missionId:'m'})).state,'accepted');
+  s.resultStatuses.m.key=require('../src/workContext.ts').resultStatusKey(s,s.missions[0]);
+  assert.equal(project(s,context({missionId:'m'})).state,'accepted');
+  s.persistence={state:'pending',failures:0};assert.equal(project(s,context({missionId:'m'})).acceptanceCueEligible,true);
+ }
+});

@@ -1,5 +1,5 @@
 import type {Mission,MissionAttempt,MissionResult,Snapshot,TaskSummary as Task,WorkContext} from './shared';
-import {boundResultStatus} from './workContext.ts';
+import {boundResultStatus,storageOutcomeUncertain} from './workContext.ts';
 
 export type MissionProjectionState='idle'|'starting'|'working'|'input'|'approval'|'waiting'|'unknown'|'failed'|'stopped'|'review'|'accepted';
 export type MissionStage='plan'|'work'|'validate'|'review';
@@ -141,6 +141,7 @@ export function projectMission(snapshot:Snapshot,context:WorkContext):MissionPro
   if(requests.some(value=>value.method!=='item/tool/requestUserInput')||members.some(value=>value.status==='awaiting-approval'))return show('approval');
   if(requests.length)return show('input');
   const current=mission.activeAttemptId===attempt.id;
+  if(current&&storageOutcomeUncertain(snapshot))return show('unknown','Storage outcome uncertain; restart to recover saved work');
   if(current&&mission.acceptancePending)return show('unknown','Acceptance pending storage recovery');
   if(missingStageResult)return unavailable('Stage result');
   if(attempt.status==='unknown'||members.some(value=>taskState(value.status)==='unknown')||current&&mission.connection==='reconciling')return show('unknown');

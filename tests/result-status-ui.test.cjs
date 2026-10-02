@@ -28,3 +28,22 @@ test('result verification reads only explicit selection and retains at most two 
  }
  assert.deepEqual(calls,['m0','m1','m2','m3','m4']);
 });
+
+test('uncertain storage clears cached result proof without rereading until recovery',async()=>{
+ const f=fixture(),calls=[],invoke=async()=>{calls.push('read');return status;};
+ f.render(snapshot,invoke);await new Promise(setImmediate);assert.equal(f.render(snapshot,invoke).m.state,'ready');
+ const uncertain={...snapshot,persistence:{state:'unsaved',uncertain:true,failures:1}};
+ f.render(uncertain,invoke);await new Promise(setImmediate);let view=f.render(uncertain,invoke);
+ assert.equal(calls.length,1);assert.equal(view.m.state,'error');assert.match(view.m.error,/storage.*uncertain/i);assert.equal(view.m.status,undefined);
+ const recovered={...snapshot,persistence:{state:'saved',failures:0}};
+ view=f.render(recovered,invoke);assert.notEqual(view.m.state,'ready');await new Promise(setImmediate);assert.equal(f.render(recovered,invoke).m.state,'ready');assert.equal(calls.length,2);
+ f.render({...recovered,persistence:{state:'pending',failures:0}},invoke);assert.equal(calls.length,2);
+});
+
+test('uncertainty retires adjacent cached proofs so recovery cannot resurrect earlier availability',async()=>{
+ const f=fixture(),missions=[mission,{...mission,id:'other'}],invoke=async(action,args)=>({...status,missionId:args.missionId});
+ let selected={...snapshot,missions};f.render(selected,invoke);await new Promise(setImmediate);f.render(selected,invoke);
+ selected={...selected,workspace:{context:{missionId:'other'}}};f.render(selected,invoke);f.render(selected,invoke);await new Promise(setImmediate);assert.equal(f.render(selected,invoke).m.state,'ready');
+ const uncertain={...selected,persistence:{state:'uncertain',failures:1}};f.render(uncertain,invoke);f.render(uncertain,invoke);
+ f.render(selected,invoke);await new Promise(setImmediate);const view=f.render(selected,invoke);assert.equal(view.m,undefined);assert.equal(view.other.state,'ready');
+});

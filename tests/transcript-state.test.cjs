@@ -100,3 +100,34 @@ test('navigation_preserves_unsent_draft_and_loader_exposes_retry_without_cross_t
  view.loadOlder();assert.deepEqual(pending[3].args.cursor,previousCursor);pending[3].reject(Error('Retry older history'));await new Promise(setImmediate);
  view=render({...options,taskId:'other'});view.retry();assert.deepEqual(pending[4].args.cursor,previousCursor,'retry resumes the failed history position');
 });
+
+test('real huge Unicode tail overflow preserves older pages and exposes exact unread append',()=>{
+ const {readTranscriptPage}=require('../desktop/transcript-pages.cjs');
+ const text='\u03a9\u4e2d\ud83d\ude80e\u0301'.repeat(180000),message={id:'m',role:'assistant',time:1,text};
+ let task={id:'t',projectId:'p',messages:[message]},s=select(setup()),cursor;
+ for(let i=0;i<3;i++){
+  const request={id:i,selection:s.selection,direction:'older',cursor};
+  const page=readTranscriptPage({epoch:'e',task,revision:1},{projectId:'p',taskId:'t',epoch:'e',revision:1,direction:'older',cursor});
+  s=api.transcriptReducer(s,{type:'request',request});s=api.transcriptReducer(s,{type:'page',request,page});cursor=page.previousCursor;
+ }
+ const previous=s.pages.map(p=>p.segments.map(s=>s.text));
+ s=api.transcriptReducer(s,{type:'event',event:delta({offset:text.length,text:'\ud83d\ude80'})});
+ assert.equal(s.pages.length,3);assert.equal(s.needsReload,false);assert.deepEqual(s.pages.map(p=>p.segments.map(s=>s.text)),previous);
+ assert.equal(s.pages.at(-1).nextCursor.offset,text.length);
+ s=api.transcriptReducer(s,{type:'event',event:delta({sequence:2,baseRevision:2,revision:3,offset:text.length+2,text:'\u4e2d'})});
+ task={...task,messages:[{...message,text:text+'\ud83d\ude80\u4e2d'}]};
+ const request={id:9,selection:s.selection,direction:'newer',cursor:s.pages.at(-1).nextCursor};
+ const page=readTranscriptPage({epoch:'e',task,revision:3},{projectId:'p',taskId:'t',epoch:'e',revision:3,direction:'newer',cursor:request.cursor});
+ assert.equal(page.segments.map(s=>s.text).join(''),'\ud83d\ude80\u4e2d');
+ s=api.transcriptReducer(s,{type:'request',request});s=api.transcriptReducer(s,{type:'page',request,page});assert.equal(s.pages.length,3);
+ for(const p of s.pages)assert.ok(p.segments.reduce((n,s)=>n+Buffer.byteLength(s.text),0)<=256*1024);
+});
+
+
+test('full 100-message page rolls new message behind its exact last boundary',()=>{
+ const segments=Array.from({length:100},(_,i)=>segment('text',{messageId:'m'+i}));
+ let s=load(select(setup()),segments);
+ s=api.transcriptReducer(s,{type:'event',event:delta({kind:'appendMessage',messageId:'new',role:'assistant',time:2,text:'next'})});
+ assert.equal(s.pages.length,1);assert.equal(s.pages[0].segments.length,100);assert.equal(s.needsReload,false);
+ assert.deepEqual(s.pages[0].nextCursor,{epoch:'e',taskId:'t',revision:2,messageId:'m99',offset:4});
+});

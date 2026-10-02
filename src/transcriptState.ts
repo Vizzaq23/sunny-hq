@@ -15,6 +15,7 @@ function invalidate(state:TranscriptState,revision=state.selection?.revision):Tr
 function matchesRequest(state:TranscriptState,request:TranscriptRequest):boolean {return state.pending?.id===request.id&&sameSelection(state.selection,request.selection);}
 function advanceCursor(cursor:TranscriptCursor|undefined,revision:number):TranscriptCursor|undefined {return cursor?{...cursor,revision}:undefined;}
 function validTextBoundary(a:string,b:string):boolean {return !(/[\ud800-\udbff]$/.test(a)&&/^[\udc00-\udfff]/.test(b));}
+function pageBytes(page:TranscriptPage):number {return page.segments.reduce((n,s)=>n+new TextEncoder().encode(s.text).length,0);}
 export function transcriptReducer(state:TranscriptState,action:TranscriptAction):TranscriptState {
  if(action.type==='select'){
   if(sameSelection(state.selection,action.selection))return state;
@@ -50,16 +51,23 @@ export function transcriptReducer(state:TranscriptState,action:TranscriptAction)
   for(const page of pages)for(const s of page.segments)if(s.messageId===event.messageId){
    delete s.replyRef; // A hash of older complete content cannot describe the appended reply.
    if(s.totalLength!==event.offset)return invalidate(next,revision);
-   if(s.offset+s.text.length===event.offset){if(!validTextBoundary(s.text,event.text))return invalidate(next,revision);s.text+=event.text;}
+   if(s.offset+s.text.length===event.offset){
+    if(!validTextBoundary(s.text,event.text))return invalidate(next,revision);
+    if(pageBytes(page)+new TextEncoder().encode(event.text).length<=256*1024)s.text+=event.text;
+    else page.nextCursor={epoch:event.epoch,taskId:state.selection.taskId,revision,messageId:s.messageId,offset:event.offset};
+   }
    s.totalLength=event.offset!+event.text.length;
   }
  }else{
   if(!event.role||typeof event.time!=='number'||pages.some(p=>p.segments.some(s=>s.messageId===event.messageId)))return invalidate(next,revision);
   const tail=pages.at(-1);
-  if(tail&&!tail.nextCursor)tail.segments.push({messageId:event.messageId,role:event.role,time:event.time,offset:0,text:event.text,totalLength:event.text.length});
+  if(tail&&!tail.nextCursor){
+   if(tail.segments.length<100&&pageBytes(tail)+new TextEncoder().encode(event.text).length<=256*1024)tail.segments.push({messageId:event.messageId,role:event.role,time:event.time,offset:0,text:event.text,totalLength:event.text.length});
+   else {const last=tail.segments.at(-1);if(last)tail.nextCursor={epoch:event.epoch,taskId:state.selection.taskId,revision,messageId:last.messageId,offset:last.offset+last.text.length};}
+  }
  }
- // Streaming must obey the same bound as explicit pages. Resync once a live tail exceeds it.
- if(pages.some(p=>p.segments.length>100||p.segments.reduce((n,s)=>n+new TextEncoder().encode(s.text).length,0)>256*1024))return invalidate(next,revision);
+ // Overflow stays unread behind a current cursor; older readable pages remain bounded.
+ if(pages.some(p=>p.segments.length>100||pageBytes(p)>256*1024))return invalidate(next,revision);
  return {...next,selection:{...state.selection,revision},pages,pending:null,loading:false,needsReload:pages.length===0,error:''};
 }
 export function transcriptSegments(state:TranscriptState):TranscriptSegment[] {

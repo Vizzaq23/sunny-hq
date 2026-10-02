@@ -7,7 +7,7 @@ const {searchProjectFiles}=require('./project-search.cjs');
 const {bootHub,createQuitLifecycle}=require('./persistence-lifecycle.cjs');
 app.setName('Sunny HQ');const home=process.env.USERPROFILE||os.homedir();const dataDir=process.env.SUNNY_DATA_DIR||path.join(home,'AppData','Local','Sunny HQ');app.setPath('userData',dataDir);
 const primary=app.requestSingleInstanceLock();if(!primary)app.exit(0);app.on('second-instance',()=>{if(win)restoreHub();});
-let win,companion,companionLoading,hub,tray,quitting=false,morgansScanTimer;
+let win,companion,companionLoading,hub,tray,quitting=false,morgansScanTimer,publicTransport;
 const diagnosticsDir=path.join(dataDir,'diagnostics');
 const diagnostics=require('./diagnostics.cjs');const buildInfo={...diagnostics.readBuildInfo(path.join(__dirname,'../dist/build-info.json')),appVersion:app.getVersion(),electronVersion:process.versions.electron};
 function diagnostic(event,details={}){try{diagnostics.record(diagnosticsDir,event,{...buildInfo,...details});}catch{/* Diagnostics must not prevent startup. */}}
@@ -16,7 +16,8 @@ async function captureSmokePage(){let lastError;for(let attempt=1;attempt<=3;att
 diagnostic('starting');
 const {companionBounds,validWorkspaceRequest}=require('./companion.cjs');const terminals=new Map();const runFile=promisify(execFile);const smoke=process.argv.includes('--smoke-test');
 const skipped=new Set(['.git','node_modules','.next','dist','release','.sunny-dev','.obsidian','70 Attachments','99 Archive','80 Templates']);
-function emit(type,data){require('./broadcast.cjs').broadcast([win,companion],type,data);}
+function emitEnvelope(envelope){require('./broadcast.cjs').broadcastEnvelope([win,companion],envelope);}
+function emit(type,data){emitEnvelope(publicTransport?publicTransport.event(type,data):{type,data});}
 function textArg(value,label,max=10000){if(typeof value!=='string'||!value.trim()||value.length>max||value.includes('\0'))throw Error('Invalid '+label);return value;}
 function registered(id){const project=hub.project(id);if(!fs.existsSync(project.path))throw Error('Project folder is unavailable.');return project;}
 async function command(exe,args,cwd,timeout=20000){if(!exe)throw Error('This tool is not installed. Open Tools for setup.');try{const result=await runFile(exe,args,{cwd,windowsHide:true,timeout,maxBuffer:4*1024*1024,encoding:'utf8'});return result.stdout;}catch(e){throw Error((e.stderr||e.message||'Command failed').slice(0,2000));}}
@@ -24,7 +25,7 @@ function git(projectId,args){return command(catalog.getExecutable('git',home)||'
 function allowedUrl(raw,{localOnly=false}={}){const url=new URL(textArg(raw,'URL'));if(!['https:','http:'].includes(url.protocol)||url.username||url.password)throw Error('Use an HTTP or HTTPS address without embedded credentials.');if(localOnly&&!['localhost','127.0.0.1','[::1]'].includes(url.hostname))throw Error('The preview supports local development servers. Open other sites in your browser.');return url.toString();}
 function openUrl(raw){return shell.openExternal(allowedUrl(raw));}
 function importedHistory(){try{return JSON.parse(fs.readFileSync(path.join(dataDir,'chatgpt-history.json'),'utf8'));}catch{return [];}}
-function publicState(){return {...hub.state,approvals:hub.state.approvals.map(({rpcId,...a})=>a)};}
+function publicState(){return publicTransport.snapshot();}
 function fileList(projectId,input=''){const p=registered(projectId);const dir=guardedPath(p.path,input);return fs.readdirSync(dir,{withFileTypes:true}).filter(f=>!skipped.has(f.name)&&!f.isSymbolicLink()).map(f=>({name:f.name,path:path.join(dir,f.name),directory:f.isDirectory()})).sort((a,b)=>Number(b.directory)-Number(a.directory)||a.name.localeCompare(b.name));}
 function searchFiles(projectId,query){const p=registered(projectId);textArg(query,'search query',200);return searchProjectFiles(p.path,query,{skipped});}
 function libraryFile(input){if(typeof input!=='string'||!input.toLowerCase().endsWith('.md'))throw Error('Choose a Markdown note.');const vault=catalog.vaultPath(home);const file=guardedPath(vault,input);const relative=path.relative(vault,file).split(path.sep);if(relative.some(p=>skipped.has(p)))throw Error('This vault folder is excluded.');return {vault,file};}
@@ -36,6 +37,8 @@ async function handle(action,args={},surface='hub'){
  if(hub?.quiescing&&!['snapshot','workspace:get','app:export','mission:resultStatus','transcript:page'].includes(action))throw Error('Sunny is stopping and storage needs attention. Keep this window open to copy or export drafts before restarting.');
  switch(action){
  case 'snapshot':return publicState();
+ case 'transcript:page':return publicTransport.page(args);
+ case 'mission:resultStatus':return publicTransport.resultStatus(args);
  case 'mission:prepareMerge':return hub.merger.act(args,'prepare');
  case 'mission:submitMerge':return hub.merger.act(args,'submit');
  case 'mission:recheckMerge':return hub.merger.act(args,'recheck');
@@ -45,7 +48,7 @@ async function handle(action,args={},surface='hub'){
  case 'mission:signalSeen':return hub.markMissionSignalSeen(args);
  case 'mission:create':return hub.createMission(args);
  case 'mission:prepareBranch':return hub.prepareMissionBranch(args);
- case 'mission:start':return hub.startMission(args);
+ case 'mission:start':return publicTransport.taskReply(await hub.startMission(args));
  case 'skills:suggest':return hub.suggestSkills(args);
  case 'mission:accept':return hub.acceptMission(args);
  case 'mission:selectResult':return hub.selectMissionResult(args);
@@ -91,12 +94,12 @@ async function handle(action,args={},surface='hub'){
  case 'codex:login':{if(!hub.client.connected)await hub.client.connect(home);const result=await hub.client.request('account/login/start',{type:'chatgpt'});if(result.authUrl)await openUrl(result.authUrl);return result;}
  case 'project:add':{const result=await dialog.showOpenDialog(win,{title:'Bring a project aboard',properties:['openDirectory']});if(result.canceled)return null;const root=fs.realpathSync(result.filePaths[0]);const existing=hub.state.projects.find(p=>p.path.toLowerCase()===root.toLowerCase());if(existing)return existing;const project={id:hash(root.toLowerCase()).slice(0,16),name:path.basename(root),path:root,category:'development'};hub.state.projects.push(project);hub.changed();return project;}
  case 'project:remove':{const p=registered(args.projectId);if(hub.gate.blocked(p.path)||hub.state.tasks.some(t=>t.projectId===p.id&&['working','waiting','starting'].includes(t.status)))throw Error('Finish active tasks before removing this project.');hub.state.projects=hub.state.projects.filter(x=>x.id!==p.id);hub.changed();return;}
- case 'task:start':return hub.start(args);
- case 'task:send':return hub.send(args.taskId,args.prompt);
- case 'task:interrupt':return hub.interrupt(args.taskId);
- case 'task:checkStatus':return hub.checkStatus(args.taskId);
- case 'task:resolveMissingThread':return hub.resolveMissingThread(args);
- case 'task:handoff':return hub.handoff(args);
+ case 'task:start':return publicTransport.taskReply(await hub.start(args));
+ case 'task:send':return publicTransport.taskReply(await hub.send(args.taskId,args.prompt));
+ case 'task:interrupt':return publicTransport.taskReply(await hub.interrupt(args.taskId));
+ case 'task:checkStatus':return publicTransport.taskReply(await hub.checkStatus(args.taskId));
+ case 'task:resolveMissingThread':return publicTransport.taskReply(await hub.resolveMissingThread(args));
+ case 'task:handoff':return publicTransport.taskReply(await hub.handoff(args));
  case 'task:history':{const imported=importedHistory().map(({messages,...summary})=>summary);try{await hub.ensure();const r=await hub.client.request('thread/list',{limit:100,useStateDbOnly:true,sourceKinds:['cli','vscode','appServer','exec']});return [...imported,...(r.data||[]).filter(t=>!hub.state.tasks.some(own=>own.threadId===t.id)).map(t=>({id:t.id,title:t.name||t.preview||'Codex task',cwd:t.cwd,status:'externally managed',external:true}))];}catch{return imported;}}
  case 'task:readExternal':{if(String(args.threadId).startsWith('chatgpt:')){const item=importedHistory().find(c=>c.id===args.threadId);if(!item)throw Error('Imported conversation not found');return {messages:item.messages};}await hub.ensure();return hub.client.request('thread/read',{threadId:textArg(args.threadId,'task ID',200),includeTurns:true});}
  case 'approval:respond':return hub.respond(args);
@@ -159,7 +162,7 @@ async function createWindow(){win=new BrowserWindow({title:'Sunny HQ',width:1520
  try{await hub.connect();}catch(e){console.error('Codex connection:',e.message);}
  if(smoke){win.showInactive();await require('./smoke.cjs')({win,hub,handle,terminals});await require('./companion-smoke.cjs')({win,handle,getCompanion:()=>companion});await require('./growth-smoke.cjs')({win,hub,handle});await require('./walking-smoke.cjs')({win,hub});await require('./captain-smoke.cjs')({win,hub,handle});await require('./island-smoke.cjs')({win,hub,handle});await require('./news-smoke.cjs')({win,hub,handle});await require('./recovery-smoke.cjs')({win,hub});await new Promise(r=>setTimeout(r,1800));const state=publicState();const checks={title:await win.webContents.getTitle(),projects:state.projects.length,tools:state.tools.length,codex:state.codex.status,models:state.models.length,body:await win.webContents.executeJavaScript('document.body.innerText.slice(0,900)'),images:await win.webContents.executeJavaScript('Array.from(document.images).map(i=>({src:i.src,width:i.naturalWidth}))')};if(!checks.body.trim()||!await win.webContents.executeJavaScript('Boolean(document.querySelector(".home-page,.island-scene"))'))throw Error('The final app view did not render.');const screenshot=await captureSmokePage();const output=path.join(process.cwd(),'.sunny-dev','desktop-smoke.png');fs.mkdirSync(path.dirname(output),{recursive:true});fs.writeFileSync(output,screenshot.toPNG());console.log('SUNNY_SMOKE '+JSON.stringify({...checks,screenshot:output}));quitting=true;app.quit();}
 }
-app.whenReady().then(async()=>{hub=await bootHub({home,dataDir,catalog});const store=hub.store;if(!smoke){hub.state.news.captureMode='chatgpt-auto';morgansInboxes=[[app.getPath('downloads'),new Map()]];if(process.env.SUNNY_MORGANS_INBOX&&path.isAbsolute(process.env.SUNNY_MORGANS_INBOX))morgansInboxes.push([process.env.SUNNY_MORGANS_INBOX,new Map()]);}if(store.recovery&&!smoke)await dialog.showMessageBox({type:"info",title:"Sunny recovered local data",message:"Unreadable saved data was preserved for recovery. Sunny will open with defaults.",detail:store.recovery});const newsArg=process.argv.find(a=>a.startsWith('--import-briefing='));if(newsArg)importNewsFile(newsArg.slice('--import-briefing='.length));await createWindow();if(!smoke){scanMorgansBriefings();morgansScanTimer=setInterval(scanMorgansBriefings,30000);}}).catch(async e=>{if(hub)try{await hub.close();}catch{}diagnostic('startup-failed');console.error(e);if(!smoke)dialog.showErrorBox('Sunny could not start',e.message);quitting=true;app.exit(1);});
+app.whenReady().then(async()=>{hub=await bootHub({home,dataDir,catalog});publicTransport=require('./public-transport.cjs').createPublicTransport(hub);publicTransport.bindTranscript(emitEnvelope);const store=hub.store;if(!smoke){hub.state.news.captureMode='chatgpt-auto';morgansInboxes=[[app.getPath('downloads'),new Map()]];if(process.env.SUNNY_MORGANS_INBOX&&path.isAbsolute(process.env.SUNNY_MORGANS_INBOX))morgansInboxes.push([process.env.SUNNY_MORGANS_INBOX,new Map()]);}if(store.recovery&&!smoke)await dialog.showMessageBox({type:"info",title:"Sunny recovered local data",message:"Unreadable saved data was preserved for recovery. Sunny will open with defaults.",detail:store.recovery});const newsArg=process.argv.find(a=>a.startsWith('--import-briefing='));if(newsArg)importNewsFile(newsArg.slice('--import-briefing='.length));await createWindow();if(!smoke){scanMorgansBriefings();morgansScanTimer=setInterval(scanMorgansBriefings,30000);}}).catch(async e=>{if(hub)try{await hub.close();}catch{}diagnostic('startup-failed');console.error(e);if(!smoke)dialog.showErrorBox('Sunny could not start',e.message);quitting=true;app.exit(1);});
 async function offerFailedQuit(error){
  quitting=false;restoreHub();
  const result=await dialog.showMessageBox(win,{type:'warning',title:'Sunny still has unsaved work',buttons:['Keep window open','Quit without saving'],defaultId:0,cancelId:0,message:'Storage did not finish saving. Keep this window open to copy or export drafts before restarting Sunny.',detail:String(error.message).slice(0,1500)});

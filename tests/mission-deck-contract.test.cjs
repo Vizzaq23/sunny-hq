@@ -97,3 +97,22 @@ test('native acceptance fault is a pre-worker transient refusal and restores the
  });
  assert.equal(await store.barrier({complete:true},'acceptance'),receipt);assert.equal(writes.length,2);
 });
+
+test('native delegation completes a child only after its turn and launch acknowledgement',async()=>{
+ const parent={id:'captain',threadId:'parent-thread',turnId:'parent-turn'},completed=[],pollWaiters=[];
+ const hub={state:{tasks:[]},launchingTasks:new Set(),persist:async()=>{},request:request=>{
+  const crewId=request.params.arguments.crewId,child={id:crewId,parentTaskId:parent.id,crewId,status:'working'};
+  if(crewId==='nami')hub.launchingTasks.add(child.id);else child.turnId='launched-'+crewId;
+  hub.state.tasks.push(child);
+  return new Promise(resolve=>{child.resolveDelegation=resolve;});
+ }};
+ const finishStages=fixtureCallable('finishStages',{hub,sequence:1,delay:()=>new Promise(resolve=>pollWaiters.push(resolve)),complete:async task=>{completed.push({id:task.id,turnId:task.turnId,launchPending:hub.launchingTasks.has(task.id)});task.resolveDelegation?.({success:true});}});
+ const done=finishStages(parent);done.catch(()=>{});
+ const advance=async()=>{for(let tick=0;tick<8;tick++)await Promise.resolve();};
+ await advance();assert.deepEqual(completed,[],'Working status before turn/start must not trigger synthetic completion');
+ const child=hub.state.tasks[0];child.turnId='actual-child-turn';assert.equal(pollWaiters.length,1);pollWaiters.shift()();await advance();
+ assert.deepEqual(completed,[],'Receiving turn identity while Hub launch is still active must not trigger completion');
+ assert.equal(pollWaiters.length,1);hub.launchingTasks.delete(child.id);pollWaiters.shift()();await done;
+ assert.deepEqual(completed.map(task=>task.id),['nami','franky','usopp','zoro','captain']);
+ assert.ok(completed.slice(0,4).every(task=>task.turnId&&!task.launchPending));
+});

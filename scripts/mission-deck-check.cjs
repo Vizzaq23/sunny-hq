@@ -64,8 +64,9 @@ async function complete(task,text='SYNTHETIC captain result: inventory survives 
 async function finishStages(task){
  for(const [index,crewId] of ['nami','franky','usopp','zoro'].entries()){
   const pending=hub.request({id:1000+sequence*10+index,method:'item/tool/call',params:{threadId:task.threadId,turnId:task.turnId,callId:'synthetic-stage-'+sequence+'-'+index,tool:'sunny_delegate',arguments:{crewId,title:'SYNTHETIC '+crewId,objective:'Provide the bounded synthetic stage result'}}});
-  for(let i=0;i<100&&!hub.state.tasks.some(t=>t.parentTaskId===task.id&&t.crewId===crewId&&t.status==='working');i++)await delay(20);
-  const child=hub.state.tasks.find(t=>t.parentTaskId===task.id&&t.crewId===crewId&&t.status==='working');assert.ok(child,'Production Captain created '+crewId);await complete(child);assert.equal((await pending).success,true);
+  const ready=child=>child.parentTaskId===task.id&&child.crewId===crewId&&child.status==='working'&&typeof child.turnId==='string'&&child.turnId.length>0&&!hub.launchingTasks.has(child.id);
+  for(let i=0;i<100&&!hub.state.tasks.some(ready);i++)await delay(20);
+  const child=hub.state.tasks.find(ready);assert.ok(child,'Production Captain acknowledged the launch of '+crewId);await complete(child);assert.equal((await pending).success,true);
  }
  await complete(task);await hub.persist();
 }

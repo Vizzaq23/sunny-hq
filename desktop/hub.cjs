@@ -166,6 +166,11 @@ class Hub extends EventEmitter {
    if(!selected||typeof input.resultId!=='string'||input.resultId!==selected.id||typeof input.resultSha256!=='string'||input.resultSha256!==selected.ref.sha256)throw Error('Review and select the exact mission result before acceptance.');
    const result=await require('./mission-results.cjs').resolveMissionResult({mission,tasks:this.state.tasks,ref:selected.ref,producerTaskId:selected.producerTaskId,readArtifact:artifact=>this.readMissionResultArtifact(project,artifact)});
    if((this.closed||this.quiescing))throw Error('Sunny closed before acceptance could be saved.');
+   // Apply the same acceptance rules before submitting a durable pending intent.
+   // Invalid captain input must not reach the worker's terminal profile validator.
+   const preflightBook=new MissionBook(this.missionBook.data),preflightMission=preflightBook.get(input.missionId);let preflightProof;
+   if(merged){preflightProof={...merged,id:randomUUID(),attemptId:preflightMission.activeAttemptId,projectId:project.id,producer:'sunny-local-verifier'};preflightMission.artifacts.push(preflightProof);}
+   preflightBook.accept(input.missionId,input.revision,input.criteria,{...result,resultId:selected.id,attemptId:selected.attemptId},preflightProof);
    const validateBinding=async(expectedRevision)=>{
     const current=this.missionBook.get(input.missionId);this.missionBook.check(current,expectedRevision);
     if(current.activeAttemptId!==selected.attemptId||current.selectedResult?.id!==selected.id||!same(current.selectedResult?.ref,result.ref))throw Error('Selected mission result changed during acceptance.');

@@ -57,12 +57,14 @@ Source commit: ${source.commit}`;
   return {id:randomUUID(),attemptId:mission.activeAttemptId,repository,branch:source.branch,base,title:mission.title,body,commit:source.commit,fingerprint:source.fingerprint,state:'prepared',createdAt:Date.now(),expiresAt:Date.now()+15*60*1000};
  }
  async validate(root,preview){const source=await this.evidence.gitState(root),repository=await this.repository(root);if(source.dirty||source.commit!==preview.commit||source.branch!==preview.branch||source.fingerprint!==preview.fingerprint||repository!==preview.repository)throw Error('Source or repository changed. Prepare and review a new PR preview.');}
- async publish(root,preview){
+ async publish(root,preview,beforeEffect){
   await this.validate(root,preview);
+  beforeEffect?.();
   const folder=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-pr-')),bodyFile=path.join(folder,'body.md');
   try{
    fs.writeFileSync(bodyFile,preview.body,'utf8');
    await this.run(this.git,['push',`https://github.com/${preview.repository}.git`,`${preview.commit}:refs/heads/${preview.branch}`],root);
+   try{beforeEffect?.();}catch(error){error.uncertain=true;throw error;}
    const url=(await this.run(this.gh,['pr','create','--repo','github.com/'+preview.repository,'--draft','--base',preview.base,'--head',preview.branch,'--title',preview.title,'--body-file',bodyFile],root)).trim();
    const prefix=`https://github.com/${preview.repository}/pull/`,number=Number(url.slice(prefix.length));if(!url.startsWith(prefix)||!Number.isSafeInteger(number)||number<1)throw Error('Publication response could not be verified.');return {url,number};
   }finally{fs.rmSync(bodyFile,{force:true});fs.rmdirSync(folder);}
@@ -88,10 +90,10 @@ class MissionPublication{
    if(!preview||preview.attemptId!==mission.activeAttemptId)throw Error('Prepare a PR preview for this attempt first.');
    if(mode==='publish'){
     if(input.confirmed!==true||input.previewId!==preview.id||preview.state!=='prepared'||Date.now()>preview.expiresAt)throw Error('Review and confirm the current unexpired PR preview.');
-    await hub.publisher.validate(project.path,preview);if(hub.closed)throw Error('Sunny closed before publication.');
+    await hub.publisher.validate(project.path,preview);if(hub.closed||hub.quiescing)throw Error('Sunny closed before publication.');
     await hub.missionMutation(book=>{const current=book.get(mission.id);book.check(current,input.revision);current.prPublication.state='publishing';current.prPublication.authorizedAt=Date.now();book.record(current,'PR_PUBLISH_AUTHORIZED',{previewId:preview.id,actor:'captain'});},'publication-intent');
-    const authorized=mission.prPublication;await hub.publisher.validate(project.path,authorized);if(hub.closed)throw Error('Sunny closed before publication.');externalStarted=true;
-    try{const result=await hub.publisher.publish(project.path,authorized);const saved=await hub.missionMutation(book=>{const current=book.get(mission.id);if(current.prPublication?.id!==preview.id)throw Error('Publication intent changed.');current.prPublication.state='published';Object.assign(current.prPublication,result);book.record(current,'PR_CREATED',{previewId:preview.id,url:result.url});return current.prPublication;},'reservation-release');outcomeDurable=true;return saved;}
+    const authorized=mission.prPublication;await hub.publisher.validate(project.path,authorized);if(hub.closed||hub.quiescing)throw Error('Sunny closed before publication.');externalStarted=true;
+    try{const result=await hub.publisher.publish(project.path,authorized,()=>hub.assertOpenForEffect());const saved=await hub.missionMutation(book=>{const current=book.get(mission.id);if(current.prPublication?.id!==preview.id)throw Error('Publication intent changed.');current.prPublication.state='published';Object.assign(current.prPublication,result);book.record(current,'PR_CREATED',{previewId:preview.id,url:result.url});return current.prPublication;},'reservation-release');outcomeDurable=true;return saved;}
     catch(error){if(!hub.authorityQueue.uncertain)await hub.missionMutation(book=>{const current=book.get(mission.id);current.prPublication.state='uncertain';book.record(current,'PR_PUBLICATION_UNCERTAIN',{previewId:preview.id});});throw Error('Publication may have reached GitHub. Inspect the repository and reconcile the PR; Sunny will not retry automatically.');}
    }
    if(!Number.isSafeInteger(input.prNumber)||input.prNumber<1)throw Error('Enter the published PR number.');

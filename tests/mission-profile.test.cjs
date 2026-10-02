@@ -20,8 +20,7 @@ function startup(saved,backupDir){
  const nativeRequire=createRequire(path.join(__dirname,'../desktop/main.cjs'));
  const requireStub=id=>{
   if(id==='electron')return {app,ipcMain:{handle(){}},dialog:{showErrorBox:(_title,message)=>{error=message;}}};
-  if(id==='./core.cjs')return {StateStore:class {constructor(){return store;}},SqliteStore:class {constructor(){return store;}}};
-  if(id==='./hub.cjs')return {Hub:class {constructor(){hubStarts++;throw Error('Hub should not start');}}};
+  if(id==='./persistence-lifecycle.cjs')return {...nativeRequire(id),bootHub:options=>nativeRequire(id).bootHub({...options,openStore:async()=>{try{return profile.prepareMissionProfileStore(store,path.join(backupDir,'mission-profile-backups'));}catch(error){store.close();throw error;}},HubClass:class {constructor(){hubStarts++;throw Error('Hub should not start');}}})};
   if(id==='./diagnostics.cjs')return {readBuildInfo:()=>({}),record(){}};
   return nativeRequire(id);
  };

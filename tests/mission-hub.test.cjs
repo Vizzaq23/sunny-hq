@@ -181,7 +181,7 @@ test('delayed turn starts cannot resurrect completed work or replace a current t
 test('finished coordinated stage cannot be changed while coordinator still runs',async t=>{
  const {hub}=setup(t);const mission=await hub.createMission(brief);const attempt=hub.missionBook.begin(mission.id,mission.revision);attempt.workflowVersion=1;
  const child={id:'builder-child',projectId:'p',parentTaskId:attempt.taskId,crewId:'franky',threadId:'builder-thread',turnId:'builder-turn',status:'finished',messages:[]};
- attempt.taskIds.push(child.id);hub.state.tasks.push(child);let calls=0;hub.client.request=async()=>{calls++;return {turn:{id:'another'}};};
+ attempt.taskIds.push(child.id);mission.taskIds.push(child.id);hub.state.tasks.push(child);let calls=0;hub.client.request=async()=>{calls++;return {turn:{id:'another'}};};
  await assert.rejects(hub.send(child.id,'Change the implementation again'),/new attempt|mission board/i);assert.equal(calls,0);
 });
 

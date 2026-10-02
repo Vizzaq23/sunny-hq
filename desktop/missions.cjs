@@ -21,6 +21,10 @@ class MissionBook {
     if(!intent||typeof intent!=='object'||Array.isArray(intent)||Object.keys(intent).length!==fields.length||Object.keys(intent).some(key=>!fields.includes(key))||typeof intent.id!=='string'||!intent.id||intent.id.length>200||mission.status!=='WAITING_FOR_REVIEW'||mission.acceptance!==undefined||!selected||intent.attemptId!==mission.activeAttemptId||intent.resultId!==selected.id||intent.resultSha256!==selected.ref.sha256||intent.producerTaskId!==selected.producerTaskId||!Number.isSafeInteger(intent.reviewedRevision)||intent.reviewedRevision<0||intent.reviewedRevision>mission.revision||!Number.isFinite(intent.createdAt)||intent.createdAt<0||!Array.isArray(intent.criteria)||intent.criteria.length!==mission.acceptanceCriteria.length||!intent.criteria.every(value=>value===true))throw Error('Invalid saved pending acceptance intent. Preserve the profile for recovery.');
     const ref=require('./mission-results.cjs').validateMissionResultRef(intent.ref);if(JSON.stringify(ref)!==JSON.stringify(require('./mission-results.cjs').validateMissionResultRef(selected.ref)))throw Error('Invalid saved pending acceptance result binding.');
    }
+   if(mission.acceptanceRecovery!==undefined){
+    const fence=mission.acceptanceRecovery,acceptance=mission.acceptance,fields=['version','acceptanceId','resultId','resultSha256','reason','detectedAt'];
+    if(!fence||typeof fence!=='object'||Array.isArray(fence)||Object.keys(fence).length!==fields.length||Object.keys(fence).some(key=>!fields.includes(key))||fence.version!==1||mission.status!=='COMPLETE'||!acceptance||acceptance.legacy===true||fence.acceptanceId!==acceptance.id||fence.resultId!==acceptance.resultId||fence.resultSha256!==acceptance.resultSha256||fence.reason!=='result-binding'||!Number.isFinite(fence.detectedAt)||fence.detectedAt<0)throw Error('Invalid saved acceptance recovery fence. Preserve the profile for recovery.');
+   }
   }
  }
  get(id){const mission=this.data.missions.find(m=>m.id===id);if(!mission)throw Error('Mission not found.');return mission;}

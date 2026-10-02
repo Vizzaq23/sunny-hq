@@ -5,8 +5,9 @@ class MissionBranch {
   const source=await this.evidence.gitState(root);if(source.dirty)throw Error('Commit or preserve your changes before preparing a mission branch. A clean checkout is required.');
   return {name:'codex/sunny-'+missionId,baseCommit:source.commit,baseBranch:source.branch,baseFingerprint:source.fingerprint,state:'preparing'};
  }
- async create(root,plan){
+ async create(root,plan,beforeEffect){
   const source=await this.evidence.gitState(root);if(source.fingerprint!==plan.baseFingerprint)throw Error('Project changed after branch preparation. No switch was made.');
+  beforeEffect?.();
   await this.evidence.command(root,['switch','--no-guess','-c',plan.name,plan.baseCommit]);
   const result=await this.inspect(root,plan);if(!result.ready)throw Error('Branch preparation could not be verified. Inspect the checkout before continuing.');return result;
  }

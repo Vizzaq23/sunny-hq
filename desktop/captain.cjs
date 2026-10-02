@@ -15,7 +15,7 @@ class Captain {
  async options(project){const effective=await this.hub.client.request('config/read',{cwd:project.path,includeLayers:false});return {sandbox:'read-only',approvalPolicy:'never',config:discussionConfig(effective.config||{}),dynamicTools:tools};}
  reset(task){task.delegationCount=0;this.stopping.delete(task.id);}
  log(task,text){task.messages.push({id:randomUUID(),role:'system',text,time:Date.now()});this.hub.bumpTask(task);this.hub.changed();}
- async call(request){let result;try{result=await this.delegate(request.params||{});}catch(e){result=output(e.message);}if(this.hub.client.connected&&!this.hub.closed){try{await this.hub.persist('dispatch');if(this.hub.client.connected&&!this.hub.closed)this.hub.client.respond(request.id,result);}catch(error){this.hub.reportAsync(error);}}return result;}
+ async call(request){let result;try{result=await this.delegate(request.params||{});}catch(e){result=output(e.message);}if(this.hub.client.connected&&!this.hub.closed&&!this.hub.quiescing){try{await this.hub.persist('dispatch');if(this.hub.client.connected&&!this.hub.closed&&!this.hub.quiescing)this.hub.client.respond(request.id,result);}catch(error){this.hub.reportAsync(error);}}return result;}
  async delegate(p){const hub=this.hub,parent=hub.state.tasks.find(t=>t.threadId===p.threadId);
   if(!parent?.captain||parent.crewId!=='luffy'||parent.external||p.tool!=='sunny_delegate'||(p.namespace&&p.namespace!==''))throw Error('This delegation tool is available only in Luffy captain conversations.');
   if(!p.turnId||p.turnId!==parent.turnId||!['working','waiting'].includes(parent.status)||this.stopping.has(parent.id))throw Error('This captain turn is no longer active.');

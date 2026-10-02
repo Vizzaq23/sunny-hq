@@ -4,6 +4,18 @@ const {createHash,randomUUID}=require('node:crypto');
 const {parentPort,workerData,isMainThread}=require('node:worker_threads');
 const {StateStore,SqliteStore}=require('./core.cjs');
 const {inspectMissionProfile,prepareMissionProfileStore}=require('./mission-profile.cjs');
+function preflightExistingProfile(kind,file){
+ if(!fs.existsSync(file))return;
+ let saved;
+ try{
+  if(kind==='json')saved=JSON.parse(fs.readFileSync(file,'utf8'));
+  else if(kind==='sqlite'){
+   const {DatabaseSync}=require('node:sqlite'),database=new DatabaseSync(file,{readOnly:true});
+   try{const row=database.prepare('SELECT value FROM state WHERE id=1').get();saved=row?JSON.parse(row.value):{};}finally{database.close();}
+  }else throw Error('Invalid storage format.');
+  if(!['empty','v1-upgrade','v2'].includes(inspectMissionProfile(saved).mode))throw Error('Unsupported mission profile.');
+ }catch(error){throw Error('Saved Sunny profile is unreadable or unsupported. Preserve the original file and use a compatible copy for recovery. '+error.message);}
+}
 function syncDirectory(directory){
  // Windows does not expose directory fsync via Node. File fsync and an atomic
  // same-directory rename remain mandatory; POSIX also fsyncs the directory.
@@ -23,6 +35,10 @@ const {epoch}=workerData;let raw,store,lastSequence=0,ended=false;
 function post(message){parentPort.postMessage({epoch,...message});}
 function finish(){if(ended)return;ended=true;try{store?store.close():raw?.close();}finally{parentPort.close();}}
 try{
+ // Read before opening any writer: WAL setup and CREATE TABLE can change a
+ // foreign/unsupported SQLite file even when subsequent authority checks fail.
+ // Malformed JSON must not enter StateStore's historical defaults fallback.
+ preflightExistingProfile(workerData.kind,workerData.file);
  raw=workerData.kind==='sqlite'?new SqliteStore(workerData.file):workerData.kind==='json'?durableJsonStore(workerData.file):null;
  if(!raw)throw Error('Invalid persistence storage kind');
  if(workerData.kind==='sqlite'){

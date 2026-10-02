@@ -11,8 +11,10 @@ function fixture(){
  const task={id:'t',projectId:'p',crewId:'franky',status:'finished',messages:[{id:'m',role:'assistant',time:1,text:'秘密🚀'.repeat(100000)}]},hub=new EventEmitter();hub.state={projects:[{id:'p',path:process.cwd()}],tasks:[task],missions:[],approvals:[]};let effects=0;
  for(const method of ['startMission','start','send','interrupt','checkStatus','resolveMissingThread','handoff'])hub[method]=async()=>{effects++;return task;};
  const publicTransport=createPublicTransport(hub,{epoch:'ipc'}),win={isDestroyed:()=>false,webContents:{mainFrame:{}}},companion={isDestroyed:()=>false,webContents:{mainFrame:{}}};
- const context=vm.createContext({require:createRequire(filename),hub,win,companion,publicTransport});
- const handler=new vm.Script(declarations.get('publicState')+'\n'+declarations.get('handle')+'\n('+ipc+')').runInContext(context);
+ const externalHistoryPager=require('../desktop/external-history-pages.cjs').createExternalHistoryPager();
+ hub.ensure=async()=>{};hub.client={request:async()=>({thread:{turns:[{items:[{type:'agentMessage',text:'provider text '.repeat(90000)}]}]}})};
+ const context=vm.createContext({require:createRequire(filename),hub,win,companion,publicTransport,externalHistoryPager,importedHistory:()=>[{id:'chatgpt:fixture',messages:[{role:'user',text:'import text '.repeat(90000)}]}]});
+ const handler=new vm.Script(declarations.get('textArg')+'\n'+declarations.get('loadExternalHistory')+'\n'+declarations.get('publicState')+'\n'+declarations.get('handle')+'\n('+ipc+')').runInContext(context);
  return {task,hub,publicTransport,win,companion,handler,get effects(){return effects;},invoke(action,args={},target=win){return handler({sender:target.webContents,senderFrame:target.webContents.mainFrame},action,args);}};
 }
 test('actual main read routes return bounded protocol state and unchanged read sequence',async()=>{
@@ -33,4 +35,17 @@ test('actual main IPC rejects another sender or child frame before reading histo
 test('quiescent actual main still permits read-only paging and blocks new task work',async()=>{
  const f=fixture();f.hub.quiescing=true;assert.ok((await f.invoke('transcript:page',{projectId:'p',taskId:'t',epoch:'ipc',revision:1,direction:'older'})).segments.length);
  await assert.rejects(f.invoke('task:start',{projectId:'p',crewId:'franky',prompt:'synthetic'}),/stopping/);assert.equal(f.effects,0);
+});
+test('actual main bounds both external-history routes and preserves complete imported/provider text',async()=>{
+ const f=fixture();
+ for(const [threadId,expected] of [['chatgpt:fixture','import text '.repeat(90000)],['provider-fixture','provider text '.repeat(90000)]]){
+  let page=await f.invoke('task:readExternal',{threadId,direction:'newer'}),text='',count=0;
+  while(true){assert.equal(page.messages,undefined);assert.equal(page.thread,undefined);assert.ok(page.segments.reduce((n,s)=>n+Buffer.byteLength(s.text),0)<=256*1024);text+=page.segments.map(s=>s.text).join('');count++;
+   if(!page.nextCursor)break;
+   page=await f.invoke('task:readExternalPage',{threadId,sessionId:page.sessionId,revision:page.revision,cursor:page.nextCursor,direction:'newer'});
+  }
+  assert.ok(count>1);assert.equal(text,expected);
+ }
+ assert.equal((await f.invoke('snapshot')).sequence,0);assert.equal(f.effects,0);
+ await assert.rejects(f.invoke('task:readExternalPage',{threadId:'provider-fixture',extra:true}),/Invalid external/);
 });

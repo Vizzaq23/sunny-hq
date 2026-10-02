@@ -25,6 +25,12 @@ function git(projectId,args){return command(catalog.getExecutable('git',home)||'
 function allowedUrl(raw,{localOnly=false}={}){const url=new URL(textArg(raw,'URL'));if(!['https:','http:'].includes(url.protocol)||url.username||url.password)throw Error('Use an HTTP or HTTPS address without embedded credentials.');if(localOnly&&!['localhost','127.0.0.1','[::1]'].includes(url.hostname))throw Error('The preview supports local development servers. Open other sites in your browser.');return url.toString();}
 function openUrl(raw){return shell.openExternal(allowedUrl(raw));}
 function importedHistory(){try{return JSON.parse(fs.readFileSync(path.join(dataDir,'chatgpt-history.json'),'utf8'));}catch{return [];}}
+const externalHistoryPager=require('./external-history-pages.cjs').createExternalHistoryPager();
+async function loadExternalHistory(threadId){
+ textArg(threadId,'task ID',200);
+ if(threadId.startsWith('chatgpt:')){const item=importedHistory().find(c=>c.id===threadId);if(!item)throw Error('Imported conversation not found');return {messages:item.messages};}
+ await hub.ensure();return hub.client.request('thread/read',{threadId,includeTurns:true});
+}
 function publicState(){return publicTransport.snapshot();}
 function fileList(projectId,input=''){const p=registered(projectId);const dir=guardedPath(p.path,input);return fs.readdirSync(dir,{withFileTypes:true}).filter(f=>!skipped.has(f.name)&&!f.isSymbolicLink()).map(f=>({name:f.name,path:path.join(dir,f.name),directory:f.isDirectory()})).sort((a,b)=>Number(b.directory)-Number(a.directory)||a.name.localeCompare(b.name));}
 function searchFiles(projectId,query){const p=registered(projectId);textArg(query,'search query',200);return searchProjectFiles(p.path,query,{skipped});}
@@ -101,7 +107,7 @@ async function handle(action,args={},surface='hub'){
  case 'task:resolveMissingThread':return publicTransport.taskReply(await hub.resolveMissingThread(args));
  case 'task:handoff':return publicTransport.taskReply(await hub.handoff(args));
  case 'task:history':{const imported=importedHistory().map(({messages,...summary})=>summary);try{await hub.ensure();const r=await hub.client.request('thread/list',{limit:100,useStateDbOnly:true,sourceKinds:['cli','vscode','appServer','exec']});return [...imported,...(r.data||[]).filter(t=>!hub.state.tasks.some(own=>own.threadId===t.id)).map(t=>({id:t.id,title:t.name||t.preview||'Codex task',cwd:t.cwd,status:'externally managed',external:true}))];}catch{return imported;}}
- case 'task:readExternal':{if(String(args.threadId).startsWith('chatgpt:')){const item=importedHistory().find(c=>c.id===args.threadId);if(!item)throw Error('Imported conversation not found');return {messages:item.messages};}await hub.ensure();return hub.client.request('thread/read',{threadId:textArg(args.threadId,'task ID',200),includeTurns:true});}
+ case 'task:readExternal':case 'task:readExternalPage':return externalHistoryPager.readExternalPage(args,{loadHistory:loadExternalHistory});
  case 'approval:respond':return hub.respond(args);
  case 'files:list':return fileList(args.projectId,args.path);
  case 'files:read':return readText(registered(args.projectId).path,args.path);
@@ -154,7 +160,7 @@ async function showCompanion(){
 async function createWindow(){win=new BrowserWindow({title:'Sunny HQ',width:1520,height:980,minWidth:1000,minHeight:700,show:!smoke,backgroundColor:'#f7f5ef',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),backgroundThrottling:!smoke,contextIsolation:true,nodeIntegration:false,sandbox:true}});win.webContents.setWindowOpenHandler(({url})=>{openUrl(url).catch(()=>{});return {action:'deny'};});win.webContents.on('will-navigate',event=>event.preventDefault());win.webContents.session.setPermissionRequestHandler((_w,_p,cb)=>cb(false));
  watchSurface(win,'hub');
  ipcMain.handle('sunny:invoke',async(event,action,args)=>{const sender=[win,companion].find(surface=>surface&&!surface.isDestroyed()&&event.sender===surface.webContents&&event.senderFrame===surface.webContents.mainFrame);if(!sender)throw Error('Untrusted window');if(action==='companion:mouse'&&sender!==companion)throw Error('Companion only');return handle(action,args,sender===companion?'companion':'hub');});
- hub.on('event',event=>{if(event.type==='diagnostic'){diagnostic(event.data.event,{surface:'backend'});return;}if(event.type==='snapshot')emit('snapshot',publicState());else emit(event.type,event.data);if(event.type==='completed'&&hub.state.settings.notifications&&!win.isFocused()&&Notification.isSupported())new Notification({title:event.data.status==='finished'?'Work ready to review':'Your crew needs attention',body:event.data.title}).show();});
+ hub.on('event',event=>{if(event.type==='diagnostic'){diagnostic(event.data.event,{surface:'backend'});return;}if(event.type==='snapshot')emit('snapshot');else emit(event.type,event.data);if(event.type==='completed'&&hub.state.settings.notifications&&!win.isFocused()&&Notification.isSupported())new Notification({title:event.data.status==='finished'?'Work ready to review':'Your crew needs attention',body:event.data.title}).show();});
  win.on('minimize',()=>{if(!quitting&&!smoke)void showCompanion().catch(e=>emit('error',{message:e.message}));});win.on('restore',()=>companion?.hide());
  win.on('close',event=>{if(!quitting&&!smoke){event.preventDefault();win.hide();void showCompanion().catch(e=>emit('error',{message:e.message}));}});
  const dev=process.env.SUNNY_DEV_URL;if(dev)await win.loadURL(allowedUrl(dev,{localOnly:true}));else await win.loadFile(path.join(__dirname,'../dist/index.html'));

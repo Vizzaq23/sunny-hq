@@ -41,7 +41,7 @@ declare global {interface Window {sunny?:SunnyAPI;}}
 // snapshot -> PublicSnapshot (protocol v2, no task messages); project:add -> Project (native folder dialog); project:remove {projectId}
 // task:start {projectId,crewId,prompt,title?,model?,selectedSkills?:SkillChoice[]} -> TaskSummary
 // task:send {taskId,prompt} -> void; task:interrupt {taskId}; task:handoff {taskId,crewId,prompt} -> TaskSummary
-// task:history {} -> external read-only thread summaries; task:readExternal {threadId} -> provider history
+// task:history {} -> external read-only thread summaries; task:readExternalPage {threadId,direction?,sessionId?,revision?,cursor?,limit?} -> bounded private history page; task:readExternal is a compatibility alias
 // codex:connect {}; codex:login {} -> {authUrl?}; approval:respond {id,decision:'accept'|'decline',answers?}
 // files:list {projectId,path?} -> FileEntry[]; files:read {projectId,path} -> FileData
 // files:write {projectId,path,text,hash} -> FileData; files:search {projectId,query} -> {path,line,text}[]

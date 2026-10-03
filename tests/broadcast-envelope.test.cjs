@@ -18,3 +18,7 @@ test('legacy unsequenced private navigation delivery remains compatible',()=>{
  let received;broadcast([surface((_channel,event)=>received=event)],'workspace:open',{taskId:'t'});
  assert.deepEqual(received,{type:'workspace:open',data:{taskId:'t'}});
 });
+test('broadcast projection exposes committed run decisions without private paths or replay responses',()=>{
+ const {createStateProjection}=require('../desktop/state-projection.cjs'),producer=createStateProjection({epoch:'run'}),run={id:'r',projectId:'p',revision:4,phase:'blocked',missionIds:[],assignments:[{id:'a',crewId:'franky',roleId:'builder',capability:'implementation',objective:'Inspect',state:'queued',ownedPaths:['private'],workspaceId:'private'}],decisions:[{id:'d',option:'Wait',reason:'Missing scope',dissent:['Needs review'],owner:'captain',nextAction:'Set scope',reopenEvidence:'New instruction',details:{reason:'Missing scope',secret:'private'}}],workspaces:[{canonicalRoot:'private'}],coordinatorCalls:[{response:'private'}],opaque:'private'};
+ const envelope=producer.event('snapshot',{tasks:[],runs:[run]});assert.equal(envelope.data.runs[0].revision,4);assert.equal(envelope.data.runs[0].decisions[0].reason,'Missing scope');assert.ok(!JSON.stringify(envelope).includes('private'));run.revision++;assert.equal(envelope.data.runs[0].revision,4);
+});

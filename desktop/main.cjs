@@ -47,9 +47,14 @@ let morgansInboxes=[];
 async function handle(action,args={},surface='hub'){
  if(fixture)packagedFixture.assertFixtureAction(action,args);
  require('./task-commands.cjs').validateTaskCommand(action,args);
- if(hub?.quiescing&&!['snapshot','workspace:get','app:export','mission:resultStatus','transcript:page'].includes(action))throw Error('Sunny is stopping and storage needs attention. Keep this window open to copy or export drafts before restarting.');
+ require('./supervision-commands.cjs').validateSupervisionCommand(action,args);
+ if(hub?.quiescing&&!['snapshot','workspace:get','app:export','mission:resultStatus','transcript:page','run:inspect'].includes(action))throw Error('Sunny is stopping and storage needs attention. Keep this window open to copy or export drafts before restarting.');
  switch(action){
  case 'snapshot':return publicState();
+ case 'run:create':return publicTransport.runReply(await hub.createRun(args));
+ case 'run:control':return publicTransport.runReply((await hub.controlRun(args)).run);
+ case 'run:setGrant':return publicTransport.runReply((await hub.setRunGrant(args)).run);
+ case 'run:inspect':return publicTransport.runReply(hub.inspectRun(args));
  case 'transcript:page':return publicTransport.page(args);
  case 'mission:resultStatus':return publicTransport.resultStatus(args);
  case 'mission:prepareMerge':return hub.merger.act(args,'prepare');

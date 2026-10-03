@@ -15,6 +15,7 @@ function createPublicTransport(hub,options={}){
  }
  function snapshot(){return producer.snapshot(hub.state);}
  function taskReply(task){if(task===undefined||task===null)return task;return producer.summary(member(task.projectId,task.id));}
+ function runReply(run){if(!run||hub.state.projects.filter(project=>project.id===run.projectId).length!==1)throw Error('Choose a unique registered run project.');const current=hub.state.runs?.find(value=>value.id===run.id);if(!current||current.projectId!==run.projectId||current.revision!==run.revision)throw Error('Run changed before public reply. Inspect its current revision.');return producer.snapshot({runs:[current],tasks:[]}).runs[0];}
  function event(type,data){
   if(type==='snapshot')return producer.event(type,hub.state);
   if(type==='task')return producer.event(type,member(data.projectId,data.id));
@@ -45,6 +46,6 @@ function createPublicTransport(hub,options={}){
   let disposed=false;
   return ()=>{if(disposed)return;disposed=true;hub.off('transcript:seed',seed);hub.off('transcript:mutation',mutation);bound=false;};
  }
- return {producer,snapshot,taskReply,event,transcriptChanged,page,resultStatus,bindTranscript};
+ return {producer,snapshot,taskReply,runReply,event,transcriptChanged,page,resultStatus,bindTranscript};
 }
 module.exports={createPublicTransport};

@@ -159,7 +159,7 @@ async function readonlyProof(data,workers){
 }
 
 async function run(){
- const mib=parseSize(process.argv.slice(2));
+ const mib=parseSize(process.argv.slice(2)),latencyProbe=process.argv.includes('--latency-probe');
  const {fixtureFile}=resolveControlInputs(root);
  const {app,BrowserWindow,ipcMain,session}=require('electron');
  assert.equal(Number(process.versions.electron.split('.')[0]),44,'Use the exact approved Electron 44 executable');
@@ -178,6 +178,9 @@ async function run(){
  evidence.method.fixtureSha256=FROZEN_FIXTURE_SHA256;
  evidence.method.fixtureDescriptionCorrection='The earlier ASCII-only descriptor was incorrect for the frozen source. The failed ASCII bootstrap is retained as failure evidence. This corrects workload labeling and shape validation; it does not replace the fixture or change samples, queue/load, timing, durability, or the 100ms/200ms gates.';
  let hub,store,win,transport,finished=false,cleanupPromise,currentSample=null,stopMainMonitors;
+ evidence.latencyProbe={enabled:latencyProbe,limit:2048,overflow:0,queue:[],worker:[]};
+ const observe=kind=>record=>{const list=evidence.latencyProbe[kind];if(list.length<evidence.latencyProbe.limit)list.push({...record,sampleId:currentSample?.id??null});else evidence.latencyProbe.overflow++;};
+ const probeOptions=latencyProbe?{latencyProbe:true,observeCommit:observe('worker')}:{};
  const write=()=>fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(evidence,null,2));
  const log=(kind,details)=>{fs.appendFileSync(path.join(output,'events.jsonl'),JSON.stringify({kind,...details})+'\n');};
  function check(name,condition,details){const item={name,status:condition?'pass':'fail',details};evidence.assertions.push(item);log('assertion',item);write();return condition;}
@@ -213,7 +216,7 @@ async function run(){
   await app.whenReady();
   session.defaultSession.webRequest.onBeforeRequest((details,callback)=>{const local=/^(file:|devtools:)/.test(details.url);if(!local)evidence.errors.push({phase:'network-denied',scheme:details.url.split(':')[0]});callback({cancel:!local});});
   session.defaultSession.setPermissionRequestHandler((_contents,_permission,callback)=>callback(false));
-  store=await openOrderedStore({kind:'sqlite',file,backupDir:path.join(runtime,'backups')});
+  store=await openOrderedStore({kind:'sqlite',file,backupDir:path.join(runtime,'backups'),...probeOptions});
   assert.equal(evidence.source.fixtureSha256,FROZEN_FIXTURE_SHA256,'Declared frozen fixture source hash must match');
   assert.equal(sha(fs.readFileSync(fixtureFile)),FROZEN_FIXTURE_SHA256,'Frozen fixture source must remain unchanged before samples');
   const initial=fixture(mib,runtime);
@@ -222,7 +225,7 @@ async function run(){
   evidence.initialReceipt=await store.checkpoint(initial);
   // Hub reads OrderedStore's initialization image. Reopen after the exact initial receipt.
   await store.close();
-  store=await openOrderedStore({kind:'sqlite',file,backupDir:path.join(runtime,'backups')});
+  store=await openOrderedStore({kind:'sqlite',file,backupDir:path.join(runtime,'backups'),...probeOptions});
   const nativeStore=store;
   store={load:()=>nativeStore.load(),flush:()=>nativeStore.flush(),close:()=>nativeStore.close(),get recovery(){return nativeStore.recovery;},checkpoint:image=>submit(image,null),barrier:(image,reason)=>submit(image,reason)};
   function submit(image,reason){
@@ -234,6 +237,7 @@ async function run(){
   }
   hub=new Hub({home:runtime,store,catalog:{discoverProjects:()=>[],discoverTools:()=>[],discoverAutomations:()=>[]}});
   const forbid=async()=>{throw Error('OFFLINE fixture forbids provider process/connection');};
+  if(latencyProbe)hub.authorityQueue.observeCommit=observe('queue');
   hub.connect=forbid;hub.connectCodex=forbid;hub.client.start=forbid;hub.client.connect=forbid;
   await hub.initializeRecovery();check('mandatory startup recovery awaited',hub.recoveryReady===true);
   transport=createPublicTransport(hub);transport.bindTranscript(envelope=>{if(win&&!win.isDestroyed())win.webContents.send('sunny:event',envelope);});

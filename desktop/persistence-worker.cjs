@@ -1,3 +1,4 @@
+const {performance}=require('node:perf_hooks');
 const fs=require('node:fs');
 const path=require('node:path');
 const {createHash,randomUUID}=require('node:crypto');
@@ -49,23 +50,26 @@ try{
  post({type:'ready',image:store.load(),recovery:store.recovery});
 }catch(error){post({type:'failed',error:error.message,uncertain:false});finish();}
 parentPort.on('message',message=>{
- if(ended)return;let writeStarted=false;
+ if(ended)return;let writeStarted=false;const probe=workerData.latencyProbe===true&&message?.type==='commit'?{loadMerge:0,validation:0,stringify:0,parse:0,revalidation:0,hash:0,adapterSave:0,total:0,stage:0,failed:0}:null;let tick=probe?performance.now():0;const started=tick;function mark(key,stage){if(probe){const now=performance.now();probe[key]=now-tick;tick=now;probe.stage=stage;}}
  try{
   if(!message||message.epoch!==epoch)throw Error('Invalid private persistence epoch');
   if(message.type==='close'){store.close();store=null;raw=null;post({type:'closed'});finish();return;}
   if(message.type!=='commit'||!Number.isSafeInteger(message.sequence)||message.sequence!==lastSequence+1)throw Error('Invalid private persistence sequence');
   if(message.image===null||typeof message.image!=='object'||Array.isArray(message.image))throw Error('Invalid submitted profile image');
-  const merged={...store.load(),...message.image};
+  const merged={...store.load(),...message.image};mark('loadMerge',1);
   if(inspectMissionProfile(merged).mode!=='v3')throw Error('Unsupported or invalid mission profile. Preserve the saved data for recovery.');
+  mark('validation',2);
   // Validation precedes serialization so sparse authority arrays cannot acquire
   // validity through JSON conversion. The receipt hashes actual compact bytes.
-  const compact=JSON.stringify(merged),normalized=JSON.parse(compact);
+  const compact=JSON.stringify(merged);mark('stringify',3);const normalized=JSON.parse(compact);mark('parse',4);
   if(inspectMissionProfile(normalized).mode!=='v3')throw Error('Invalid serialized mission profile');
+  mark('revalidation',5);
   const stateSha256=createHash('sha256').update(compact).digest('hex');
-  post({type:'prepared',sequence:message.sequence,stateSha256});writeStarted=true;
+  mark('hash',6);
+  post({type:'prepared',sequence:message.sequence,stateSha256});writeStarted=true;if(probe)tick=performance.now();
   // Preserve explicit undefined overrides through the adapter's opaque merge.
   // Passing normalized here would restore omitted old fields after hashing.
-  store.save(merged);lastSequence=message.sequence;
-  post({type:'committed',sequence:lastSequence,receipt:{epoch,sequence:lastSequence,stateSha256,durableAt:Date.now()}});
- }catch(error){post({type:'failed',sequence:message?.sequence,error:error.message,uncertain:writeStarted});finish();}
+  store.save(merged);mark('adapterSave',7);lastSequence=message.sequence;if(probe)probe.total=performance.now()-started;
+  post({type:'committed',sequence:lastSequence,...(probe?{probe}:{}),receipt:{epoch,sequence:lastSequence,stateSha256,durableAt:Date.now()}});
+ }catch(error){if(probe){probe.failed=1;probe.total=performance.now()-started;}post({type:'failed',...(probe?{probe}:{}),sequence:message?.sequence,error:error.message,uncertain:writeStarted});finish();}
 });

@@ -9,6 +9,7 @@ async function openOrderedStore(options){
  if(!options||!['sqlite','json'].includes(options.kind)||typeof options.file!=='string'||!path.isAbsolute(options.file)||typeof options.backupDir!=='string'||!path.isAbsolute(options.backupDir))throw Error('Invalid ordered storage options');
  const timeoutMs=options.timeoutMs===undefined?30000:options.timeoutMs;
  if(!Number.isFinite(timeoutMs)||timeoutMs<=0)throw Error('Invalid storage timeout');
+ const observe=options.latencyProbe===true&&typeof options.observeCommit==='function'?options.observeCommit:null;
  const epoch=randomUUID(),ready=deferred(),idleWaiters=[];
  // A factory may throw before the await below is reached.
  ready.promise.catch(()=>{});
@@ -32,6 +33,7 @@ async function openOrderedStore(options){
    if(initial!==undefined||current||closing)return fail(failure('WORKER_PROTOCOL','Duplicate persistence initialization'));
    initial=message.image;recovery=message.recovery;stopTimer();ready.resolve();return;
   }
+  if(observe&&(message.type==='committed'||message.type==='failed')&&message.probe&&message.sequence===current?.sequence){try{observe({sequence:message.sequence,...message.probe});}catch{/* Observer cannot alter settlement. */}}
   if(message.type==='failed')return fail(current?failure(message.uncertain?'COMMIT_UNCERTAIN':'STORE_FAILED',message.error||'Persistence worker failed',{epoch,sequence:current.sequence}):failure('STORE_FAILED',message.error||'Persistence worker initialization failed'));
   if(message.type==='closed'){
    if(!closing||current||waiting||!closeAck)return fail(failure('WORKER_PROTOCOL','Unexpected persistence close'));
@@ -49,7 +51,7 @@ async function openOrderedStore(options){
  }
  try{
   // Custom factories must retain native postMessage's synchronous clone contract.
-  worker=(options.workerFactory||((file,settings)=>new Worker(file,settings)))(path.join(__dirname,'persistence-worker.cjs'),{workerData:{kind:options.kind,file:options.file,backupDir:options.backupDir,epoch}});
+  worker=(options.workerFactory||((file,settings)=>new Worker(file,settings)))(path.join(__dirname,'persistence-worker.cjs'),{workerData:{kind:options.kind,file:options.file,backupDir:options.backupDir,epoch,...(options.latencyProbe===true?{latencyProbe:true}:{})}});
   if(!worker||typeof worker.on!=='function'||typeof worker.postMessage!=='function'||typeof worker.terminate!=='function')throw Error('Persistence worker is unavailable');
   worker.on('message',onMessage);worker.on('error',error=>fail(current?uncertain(error.message):error));
   worker.on('exit',code=>{if(!closed&&!terminal)fail(current?uncertain('worker exited before receipt ('+code+')'):failure('WORKER_EXIT','Persistence worker exited before close ('+code+')'));});

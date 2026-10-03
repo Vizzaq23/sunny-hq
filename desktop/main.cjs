@@ -45,7 +45,7 @@ function importNewsFile(file){if(fs.statSync(file).size>512*1024)throw Error('Ca
 function scanMorgansBriefings(){for(const [dir,seen] of morgansInboxes){const result=scanMorgansInbox({dir,news:hub.news,seen});for(const error of result.errors)emit('error',{message:`Morgans could not import ${error.file}: ${error.message}`});}}
 let morgansInboxes=[];
 async function handle(action,args={},surface='hub'){
- if(fixture)packagedFixture.assertFixtureAction(action);
+ if(fixture)packagedFixture.assertFixtureAction(action,args);
  require('./task-commands.cjs').validateTaskCommand(action,args);
  if(hub?.quiescing&&!['snapshot','workspace:get','app:export','mission:resultStatus','transcript:page'].includes(action))throw Error('Sunny is stopping and storage needs attention. Keep this window open to copy or export drafts before restarting.');
  switch(action){

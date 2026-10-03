@@ -44,7 +44,7 @@ function loadFrozenFixture(mib){
 }
 function fixtureCatalog(){return Object.freeze({discoverProjects:()=>[],discoverTools:()=>[],discoverAutomations:()=>[],getExecutable:()=>undefined});}
 function fixtureDependencies(){return {client:createOfflineClient(),islandFactory:hub=>({data:hub.state.world,close(){},setConcurrency(){throw Error('Offline fixture scheduler is disabled.');},run(){throw Error('Offline fixture scheduler is disabled.');}})};}
-function assertFixtureAction(action){if(!['snapshot','workspace:get','workspace:update','transcript:page','mission:resultStatus','app:reload','app:diagnostic','approval:respond','mission:reconcileCheck'].includes(action))throw Error('Offline fixture blocks this action.');}
+function assertFixtureAction(action,args={}){if(action==='asset:crewTexture'){if(!args||typeof args!=='object'||Array.isArray(args)||Object.keys(args).length!==1||Object.keys(args)[0]!=='kind'||!['blimp','crew','actions','ship','walk','states','residents'].includes(args.kind))throw Error('Invalid offline fixture texture query.');return;}if(!['snapshot','workspace:get','workspace:update','transcript:page','mission:resultStatus','app:reload','app:diagnostic','approval:respond','mission:reconcileCheck'].includes(action))throw Error('Offline fixture blocks this action.');}
 function seedState(manifest){
  const state=loadFrozenFixture(manifest.mib);const project=path.join(manifest.profileDir,'synthetic-project');fs.mkdirSync(project);state.projects[0].path=project;
  const mission=state.missionBook.missions[0],task=state.tasks[0],message=task.messages.find(item=>item.role==='assistant');
@@ -64,7 +64,16 @@ function durableIdentity(hub){const workspace=hub.state.workspace,mission=hub.st
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function bounded(promise,timeoutMs=15000){let timer;try{return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Fixture operation timed out.')),timeoutMs);})]);}finally{clearTimeout(timer);}}
 async function trustedInvoke(win,action,args={}){return bounded(win.webContents.executeJavaScript(`window.sunny.invoke(${JSON.stringify(action)},${JSON.stringify(args)})`));}
-async function waitForHome(win){for(let pass=0;pass<120;pass++){if(await win.webContents.executeJavaScript('Boolean(document.querySelector(".home-page,.island-scene"))').catch(()=>false))return;await pause(100);}throw Error('Production renderer did not show Home.');}
+function rendererReady(document,surface='deck'){
+ if(document.readyState!=='complete'||!document.querySelector('.app-shell')||document.querySelector('.loading-deck,.recovery-screen'))return false;
+ const selector=surface==='workbench'?'.app-shell .embedded-workbench .workbench-head':surface==='franky'?'.app-shell .franky-workshop':surface==='deck'?'.app-shell .ship-page .ship-board,.app-shell .home-page,.app-shell .island-scene':null;
+ return Boolean(selector&&document.querySelector(selector));
+}
+async function waitForRenderer(win,context){
+ const surface=context?.surface||'deck',probe=`Boolean(window.sunny&&(${rendererReady.toString()})(document,${JSON.stringify(surface)}))`;
+ for(let pass=0;pass<120;pass++){if(await win.webContents.executeJavaScript(probe).catch(()=>false))return;await pause(100);}
+ throw Error('Production renderer did not restore its expected fixture workspace surface.');
+}
 function verifyLockedWriteFailure({error,failedReceipt,expectedEpoch,expectedSequence,before,after}){
  if(error?.code!=='COMMIT_UNCERTAIN'||error.epoch!==expectedEpoch||error.sequence!==expectedSequence||!failedReceipt||failedReceipt.type!=='failed'||failedReceipt.epoch!==expectedEpoch||failedReceipt.sequence!==expectedSequence||failedReceipt.uncertain!==true)throw Error('Expected the native SQLite write-failure receipt, not another rejection.');
  if(failedReceipt.error!=='database is locked'||error.message!=='database is locked')throw Error('Expected the classified SQLite locked write failure.');
@@ -104,14 +113,14 @@ async function faultStore(profileDir,scenario){
 }
 async function runPackagedAcceptance({app,profileDir,outputDir,scenario,fixtureTransport}){
  const {win,hub,manifest,buildInfo,diagnosticEvents=[]}=fixtureTransport;if(profileDir!==manifest.profileDir||outputDir!==manifest.outputDir||scenario!==manifest.scenario)throw Error('Fixture transport does not match admission.');
- await waitForHome(win);const start=performance.now();const snapshot=await trustedInvoke(win,'snapshot');assert.ok(snapshot.workspace);const invokeMs=performance.now()-start;
+ await waitForRenderer(win,hub.state.workspace.context);const start=performance.now();const snapshot=await trustedInvoke(win,'snapshot');assert.ok(snapshot.workspace);const invokeMs=performance.now()-start;
  let workspace=await trustedInvoke(win,'workspace:get');assert.equal(workspace.drafts[0].id,'draft-brief');
  if(manifest.phase===1){const writeStart=performance.now();await trustedInvoke(win,'workspace:update',{expectedRevision:workspace.revision,draft:workspace.drafts[0]});workspace=await trustedInvoke(win,'workspace:get');fixtureTransport.workspaceWriteMs=performance.now()-writeStart;}
  const identity=durableIdentity(hub),evidence={version:1,scenario,phase:manifest.phase,pid:process.pid,executableSha256:sha(fs.readFileSync(process.execPath)),asarSha256:sha(fs.readFileSync(path.join(process.resourcesPath,'app.asar'))),frozenFixtureSha256:FROZEN_SHA,identity,rendererInvokeMs:invokeMs,...(fixtureTransport.workspaceWriteMs===undefined?{}:{workspaceWriteMs:fixtureTransport.workspaceWriteMs})};
  // A blocked provider request is observed at the real client boundary.
  assert.throws(()=>hub.client.request('turn/start'),/offline/i);
  if(scenario==='renderer-crash'){
-  const gone=new Promise(resolve=>win.webContents.once('render-process-gone',(_event,details)=>resolve(details)));win.webContents.forcefullyCrashRenderer();const reason=await bounded(gone);assert.ok(['crashed','abnormal-exit'].includes(reason.reason));win.reload();await waitForHome(win);await trustedInvoke(win,'snapshot');assert.deepEqual(durableIdentity(hub),identity);evidence.rendererRecovered=true;
+  const gone=new Promise(resolve=>win.webContents.once('render-process-gone',(_event,details)=>resolve(details)));win.webContents.forcefullyCrashRenderer();const reason=await bounded(gone);assert.ok(['crashed','abnormal-exit'].includes(reason.reason));win.reload();await waitForRenderer(win,hub.state.workspace.context);await trustedInvoke(win,'snapshot');assert.deepEqual(durableIdentity(hub),identity);evidence.rendererRecovered=true;
  }
  if(['worker-loss','write-failure','lost-ack'].includes(scenario))Object.assign(evidence,await faultStore(profileDir,scenario));
  if(scenario==='pending-approval'){
@@ -123,4 +132,4 @@ async function runPackagedAcceptance({app,profileDir,outputDir,scenario,fixtureT
  await hub.persist('workspace');evidence.identity=durableIdentity(hub);Object.assign(evidence,hub.client.fixtureEffects);fs.writeFileSync(path.join(outputDir,`phase-${manifest.phase}.json`),JSON.stringify(evidence,null,2),{flag:'wx',mode:0o600});
  return evidence;
 }
-module.exports={SCENARIOS,FROZEN_SHA,validateFixtureArguments,admitFixture,createOfflineClient,fixtureCatalog,fixtureDependencies,assertFixtureAction,loadFrozenFixture,seedState,bootFixtureHub,durableIdentity,verifyLockedWriteFailure,faultStore,runPackagedAcceptance};
+module.exports={SCENARIOS,FROZEN_SHA,validateFixtureArguments,admitFixture,createOfflineClient,fixtureCatalog,fixtureDependencies,assertFixtureAction,loadFrozenFixture,seedState,bootFixtureHub,durableIdentity,verifyLockedWriteFailure,faultStore,rendererReady,runPackagedAcceptance};

@@ -40,23 +40,22 @@ test('queue probe records skipped and failed stages and cannot alter outcomes',a
  assert.ok(records.every(r=>Object.values(r).every(Number.isFinite)));
  const receipt=await queue.run('mission',async()=>({image:{}}));assert.equal(receipt.sequence,1);assert.equal(records[2].sequence,1);assert.ok(records[2].submission>=records[2].validation);
 });
-test('worker numeric summary is optional and observer failure preserves exact receipt',async t=>{
+test('retired worker v1 summary is absent and exact receipt is preserved',async t=>{
  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-probe-'));t.after(()=>fs.rmSync(directory,{recursive:true,force:true}));
  const image={tasks:[],projects:[],missionBook:{version:3,runs:[],missions:[],workspace:emptyWorkspace()}};
  for(const enabled of [false,true]){
   const records=[];const store=await openOrderedStore({kind:'sqlite',file:path.join(directory,enabled+'.sqlite'),backupDir:path.join(directory,'backups'),latencyProbe:enabled,observeCommit:r=>{records.push(r);throw Error('observer');}});
-  const receipt=await store.barrier(image,'mission');assert.deepEqual(Object.keys(receipt).sort(),['durableAt','epoch','sequence','stateSha256']);assert.equal(records.length,enabled?1:0);
-  if(enabled){assert.ok(Object.values(records[0]).every(Number.isFinite));assert.equal(records[0].sequence,receipt.sequence);assert.equal(records[0].failed,0);assert.ok(records[0].total>=records[0].adapterSave);assert.equal(records[0].adapterStage,4);assert.equal(records[0].sqlStage,3);assert.ok(records[0].adapterSave>=records[0].adapterTotal);assert.ok(records[0].adapterRawSave>=records[0].sqlTotal);assert.ok(records[0].sqlTotal>=records[0].sqlPrepare+records[0].sqlStringify+records[0].sqlRun);}
+  const receipt=await store.barrier(image,'mission');assert.deepEqual(Object.keys(receipt).sort(),['durableAt','epoch','sequence','stateSha256']);assert.equal(records.length,0);
   await store.close();
   const raw=new SqliteStore(path.join(directory,enabled+'.sqlite'));assert.deepEqual(raw.load(),image);raw.close();
  }
 });
-test('worker failed observations and throwing observer preserve validation failure',async t=>{
+test('retired worker v1 failure summary is absent and validation failure is preserved',async t=>{
  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-probe-failed-'));t.after(()=>fs.rmSync(directory,{recursive:true,force:true}));
  for(const enabled of [false,true]){
   const records=[];const store=await openOrderedStore({kind:'sqlite',file:path.join(directory,enabled+'.sqlite'),backupDir:path.join(directory,'backups'),latencyProbe:enabled,observeCommit:r=>{records.push(r);throw Error('observer replacement');}});
   await assert.rejects(store.barrier({missionBook:null},'mission'),error=>error.code==='STORE_FAILED'&&/Unsupported or invalid/.test(error.message));
-  assert.equal(records.length,enabled?1:0);if(enabled){assert.equal(records[0].failed,1);assert.equal(records[0].stage,1);assert.equal(records[0].adapterStage,0);assert.ok(Object.values(records[0]).every(Number.isFinite));}
+  assert.equal(records.length,0);
   await assert.rejects(store.close(),/Unsupported or invalid/);
  }
 });

@@ -53,3 +53,13 @@ class SqliteStore{
  close(){this.db.close();}
 }
 module.exports={guardedPath,readText,writeText,deriveStatus,TaskGate,StateStore,SqliteStore,hash,inside};
+
+// Trusted worker construction only; public object save retains its original order.
+function prepareWorkerSqliteStore(file){
+ const raw=new SqliteStore(file);
+ return {raw,writeCompact(compact){
+  if(typeof compact!=='string')throw TypeError('Compact profile must be a string');
+  raw.db.prepare('INSERT INTO state(id,value) VALUES(1,?) ON CONFLICT(id) DO UPDATE SET value=excluded.value').run(compact);
+ }};
+}
+module.exports.prepareWorkerSqliteStore=prepareWorkerSqliteStore;

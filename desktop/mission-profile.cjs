@@ -94,11 +94,15 @@ function upgradeMissionProfile(saved,receipt){
  const bytes=readBackup(receipt.path);if(hash(bytes)!==receipt.sha256||!bytes.equals(stateBytes(saved)))throw Error('Migration backup receipt does not match the exact saved profile.');
  return upgradeClone(saved);
 }
-function prepareMissionProfileStore(store,backupDir){
+function initializeMissionProfileStore(store,backupDir){
  const saved=store.load(),mode=inspectMissionProfile(saved).mode;
  if(mode==='unsupported')throw Error(unsupported);
  let receipt=['v1-upgrade','v2-upgrade'].includes(mode)?writeVerifiedBackup(saved,backupDir):null;
  let current=receipt?upgradeMissionProfile(saved,receipt):structuredClone(saved);
+ return {saved,receipt,current};
+}
+function prepareMissionProfileStore(store,backupDir){
+ const initialized=initializeMissionProfileStore(store,backupDir),saved=initialized.saved;let {receipt,current}=initialized;
  return {get recovery(){return store.recovery;},load:()=>structuredClone(current),save(value,probe){
   if(probe){
    const started=performance.now();let tick=started;
@@ -121,3 +125,29 @@ function prepareMissionProfileStore(store,backupDir){
  },close:()=>store.close()};
 }
 module.exports={inspectMissionProfile,writeVerifiedBackup,upgradeMissionProfile,prepareMissionProfileStore,emptyWorkspace,validateWorkspace,validateMissionAuthority,validateMissionBookAuthority};
+
+// Internal single-writer path: native worker message ownership is relinquished here.
+function prepareWorkerMissionProfileStore(store,backupDir,writeCompact){
+ const initialized=initializeMissionProfileStore(store,backupDir),saved=initialized.saved;
+ let {receipt,current}=initialized,pending=null,closed=false;
+ return {get recovery(){return store.recovery;},load:()=>structuredClone(current),prepareOwned(image){
+  if(closed||pending)throw Error('Private profile store is closed or preparation is pending');
+  let next={...current,...image},compact;
+  if(inspectMissionProfile(next).mode!=='v3')throw Error(unsupported);
+  compact=JSON.stringify(next);
+  if(inspectMissionProfile(JSON.parse(compact)).mode!=='v3')throw Error('Invalid serialized mission profile');
+  let consumed=false;
+  const release=()=>{next=null;compact=null;pending=null;};
+  const handle=Object.freeze({compact,commit(){
+   if(closed||consumed||pending!==release)throw Error('Invalid or consumed private preparation');
+   consumed=true;
+   try{
+    if(inspectMissionProfile(next).mode!=='v3')throw Error(unsupported);
+    if(receipt)upgradeMissionProfile(saved,receipt);
+    writeCompact(compact);current=next;receipt=null;
+   }finally{release();}
+  }});
+  pending=release;return handle;
+ },close(){closed=true;if(pending)pending();store.close();}};
+}
+module.exports.prepareWorkerMissionProfileStore=prepareWorkerMissionProfileStore;

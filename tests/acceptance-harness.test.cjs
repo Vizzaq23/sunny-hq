@@ -49,3 +49,61 @@ test('mutated protocol fails before loading or sampling',t=>{
  const moved=isolated(t);fs.appendFileSync(path.join(moved,'docs/evidence/protocols/ordered-control-2026-10-02.md'),'altered');
  assert.throws(()=>control.resolveControlInputs(moved),/Frozen protocol source hash must match/);
 });
+
+// These assertions catch gate weakening: unknown proof must never become eligibility.
+const gatePath=path.join(__dirname,'helpers/reliability-gate.cjs');
+const gate=fs.existsSync(gatePath)?require(gatePath):{};
+function evaluateGate(report){
+ assert.equal(typeof gate.evaluateReliabilityGate,'function','Missing fail-closed reliability evaluator contract');
+ return gate.evaluateReliabilityGate(report);
+}
+function syntheticCompleteGateReport(){
+ return {fixtureOnly:true,spontaneousCrashCauseVerified:true,providerEffects:0,historyLoss:0,
+  nativeRawProofComplete:true,exactPackageA4RawProofComplete:true,fullStateRawProofComplete:true,
+  measurements:[1,10,30].map(sizeMiB=>({sizeMiB,stopSamples:20,approvalSamples:20,stopFailures:0,approvalFailures:0,
+   stopP95Ms:100,approvalP95Ms:100,mainTimerExcessMaxMs:50,queueDurabilityRawProofComplete:true}))};
+}
+test('reliability gate rejects missing and unknown causal/native/full-state facts',()=>{
+ assert.equal(evaluateGate({}).status,'BLOCKED');
+ for(const key of ['spontaneousCrashCauseVerified','nativeRawProofComplete','exactPackageA4RawProofComplete','fullStateRawProofComplete']){
+  for(const value of [undefined,null,false,'unknown']){
+   const report=syntheticCompleteGateReport();report[key]=value;
+   assert.equal(evaluateGate(report).status,'BLOCKED',key+' must fail closed');
+  }
+ }
+ for(const key of ['providerEffects','historyLoss'])for(const value of [undefined,null,1,'0']){
+  const report=syntheticCompleteGateReport();report[key]=value;
+  assert.equal(evaluateGate(report).status,'BLOCKED',key+' requires numeric zero');
+ }
+});
+test('reliability gate rejects known historical 10 and 30 MiB failures',()=>{
+ const historical=JSON.parse(fs.readFileSync(path.join(root,'docs/evidence/sunny-reliability-6199600/historical-measurements.json'),'utf8'));
+ for(const size of [10,30]){
+  const row=historical.find(item=>item.sizeMiB===size),report=syntheticCompleteGateReport();
+  Object.assign(report.measurements.find(item=>item.sizeMiB===size),row);
+  const result=evaluateGate(report);assert.equal(result.status,'BLOCKED');
+  assert.ok(result.reasons.includes(size+'MiB stop p95'));assert.ok(result.reasons.includes(size+'MiB approval p95'));
+  if(size===30)assert.ok(result.reasons.includes('30MiB timer excess'));
+ }
+});
+test('reliability gate retains strict frozen thresholds and complete sample requirements',()=>{
+ assert.equal(evaluateGate(syntheticCompleteGateReport()).status,'FACTS_COMPLETE');
+ for(const [key,value] of [['stopP95Ms',200],['approvalP95Ms',200],['mainTimerExcessMaxMs',100.01],
+  ['stopSamples',19],['approvalSamples',19],['stopFailures',1],['approvalFailures',1],
+  ['queueDurabilityRawProofComplete',undefined],['stopP95Ms',NaN],['approvalP95Ms',Infinity]]){
+  const report=syntheticCompleteGateReport();report.measurements[0][key]=value;
+  assert.equal(evaluateGate(report).status,'BLOCKED',key+'='+value);
+ }
+ const report=syntheticCompleteGateReport();report.measurements.pop();assert.equal(evaluateGate(report).status,'BLOCKED');
+ const duplicate=syntheticCompleteGateReport();duplicate.measurements.push({...duplicate.measurements[0]});
+ assert.equal(evaluateGate(duplicate).status,'BLOCKED');
+});
+test('reliability gate rejects fresh failing source-runtime measurements without promoting native invokes',()=>{
+ const manifest=JSON.parse(fs.readFileSync(path.join(root,'docs/evidence/sunny-reliability-6199600/measurement-manifest.json'),'utf8'));
+ const report=syntheticCompleteGateReport();report.measurements=manifest.measurements.map(row=>({...row,queueDurabilityRawProofComplete:true}));
+ const result=evaluateGate(report);assert.equal(result.status,'BLOCKED');
+ for(const size of [10,30])for(const control of ['stop','approval'])assert.ok(result.reasons.includes(size+'MiB '+control+' p95'));
+ assert.ok(result.reasons.includes('30MiB timer excess'));
+ report.exactPackageA4RawProofComplete=manifest.exactPackageA4RawProofComplete;
+ assert.ok(evaluateGate(report).reasons.includes('exactPackageA4RawProofComplete'));
+});

@@ -60,6 +60,12 @@ async function bootFixtureHub(manifest){
  const options={kind:'sqlite',file:path.join(manifest.profileDir,'sunny.sqlite'),backupDir:path.join(manifest.profileDir,'mission-profile-backups')};let store=await openOrderedStore(options),hub;
  try{if(manifest.phase===1){await store.barrier(seedState(manifest),'mission');await store.close();store=await openOrderedStore(options);}hub=new Hub({home:manifest.profileDir,store,catalog:fixtureCatalog(),fixtureDependencies:fixtureDependencies()});await hub.initializeRecovery();return hub;}catch(error){if(hub)await hub.close().catch(()=>{});else await store.close().catch(()=>{});throw error;}
 }
+function hashPackageFiles({exeFile,asarFile}){
+ if(typeof exeFile!=='string'||!path.isAbsolute(exeFile)||typeof asarFile!=='string'||!path.isAbsolute(asarFile))throw Error('Absolute package identity paths required.');
+ // Electron's normal fs treats app.asar as a virtual directory. Read just
+ // this archive as raw bytes without changing process-wide ASAR handling.
+ const originalFs=require('original-fs');return {executableSha256:sha(fs.readFileSync(exeFile)),asarSha256:sha(originalFs.readFileSync(asarFile))};
+}
 function durableIdentity(hub){const workspace=hub.state.workspace,mission=hub.state.missions[0];return {draftSha256:sha(JSON.stringify(workspace.drafts)),resultRef:mission.selectedResult?.ref,uncertainReservation:hub.gate.active.has('fixture-uncertain'),uncertainStatus:hub.state.tasks.find(task=>task.id==='fixture-uncertain')?.status};}
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function bounded(promise,timeoutMs=15000){let timer;try{return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Fixture operation timed out.')),timeoutMs);})]);}finally{clearTimeout(timer);}}
@@ -116,7 +122,7 @@ async function runPackagedAcceptance({app,profileDir,outputDir,scenario,fixtureT
  await waitForRenderer(win,hub.state.workspace.context);const start=performance.now();const snapshot=await trustedInvoke(win,'snapshot');assert.ok(snapshot.workspace);const invokeMs=performance.now()-start;
  let workspace=await trustedInvoke(win,'workspace:get');assert.equal(workspace.drafts[0].id,'draft-brief');
  if(manifest.phase===1){const writeStart=performance.now();await trustedInvoke(win,'workspace:update',{expectedRevision:workspace.revision,draft:workspace.drafts[0]});workspace=await trustedInvoke(win,'workspace:get');fixtureTransport.workspaceWriteMs=performance.now()-writeStart;}
- const identity=durableIdentity(hub),evidence={version:1,scenario,phase:manifest.phase,pid:process.pid,executableSha256:sha(fs.readFileSync(process.execPath)),asarSha256:sha(fs.readFileSync(path.join(process.resourcesPath,'app.asar'))),frozenFixtureSha256:FROZEN_SHA,identity,rendererInvokeMs:invokeMs,...(fixtureTransport.workspaceWriteMs===undefined?{}:{workspaceWriteMs:fixtureTransport.workspaceWriteMs})};
+ const identity=durableIdentity(hub),evidence={version:1,scenario,phase:manifest.phase,pid:process.pid,...hashPackageFiles({exeFile:process.execPath,asarFile:path.join(process.resourcesPath,'app.asar')}),frozenFixtureSha256:FROZEN_SHA,identity,rendererInvokeMs:invokeMs,...(fixtureTransport.workspaceWriteMs===undefined?{}:{workspaceWriteMs:fixtureTransport.workspaceWriteMs})};
  // A blocked provider request is observed at the real client boundary.
  assert.throws(()=>hub.client.request('turn/start'),/offline/i);
  if(scenario==='renderer-crash'){
@@ -132,4 +138,4 @@ async function runPackagedAcceptance({app,profileDir,outputDir,scenario,fixtureT
  await hub.persist('workspace');evidence.identity=durableIdentity(hub);Object.assign(evidence,hub.client.fixtureEffects);fs.writeFileSync(path.join(outputDir,`phase-${manifest.phase}.json`),JSON.stringify(evidence,null,2),{flag:'wx',mode:0o600});
  return evidence;
 }
-module.exports={SCENARIOS,FROZEN_SHA,validateFixtureArguments,admitFixture,createOfflineClient,fixtureCatalog,fixtureDependencies,assertFixtureAction,loadFrozenFixture,seedState,bootFixtureHub,durableIdentity,verifyLockedWriteFailure,faultStore,rendererReady,runPackagedAcceptance};
+module.exports={SCENARIOS,FROZEN_SHA,validateFixtureArguments,admitFixture,createOfflineClient,fixtureCatalog,fixtureDependencies,assertFixtureAction,loadFrozenFixture,seedState,bootFixtureHub,hashPackageFiles,durableIdentity,verifyLockedWriteFailure,faultStore,rendererReady,runPackagedAcceptance};

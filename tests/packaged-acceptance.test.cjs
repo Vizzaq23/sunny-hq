@@ -55,3 +55,13 @@ test('renderer readiness follows the restored production workbench and refuses l
  assert.equal(typeof packaged.rendererReady,'function');const present=new Set(['.app-shell','.app-shell .embedded-workbench .workbench-head']);const document={readyState:'complete',querySelector:selector=>present.has(selector)?{}:null};
  assert.equal(packaged.rendererReady(document,'workbench'),true);assert.equal(packaged.rendererReady(document,'deck'),false);present.add('.loading-deck,.recovery-screen');assert.equal(packaged.rendererReady(document,'workbench'),false);present.delete('.loading-deck,.recovery-screen');document.readyState='loading';assert.equal(packaged.rendererReady(document,'workbench'),false);
 });
+test('package identity hashes raw ASAR bytes without changing Electron archive handling',t=>{
+ const dir=root(t),exe=path.join(dir,'Sunny.exe'),asar=path.join(dir,'app.asar');fs.writeFileSync(exe,'EXE_BYTES');fs.writeFileSync(asar,'ASAR_BYTES');
+ const {createRequire}=require('node:module'),vm=require('node:vm'),nativeRequire=createRequire(file),module={exports:{}};
+ // Reproduce the observed Electron fs archive interception; original-fs still
+ // reads the real owned file bytes. This earns a boundary-specific substitute.
+ const electronFs={...fs,readFileSync:(target,...args)=>{if(target===asar)throw Object.assign(Error('ASAR treated as archive directory'),{code:'ENOENT'});return fs.readFileSync(target,...args);}};
+ const source=fs.readFileSync(file,'utf8'),requireBoundary=id=>id==='node:fs'?electronFs:id==='original-fs'?fs:nativeRequire(id),before=process.noAsar;
+ vm.runInNewContext(source,{module,require:requireBoundary,__dirname:path.dirname(file),process,Buffer,performance,setTimeout,clearTimeout,structuredClone,console},{filename:file});
+ assert.equal(typeof module.exports.hashPackageFiles,'function');const hashes=module.exports.hashPackageFiles({exeFile:exe,asarFile:asar});assert.equal(hashes.executableSha256,'22cd984d1ff57009cbf3bc833c9927d2774235a9218469d47ae083a20cdfc5cf');assert.equal(hashes.asarSha256,'a08661e1ab5f5fd9226c4198d74fe857ff529ab5b1bf852b1479d1c8160a38f6');assert.equal(process.noAsar,before);assert.throws(()=>electronFs.readFileSync(asar),/archive directory/);
+});

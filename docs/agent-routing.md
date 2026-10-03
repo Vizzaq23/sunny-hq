@@ -4,6 +4,8 @@ Research established 2026-09-21; live model catalog rechecked 2026-09-23. The ex
 
 ## Role bindings
 
+The full fifteen-character capability catalog and recruitment/revision rules now live in [crew capability bindings](crew-capability-bindings.md). Mission routing and selected-skill eligibility share that catalog. Resident specialty text remains descriptive; Morgans stays on the separate sanitized reporting route with no specialist tools or delegation. Supervised runtime admission remains blocked on its reliability gate.
+
 | Stable role | Preferred binding | Current/fallback | Risk | Approval |
 | --- | --- | --- | --- | --- |
 | Coordinator | Fable 5.1 preference | Existing Luffy/Codex coordinator; account catalog | Routine planning; high if it dispatches consequential work | Cannot authorize external actions |

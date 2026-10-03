@@ -1,4 +1,5 @@
 import islandResidents from '../desktop/island-residents.json';
+import crewBindings from '../desktop/crew-bindings.json';
 import type {Crew, CrewId, Snapshot} from './shared';
 
 export const CREW: Crew[] = [
@@ -15,7 +16,9 @@ export const CREW: Crew[] = [
 ];
 
 export const RESIDENT_CATALOG:Crew[]=islandResidents;
-export const ALL_CREW=[...CREW,...RESIDENT_CATALOG];
+function withBinding(member:Crew):Crew {const binding=crewBindings.find(value=>value.crewId===member.id);return {...member,roleId:binding?.id,capabilities:binding?.capabilities,access:binding?.access as Crew['access']};}
+export const ALL_CREW=[...CREW,...RESIDENT_CATALOG].map(withBinding);
+export const REPORTING_CREW=crewBindings.filter(value=>value.access==='sanitized-report');
 export const CREW_BY_ID = new Map<CrewId,Crew>(ALL_CREW.map(member=>[member.id,member]));
 
 export const EMPTY_SNAPSHOT: Snapshot = {

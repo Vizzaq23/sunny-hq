@@ -1,12 +1,12 @@
-const ROLE_BINDINGS=Object.freeze([
- ['coordinator','Coordinator','luffy','coordination'],['planner','Planner','nami','planning'],['builder','Builder','franky','implementation'],['reviewer','Reviewer','zoro','review'],['validator','Validator','usopp','verification'],['researcher','Researcher','robin','research'],['designer','Visual designer','sanji','design'],['diagnostician','Diagnostician','chopper','diagnosis'],['creator','Creative worker','brook','creative'],['operator','Operator','jinbe','operations']
-].map(([id,label,crewId,capability])=>Object.freeze({id,label,crewId,capability,provider:'codex'})));
-function resolveMissionRole(input,bindings=ROLE_BINDINGS){
+const registry=require('./crew-registry.cjs');
+const ROLE_BINDINGS=Object.freeze(registry.CREW_ROLES.map(role=>Object.freeze({...role,capability:role.capabilities[0],provider:'codex'})));
+function resolveMissionRole(input,bindings=ROLE_BINDINGS,world){
  const binding=input.roleId?bindings.find(r=>r.id===input.roleId):bindings.find(r=>r.crewId===input.crewId);
  if(!binding)throw Error('Choose an available mission role.');
  if(input.crewId&&input.crewId!==binding.crewId)throw Error('Crew choice conflicts with the selected role.');
  if(binding.provider!=='codex')throw Error('The configured role provider is unavailable. No substitute worker was started.');
- return {roleId:binding.id,crewId:binding.crewId,capability:binding.capability,provider:binding.provider,source:'explicit-selection',policyVersion:1,externalAuthority:'captain-required',reason:`Captain selected ${binding.label}; use its ${binding.capability} capability through the configured ${binding.provider} adapter.`};
+ const resolved=registry.assertWorkerBinding(registry.crewBinding(binding.crewId,world));
+ return {...resolved,capability:binding.capability,provider:binding.provider,source:'explicit-selection',policyVersion:1,externalAuthority:'captain-required',reason:`Captain selected ${binding.label}; use its ${binding.capability} capability through the configured ${binding.provider} adapter.`};
 }
 function missionContext(mission,route){
  const attempt=mission.attempts?.find(value=>value.id===mission.activeAttemptId),rework=attempt?.requestedChanges===undefined?'':`\n\nCaptain requested changes for this attempt (bounded rework; the objective and acceptance criteria still apply):\n${attempt.requestedChanges}`;

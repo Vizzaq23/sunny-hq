@@ -1,0 +1,17 @@
+[
+ {"id":"coordinator","label":"Coordinator","crewId":"luffy","capabilities":["coordination"],"access":"coordinator","revision":1},
+ {"id":"planner","label":"Planner","crewId":"nami","capabilities":["planning"],"access":"specialist","revision":1},
+ {"id":"builder","label":"Builder","crewId":"franky","capabilities":["implementation"],"access":"specialist","revision":1},
+ {"id":"reviewer","label":"Reviewer","crewId":"zoro","capabilities":["review"],"access":"specialist","revision":1},
+ {"id":"validator","label":"Validator","crewId":"usopp","capabilities":["verification"],"access":"specialist","revision":1},
+ {"id":"researcher","label":"Researcher","crewId":"robin","capabilities":["research"],"access":"specialist","revision":1},
+ {"id":"designer","label":"Visual designer","crewId":"sanji","capabilities":["design"],"access":"specialist","revision":1},
+ {"id":"diagnostician","label":"Diagnostician","crewId":"chopper","capabilities":["diagnosis"],"access":"specialist","revision":1},
+ {"id":"creator","label":"Creative worker","crewId":"brook","capabilities":["creative"],"access":"specialist","revision":1},
+ {"id":"operator","label":"Operator","crewId":"jinbe","capabilities":["operations"],"access":"specialist","revision":1},
+ {"id":"systems-analyst","label":"Systems analyst","crewId":"law","capabilities":["diagnosis","research"],"access":"specialist","revision":1},
+ {"id":"experimenter","label":"Experimenter","crewId":"ace","capabilities":["implementation","verification"],"access":"specialist","revision":1},
+ {"id":"product-researcher","label":"Product researcher","crewId":"vivi","capabilities":["research","planning"],"access":"specialist","revision":1},
+ {"id":"creative-reviewer","label":"Creative reviewer","crewId":"perona","capabilities":["review","creative","design"],"access":"specialist","revision":1},
+ {"id":"reporter","label":"Reporter","crewId":"morgans","capabilities":["reporting"],"access":"sanitized-report","revision":1}
+]

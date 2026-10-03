@@ -65,23 +65,42 @@ const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function bounded(promise,timeoutMs=15000){let timer;try{return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Fixture operation timed out.')),timeoutMs);})]);}finally{clearTimeout(timer);}}
 async function trustedInvoke(win,action,args={}){return bounded(win.webContents.executeJavaScript(`window.sunny.invoke(${JSON.stringify(action)},${JSON.stringify(args)})`));}
 async function waitForHome(win){for(let pass=0;pass<120;pass++){if(await win.webContents.executeJavaScript('Boolean(document.querySelector(".home-page,.island-scene"))').catch(()=>false))return;await pause(100);}throw Error('Production renderer did not show Home.');}
+function verifyLockedWriteFailure({error,failedReceipt,expectedEpoch,expectedSequence,before,after}){
+ if(error?.code!=='COMMIT_UNCERTAIN'||error.epoch!==expectedEpoch||error.sequence!==expectedSequence||!failedReceipt||failedReceipt.type!=='failed'||failedReceipt.epoch!==expectedEpoch||failedReceipt.sequence!==expectedSequence||failedReceipt.uncertain!==true)throw Error('Expected the native SQLite write-failure receipt, not another rejection.');
+ if(failedReceipt.error!=='database is locked'||error.message!=='database is locked')throw Error('Expected the classified SQLite locked write failure.');
+ const beforeSha256=sha(JSON.stringify(before)),afterSha256=sha(JSON.stringify(after));
+ if(beforeSha256!==afterSha256)throw Error('Previous durable image identity changed after the failed write.');
+ return {reason:'sqlite-locked',epoch:expectedEpoch,sequence:expectedSequence,beforeSha256,afterSha256};
+}
+function readSqliteImage(file){const {DatabaseSync}=require('node:sqlite'),database=new DatabaseSync(file,{readOnly:true});try{const row=database.prepare('SELECT value FROM state WHERE id=1').get();if(!row)throw Error('Expected the previous durable fixture image.');return JSON.parse(row.value);}finally{database.close();}}
 async function faultStore(profileDir,scenario){
  // Fault only this additional owned real SQLite worker, independently from Hub's store.
- const {Worker}=require('node:worker_threads'),{openOrderedStore}=require('./ordered-store.cjs');let native;
- const factory=(file,options)=>{native=new Worker(file,options);const proxy=new EventEmitter();native.on('error',error=>proxy.emit('error',error));native.on('exit',code=>proxy.emit('exit',code));native.on('message',message=>{if(scenario==='lost-ack'&&message.type==='committed')return;proxy.emit('message',message);});proxy.terminate=()=>native.terminate();proxy.postMessage=message=>{if(scenario==='worker-loss'&&message.type==='commit'){void native.terminate();return;}native.postMessage(message);};return proxy;};
+ const {Worker}=require('node:worker_threads'),{openOrderedStore}=require('./ordered-store.cjs');let native,failedReceipt,expectedEpoch,expectedSequence;
+ const factory=(file,settings)=>{
+  native=new Worker(file,settings);const proxy=new EventEmitter();
+  native.on('error',error=>proxy.emit('error',error));native.on('exit',code=>proxy.emit('exit',code));
+  native.on('message',message=>{if(message.type==='failed')failedReceipt=structuredClone(message);if(scenario==='lost-ack'&&message.type==='committed')return;proxy.emit('message',message);});
+  proxy.terminate=()=>native.terminate();proxy.postMessage=message=>{if(message.type==='commit'){expectedEpoch=message.epoch;expectedSequence=message.sequence;if(scenario==='worker-loss'){void native.terminate();return;}}native.postMessage(message);};return proxy;
+ };
  const file=path.join(profileDir,'fault.sqlite'),options={kind:'sqlite',file,backupDir:path.join(profileDir,'fault-backups'),timeoutMs:1200,workerFactory:factory};
- const store=await openOrderedStore(options);let error;
+ const store=await openOrderedStore(options);let error,before;
+ try{
+  if(scenario==='write-failure'){
+   await store.barrier(loadFrozenFixture(1),'mission');before=readSqliteImage(file);
+   // Only the observed native failure from this locked write admits the scenario.
+   const {DatabaseSync}=require('node:sqlite'),lock=new DatabaseSync(file);
+   try{lock.exec('BEGIN IMMEDIATE');try{await store.barrier({...loadFrozenFixture(1),faultSentinel:'not committed'},'mission');}catch(cause){error=cause;}finally{lock.exec('ROLLBACK');}}finally{lock.close();}
+  }else try{await store.barrier(loadFrozenFixture(1),'mission');}catch(cause){error=cause;}
+ }finally{await store.close().catch(()=>{});}
+ assert.ok(error,'Injected fault must reject');let writeFailure;
  if(scenario==='write-failure'){
-  // A separate owned SQLite connection holds the write lock. SQLite refuses
-  // the real worker's write; the previous durable image must survive.
-  await store.barrier(loadFrozenFixture(1),'mission');
-  const {DatabaseSync}=require('node:sqlite'),lock=new DatabaseSync(file);lock.exec('BEGIN IMMEDIATE');
-  try{await store.barrier({...loadFrozenFixture(1),faultSentinel:'not committed'},'mission');}catch(cause){error=cause;}finally{lock.exec('ROLLBACK');lock.close();}
- }else try{await store.barrier(loadFrozenFixture(1),'mission');}catch(cause){error=cause;}
- await store.close().catch(()=>{});assert.ok(error,'Injected fault must reject');
- if(scenario==='write-failure'){const reopened=await openOrderedStore({kind:'sqlite',file,backupDir:options.backupDir});assert.equal(reopened.load().faultSentinel,undefined);await reopened.close();}
- if(scenario==='lost-ack'){assert.equal(error.code,'COMMIT_UNCERTAIN');const reopened=await openOrderedStore({kind:'sqlite',file,backupDir:options.backupDir});assert.ok(reopened.load().tasks.length);await reopened.close();}
- return {faultCode:['COMMIT_UNCERTAIN','STORE_FAILED','WORKER_EXIT'].includes(error.code)?error.code:'rejected'};
+  const reopened=await openOrderedStore({kind:'sqlite',file,backupDir:options.backupDir});
+  try{writeFailure=verifyLockedWriteFailure({error,failedReceipt,expectedEpoch,expectedSequence,before,after:reopened.load()});}finally{await reopened.close();}
+ }
+ if(scenario==='lost-ack'){
+  assert.equal(error.code,'COMMIT_UNCERTAIN');const reopened=await openOrderedStore({kind:'sqlite',file,backupDir:options.backupDir});try{assert.ok(reopened.load().tasks.length);}finally{await reopened.close();}
+ }
+ return {faultCode:['COMMIT_UNCERTAIN','STORE_FAILED','WORKER_EXIT'].includes(error.code)?error.code:'rejected',...(writeFailure?{writeFailure}:{})};
 }
 async function runPackagedAcceptance({app,profileDir,outputDir,scenario,fixtureTransport}){
  const {win,hub,manifest,buildInfo,diagnosticEvents=[]}=fixtureTransport;if(profileDir!==manifest.profileDir||outputDir!==manifest.outputDir||scenario!==manifest.scenario)throw Error('Fixture transport does not match admission.');
@@ -104,4 +123,4 @@ async function runPackagedAcceptance({app,profileDir,outputDir,scenario,fixtureT
  await hub.persist('workspace');evidence.identity=durableIdentity(hub);Object.assign(evidence,hub.client.fixtureEffects);fs.writeFileSync(path.join(outputDir,`phase-${manifest.phase}.json`),JSON.stringify(evidence,null,2),{flag:'wx',mode:0o600});
  return evidence;
 }
-module.exports={SCENARIOS,FROZEN_SHA,validateFixtureArguments,admitFixture,createOfflineClient,fixtureCatalog,fixtureDependencies,assertFixtureAction,loadFrozenFixture,seedState,bootFixtureHub,durableIdentity,faultStore,runPackagedAcceptance};
+module.exports={SCENARIOS,FROZEN_SHA,validateFixtureArguments,admitFixture,createOfflineClient,fixtureCatalog,fixtureDependencies,assertFixtureAction,loadFrozenFixture,seedState,bootFixtureHub,durableIdentity,verifyLockedWriteFailure,faultStore,runPackagedAcceptance};

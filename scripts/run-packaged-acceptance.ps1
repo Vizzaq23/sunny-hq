@@ -13,7 +13,9 @@ function Assert-Canonical([string]$Path,[bool]$Directory){
  if(-not [IO.Path]::IsPathFullyQualified($Path)){throw 'All fixture paths must be absolute.'}
  $item=Get-Item -LiteralPath $Path
  if($item.PSIsContainer -ne $Directory){throw 'Fixture path type mismatch.'}
- for($entry=$item;$null -ne $entry;$entry=$entry.Parent){if($entry.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Fixture aliases/junctions are forbidden.'}}
+ if($item.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Fixture aliases/junctions are forbidden.'}
+ $ancestor=if($item.PSIsContainer){$item.Parent}else{$item.Directory}
+ for($entry=$ancestor;$null -ne $entry;$entry=$entry.Parent){if($entry.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Fixture aliases/junctions are forbidden.'}}
  $resolved=[IO.Path]::GetFullPath($Path)
  if($resolved -ine $item.FullName){throw 'Fixture paths must be canonical.'}
  return $resolved

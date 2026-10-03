@@ -21,6 +21,30 @@ function Assert-Canonical([string]$Path,[bool]$Directory){
  return $resolved
 }
 function Is-Inside([string]$Parent,[string]$Child){return $Child -ieq $Parent -or $Child.StartsWith($Parent.TrimEnd('\')+'\',[StringComparison]::OrdinalIgnoreCase)}
+function Write-PrivateManifest([string]$ManifestFile,[string]$Content){
+ $identity=[Security.Principal.WindowsIdentity]::GetCurrent().User
+ if(-not (Test-Path -LiteralPath $ManifestFile)){
+  $empty=[IO.File]::Open($ManifestFile,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+  $empty.Dispose()
+  # Protect the new empty file before it contains the nonce. Do not reapply ACLs on restart.
+  $privateAcl=[Security.AccessControl.FileSecurity]::new()
+  $privateAcl.SetAccessRuleProtection($true,$false)
+  $privateAcl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new($identity,'FullControl','Allow'))
+  $privateAcl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new([Security.Principal.SecurityIdentifier]::new('S-1-5-18'),'FullControl','Allow'))
+  Set-Acl -LiteralPath $ManifestFile -AclObject $privateAcl
+ }
+ $file=Get-Item -LiteralPath $ManifestFile
+ if($file.PSIsContainer -or ($file.Attributes -band [IO.FileAttributes]::ReparsePoint)){throw 'Private manifest must be a regular file.'}
+ $actualAcl=Get-Acl -LiteralPath $ManifestFile
+ $rules=@($actualAcl.GetAccessRules($true,$true,[Security.Principal.SecurityIdentifier]))
+ if(-not $actualAcl.AreAccessRulesProtected -or $actualAcl.GetOwner([Security.Principal.SecurityIdentifier]).Value -ne $identity.Value -or $rules.Count -ne 2){throw 'Private manifest ownership or ACL changed.'}
+ $allowed=@($identity.Value,'S-1-5-18')
+ foreach($rule in $rules){
+  if($rule.IsInherited -or $rule.AccessControlType -ne 'Allow' -or $rule.FileSystemRights -ne [Security.AccessControl.FileSystemRights]::FullControl -or $rule.IdentityReference.Value -notin $allowed){throw 'Private manifest ACL changed.'}
+ }
+ if(@($rules.IdentityReference.Value|Select-Object -Unique).Count -ne 2){throw 'Private manifest ACL identities changed.'}
+ [IO.File]::WriteAllText($ManifestFile,$Content,[Text.UTF8Encoding]::new($false))
+}
 $Exe=Assert-Canonical $Exe $false
 $Asar=Assert-Canonical $Asar $false
 $Profile=Assert-Canonical $Profile $true
@@ -72,15 +96,7 @@ try{
  foreach($phase in $phases){
   if((Get-FileHash -LiteralPath $Exe -Algorithm SHA256).Hash.ToLowerInvariant() -ne $exeHash -or (Get-FileHash -LiteralPath $Asar -Algorithm SHA256).Hash.ToLowerInvariant() -ne $asarHash){throw 'Package bytes changed before launch.'}
   $manifest=@{version=1;nonce=$nonce;profileDir=$Profile;outputDir=$Out;scenario=$Scenario;phase=$phase;mib=$MiB}|ConvertTo-Json -Compress
-  if(-not (Test-Path -LiteralPath $manifestPath)){[IO.File]::WriteAllText($manifestPath,'',[Text.UTF8Encoding]::new($false))}
-  # Remove inherited access; only this Windows identity and SYSTEM can read the nonce.
-  $acl=[Security.AccessControl.FileSecurity]::new()
-  $acl.SetAccessRuleProtection($true,$false)
-  $identity=[Security.Principal.WindowsIdentity]::GetCurrent().User
-  $acl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new($identity,'FullControl','Allow'))
-  $acl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new([Security.Principal.SecurityIdentifier]::new('S-1-5-18'),'FullControl','Allow'))
-  Set-Acl -LiteralPath $manifestPath -AclObject $acl
-  [IO.File]::WriteAllText($manifestPath,$manifest,[Text.UTF8Encoding]::new($false))
+  Write-PrivateManifest $manifestPath $manifest
   $owned=Start-Process -FilePath $Exe -ArgumentList @(('"--packaged-fixture='+$manifestPath+'"')) -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $Out "phase-$phase.stdout.log") -RedirectStandardError (Join-Path $Out "phase-$phase.stderr.log")
   $ownedStart=$owned.StartTime
   $ownedRecords=@{}

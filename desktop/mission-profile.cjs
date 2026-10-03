@@ -56,7 +56,10 @@ function upgradeClone(saved){
 function inspectMissionProfile(saved){
  try{
   if(!object(saved))return {mode:'unsupported'};
-  if(saved.missionBook===undefined)return {mode:'empty'};
+  if(saved.missionBook===undefined){
+   require('./supervision-schema.cjs').validateSupervisedTasks({runs:[],missions:[]},saved.tasks);
+   return {mode:'empty'};
+  }
   const book=saved.missionBook;if(!object(book)||!Array.isArray(book.missions)||![1,2,3].includes(book.version))return {mode:'unsupported'};
   if(book.version<3&&(book.runs!==undefined||book.missions.some(mission=>mission?.runId!==undefined)||saved.tasks?.some(task=>task&&(task.runId!==undefined||task.assignmentId!==undefined||task.workspaceId!==undefined))))return {mode:'unsupported'};
   const candidate=book.version<3?upgradeClone(saved).missionBook:book;

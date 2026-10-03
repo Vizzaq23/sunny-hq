@@ -23,3 +23,31 @@ test('new record bindings and nested review decision authority roundtrip',()=>{
 test('task run binding cannot disagree with its containing mission',()=>{
  const value=saved();value.missionBook.version=3;const first=run(),second={...run(),id:'other',missionIds:[]};value.missionBook.runs=[first,second];value.missionBook.missions[0].runId='r';const task=value.tasks[0];task.runId='other';task.assignmentId='a';second.assignments=[{id:'a',crewId:'robin',roleId:'researcher',capability:'read',objective:'Inspect',ownedPaths:[],dependencies:[],criteriaIds:[],baseCommit:'base',state:'unknown',taskId:task.id}];assert.equal(profile.inspectMissionProfile(value).mode,'unsupported');
 });
+
+function reviewedProfile(){const value=saved(),r=run(),task=value.tasks[0];value.missionBook.version=3;value.missionBook.runs=[r];value.missionBook.missions[0].runId='r';task.runId='r';task.assignmentId='reviewer';r.assignments=[{id:'reviewer',crewId:'robin',roleId:'reviewer',capability:'read',objective:'Review evidence',ownedPaths:[],dependencies:[],criteriaIds:[],baseCommit:'base',state:'finished',taskId:task.id}];r.reviews=[{id:'verdict',runId:'r',assignmentId:'reviewer',reviewerTaskId:task.id,source:{baseCommit:'base',headCommit:'head',fingerprint:'fingerprint',artifactHashes:[]},decision:'approve',findings:[],time:1}];return value;}
+test('review task references resolve to one same-run same-project reviewer assignment',()=>{
+ assert.equal(profile.inspectMissionProfile(reviewedProfile()).mode,'v3');
+ for(const change of [v=>v.missionBook.runs[0].reviews[0].reviewerTaskId='missing',v=>{v.tasks.push({id:'foreign',projectId:'other'});v.missionBook.runs[0].reviews[0].reviewerTaskId='foreign';},v=>{const other={...run(),id:'other',missionIds:[]};other.assignments=[{...v.missionBook.runs[0].assignments[0],taskId:'foreign'}];v.missionBook.runs.push(other);v.tasks.push({id:'foreign',projectId:'p',runId:'other',assignmentId:'reviewer'});v.missionBook.runs[0].reviews[0].reviewerTaskId='foreign';},v=>v.tasks.push({...v.tasks[0]}),v=>v.missionBook.runs[0].assignments[0].roleId='builder']){
+  const value=reviewedProfile();change(value);const before=structuredClone(value);assert.equal(profile.inspectMissionProfile(value).mode,'unsupported');assert.equal(profile.inspectMissionProfile(JSON.parse(JSON.stringify(value))).mode,'unsupported');assert.deepEqual(value,before);
+ }
+});
+test('no-book profiles reject every orphan supervised task binding but retain legacy support',()=>{
+ assert.equal(profile.inspectMissionProfile({tasks:[{id:'legacy',projectId:'p'}]}).mode,'empty');
+ for(const field of ['runId','assignmentId','workspaceId']){const value={tasks:[{id:'orphan',projectId:'p',[field]:'missing'}]},before=structuredClone(value);assert.equal(profile.inspectMissionProfile(value).mode,'unsupported');assert.deepEqual(value,before);}
+});
+
+test('worker rejects invalid reviewer bindings without overwriting acknowledged profile',async t=>{
+ const {openOrderedStore}=require('../desktop/ordered-store.cjs');
+ for(const kind of ['json','sqlite']){
+  const directory=dir(t),options={kind,file:path.join(directory,kind==='json'?'state.json':'sunny.sqlite'),backupDir:path.join(directory,'backups')},valid=reviewedProfile();let store=await openOrderedStore(options);await store.barrier(valid,'mission');await store.close();
+  for(const change of [v=>v.missionBook.runs[0].reviews[0].reviewerTaskId='missing',v=>{v.tasks.push({id:'foreign',projectId:'other'});v.missionBook.runs[0].reviews[0].reviewerTaskId='foreign';}]){store=await openOrderedStore(options);const invalid=structuredClone(valid);change(invalid);await assert.rejects(store.barrier(invalid,'mission'),/invalid|unsupported/i);await assert.rejects(store.close());store=await openOrderedStore(options);assert.deepEqual(store.load(),valid);await store.close();}
+ }
+});
+test('worker preflight preserves original no-book files with orphan task authority',async t=>{
+ const {openOrderedStore}=require('../desktop/ordered-store.cjs');
+ for(const kind of ['json','sqlite'])for(const field of ['runId','assignmentId','workspaceId']){
+  const directory=dir(t),options={kind,file:path.join(directory,kind==='json'?'state.json':'sunny.sqlite'),backupDir:path.join(directory,'backups')},value={tasks:[{id:'orphan',projectId:'p',[field]:'missing'}],opaque:'retain'};
+  if(kind==='json')fs.writeFileSync(options.file,JSON.stringify(value));else{const {DatabaseSync}=require('node:sqlite'),db=new DatabaseSync(options.file);db.exec('PRAGMA journal_mode=DELETE; CREATE TABLE state (id INTEGER PRIMARY KEY,value TEXT NOT NULL)');db.prepare('INSERT INTO state VALUES (1,?)').run(JSON.stringify(value));db.close();}
+  const before=fs.readFileSync(options.file);await assert.rejects(openOrderedStore(options),/invalid|unsupported/i);assert.deepEqual(fs.readFileSync(options.file),before);assert.equal(fs.existsSync(options.backupDir),false);
+ }
+});

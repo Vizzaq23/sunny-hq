@@ -45,5 +45,6 @@ function validateSupervisedTasks(book,tasks){
  const runs=new Map(book.runs.map(run=>[run.id,run]));
  for(const task of tasks){if(task.runId===undefined&&task.assignmentId===undefined&&task.workspaceId===undefined)continue;const run=runs.get(task.runId),assignment=run?.assignments.find(value=>value.id===task.assignmentId);check(run&&run.projectId===task.projectId&&assignment&&assignment.taskId===task.id);if(task.workspaceId!==undefined)check(assignment.workspaceId===task.workspaceId&&run.workspaces.some(value=>value.id===task.workspaceId&&value.assignmentId===assignment.id));}
  for(const run of book.runs)for(const assignment of run.assignments)if(assignment.taskId!==undefined){const task=byId.get(assignment.taskId);check(task&&task.runId===run.id&&task.assignmentId===assignment.id&&task.projectId===run.projectId);}
+ for(const run of book.runs)for(const review of run.reviews){const task=byId.get(review.reviewerTaskId),assignment=run.assignments.find(value=>value.id===task?.assignmentId);check(task&&task.runId===run.id&&task.projectId===run.projectId&&assignment?.roleId==='reviewer'&&assignment.taskId===task.id);}
 }
 module.exports={validateSupervisedRun,validateSupervisionBook,validateSupervisedTasks};

@@ -45,6 +45,7 @@ function validateSupervisedRun(run){
 }
 function validateSupervisionBook(book){
  check(object(book)&&book.version===3);array(book.missions,Number.MAX_SAFE_INTEGER);records(book.runs,1000,validateSupervisedRun);const runs=new Map(book.runs.map(run=>[run.id,run])),missions=new Map(book.missions.map(mission=>[mission.id,mission]));
+ const calls=new Set();for(const run of book.runs)for(const receipt of run.coordinatorCalls||[]){const key=JSON.stringify([receipt.taskId,receipt.threadId,receipt.turnId,receipt.callId]);check(!calls.has(key));calls.add(key);}
  for(const run of book.runs)for(const id of run.missionIds){const mission=missions.get(id);check(mission&&mission.projectId===run.projectId&&mission.runId===run.id);}
  for(const mission of book.missions)if(mission.runId!==undefined){const run=runs.get(mission.runId);check(run&&run.projectId===mission.projectId&&run.missionIds.includes(mission.id));}
 }

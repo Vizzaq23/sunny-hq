@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const {Hub}=require('../desktop/hub.cjs');
 function fixture({reviewed=false,recovery=false}={}){
  const task={id:'t',projectId:'p',crewId:'franky',title:'Prior work',status:'finished',messages:[{id:'reply',role:'assistant',text:'Saved result'}],...(recovery?{toolDispatchIntent:{id:'unknown'}}:{})};
- const hub=Object.create(Hub.prototype);hub.state={tasks:[task],missions:reviewed?[{attempts:[{taskIds:['t'],status:'finished'}]}]:[]};let calls=0;
+ const hub=Object.create(Hub.prototype);hub.state={tasks:[task],runs:[],missions:reviewed?[{attempts:[{taskIds:['t'],status:'finished'}]}]:[]};let calls=0;
  hub.start=async args=>{calls++;return args;};return {hub,get calls(){return calls;}};
 }
 test('backend handoff cannot bypass a reviewed mission attempt',async()=>{

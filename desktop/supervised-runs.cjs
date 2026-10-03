@@ -3,6 +3,14 @@ const {validateSupervisionCommand,validateRunCommand}=require('./supervision-com
 const live=assignment=>['reserved','starting','working','waiting','unknown'].includes(assignment.state);
 const MAX_EVENTS=1000;
 const requiredActivity={implementation:'write',design:'write',creative:'write',verification:'test',review:'review',research:'research',planning:'read',diagnosis:'read',operations:'build'};
+function missingScope(run){return [...new Set(run.assignments.filter(item=>!['finished','failed','interrupted','cancelled'].includes(item.state)&&!run.grant.scope.activities.includes(requiredActivity[item.capability])).map(item=>item.capability))];}
+function reconcileScope(run,event){
+ const hadScope=run.blockers.some(item=>item.kind==='scope'),missing=missingScope(run);run.blockers=run.blockers.filter(item=>item.kind!=='scope');
+ for(const capability of missing){if(run.blockers.length>=100)throw Error('Run blocker limit reached.');run.blockers.push({id:event.id+':scope:'+run.blockers.length,kind:'scope',reason:'Missing captain scope for '+capability,time:event.time,revision:event.revision});}
+ if(missing.length&&!['paused','stopping','stopped','unknown'].includes(run.phase))run.phase='blocked';
+ else if(hadScope&&!run.blockers.length&&run.phase==='blocked')run.phase='waiting';
+ return missing;
+}
 function createSupervisedRun(input,{now}){
  const a=validateSupervisionCommand('run:create',input);if(!Number.isFinite(now)||now<0)throw Error('Invalid supervision time.');
  const run={version:1,id:a.runId,projectId:a.projectId,missionIds:a.missionIds||[],revision:0,phase:'planning',grant:{...a.grant,version:1,revision:0},counters:{launches:0,repairs:0,activeMs:0,tokens:0,improvementMs:0,improvementTokens:0},assignments:[],workspaces:[],reviews:[],readiness:null,decisions:[],improvementTriggers:[],stopIntent:null,originalScope:structuredClone(a.grant.scope),criteria:a.criteria,objective:a.objective,events:[],blockers:[],grantHistory:[],coordinatorCalls:[],disagreementRounds:0};
@@ -27,9 +35,9 @@ function applyRunCommand(run,command,{now,actor=['plan','decide'].includes(comma
  if(a.type==='setGrant'){
   if(next.grantHistory.length>=100)throw Error('Grant history limit reached.');next.grantHistory.push({grant:structuredClone(next.grant),replacedAt:now,revision:next.revision,reason:a.reason});
   next.grant={...a.grant,version:1,revision:(next.grant.revision||0)+1};
-  if(next.assignments.every(item=>next.grant.scope.activities.includes(requiredActivity[item.capability])))next.blockers=next.blockers.filter(item=>item.kind!=='scope');
+  const missing=reconcileScope(next,event);
   const c=next.counters,g=next.grant;
-  if(c.launches>=g.maxLaunches||c.repairs>g.maxRepairs||c.activeMs>=g.activeMs||c.tokens>=g.tokenLimit||next.assignments.filter(live).length>g.maxWorkers){next.stopIntent={id:event.id,requestedBy:'policy',reason:'Captain lowered grant below consumed or active usage',time:now,revision:next.revision};next.phase=next.assignments.some(live)?'stopping':'stopped';effects.push({type:'stop-work',runId:run.id,revision:next.revision});}
+  if(c.launches>=g.maxLaunches||c.repairs>g.maxRepairs||c.activeMs>=g.activeMs||c.tokens>=g.tokenLimit||next.assignments.filter(live).length>g.maxWorkers||missing.length&&next.assignments.some(item=>live(item)&&missing.includes(item.capability))){next.stopIntent={id:event.id,requestedBy:'policy',reason:'Captain lowered grant below consumed usage or active scope',time:now,revision:next.revision};next.phase=next.assignments.some(live)?'stopping':'stopped';effects.push({type:'stop-work',runId:run.id,revision:next.revision});}
  }
  if(a.type==='plan'){
   if(!['planning','blocked','waiting'].includes(next.phase))throw Error('Run phase does not permit a new proposal.');
@@ -48,7 +56,7 @@ function applyRunCommand(run,command,{now,actor=['plan','decide'].includes(comma
   if(a.outcome==='disagree'){if(next.disagreementRounds>=2)throw Error('Two disagreement rounds are complete. Await captain intent or reopen with evidence.');next.disagreementRounds=Math.min(2,next.disagreementRounds+1);if(next.disagreementRounds===2){if(a.evidenceRefs?.length){event.details.outcome='evidence';next.phase=next.blockers.length?'blocked':'waiting';}else block('intent','Two disagreement rounds need captain intent or new evidence');}}
   else if(a.outcome==='hold')next.phase=next.blockers.length?'blocked':'waiting';
   else if(a.outcome==='reopen'){if(!a.evidenceRefs?.length)throw Error('Reopening requires evidence references.');next.readiness=null;next.phase=next.blockers.length?'blocked':'planning';}
-  else {if(next.blockers.length)throw Error('Resolve captain blockers before proceeding.');next.phase='waiting';}
+  else {if(missingScope(next).length)throw Error('Missing captain scope for the existing proposal.');if(next.blockers.length)throw Error('Resolve captain blockers before proceeding.');next.phase='waiting';}
   if(a.evidenceRefs?.length)event.details.sourceId=a.evidenceRefs[0];
   if(a.assignmentId)event.details.assignmentId=a.assignmentId;
  }

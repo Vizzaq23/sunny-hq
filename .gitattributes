@@ -1,2 +1,5 @@
 # Preserve the exact recorded provider output so its evidence SHA256 survives checkout.
 docs/evidence/live-creative-welcome-2026-09-21.md -text whitespace=cr-at-eol
+# Frozen acceptance inputs retain original mixed line endings and SHA-256 across checkouts.
+tests/helpers/frozen-control-fixture.cjs -text whitespace=cr-at-eol
+docs/evidence/protocols/ordered-control-2026-10-02.md -text whitespace=cr-at-eol

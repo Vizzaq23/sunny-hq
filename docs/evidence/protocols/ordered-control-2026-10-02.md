@@ -1,0 +1,21 @@
+# Frozen measurement protocol for the integrated candidate
+
+Prepared before trials, 2026-10-01. Candidate SHA/source digest will be recorded only after A2/A3 integration and full checks; the active installed app and profile are excluded. This document declares measurements, not successful results.
+
+One sequential matrix uses the prior current-version ASCII fixture: compact targets 1/10/30 MiB, 40 messages/task, 1024 characters/message, one review-ready mission linked to four finished tasks, durable drafts and opaque roots/owned boundaries. Retain exact byte counts and shape differences. Default SQLite WAL/FULL and current single-row profile format stay unchanged. JSON recovery is exercised separately by correctness tests, not substituted for SQLite performance.
+
+For each size, use a fresh process and disposable store, three mutated warmups and 20 measured mutated samples, nearest-rank percentiles. Append 64 ASCII characters outside the measurement as in the baseline. Record all raw values, extrema and failures; never rerun to select a passing batch. Main 1ms timer excess, main synchronous submit/handoff time, total awaited exact durable receipt and 5ms heartbeat excess remain separate. Twenty empty-operation timer controls are retained without subtraction. No GC inside the measured batch. Worker internals are independently labeled if instrumented; do not subtract independently sampled percentiles.
+
+Required receipt roundtrip verifies actual compact stored bytes/digest, full transcripts, draft/workspace and opaque fields after close/reopen. Do not read the live profile or count optimistic admission as durability. No provider calls, network work or synthetic-success substitution for external work.
+
+Actual Stop and approval invoke completion is measured separately through trusted Electron IPC, with queue waiting included. Use the built candidate and synthetic transport. Preload/renderer invoke start to fulfilled or explicitly rejected completion is the control RTT; renderer event/frame and durable completion are separate. Each size/control case has 20 samples under declared pending background persistence. Preserve explicit failure replies as failures rather than discard samples. Assert effect/lock semantics, not only a quick UI status. If a control needs a required durable barrier, its wait remains in the measured RTT.
+
+The unchanged gates are main timer excess <=100ms and actual control completion p95 <200ms. Full correctness tests must pass. Any violation prevents promotion; prepare a measured follow-on design rather than relax metrics, truncate history, change WAL/FULL, or rewrite schema under this plan.
+
+Native journey includes --room, both surfaces, cue ownership/replay, paging/history, draft survival and recovery. Launch only the exact known Electron executable in the supported normal desktop execution context, isolated profiles, a bounded watchdog and owned-process cleanup. Do not change GPU/security flags to make tests pass or close the user's app. Record the source digest, runtime hash, all assertions and screenshots. Candidate packaged validation and actual installed-build status remain distinct; installation needs a concrete final confirmation.
+
+## Workload-label correction — 2026-10-02 01:42 UTC, before actual control samples
+
+Raw UTF-8/codepoint inspection proved that the frozen fixture is predominantly ASCII with one U+2014 EM DASH per 1024-character transcript message (1026 UTF-8 bytes), rather than entirely ASCII. Its SHA-256 remains 219f75242146fb32b8ed8452a0b792b1c76207311b67f74b947b267cc8581590. The fixture is not rewritten. Prior matrices used these same frozen bytes; their raw results and failed gates remain retained. They must not be described as ASCII-only or as a newly paired baseline speedup.
+
+The native ASCII-only bootstrap rejection on efcd0ad is retained as a failed setup with zero samples. Subsequent controls explicitly declare and validate this exact mixed-text shape/hash before samples. This corrects the workload description; it does not alter data volume, queue loading, controls, sample count, percentiles, timer coverage, or the <=100ms and <200ms gates. Mutation still appends 64 ASCII x characters outside each measured operation. All subsequent evidence binds the updated protocol hash and unchanged fixture hash.

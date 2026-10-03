@@ -7,11 +7,18 @@ const {createHash}=require('node:crypto');
 const {execFileSync}=require('node:child_process');
 const {performance}=require('node:perf_hooks');
 const root=path.resolve(__dirname,'..');
-const fixtureFile=path.resolve(root,'../sunny-responsive-session-20261001/worker-diagnostic/fixture.cjs');
-const protocolFile=path.resolve(root,'../sunny-responsive-session-20261001/A4-measurement-protocol.md');
 const SAMPLES=20,WARMUPS=3,WATCHDOG_MS=240000;
 const FROZEN_FIXTURE_SHA256='219f75242146fb32b8ed8452a0b792b1c76207311b67f74b947b267cc8581590';
+const FROZEN_PROTOCOL_SHA256='cfbf13474db6cfd574cd072e386a9db405168e587eb0ac9be4f0297650a63afd';
 const sha=value=>createHash('sha256').update(value).digest('hex');
+function resolveControlInputs(root){
+ const fixtureFile=path.resolve(root,'tests/helpers/frozen-control-fixture.cjs');
+ const protocolFile=path.resolve(root,'docs/evidence/protocols/ordered-control-2026-10-02.md');
+ const fixtureSha256=sha(fs.readFileSync(fixtureFile)),protocolSha256=sha(fs.readFileSync(protocolFile));
+ assert.equal(fixtureSha256,FROZEN_FIXTURE_SHA256,'Frozen fixture source hash must match before samples');
+ assert.equal(protocolSha256,FROZEN_PROTOCOL_SHA256,'Frozen protocol source hash must match before samples');
+ return {fixtureFile,protocolFile,fixtureSha256,protocolSha256};
+}
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 function summarize(values){
  const sorted=[...values].sort((a,b)=>a-b),pick=p=>sorted[Math.max(0,Math.ceil(sorted.length*p)-1)];
@@ -74,13 +81,14 @@ function startControlMonitors(sample,clock={now:()=>performance.now(),every:setI
  return ()=>{if(stopped)return;stopped=true;for(const stream of streams){stream.observe('settlement-tail');clock.cancel(stream.timer);}sample.mainMonitorSettledAtMs=clock.now();};
 }
 function sourceProof(){
+ const {fixtureSha256,protocolSha256}=resolveControlInputs(root);
  const git=args=>execFileSync('git',['-c','safe.directory='+root,...args],{cwd:root,windowsHide:true,encoding:'utf8'});
  const files=[...new Set(git(['ls-files','-z','--cached','--others','--exclude-standard']).split('\0').filter(Boolean))].sort();
  const manifest=files.filter(file=>fs.existsSync(path.join(root,file))&&fs.statSync(path.join(root,file)).isFile()).map(file=>({file,sha256:sha(fs.readFileSync(path.join(root,file)))}));
  // Built files are ignored by Git, so bind every dist asset separately.
  function walk(dir){return fs.readdirSync(dir,{withFileTypes:true}).flatMap(entry=>entry.isDirectory()?walk(path.join(dir,entry.name)):[path.join(dir,entry.name)]);}
  const built=walk(path.join(root,'dist')).sort().map(file=>({file:path.relative(root,file).split(path.sep).join('/'),sha256:sha(fs.readFileSync(file))}));
- return {commit:git(['rev-parse','HEAD']).trim(),dirty:Boolean(git(['status','--porcelain','--untracked-files=normal']).trim()),sourceDigest:sha(JSON.stringify(manifest)),manifest,builtDigest:sha(JSON.stringify(built)),built,fixtureSha256:sha(fs.readFileSync(fixtureFile)),protocolSha256:sha(fs.readFileSync(protocolFile))};
+ return {commit:git(['rev-parse','HEAD']).trim(),dirty:Boolean(git(['status','--porcelain','--untracked-files=normal']).trim()),sourceDigest:sha(JSON.stringify(manifest)),manifest,builtDigest:sha(JSON.stringify(built)),built,fixtureSha256,protocolSha256};
 }
 
 // Timing begins inside the renderer immediately before the real production preload invoke.
@@ -152,12 +160,13 @@ async function readonlyProof(data,workers){
 
 async function run(){
  const mib=parseSize(process.argv.slice(2));
+ const {fixtureFile}=resolveControlInputs(root);
  const {app,BrowserWindow,ipcMain,session}=require('electron');
  assert.equal(Number(process.versions.electron.split('.')[0]),44,'Use the exact approved Electron 44 executable');
  const {Hub}=require('../desktop/hub.cjs');
  const {openOrderedStore}=require('../desktop/ordered-store.cjs');
  const {createPublicTransport}=require('../desktop/public-transport.cjs');
- const {fixture}=require(fixtureFile);
+ const {fixture}=require('../tests/helpers/frozen-control-loader.cjs').loadFrozenControlFixture(fixtureFile,root);
  const output=path.join(root,'.sunny-dev','ordered-control-check',new Date().toISOString().replace(/[:.]/g,'-')+'-'+mib+'MiB');
  fs.mkdirSync(output,{recursive:true});
  const runtime=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-ordered-control-'));
@@ -332,4 +341,4 @@ async function run(){
  finally{await finalizeAndExit({cleanup,evidence,write,beforeExit:()=>{clearTimeout(watchdog);finished=true;console.log('SUNNY_ORDERED_CONTROL_RESULT '+JSON.stringify({sizeMiB:mib,passed:evidence.passed===true,output}));},exit:code=>app.exit(code)});}
 }
 if(isDirectEntry(process,require.main,module,__filename))run().catch(error=>{console.error(error);process.exitCode=1;});
-module.exports={parseSize,isDirectEntry,validateFrozenTextShape,summarize,explicitFailure,finalizeAndExit,startControlMonitors,rendererControl,makeDispatch,readonlyProof,READONLY_PROOF};
+module.exports={resolveControlInputs,parseSize,isDirectEntry,validateFrozenTextShape,summarize,explicitFailure,finalizeAndExit,startControlMonitors,rendererControl,makeDispatch,readonlyProof,READONLY_PROOF};

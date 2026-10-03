@@ -88,6 +88,23 @@ test('renderer times the actual invoke promise and preserves raw rejected and fa
  const rejected=await run('approval:respond',{id:'a',decision:'accept'});assert.equal(rejected.rttMs,205);assert.equal(rejected.outcome,'rejected');assert.equal(rejected.error.message,'RAW required barrier rejection');
 });
 
+test('known rejected control remains a raw failure sample',async()=>{
+ let now=0;
+ const rendererRun=new Script('('+rendererControl.toString()+')').runInNewContext({performance:{now:()=>now},window:{sunny:{subscribe:()=>()=>{},invoke:async()=>{now=205;throw Error('RAW required barrier rejection');}}},requestAnimationFrame:callback=>callback()});
+ const renderer=await rendererRun('task:interrupt',{taskId:'control'});
+ const sample={renderer,warmup:false,semanticPass:true,pendingAtControlAdmission:true,receipts:[{reason:'reservation-release',receipt:{sequence:1}}]},evidence={warmups:[],samples:[]};
+ // Execute the real sample classification/retention block, without launching Electron.
+ const source=fs.readFileSync(path.resolve(__dirname,'../scripts/ordered-control-check.cjs'),'utf8');
+ const start=source.indexOf('   sample.explicitFailureReply=');
+ const end=source.indexOf('\n   // Finish the synthetic approval turn',start);
+ assert.ok(start>=0&&end>start);
+ new Script(source.slice(start,end)).runInNewContext({sample,evidence,action:'task:interrupt',explicitFailure,log:()=>{},write:()=>{},currentSample:sample});
+ assert.equal(sample.success,false);assert.equal(evidence.samples.length,1);assert.equal(evidence.samples[0],sample);
+ assert.equal(sample.renderer.outcome,'rejected');assert.equal(sample.renderer.error.message,'RAW required barrier rejection');
+ const summary=summarize(evidence.samples.map(item=>item.renderer.rttMs));
+ assert.equal(summary.count,1);assert.deepEqual(summary.raw,[205]);
+});
+
 test('continuous 1ms monitor covers later synchronous authority preparation after initial background I/O',async()=>{
  let now=0,stop;const intervals=new Map(),sample={mainContinuous1msExcessMs:[],heartbeatExcessMs:[]},durable=deferred(),background=deferred();
  const clock={now:()=>now,every:(callback,period)=>{intervals.set(period,callback);return period;},cancel:period=>intervals.delete(period)};

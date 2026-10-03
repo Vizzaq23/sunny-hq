@@ -5,7 +5,7 @@ const {createRequire}=require('node:module');
 const {EventEmitter}=require('node:events');
 const ts=require('typescript');
 const {createPublicTransport}=require('../desktop/public-transport.cjs');
-function fixture(){
+function fixture({packagedMode=false}={}){
  const filename=path.resolve(__dirname,'../desktop/main.cjs'),source=ts.createSourceFile(filename,fs.readFileSync(filename,'utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.JS),declarations=new Map();let ipc;
  function visit(node){if(ts.isFunctionDeclaration(node)&&node.name)declarations.set(node.name.text,node.getText(source));if(ts.isCallExpression(node)&&node.expression.getText(source)==='ipcMain.handle'&&node.arguments[0]?.text==='sunny:invoke')ipc=node.arguments[1].getText(source);ts.forEachChild(node,visit);}visit(source);assert.ok(ipc);
  const task={id:'t',projectId:'p',crewId:'franky',status:'finished',messages:[{id:'m',role:'assistant',time:1,text:'秘密🚀'.repeat(100000)}]},hub=new EventEmitter();hub.state={projects:[{id:'p',path:process.cwd()}],tasks:[task],missions:[],approvals:[]};let effects=0;
@@ -13,7 +13,7 @@ function fixture(){
  const publicTransport=createPublicTransport(hub,{epoch:'ipc'}),win={isDestroyed:()=>false,webContents:{mainFrame:{}}},companion={isDestroyed:()=>false,webContents:{mainFrame:{}}};
  const externalHistoryPager=require('../desktop/external-history-pages.cjs').createExternalHistoryPager();
  hub.ensure=async()=>{};hub.client={request:async()=>({thread:{turns:[{items:[{type:'agentMessage',text:'provider text '.repeat(90000)}]}]}})};
- const context=vm.createContext({require:createRequire(filename),hub,win,companion,publicTransport,externalHistoryPager,importedHistory:()=>[{id:'chatgpt:fixture',messages:[{role:'user',text:'import text '.repeat(90000)}]}]});
+ const context=vm.createContext({require:createRequire(filename),fixture:packagedMode?{}:null,packagedFixture:require('../desktop/packaged-acceptance.cjs'),hub,win,companion,publicTransport,externalHistoryPager,importedHistory:()=>[{id:'chatgpt:fixture',messages:[{role:'user',text:'import text '.repeat(90000)}]}]});
  const handler=new vm.Script(declarations.get('textArg')+'\n'+declarations.get('loadExternalHistory')+'\n'+declarations.get('publicState')+'\n'+declarations.get('handle')+'\n('+ipc+')').runInContext(context);
  return {task,hub,publicTransport,win,companion,handler,get effects(){return effects;},invoke(action,args={},target=win){return handler({sender:target.webContents,senderFrame:target.webContents.mainFrame},action,args);}};
 }
@@ -48,4 +48,13 @@ test('actual main bounds both external-history routes and preserves complete imp
  }
  assert.equal((await f.invoke('snapshot')).sequence,0);assert.equal(f.effects,0);
  await assert.rejects(f.invoke('task:readExternalPage',{threadId:'provider-fixture',extra:true}),/Invalid external/);
+});
+
+
+test('actual main fixture IPC keeps trusted reads and blocks ordinary task effects',async()=>{
+ const f=fixture({packagedMode:true});assert.equal((await f.invoke('snapshot')).protocolVersion,2);
+ await assert.rejects(f.invoke('task:start',{projectId:'p',crewId:'franky',prompt:'synthetic'}),/Offline fixture blocks/);
+ await assert.rejects(f.invoke('mission:start',{missionId:'m',revision:1}),/Offline fixture blocks/);
+ await assert.rejects(f.handler({sender:f.win.webContents,senderFrame:{}},'snapshot'),/Untrusted window/);
+ assert.equal(f.effects,0);
 });

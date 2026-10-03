@@ -1,6 +1,7 @@
 const fs=require('node:fs');
 const path=require('node:path');
 const crypto=require('node:crypto');
+const {performance}=require('node:perf_hooks');
 function inside(root,target){const relative=path.relative(root,target);return relative===''||(!relative.startsWith('..'+path.sep)&&relative!=='..'&&!path.isAbsolute(relative));}
 function guardedPath(root,input=''){
  if(typeof input!=='string'||input.includes('\0'))throw Error('Invalid file path');
@@ -36,7 +37,19 @@ class StateStore{
 class SqliteStore{
  constructor(file){const {DatabaseSync}=require('node:sqlite');fs.mkdirSync(path.dirname(file),{recursive:true});this.db=new DatabaseSync(file);this.db.exec('PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS state (id INTEGER PRIMARY KEY CHECK(id=1), value TEXT NOT NULL)');}
  load(){const row=this.db.prepare('SELECT value FROM state WHERE id=1').get();if(!row)return {};try{return JSON.parse(row.value);}catch{this.db.exec('CREATE TABLE IF NOT EXISTS recovery (saved_at TEXT, value TEXT)');this.db.prepare('INSERT INTO recovery VALUES(?,?)').run(new Date().toISOString(),row.value);this.recovery='Preserved in the SQLite recovery table';return {};}}
- save(value){this.db.prepare('INSERT INTO state(id,value) VALUES(1,?) ON CONFLICT(id) DO UPDATE SET value=excluded.value').run(JSON.stringify(value));}
+ save(value,probe){
+  if(!probe){this.db.prepare('INSERT INTO state(id,value) VALUES(1,?) ON CONFLICT(id) DO UPDATE SET value=excluded.value').run(JSON.stringify(value));return;}
+  const started=performance.now();let tick=started;
+  try{
+   // The original expression looks up run before evaluating its argument.
+   const statement=this.db.prepare('INSERT INTO state(id,value) VALUES(1,?) ON CONFLICT(id) DO UPDATE SET value=excluded.value'),run=statement.run;
+   let now=performance.now();probe.sqlPrepare=now-tick;tick=now;probe.sqlStage=1;
+   const serialized=JSON.stringify(value);
+   now=performance.now();probe.sqlStringify=now-tick;tick=now;probe.sqlStage=2;
+   Reflect.apply(run,statement,[serialized]);
+   now=performance.now();probe.sqlRun=now-tick;probe.sqlStage=3;
+  }catch(error){probe.sqlFailed=1;throw error;}finally{probe.sqlTotal=performance.now()-started;}
+ }
  close(){this.db.close();}
 }
 module.exports={guardedPath,readText,writeText,deriveStatus,TaskGate,StateStore,SqliteStore,hash,inside};

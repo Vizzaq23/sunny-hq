@@ -50,7 +50,7 @@ try{
  post({type:'ready',image:store.load(),recovery:store.recovery});
 }catch(error){post({type:'failed',error:error.message,uncertain:false});finish();}
 parentPort.on('message',message=>{
- if(ended)return;let writeStarted=false;const probe=workerData.latencyProbe===true&&message?.type==='commit'?{loadMerge:0,validation:0,stringify:0,parse:0,revalidation:0,hash:0,adapterSave:0,total:0,stage:0,failed:0}:null;let tick=probe?performance.now():0;const started=tick;function mark(key,stage){if(probe){const now=performance.now();probe[key]=now-tick;tick=now;probe.stage=stage;}}
+ if(ended)return;let writeStarted=false;const probe=workerData.latencyProbe===true&&message?.type==='commit'?{loadMerge:0,validation:0,stringify:0,parse:0,revalidation:0,hash:0,adapterSave:0,total:0,stage:0,failed:0,adapterCloneMerge:0,adapterValidation:0,adapterRawSave:0,adapterBookkeeping:0,adapterTotal:0,adapterStage:0,adapterFailed:0,sqlPrepare:0,sqlStringify:0,sqlRun:0,sqlTotal:0,sqlStage:0,sqlFailed:0}:null;let tick=probe?performance.now():0;const started=tick;function mark(key,stage){if(probe){const now=performance.now();probe[key]=now-tick;tick=now;probe.stage=stage;}}
  try{
   if(!message||message.epoch!==epoch)throw Error('Invalid private persistence epoch');
   if(message.type==='close'){store.close();store=null;raw=null;post({type:'closed'});finish();return;}
@@ -69,7 +69,7 @@ parentPort.on('message',message=>{
   post({type:'prepared',sequence:message.sequence,stateSha256});writeStarted=true;if(probe)tick=performance.now();
   // Preserve explicit undefined overrides through the adapter's opaque merge.
   // Passing normalized here would restore omitted old fields after hashing.
-  store.save(merged);mark('adapterSave',7);lastSequence=message.sequence;if(probe)probe.total=performance.now()-started;
+  if(probe)store.save(merged,probe);else store.save(merged);mark('adapterSave',7);lastSequence=message.sequence;if(probe)probe.total=performance.now()-started;
   post({type:'committed',sequence:lastSequence,...(probe?{probe}:{}),receipt:{epoch,sequence:lastSequence,stateSha256,durableAt:Date.now()}});
  }catch(error){if(probe){probe.failed=1;probe.total=performance.now()-started;}post({type:'failed',...(probe?{probe}:{}),sequence:message?.sequence,error:error.message,uncertain:writeStarted});finish();}
 });

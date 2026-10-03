@@ -1,6 +1,7 @@
 const fs=require('node:fs');
 const path=require('node:path');
 const {createHash,randomUUID}=require('node:crypto');
+const {performance}=require('node:perf_hooks');
 const unsupported='Unsupported or invalid mission profile. Preserve the saved data for recovery and use a compatible Sunny version.';
 const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const id=value=>typeof value==='string'&&value.trim().length>0&&value.length<=200&&!value.includes('\0');
@@ -98,7 +99,22 @@ function prepareMissionProfileStore(store,backupDir){
  if(mode==='unsupported')throw Error(unsupported);
  let receipt=['v1-upgrade','v2-upgrade'].includes(mode)?writeVerifiedBackup(saved,backupDir):null;
  let current=receipt?upgradeMissionProfile(saved,receipt):structuredClone(saved);
- return {get recovery(){return store.recovery;},load:()=>structuredClone(current),save(value){
+ return {get recovery(){return store.recovery;},load:()=>structuredClone(current),save(value,probe){
+  if(probe){
+   const started=performance.now();let tick=started;
+   try{
+    const next={...current,...structuredClone(value)};
+    let now=performance.now();probe.adapterCloneMerge=now-tick;tick=now;probe.adapterStage=1;
+    if(inspectMissionProfile(next).mode!=='v3')throw Error(unsupported);
+    if(receipt)upgradeMissionProfile(saved,receipt);
+    now=performance.now();probe.adapterValidation=now-tick;tick=now;probe.adapterStage=2;
+    store.save(next,probe);
+    now=performance.now();probe.adapterRawSave=now-tick;tick=now;probe.adapterStage=3;
+    current=next;receipt=null;
+    now=performance.now();probe.adapterBookkeeping=now-tick;probe.adapterStage=4;
+   }catch(error){probe.adapterFailed=1;throw error;}finally{probe.adapterTotal=performance.now()-started;}
+   return;
+  }
   const next={...current,...structuredClone(value)};if(inspectMissionProfile(next).mode!=='v3')throw Error(unsupported);
   if(receipt)upgradeMissionProfile(saved,receipt);
   store.save(next);current=next;receipt=null;

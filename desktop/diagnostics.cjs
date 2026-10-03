@@ -36,4 +36,9 @@ async function offerReload(win,{surface,reason,exitCode,isQuitting,showMessageBo
  if(result.response===0&&!isQuitting()&&!win.isDestroyed())win.reload();
 }
 function readBuildInfo(file){try{if(fs.statSync(file).size>4096)return {};return safeDetails('starting',JSON.parse(fs.readFileSync(file,'utf8')));}catch{return {};}}
-module.exports={record,safeDetails,watchRenderer,offerReload,readBuildInfo};
+function createIncidentManifest({buildInfo={},exeHash,asarHash,runtime={},events=[]}){
+ if(!/^[a-f0-9]{64}$/i.test(exeHash||'')||!/^[a-f0-9]{64}$/i.test(asarHash||''))throw Error('Exact executable and ASAR hashes are required.');
+ const versions={};for(const key of ['electron','node','chrome'])if(typeof runtime[key]==='string'&&/^\d+\.\d+\.\d+(?:[.-][a-zA-Z0-9.-]+)?$/.test(runtime[key])&&runtime[key].length<=60)versions[key]=runtime[key];
+ return {version:1,exeSha256:exeHash.toLowerCase(),asarSha256:asarHash.toLowerCase(),build:safeDetails('starting',buildInfo),runtime:versions,events:(Array.isArray(events)?events:[]).slice(0,256).filter(item=>allowed.has(item?.event)).map(item=>({event:item.event,...safeDetails(item.event,item)}))};
+}
+module.exports={record,safeDetails,watchRenderer,offerReload,readBuildInfo,createIncidentManifest};

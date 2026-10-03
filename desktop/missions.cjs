@@ -7,11 +7,12 @@ function text(value,label,max=10000){
 }
 class MissionBook {
  constructor(saved){
-  if(saved!==undefined&&(saved?.version!==2||!Array.isArray(saved.missions)))throw Error('Unsupported mission data version. Preserve the saved data and use a compatible Sunny version.');
+  if(saved!==undefined&&(saved?.version!==3||!Array.isArray(saved.missions)))throw Error('Unsupported mission data version. Preserve the saved data and use a compatible Sunny version.');
   const {emptyWorkspace,validateWorkspace,validateMissionBookAuthority}=require('./mission-profile.cjs');
-  this.data=saved===undefined?{version:2,missions:[],workspace:emptyWorkspace()}:structuredClone(saved);
+  this.data=saved===undefined?{version:3,missions:[],runs:[],workspace:emptyWorkspace()}:structuredClone(saved);
   validateWorkspace(this.data.workspace);
   validateMissionBookAuthority(this.data);
+  require('./supervision-schema.cjs').validateSupervisionBook(this.data);
   for(const mission of this.data.missions){
    if(!mission.id||!Array.isArray(mission.attempts)||!Array.isArray(mission.events)||!Array.isArray(mission.acceptanceCriteria)||!Number.isInteger(mission.revision))throw Error('Invalid saved mission data. Restore a verified backup.');
    const check=mission.checkExecution;if(check&&(typeof check.id!=='string'||!check.id||!['test','build','typecheck','lint'].includes(check.script)||!Number.isFinite(check.startedAt)||!mission.attempts.some(a=>a.id===check.attemptId)))throw Error('Invalid saved check reservation. Preserve the profile for recovery.');

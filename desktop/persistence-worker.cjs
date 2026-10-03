@@ -13,7 +13,7 @@ function preflightExistingProfile(kind,file){
    const {DatabaseSync}=require('node:sqlite'),database=new DatabaseSync(file,{readOnly:true});
    try{const row=database.prepare('SELECT value FROM state WHERE id=1').get();saved=row?JSON.parse(row.value):{};}finally{database.close();}
   }else throw Error('Invalid storage format.');
-  if(!['empty','v1-upgrade','v2'].includes(inspectMissionProfile(saved).mode))throw Error('Unsupported mission profile.');
+  if(!['empty','v1-upgrade','v2-upgrade','v3'].includes(inspectMissionProfile(saved).mode))throw Error('Unsupported mission profile.');
  }catch(error){throw Error('Saved Sunny profile is unreadable or unsupported. Preserve the original file and use a compatible copy for recovery. '+error.message);}
 }
 function syncDirectory(directory){
@@ -56,11 +56,11 @@ parentPort.on('message',message=>{
   if(message.type!=='commit'||!Number.isSafeInteger(message.sequence)||message.sequence!==lastSequence+1)throw Error('Invalid private persistence sequence');
   if(message.image===null||typeof message.image!=='object'||Array.isArray(message.image))throw Error('Invalid submitted profile image');
   const merged={...store.load(),...message.image};
-  if(inspectMissionProfile(merged).mode!=='v2')throw Error('Unsupported or invalid mission profile. Preserve the saved data for recovery.');
+  if(inspectMissionProfile(merged).mode!=='v3')throw Error('Unsupported or invalid mission profile. Preserve the saved data for recovery.');
   // Validation precedes serialization so sparse authority arrays cannot acquire
   // validity through JSON conversion. The receipt hashes actual compact bytes.
   const compact=JSON.stringify(merged),normalized=JSON.parse(compact);
-  if(inspectMissionProfile(normalized).mode!=='v2')throw Error('Invalid serialized mission profile');
+  if(inspectMissionProfile(normalized).mode!=='v3')throw Error('Invalid serialized mission profile');
   const stateSha256=createHash('sha256').update(compact).digest('hex');
   post({type:'prepared',sequence:message.sequence,stateSha256});writeStarted=true;
   // Preserve explicit undefined overrides through the adapter's opaque merge.

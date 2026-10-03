@@ -4,7 +4,7 @@ const {MissionBook}=require('../desktop/missions.cjs');
 const brief={projectId:'p',title:'Build inventory',objective:'Track the captain inventory',acceptanceCriteria:['Items survive reload'],completionBoundary:'review'};
 function running(){const book=new MissionBook();const mission=book.create(brief);const attempt=book.begin(mission.id,mission.revision);return {book,mission,attempt};}
 test('new ledger is additive and rejects unknown saved schema',()=>{
- assert.deepEqual(new MissionBook().data,{version:2,missions:[],workspace:{version:1,revision:0,context:null,drafts:[],seenAcceptanceIds:[]}});
+ assert.deepEqual(new MissionBook().data,{version:3,runs:[],missions:[],workspace:{version:1,revision:0,context:null,drafts:[],seenAcceptanceIds:[]}});
  assert.throws(()=>new MissionBook({version:9,missions:[]}),/version/i);
 });
 test('mission launch is single-use and allocates a distinct attempt',()=>{

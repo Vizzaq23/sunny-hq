@@ -9,7 +9,7 @@ const {EventEmitter}=require('node:events');
 const source=path.join(__dirname,'../desktop/ordered-store.cjs');
 const api=fs.existsSync(source)?require(source):{};
 const {emptyWorkspace}=require('../desktop/mission-profile.cjs');
-const image=(text='航海 🏴‍☠️ café')=>({projects:[],tasks:[{id:'t',messages:[{id:'msg',text}]}],opaque:{retained:'未来 🐳'},missionBook:{version:2,missions:[],workspace:emptyWorkspace()}});
+const image=(text='航海 🏴‍☠️ café')=>({projects:[],tasks:[{id:'t',messages:[{id:'msg',text}]}],opaque:{retained:'未来 🐳'},missionBook:{version:3,runs:[],missions:[],workspace:emptyWorkspace()}});
 const digest=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 function fixture(t,kind='sqlite'){
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-ordered-'));const stores=[],workers=[];
@@ -40,7 +40,7 @@ for(const kind of ['sqlite','json']){
  test('opaque_unicode_profile_and_backup_receipt_roundtrip '+kind,{timeout:15000},async t=>{
   const f=fixture(t,kind),saved=image();saved.missionBook={version:1,missions:[],extra:{unicode:'古い 🐳'}};
   if(kind==='json')fs.writeFileSync(f.options.file,JSON.stringify(saved));else {const {SqliteStore}=require('../desktop/core.cjs');const raw=new SqliteStore(f.options.file);raw.save(saved);raw.close();}
-  const store=await open(f),loaded=store.load();assert.equal(loaded.missionBook.version,2);assert.deepEqual(loaded.opaque,saved.opaque);assert.deepEqual(loaded.tasks,saved.tasks);
+  const store=await open(f),loaded=store.load();assert.equal(loaded.missionBook.version,3);assert.deepEqual(loaded.opaque,saved.opaque);assert.deepEqual(loaded.tasks,saved.tasks);
   const backup=path.join(f.options.backupDir,fs.readdirSync(f.options.backupDir)[0]);assert.deepEqual(JSON.parse(fs.readFileSync(backup)),saved);
   fs.appendFileSync(backup,'tamper');await assert.rejects(store.barrier(loaded,'workspace'),/backup|receipt/i);await assert.rejects(store.close(),/backup|receipt/i);
   const original=kind==='json'?JSON.parse(fs.readFileSync(f.options.file)):(()=>{const {SqliteStore}=require('../desktop/core.cjs');const raw=new SqliteStore(f.options.file);try{return raw.load();}finally{raw.close();}})();assert.deepEqual(original,saved);

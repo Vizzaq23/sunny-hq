@@ -11,13 +11,13 @@ function loadFrozenControlFixture(fixtureFile,root){
  const frozenRequire=id=>{
   if(id==='node:path')return path;
   if(id==='node:assert/strict')return assert;
-  if(id===originalProfile)return require(path.join(root,'desktop/mission-profile.cjs'));
+  if(id===originalProfile){const profile=require(path.join(root,'desktop/mission-profile.cjs'));return {inspectMissionProfile:state=>{const result=profile.inspectMissionProfile(state);return result.mode==='v2-upgrade'?{mode:'v2'}:result;}};}
   throw Error('Unexpected frozen fixture dependency: '+id);
  };
  const module={exports:{}};
  const evaluate=new Script('(function(require,module,exports,__dirname){\n'+bytes.toString('utf8')+'\n})',{filename:fixtureFile}).runInThisContext();
  evaluate(frozenRequire,module,module.exports,path.dirname(fixtureFile));
- return module.exports;
+ const frozen=module.exports;return {...frozen,fixture:(...args)=>{const state=frozen.fixture(...args);state.missionBook={...state.missionBook,version:3,runs:[]};assert.equal(require(path.join(root,'desktop/mission-profile.cjs')).inspectMissionProfile(state).mode,'v3');return state;}};
 }
 function inspectFrozenWorkload(state){
  assert.ok(state.tasks.length>0);

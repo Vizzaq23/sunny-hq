@@ -47,19 +47,24 @@ function validateMissionBookAuthority(book){
  const ids=new Set();for(const mission of book.missions){validateMissionAuthority(mission);if(ids.has(mission.id))throw Error('Invalid saved duplicate mission identity.');ids.add(mission.id);}
 }
 function upgradeClone(saved){
- const upgraded=structuredClone(saved);upgraded.missionBook.version=2;upgraded.missionBook.workspace=emptyWorkspace();
+ const upgraded=structuredClone(saved);upgraded.missionBook.version=3;upgraded.missionBook.runs=[];
+ if(saved.missionBook.version===1){upgraded.missionBook.workspace=emptyWorkspace();
  for(const mission of upgraded.missionBook.missions)if(mission.acceptance!==undefined)mission.acceptance={...mission.acceptance,legacy:true};
+ }
  return upgraded;
 }
 function inspectMissionProfile(saved){
  try{
   if(!object(saved))return {mode:'unsupported'};
   if(saved.missionBook===undefined)return {mode:'empty'};
-  const book=saved.missionBook;if(!object(book)||!Array.isArray(book.missions)||![1,2].includes(book.version))return {mode:'unsupported'};
-  validateMissionBookAuthority(book.version===1?upgradeClone(saved).missionBook:book);
+  const book=saved.missionBook;if(!object(book)||!Array.isArray(book.missions)||![1,2,3].includes(book.version))return {mode:'unsupported'};
+  if(book.version<3&&(book.runs!==undefined||book.missions.some(mission=>mission?.runId!==undefined)||saved.tasks?.some(task=>task&&(task.runId!==undefined||task.assignmentId!==undefined||task.workspaceId!==undefined))))return {mode:'unsupported'};
+  const candidate=book.version<3?upgradeClone(saved).missionBook:book;
+  validateMissionBookAuthority(candidate);
   if(book.version===1&&(book.workspace!==undefined||book.missions.some(mission=>mission.selectedResult!==undefined||mission.acceptance?.legacy!==undefined)))return {mode:'unsupported'};
-  new (require('./missions.cjs').MissionBook)(book.version===1?upgradeClone(saved).missionBook:book);
-  return {mode:book.version===1?'v1-upgrade':'v2'};
+  new (require('./missions.cjs').MissionBook)(candidate);
+  require('./supervision-schema.cjs').validateSupervisedTasks(candidate,saved.tasks);
+  return {mode:book.version===1?'v1-upgrade':book.version===2?'v2-upgrade':'v3'};
  }catch{return {mode:'unsupported'};}
 }
 function stateBytes(saved){if(!object(saved))throw Error(unsupported);return Buffer.from(JSON.stringify(saved,null,2),'utf8');}
@@ -70,17 +75,17 @@ function readBackup(file){
  try{const opened=fs.fstatSync(descriptor);if(!opened.isFile()||opened.ino!==stat.ino||opened.dev!==stat.dev)throw Error('Migration backup changed during verification.');return fs.readFileSync(descriptor);}finally{fs.closeSync(descriptor);}
 }
 function writeVerifiedBackup(saved,backupDir){
- if(inspectMissionProfile(saved).mode!=='v1-upgrade')throw Error(unsupported);
+ if(!['v1-upgrade','v2-upgrade'].includes(inspectMissionProfile(saved).mode))throw Error(unsupported);
  const bytes=stateBytes(saved);fs.mkdirSync(backupDir,{recursive:true});const stat=fs.lstatSync(backupDir);
  if(!stat.isDirectory()||stat.isSymbolicLink())throw Error('Invalid migration backup directory.');
- const file=path.join(fs.realpathSync(backupDir),'mission-profile-v1-'+Date.now()+'-'+randomUUID()+'.json');
+ const file=path.join(fs.realpathSync(backupDir),'mission-profile-v'+saved.missionBook.version+'-'+Date.now()+'-'+randomUUID()+'.json');
  const descriptor=fs.openSync(file,'wx',0o600);
  try{fs.writeFileSync(descriptor,bytes);fs.fsyncSync(descriptor);}finally{fs.closeSync(descriptor);}
  const verified=readBackup(file);if(!verified.equals(bytes))throw Error('Migration backup could not be verified.');
  return {path:file,sha256:hash(verified)};
 }
 function upgradeMissionProfile(saved,receipt){
- if(inspectMissionProfile(saved).mode!=='v1-upgrade')throw Error(unsupported);
+ if(!['v1-upgrade','v2-upgrade'].includes(inspectMissionProfile(saved).mode))throw Error(unsupported);
  if(!object(receipt)||typeof receipt.path!=='string'||!path.isAbsolute(receipt.path)||!sha(receipt.sha256))throw Error('A verified full-state migration backup receipt is required.');
  const bytes=readBackup(receipt.path);if(hash(bytes)!==receipt.sha256||!bytes.equals(stateBytes(saved)))throw Error('Migration backup receipt does not match the exact saved profile.');
  return upgradeClone(saved);
@@ -88,10 +93,10 @@ function upgradeMissionProfile(saved,receipt){
 function prepareMissionProfileStore(store,backupDir){
  const saved=store.load(),mode=inspectMissionProfile(saved).mode;
  if(mode==='unsupported')throw Error(unsupported);
- let receipt=mode==='v1-upgrade'?writeVerifiedBackup(saved,backupDir):null;
+ let receipt=['v1-upgrade','v2-upgrade'].includes(mode)?writeVerifiedBackup(saved,backupDir):null;
  let current=receipt?upgradeMissionProfile(saved,receipt):structuredClone(saved);
  return {get recovery(){return store.recovery;},load:()=>structuredClone(current),save(value){
-  const next={...current,...structuredClone(value)};if(inspectMissionProfile(next).mode!=='v2')throw Error(unsupported);
+  const next={...current,...structuredClone(value)};if(inspectMissionProfile(next).mode!=='v3')throw Error(unsupported);
   if(receipt)upgradeMissionProfile(saved,receipt);
   store.save(next);current=next;receipt=null;
  },close:()=>store.close()};

@@ -8,7 +8,7 @@ const {Worker}=require('node:worker_threads');
 const {EventEmitter}=require('node:events');
 const {openOrderedStore}=require('../desktop/ordered-store.cjs');
 const {emptyWorkspace}=require('../desktop/mission-profile.cjs');
-const image=text=>({projects:[],tasks:[{id:'task',messages:[{id:'reply',text}]}],opaque:{nested:{text:'\u822a\u6d77 \ud83d\udc33'}},missionBook:{version:2,missions:[],workspace:emptyWorkspace()}});
+const image=text=>({projects:[],tasks:[{id:'task',messages:[{id:'reply',text}]}],opaque:{nested:{text:'\u822a\u6d77 \ud83d\udc33'}},missionBook:{version:3,runs:[],missions:[],workspace:emptyWorkspace()}});
 const digest=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 function fixture(t,kind='sqlite'){
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-capture-')),workers=[],stores=[];

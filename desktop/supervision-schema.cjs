@@ -1,0 +1,49 @@
+// Storage validation only. This module grants no runtime admission.
+const PHASES=['planning','executing','validating','reviewing','repairing','ready','waiting','paused','stopping','stopped','unknown','blocked'];
+const STATES=['queued','reserved','starting','working','waiting','unknown','finished','failed','interrupted','cancelled','blocked'];
+const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
+const string=(value,max=200)=>typeof value==='string'&&value.trim().length>0&&value.length<=max&&!value.includes('\0');
+const integer=value=>Number.isSafeInteger(value)&&value>=0;
+const time=value=>Number.isFinite(value)&&value>=0;
+const hash=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
+function check(value){if(!value)throw Error('Invalid supervised authority. Preserve the profile for recovery.');}
+function fields(value,required,optional=[]){check(object(value)&&required.every(key=>Object.hasOwn(value,key))&&Object.keys(value).every(key=>required.includes(key)||optional.includes(key)));}
+function array(value,max){check(Array.isArray(value)&&value.length<=max);for(let i=0;i<value.length;i++)check(Object.hasOwn(value,i));}
+function ids(value,max=1000){array(value,max);check(value.every(item=>string(item))&&new Set(value).size===value.length);}
+function records(value,max,validate){array(value,max);const seen=new Set();for(const item of value){check(object(item)&&string(item.id)&&!seen.has(item.id));seen.add(item.id);validate(item);}}
+function source(value){fields(value,['baseCommit','headCommit','fingerprint','artifactHashes']);check(string(value.baseCommit)&&string(value.headCommit)&&string(value.fingerprint));array(value.artifactHashes,256);const seen=new Set();for(const item of value.artifactHashes){fields(item,['path','sha256']);check(string(item.path,4096)&&hash(item.sha256)&&!seen.has(item.path));seen.add(item.path);}}
+function grant(value,projectId){
+ const limits={maxWorkers:3,maxInitialAssignments:16,maxLaunches:32,maxRepairs:3,workerMs:900000,activeMs:3600000,tokenLimit:100000,improvementMs:300000,improvementTokens:10000};
+ fields(value,['id','createdBy','scope',...Object.keys(limits)],['version','revision']);check(string(value.id)&&value.createdBy==='captain'&&(value.version===undefined||value.version===1)&&(value.revision===undefined||integer(value.revision)));
+ fields(value.scope,['projectId','objective','activities'],['standingImprovement']);check(value.scope.projectId===projectId&&string(value.scope.objective,12000)&&(value.scope.standingImprovement===undefined||string(value.scope.standingImprovement,12000)));ids(value.scope.activities,7);check(value.scope.activities.every(item=>['read','write','test','build','review','research','integrate'].includes(item)));
+ for(const [key,max]of Object.entries(limits))check(integer(value[key])&&value[key]<=max&&(key.startsWith('improvement')||value[key]>0));
+}
+function assignment(value){fields(value,['id','crewId','roleId','capability','objective','ownedPaths','dependencies','criteriaIds','baseCommit','state'],['taskId','workspaceId','launchReservationId','sourceResult']);check(['crewId','roleId','capability','baseCommit'].every(key=>string(value[key]))&&string(value.objective,12000)&&STATES.includes(value.state));array(value.ownedPaths,256);check(value.ownedPaths.every(item=>string(item,4096))&&new Set(value.ownedPaths).size===value.ownedPaths.length);ids(value.dependencies,32);ids(value.criteriaIds,100);for(const key of ['taskId','workspaceId','launchReservationId'])check(value[key]===undefined||string(value[key]));if(value.sourceResult!==undefined)source(value.sourceResult);}
+function validateSupervisedRun(run){
+ fields(run,['version','id','projectId','missionIds','revision','phase','grant','counters','assignments','workspaces','reviews','readiness','decisions','improvementTriggers','stopIntent']);
+ check(run.version===1&&string(run.id)&&string(run.projectId)&&integer(run.revision)&&PHASES.includes(run.phase));ids(run.missionIds);grant(run.grant,run.projectId);
+ const counters=['launches','repairs','activeMs','tokens','improvementMs','improvementTokens'];fields(run.counters,counters);check(counters.every(key=>integer(run.counters[key])));
+ records(run.assignments,32,assignment);const assignments=new Map(run.assignments.map(value=>[value.id,value]));const liveCrew=new Set(),tasks=new Set(),reservations=new Set();
+ for(const item of run.assignments){check(item.dependencies.every(id=>id!==item.id&&assignments.has(id)));if(item.taskId){check(!tasks.has(item.taskId));tasks.add(item.taskId);}if(item.launchReservationId){check(!reservations.has(item.launchReservationId));reservations.add(item.launchReservationId);}if(['reserved','starting','working','waiting','unknown'].includes(item.state)){check(!liveCrew.has(item.crewId));liveCrew.add(item.crewId);}}
+ records(run.workspaces,32,value=>{fields(value,['id','projectId','runId','canonicalRoot','gitCommonDir','branch','baseCommit','state'],['assignmentId','integration']);check(value.projectId===run.projectId&&value.runId===run.id&&['canonicalRoot','gitCommonDir'].every(key=>string(value[key],4096))&&string(value.branch)&&string(value.baseCommit)&&['reserved','ready','active','unknown','released','blocked'].includes(value.state));check(value.integration===true?value.assignmentId===undefined:value.integration===undefined&&assignments.has(value.assignmentId));});
+ for(const item of run.assignments)if(item.workspaceId!==undefined)check(run.workspaces.some(value=>value.id===item.workspaceId&&value.assignmentId===item.id));
+ records(run.reviews,256,value=>{fields(value,['id','runId','assignmentId','reviewerTaskId','source','decision','findings','time']);check(value.runId===run.id&&assignments.has(value.assignmentId)&&string(value.reviewerTaskId)&&['approve','request_changes','blocked'].includes(value.decision)&&time(value.time));source(value.source);records(value.findings,256,finding=>{fields(finding,['id','path','criterionId','severity','status','evidenceRef']);check(string(finding.path,4096)&&string(finding.criterionId)&&['critical','important','minor'].includes(finding.severity)&&['open','resolved','dismissed'].includes(finding.status)&&string(finding.evidenceRef,2000));});});
+ if(run.readiness!==null){fields(run.readiness,['source','reviewIds','criteriaIds','time']);source(run.readiness.source);ids(run.readiness.reviewIds,256);ids(run.readiness.criteriaIds,100);check(time(run.readiness.time)&&run.readiness.reviewIds.every(id=>run.reviews.some(review=>review.id===id)));}
+ records(run.decisions,1000,value=>{fields(value,['id','runId','revision','type','time','details','option','reason','dissent','owner','nextAction','reopenEvidence']);check(value.runId===run.id&&integer(value.revision)&&value.revision<=run.revision&&string(value.type)&&time(value.time));fields(value.details,[],['assignmentId','taskId','reason','sourceId','findingId','outcome']);check(Object.values(value.details).every(item=>string(item,2000)));check(['option','reason','owner','nextAction','reopenEvidence'].every(key=>string(value[key],2000)));array(value.dissent,16);check(value.dissent.every(item=>string(item,2000))); });
+ records(run.improvementTriggers,256,value=>{fields(value,['id','kind','sourceId','time']);check(['completed_result','user_feedback','new_verified_evidence'].includes(value.kind)&&string(value.sourceId)&&time(value.time));});
+ if(run.stopIntent!==null){fields(run.stopIntent,['id','requestedBy','reason','time','revision']);check(string(run.stopIntent.id)&&['captain','policy'].includes(run.stopIntent.requestedBy)&&string(run.stopIntent.reason,2000)&&time(run.stopIntent.time)&&integer(run.stopIntent.revision)&&run.stopIntent.revision<=run.revision);}
+}
+function validateSupervisionBook(book){
+ check(object(book)&&book.version===3);array(book.missions,Number.MAX_SAFE_INTEGER);records(book.runs,1000,validateSupervisedRun);const runs=new Map(book.runs.map(run=>[run.id,run])),missions=new Map(book.missions.map(mission=>[mission.id,mission]));
+ for(const run of book.runs)for(const id of run.missionIds){const mission=missions.get(id);check(mission&&mission.projectId===run.projectId&&mission.runId===run.id);}
+ for(const mission of book.missions)if(mission.runId!==undefined){const run=runs.get(mission.runId);check(run&&run.projectId===mission.projectId&&run.missionIds.includes(mission.id));}
+}
+function validateSupervisedTasks(book,tasks){
+ if(!book.runs.length&&(!Array.isArray(tasks)||!tasks.some(task=>task&&(task.runId!==undefined||task.assignmentId!==undefined||task.workspaceId!==undefined))))return;
+ array(tasks,Number.MAX_SAFE_INTEGER);const byId=new Map();for(const task of tasks){check(object(task));if(byId.has(task.id)&&(task.runId!==undefined||byId.get(task.id).runId!==undefined))check(false);byId.set(task.id,task);}
+ for(const mission of book.missions)for(const taskId of mission.taskIds){const task=byId.get(taskId);if(task?.runId!==undefined)check(task.runId===mission.runId&&task.projectId===mission.projectId);}
+ const runs=new Map(book.runs.map(run=>[run.id,run]));
+ for(const task of tasks){if(task.runId===undefined&&task.assignmentId===undefined&&task.workspaceId===undefined)continue;const run=runs.get(task.runId),assignment=run?.assignments.find(value=>value.id===task.assignmentId);check(run&&run.projectId===task.projectId&&assignment&&assignment.taskId===task.id);if(task.workspaceId!==undefined)check(assignment.workspaceId===task.workspaceId&&run.workspaces.some(value=>value.id===task.workspaceId&&value.assignmentId===assignment.id));}
+ for(const run of book.runs)for(const assignment of run.assignments)if(assignment.taskId!==undefined){const task=byId.get(assignment.taskId);check(task&&task.runId===run.id&&task.assignmentId===assignment.id&&task.projectId===run.projectId);}
+}
+module.exports={validateSupervisedRun,validateSupervisionBook,validateSupervisedTasks};

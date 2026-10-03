@@ -5,3 +5,15 @@ test('persistence profiling uses a bounded synthetic task state at the requested
 test('profile summaries use observed samples and nearest-rank latency percentiles',()=>{
  const script=path.join(__dirname,'../scripts/persistence-profile.cjs');assert.ok(fs.existsSync(script),'profiling script exists');const {summarize}=require(script);assert.deepEqual(summarize([1,2,3,4,5,6,7,8,9,10]),{count:10,min:1,p50:5,p95:10,max:10,mean:5.5,over100ms:0});
 });
+
+test('v2 worker upgrade retains exact backup and full profile on reopen',async t=>{
+ const {openOrderedStore}=require('../desktop/ordered-store.cjs');
+ for(const kind of ['json','sqlite']){
+  const directory=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'sunny-v2-worker-')),file=path.join(directory,kind==='json'?'state.json':'sunny.sqlite'),backupDir=path.join(directory,'backups'),stores=[];
+  t.after(async()=>{await Promise.allSettled(stores.map(store=>store.close()));fs.rmSync(directory,{recursive:true,force:true});});
+  const {MissionBook}=require('../desktop/missions.cjs'),book=new MissionBook();book.data.version=2;delete book.data.runs;book.data.opaqueBook={retain:true};const original={opaque:{retain:'☀'},tasks:[{id:'legacy',messages:[{text:'full transcript\n'}]}],settings:{draft:'retain exact draft'},missionBook:book.data};
+  if(kind==='json')fs.writeFileSync(file,JSON.stringify(original));else{const raw=new(require('../desktop/core.cjs').SqliteStore)(file);raw.save(original);raw.close();}
+  const store=await openOrderedStore({kind,file,backupDir});stores.push(store);const loaded=store.load();assert.deepEqual(loaded,{...original,missionBook:{...original.missionBook,version:3,runs:[]}});assert.equal(fs.readFileSync(path.join(backupDir,fs.readdirSync(backupDir)[0]),'utf8'),JSON.stringify(original,null,2));
+  await store.barrier(loaded,'mission');await store.close();const reopened=await openOrderedStore({kind,file,backupDir});stores.push(reopened);assert.deepEqual(reopened.load(),loaded);assert.equal(fs.readdirSync(backupDir).length,1);
+ }
+});

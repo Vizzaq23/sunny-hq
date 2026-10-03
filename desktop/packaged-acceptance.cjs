@@ -39,8 +39,8 @@ function createOfflineClient(){const client=new EventEmitter();client.connected=
 function loadFrozenFixture(mib){
  const file=path.join(__dirname,'fixtures/frozen-control-fixture.cjs'),bytes=fs.readFileSync(file);assert.equal(sha(bytes),FROZEN_SHA,'Packaged frozen control bytes changed');
  const original=path.resolve(path.dirname(file),'../../sunny-responsive-20261001/desktop/mission-profile.cjs');
- const module={exports:{}};const boundedRequire=id=>{if(id==='node:path')return path;if(id==='node:assert/strict')return assert;if(id===original)return require('./mission-profile.cjs');throw Error('Unexpected frozen dependency.');};
- const evaluate=new(require('node:vm').Script)('(function(require,module,exports,__dirname){\n'+bytes.toString('utf8')+'\n})',{filename:file}).runInThisContext();evaluate(boundedRequire,module,module.exports,path.dirname(file));return module.exports.fixture(mib);
+ const module={exports:{}};const boundedRequire=id=>{if(id==='node:path')return path;if(id==='node:assert/strict')return assert;if(id===original)return {inspectMissionProfile:state=>{const result=require('./mission-profile.cjs').inspectMissionProfile(state);return result.mode==='v2-upgrade'?{mode:'v2'}:result;}};throw Error('Unexpected frozen dependency.');};
+ const evaluate=new(require('node:vm').Script)('(function(require,module,exports,__dirname){\n'+bytes.toString('utf8')+'\n})',{filename:file}).runInThisContext();evaluate(boundedRequire,module,module.exports,path.dirname(file));const state=module.exports.fixture(mib);state.missionBook={...state.missionBook,version:3,runs:[]};assert.equal(require('./mission-profile.cjs').inspectMissionProfile(state).mode,'v3');return state;
 }
 function fixtureCatalog(){return Object.freeze({discoverProjects:()=>[],discoverTools:()=>[],discoverAutomations:()=>[],getExecutable:()=>undefined});}
 function fixtureDependencies(){return {client:createOfflineClient(),islandFactory:hub=>({data:hub.state.world,close(){},setConcurrency(){throw Error('Offline fixture scheduler is disabled.');},run(){throw Error('Offline fixture scheduler is disabled.');}})};}

@@ -82,6 +82,10 @@ Feedback binds its original launch/result/manifest/source, text digest and up
 to8 explicit project-local attachment paths/digests/sizes (1MiB each). A receipt
 may retain an explicit new-attempt request and its outcome; retries deduplicate
 the exact content and do not refill budgets or move acceptance.
+New-attempt outcome is requested before the improvement handoff, pending at the
+durable dispatch fence, then started, blocked (pre-dispatch denial), or unknown
+(dispatch started but response unresolved). Only requested may dispatch on an
+explicit receipt retry; pending and unknown never automatically retry.
 
 IPC `result:play` accepts only resultId and expectedRevision (mission revision).
 Stop accepts launchId and expectedRevision (run revision); feedback additionally

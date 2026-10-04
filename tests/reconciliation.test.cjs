@@ -13,6 +13,10 @@ function fixture(t,read){
  return {hub,parent,child,calls};
 }
 const stopped=status=>({status:{type:'notLoaded'},turns:[{id:'old-turn',status,items:[]}]});
+test('reconciliation never credits a lower provider cumulative total to a supervised goal',async t=>{
+ const {hub,parent}=fixture(t,()=>stopped('interrupted')),{createSupervisedRun}=require('../desktop/supervised-runs.cjs'),{observeUsage}=require('../desktop/run-budget.cjs');
+ let run=createSupervisedRun({runId:'r',projectId:'p',expectedRevision:0,objective:'Local evidence',criteria:[{id:'c',text:'Verified'}],grant:{id:'g',createdBy:'captain',scope:{projectId:'p',objective:'Local evidence',activities:['read']},maxWorkers:3,maxInitialAssignments:16,maxLaunches:32,maxRepairs:3,workerMs:900000,activeMs:3600000,tokenLimit:100000,improvementMs:0,improvementTokens:0}},{now:0});run.coordinator={taskId:parent.id,threadId:parent.threadId,turnId:'old-turn'};run=observeUsage(run,{provider:'codex',threadId:parent.threadId,totalTokens:100,now:0});hub.state.runs.push(run);hub.budgetNow=()=>0;await hub.reconcile(parent);await hub.notification({method:'thread/tokenUsage/updated',params:{threadId:parent.threadId,tokenUsage:{total:{totalTokens:1}}}});assert.equal(hub.state.runs[0].counters.tokens,100);assert.equal(hub.state.runs[0].accounting.telemetryUncertain,true);assert.equal(hub.state.runs[0].accounting.usage[0].totalTokens,100);
+});
 
 test('reconciling an already interrupted captain and child succeeds without another interrupt',async t=>{
  const {hub,parent,child,calls}=fixture(t,()=>stopped('interrupted'));

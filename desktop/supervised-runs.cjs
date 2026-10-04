@@ -16,11 +16,11 @@ function createSupervisedRun(input,{now}){
  const run={version:1,id:a.runId,projectId:a.projectId,missionIds:a.missionIds||[],revision:0,phase:'planning',grant:{...a.grant,version:1,revision:0},counters:{launches:0,repairs:0,activeMs:0,tokens:0,improvementMs:0,improvementTokens:0},assignments:[],workspaces:[],reviews:[],readiness:null,decisions:[],improvementTriggers:[],stopIntent:null,originalScope:structuredClone(a.grant.scope),criteria:a.criteria,objective:a.objective,events:[],blockers:[],grantHistory:[],coordinatorCalls:[],disagreementRounds:0};
  validateSupervisedRun(run);return run;
 }
-function applyRunCommand(run,command,{now,actor=['plan','decide'].includes(command?.type)?'coordinator':'captain'}={}){
+function applyRunCommand(run,command,{now,actor=['plan','decide'].includes(command?.type)?'coordinator':'captain',policyStop=false}={}){
  validateSupervisedRun(run);const a=validateRunCommand(command,actor);
  if(!Number.isFinite(now)||now<0)throw Error('Invalid supervision time.');
  if(a.runId!==run.id||a.projectId!==run.projectId||a.expectedRevision!==run.revision)throw Error('Run project or revision changed. Inspect the current run.');
- if(run.phase==='unknown')throw Error('Run authority is uncertain; reconcile before changing work.');
+ if(run.phase==='unknown'&&!(policyStop&&a.type==='stop'&&actor==='captain'))throw Error('Run authority is uncertain; reconcile before changing work.');
  if(run.phase==='stopped')throw Error('This run has stopped. Create a new run for further work.');
  if(['stopping','paused'].includes(run.phase)&&actor==='coordinator')throw Error('Run is not accepting coordinator decisions.');
  const next=structuredClone(run),effects=[],events=[];
@@ -67,4 +67,5 @@ function applyRunCommand(run,command,{now,actor=['plan','decide'].includes(comma
 // A failed reliability gate cannot be bypassed by profile, renderer, model, or env.
 const LIVE_SUPERVISION_ADMITTED=false;
 function assertExecutionAdmission({trustedFixture=false}={}){if(!trustedFixture&&!LIVE_SUPERVISION_ADMITTED)throw Error('Supervised execution is disabled pending a trusted reliability release.');}
-module.exports={createSupervisedRun,applyRunCommand,assertExecutionAdmission,LIVE_SUPERVISION_ADMITTED};
+function applyPolicyStop(run,{reason,now,activeExecutions=[]}){const transition=applyRunCommand(run,{type:'stop',runId:run.id,projectId:run.projectId,expectedRevision:run.revision,reason},{now,actor:'captain',policyStop:true});transition.next.stopIntent.requestedBy='policy';if(activeExecutions.some(task=>['starting','working','waiting','unknown'].includes(task.status)))transition.next.phase='stopping';validateSupervisedRun(transition.next);return transition;}
+module.exports={applyPolicyStop,createSupervisedRun,applyRunCommand,assertExecutionAdmission,LIVE_SUPERVISION_ADMITTED};

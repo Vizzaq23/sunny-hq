@@ -1,0 +1,39 @@
+const {createHash}=require('node:crypto');
+const {reviewAssignment}=require('./crew-registry.cjs');
+const {validateReviewVerdict,evaluateReadiness,stable}=require('./review-verdicts.cjs');
+const {discussionConfig}=require('./crew-chat.cjs');
+const bounded={type:'string',minLength:1,maxLength:200};
+const sourceSchema={type:'object',additionalProperties:false,required:['baseCommit','headCommit','fingerprint','artifactHashes'],properties:{baseCommit:bounded,headCommit:bounded,fingerprint:bounded,artifactHashes:{type:'array',maxItems:256,items:{type:'object',additionalProperties:false,required:['path','sha256'],properties:{path:{type:'string',minLength:1,maxLength:4096},sha256:{type:'string',pattern:'^[a-f0-9]{64}$'}}}}}};
+const findingSchema={type:'object',additionalProperties:false,required:['id','path','criterionId','severity','status','evidenceRef'],properties:{id:bounded,path:{type:'string',minLength:1,maxLength:4096},criterionId:bounded,severity:{type:'string',enum:['critical','important','minor']},status:{type:'string',enum:['open','resolved','dismissed']},evidenceRef:{type:'string',minLength:1,maxLength:2000}}};
+const tool={type:'function',name:'sunny_review',description:'Submit an independent exact-source structured verdict for your main-assigned review. Prose cannot approve a run.',inputSchema:{type:'object',additionalProperties:false,required:['runId','projectId','expectedRevision','verdict'],properties:{runId:{type:'string',maxLength:200},projectId:{type:'string',maxLength:200},expectedRevision:{type:'integer',minimum:0},verdict:{type:'object',additionalProperties:false,required:['id','source','decision','findings'],properties:{id:{type:'string',maxLength:200},source:sourceSchema,decision:{type:'string',enum:['approve','request_changes','blocked']},findings:{type:'array',maxItems:256,items:findingSchema}}}}}};
+function assignmentFor(hub,task){const run=hub.state.runs.find(r=>r.id===task.runId),assignment=run?.assignments.find(a=>a.id===task.assignmentId);return reviewAssignment(assignment)&&assignment.taskId===task.id?{run,assignment}:null;}
+async function options(hub,project,task){if(!assignmentFor(hub,task))return {};const effective=await hub.client.request('config/read',{cwd:project.path,includeLayers:false});return {sandbox:'read-only',approvalPolicy:'never',config:discussionConfig(effective.config||{}),dynamicTools:[tool]};}
+async function submit(hub,p){
+ hub.assertOpenForEffect();
+ if(!p||Object.keys(p).some(k=>!['threadId','turnId','callId','tool','arguments','namespace'].includes(k))||p.tool!=='sunny_review'||p.namespace!==undefined&&p.namespace!=='')throw Error('Invalid reviewer tool request.');
+ for(const k of ['threadId','turnId','callId'])if(typeof p[k]!=='string'||!p[k].trim()||p[k].length>200||p[k].includes('\0'))throw Error('Invalid reviewer call binding.');
+ const args=p.arguments;if(!args||typeof args!=='object'||Array.isArray(args)||Object.keys(args).length!==4||Object.keys(args).some(k=>!['runId','projectId','expectedRevision','verdict'].includes(k))||!Number.isSafeInteger(args.expectedRevision)||args.expectedRevision<0)throw Error('Malformed review command.');
+ const claim=args.verdict;if(!claim||Object.keys(claim).length!==4||Object.keys(claim).some(k=>!['id','source','decision','findings'].includes(k)))throw Error('Reviewer identity and authors are main-held, not submitted claims.');
+ const task=hub.state.tasks.find(t=>t.threadId===p.threadId);
+ const validate=()=>{hub.supervisionProject(args.projectId);if(!task||hub.state.tasks.filter(t=>t.threadId===p.threadId).length!==1||hub.state.tasks.find(t=>t.id===task.id)!==task||task.threadId!==p.threadId||task.turnId!==p.turnId||!['working','waiting'].includes(task.status)||task.captain||task.crewId==='luffy'||task.external||task.projectId!==args.projectId||!assignmentFor(hub,task))throw Error('Assigned reviewer thread or active turn changed.');};validate();
+ const held=hub.state.runs.find(r=>r.id===args.runId)?.verification;if(!held)throw Error('Missing main-held source verification.');const current=await hub.evidence.gitState(hub.project(args.projectId).path);validate();if(current.fingerprint!==held.source.fingerprint||current.commit!==held.source.headCommit){await hub.invalidateRunSource(args.runId);throw Error('Source changed since review assignment.');}
+ const digest=createHash('sha256').update(JSON.stringify(stable(args))).digest('hex');
+ return hub.missionMutation(book=>{
+  validate();const receipts=book.data.runs.flatMap(r=>r.reviewCalls||[]).filter(c=>c.threadId===p.threadId&&c.turnId===p.turnId&&c.callId===p.callId);
+  if(receipts.length){if(receipts.length!==1||receipts[0].requestSha256!==digest)throw Error('Reviewer call replay conflicts with original arguments.');return structuredClone(receipts[0].response);}
+  const run=book.data.runs.find(r=>r.id===args.runId);if(!run||task.runId!==run.id||run.projectId!==args.projectId||run.revision!==args.expectedRevision||['paused','unknown','blocked','stopping','stopped'].includes(run.phase)||run.stopIntent)throw Error('Review run authority or revision changed.');
+  if(!run.verification)throw Error('Missing main-held exact source verification.');
+  const verdict={...claim,runId:run.id,assignmentId:task.assignmentId,reviewerTaskId:task.id,time:Date.now()};
+  validateReviewVerdict(verdict,{run,tasks:hub.state.tasks,source:run.verification.source,authors:run.verification.authors,authorSessions:book.data.runs.flatMap(r=>r.verification?.authorSessions||[])});
+  if(run.reviews.some(r=>r.id===verdict.id)||run.reviews.length>=256||(run.reviewCalls?.length||0)>=1000||run.revision===Number.MAX_SAFE_INTEGER)throw Error('Review record limit or duplicate verdict ID.');
+  run.revision++;run.reviews.push(verdict);run.readiness=null;
+  const repairs=verdict.decision==='request_changes'||verdict.findings.some(f=>f.status==='open'&&f.severity!=='minor');
+  if(repairs){run.counters.repairs++;run.repairFindings??=[];for(const f of verdict.findings.filter(f=>f.status==='open')){if(run.repairFindings.some(x=>x.id===f.id))throw Error('Finding ID already exists.');const owners=run.assignments.filter(a=>!reviewAssignment(a)&&a.ownedPaths.some(path=>f.path===path||f.path.startsWith(path.replace(/\/$/,'')+'/'))).map(a=>a.id);run.repairFindings.push({id:f.id,reviewId:verdict.id,ownerAssignmentIds:owners,status:f.status});}run.phase=run.counters.repairs>=Math.min(3,run.grant.maxRepairs)?'blocked':'repairing';}
+  const evidence=run.verification,result=evaluateReadiness({run,...evidence,reviews:run.reviews,tasks:hub.state.tasks});
+  if(result.ready){run.phase='ready';run.readiness={version:2,source:evidence.source,resultId:evidence.resultId,resultSha256:evidence.resultSha256,checkIds:evidence.checks.map(c=>c.id),reviewIds:run.reviews.filter(r=>require('./review-verdicts.cjs').sameSource(r.source,evidence.source)).map(r=>r.id),criteriaIds:run.criteria.map(c=>c.id),time:Date.now()};}else if(!repairs)run.phase=verdict.decision==='blocked'?'blocked':'reviewing';
+  const response={runId:run.id,revision:run.revision,verdictId:verdict.id,ready:result.ready,blockers:result.blockers};(run.reviewCalls??=[]).push({callId:p.callId,taskId:task.id,threadId:p.threadId,turnId:p.turnId,requestSha256:digest,revision:run.revision,response});return structuredClone(response);
+ },'mission',{skipUnchanged:true,validate});
+}
+async function call(hub,request){let result;try{result={success:true,contentItems:[{type:'inputText',text:JSON.stringify(await submit(hub,request.params))}]};}catch(error){result={success:false,contentItems:[{type:'inputText',text:error.message}]};}if(hub.client.connected&&!hub.closed&&!hub.quiescing)hub.client.respond(request.id,result);return result;}
+module.exports={tool,options,submit,call,assignmentFor};
+

@@ -1,0 +1,43 @@
+const {reviewAssignment}=require('./crew-registry.cjs');
+const schema=require('./supervision-schema.cjs');
+const stable=value=>Array.isArray(value)?value.map(stable):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(key=>[key,stable(value[key])])):value;
+const sameSource=(a,b)=>JSON.stringify(stable(a))===JSON.stringify(stable(b));
+const text=(v,max=200)=>typeof v==='string'&&v.trim()&&v.length<=max&&!v.includes('\0');
+function fields(v,required,optional=[]){if(!v||typeof v!=='object'||Array.isArray(v)||required.some(k=>!Object.hasOwn(v,k))||Object.keys(v).some(k=>!required.includes(k)&&!optional.includes(k)))throw Error('Malformed review evidence.');}
+function list(v,max){if(!Array.isArray(v)||v.length>max||Array.from({length:v.length},(_,i)=>i).some(i=>!Object.hasOwn(v,i)))throw Error('Malformed review evidence list.');}
+function validateReviewVerdict(verdict,{run,tasks,source,authors=[],authorSessions=run.verification?.authorSessions||[]}){
+ fields(verdict,['id','runId','assignmentId','reviewerTaskId','source','decision','findings','time']);
+ schema.validateSource(verdict.source);schema.validateSource(source);
+ if(!['id','runId','assignmentId','reviewerTaskId'].every(k=>text(verdict[k]))||verdict.runId!==run.id||!['approve','request_changes','blocked'].includes(verdict.decision)||!Number.isFinite(verdict.time)||verdict.time<0||!sameSource(verdict.source,source))throw Error('Malformed or stale review verdict.');
+ const assignment=run.assignments.find(a=>a.id===verdict.assignmentId),reviewer=tasks.find(t=>t.id===verdict.reviewerTaskId);
+ if(!reviewAssignment(assignment)||assignment.taskId!==reviewer?.id||reviewer?.runId!==run.id||reviewer.assignmentId!==assignment.id||reviewer.projectId!==run.projectId||reviewer.crewId!==assignment.crewId||reviewer.external||reviewer.captain||!text(reviewer.threadId))throw Error('Verdict needs an assigned independent reviewer session.');
+ const authorIds=new Set([...authors,...run.assignments.filter(a=>['implementation','design','creative','operations'].includes(a.capability)).map(a=>a.taskId).filter(Boolean)]);
+ const authorTasks=tasks.filter(t=>authorIds.has(t.id));
+ const sessions=new Set([...authorSessions.map(s=>s.threadId),...authorTasks.flatMap(t=>[t.threadId,t.previousThreadId,t.replacementThreadIntent?.previousThreadId]).filter(Boolean)]);
+ if(!run.verification?.authorshipComplete||[...authorIds].some(id=>!authorTasks.some(t=>t.id===id)||!authorSessions.some(s=>s.taskId===id)))throw Error('Incomplete durable implementation session provenance.');
+ if(authorIds.has(reviewer.id)||sessions.has(reviewer.threadId)||sessions.has(reviewer.previousThreadId))throw Error('Implementation author session cannot independently review.');
+ list(verdict.findings,256);const ids=new Set();
+ for(const finding of verdict.findings){fields(finding,['id','path','criterionId','severity','status','evidenceRef']);if(!text(finding.id)||ids.has(finding.id)||!text(finding.path,4096)||!run.criteria?.some(c=>c.id===finding.criterionId)||!['critical','important','minor'].includes(finding.severity)||!['open','resolved','dismissed'].includes(finding.status)||!text(finding.evidenceRef,2000))throw Error('Malformed review finding.');ids.add(finding.id);}
+}
+function validateVerification(v){
+ fields(v,['source','resultId','resultSha256','workspaceVerified','integrationVerified','authors','authorSessions','authorshipComplete','checks','artifacts']);schema.validateSource(v.source);
+ if(!text(v.resultId)||!/^[a-f0-9]{64}$/.test(v.resultSha256)||typeof v.workspaceVerified!=='boolean'||typeof v.integrationVerified!=='boolean')throw Error('Malformed source verification.');
+ if(typeof v.authorshipComplete!=='boolean')throw Error('Malformed authorship completeness.');list(v.authorSessions,256);const sessions=new Set();for(const s of v.authorSessions){fields(s,['taskId','provider','threadId']);if(!text(s.taskId)||!text(s.provider)||!text(s.threadId)||sessions.has(s.threadId))throw Error('Malformed author session provenance.');sessions.add(s.threadId);}
+ list(v.authors,32);if(v.authors.some(id=>!text(id))||new Set(v.authors).size!==v.authors.length)throw Error('Malformed author provenance.');
+ list(v.checks,1000);list(v.artifacts,256);const ids=new Set();
+ for(const c of v.checks){fields(c,['id','criterionId','kind','status','evidenceRef','source'],['justification']);schema.validateSource(c.source);if(!text(c.id)||ids.has(c.id)||!text(c.criterionId)||!['test','build','typecheck','playable','documentation'].includes(c.kind)||!['passed','failed','not_applicable'].includes(c.status)||!text(c.evidenceRef,2000)||c.justification!==undefined&&!text(c.justification,2000))throw Error('Malformed criterion check.');ids.add(c.id);}
+ const paths=new Set();for(const a of v.artifacts){fields(a,['id','path','sha256']);if(!text(a.id)||!text(a.path,4096)||paths.has(a.path)||!/^[a-f0-9]{64}$/.test(a.sha256))throw Error('Malformed artifact evidence.');paths.add(a.path);}
+}
+function evaluateReadiness({run,source,checks=[],artifacts=[],reviews=[],tasks=[],authors=[],verification=run.verification}){
+ const blockers=[];const block=reason=>blockers.push(reason);
+ try{schema.validateSource(source);if(!verification)throw Error('Missing main-held source evidence.');validateVerification(verification);if(!sameSource(source,verification.source)||!verification.workspaceVerified||!verification.integrationVerified||!verification.authorshipComplete)throw Error('Workspace or integration source is unverified.');}catch(error){block(error.message);}
+ if(!run.criteria?.length)block('No required criteria.');
+ if(run.blockers?.length||run.stopIntent||['paused','stopping','stopped','unknown','blocked'].includes(run.phase))block('Run authority is blocked.');
+ for(const criterion of run.criteria||[]){const required=criterion.kind==='playable'?[...new Set([...(criterion.requiredChecks||[]),'test','build','playable'])]:criterion.requiredChecks||['test','build'];if(!required.length)block('Empty required checks: '+criterion.id);for(const kind of required){const c=checks.findLast(c=>c.criterionId===criterion.id&&c.kind===kind);if(!c||!sameSource(c.source,source)||!text(c.evidenceRef,2000)||!(c.status==='passed'||criterion.kind==='documentation'&&kind==='build'&&c.status==='not_applicable'&&text(c.justification,2000)))block('Missing passing '+kind+' evidence: '+criterion.id);}for(const id of criterion.requiredArtifactIds||[])if(!artifacts.some(a=>a.id===id&&source?.artifactHashes?.some(h=>h.path===a.path&&h.sha256===a.sha256)))block('Missing required artifact: '+id);}
+ for(const hash of source?.artifactHashes||[])if(!artifacts.some(a=>a.path===hash.path&&a.sha256===hash.sha256))block('Missing source artifact: '+hash.path);
+ const current=reviews.filter(r=>sameSource(r.source,source));if(!current.length)block('Missing independent exact-source approval.');
+ const coverage=new Set();for(const r of current){try{validateReviewVerdict(r,{run,tasks,source,authors});if(r.decision!=='approve'||r.findings.some(f=>f.status==='open'&&f.severity!=='minor'))throw Error('Review requests changes or has unresolved blocking findings.');for(const id of run.assignments.find(a=>a.id===r.assignmentId).criteriaIds)coverage.add(id);}catch(error){block(error.message);}}
+ for(const c of run.criteria||[])if(!coverage.has(c.id))block('Criterion lacks independent approval: '+c.id);
+ return {ready:blockers.length===0,blockers};
+}
+module.exports={validateReviewVerdict,evaluateReadiness,validateVerification,sameSource,stable};

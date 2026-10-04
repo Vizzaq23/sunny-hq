@@ -23,4 +23,4 @@ function assertStageAssignment(attempt,tasks,crewId){
  const stage=STAGES.find(s=>s.id===next.id);
  if(!stage.roles.includes(roleFor(crewId)))throw Error(`Complete the ${stage.id} stage next using ${stage.roles.join(' or ')}. Each preceding stage needs a finished task with an actual result.`);
 }
-module.exports={stageProgress,assertStageAssignment};
+module.exports={stageProgress,assertStageAssignment,evaluateReadiness:require('./review-verdicts.cjs').evaluateReadiness};

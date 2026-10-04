@@ -430,3 +430,5 @@ test('image tool activity is visible without leaking image payloads or granting 
  await hub.notification({method:'item/completed',params:{threadId:'thread',turnId:'turn',item:{...item,status:'failed'}}});assert.match(task.messages.find(m=>m.id==='activity:image-call').text,/failed/);
  assert.equal(JSON.stringify(task.messages).includes('PRIVATE_'),false);assert.equal(mission.status,'RUNNING');assert.equal(mission.artifacts.length,0);
 });
+
+test('accept preflight rejects supervised mission lacking main structured readiness',async t=>{const {hub}=setup(t),mission=await hub.createMission(brief),task=await finishedReply(hub,mission);await selectReply(hub,mission,task);mission.runId='missing-run';await assert.rejects(hub.acceptMission(acceptanceInput(mission)),/independent criterion readiness/);assert.equal(mission.status,'WAITING_FOR_REVIEW');assert.equal(mission.acceptance,undefined);delete mission.runId;});

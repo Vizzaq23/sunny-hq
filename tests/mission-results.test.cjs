@@ -36,3 +36,5 @@ test('result_reference_rejects_unknown_fields_and_mismatched_producer',async()=>
 });
 test('unattached_result_cannot_accept',()=>{const f=fixture();assert.throws(()=>f.book.accept(f.mission.id,f.mission.revision,[true]),/selected|result/i);assert.equal(f.mission.status,'WAITING_FOR_REVIEW');assert.equal(f.mission.acceptance,undefined);});
 test('new_attempt_clears_selection',()=>{const f=fixture();f.mission.selectedResult={id:'selected',attemptId:f.attempt.id,producerTaskId:f.task.id,ref:f.ref,selectedAt:Date.now()};const next=f.book.begin(f.mission.id,f.mission.revision);assert.notEqual(next.id,f.attempt.id);assert.equal(f.mission.selectedResult,undefined);});
+
+test('supervised acceptance fails closed without independent criterion readiness even with a selected result',()=>{const f=fixture();f.mission.runId='supervised';assert.throws(()=>f.book.accept(f.mission.id,f.mission.revision,[true],{producerTaskId:f.task.id,ref:f.ref}),/structured readiness/i);assert.equal(f.mission.status,'WAITING_FOR_REVIEW');assert.equal(f.mission.acceptance,undefined);});

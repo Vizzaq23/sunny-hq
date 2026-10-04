@@ -155,6 +155,7 @@ export function projectMission(snapshot:Snapshot,context:WorkContext):MissionPro
   const receiptId=acceptanceId(mission,attempt,result);
   if(receiptId)return {...show('accepted'),acceptanceId:receiptId,acceptanceCueEligible:snapshot.liveAcceptanceIds?.includes(receiptId)===true,result};
   if(current&&mission.status==='COMPLETE')return show('review',mission.acceptance?.legacy===true?'Historical completion; result unavailable':'Acceptance unavailable; inspect saved result');
+  if(attempt.workflowVersion===2&&current){const run=snapshot.runs?.find(value=>value.id===mission.runId);if(run?.phase!=='ready'||run.readiness?.version!==2||run.readiness.resultId!==mission.selectedResult?.id||run.readiness.resultSha256!==mission.selectedResult?.ref.sha256)return show('waiting','Waiting for independent criterion evidence');}
   if(attempt.status==='finished'||current&&mission.status==='WAITING_FOR_REVIEW')return {...show('review'),...(result?{result}:{})};
   if(coordinatorPending)return show('waiting','Waiting for coordinator result');
   if(pendingStage)return show('waiting',`Waiting for ${identity.stage??'next'} stage`);

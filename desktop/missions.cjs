@@ -121,6 +121,7 @@ class MissionBook {
  accept(id,revision,criteria,resultProof,mergedProof){
   const mission=this.get(id);this.check(mission,revision);
   if(mission.status!=='WAITING_FOR_REVIEW')throw Error('Mission is not ready for review.');
+  if(mission.runId){const run=this.data.runs.find(r=>r.id===mission.runId),r=run?.readiness,e=run?.verification;if(r?.version!==2||!e||r.resultId!==mission.selectedResult?.id||r.resultSha256!==mission.selectedResult?.ref.sha256||!require('./review-verdicts.cjs').sameSource(r.source,e.source)||!require('./review-verdicts.cjs').evaluateReadiness({run,...e,reviews:run.reviews,tasks:resultProof?.reviewTasks||[]}).ready)throw Error('Supervised mission requires current structured readiness.');}
   if(mission.checkExecution)throw Error('Resolve the project check before acceptance.');
   if(!Array.isArray(criteria)||criteria.length!==mission.acceptanceCriteria.length||!criteria.every(value=>value===true))throw Error('Confirm every acceptance criteria item after reviewing the evidence.');
   // Proof is supplied only by Hub after a fresh read, never by the renderer command.

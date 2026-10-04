@@ -5,7 +5,7 @@ function fields(value,required,optional=[]){check(object(value)&&required.every(
 function text(value,max=200){check(typeof value==='string'&&value.trim().length>0&&value.length<=max&&!value.includes('\0'));}
 function list(value,max,validate){check(Array.isArray(value)&&value.length<=max);for(let i=0;i<value.length;i++){check(Object.hasOwn(value,i));validate(value[i]);}}
 function unique(value){check(new Set(value).size===value.length);}
-function criteria(value){list(value,100,item=>{fields(item,['id','text']);text(item.id);text(item.text,2000);});check(value.length>0);unique(value.map(item=>item.id));}
+function criteria(value){list(value,100,item=>{fields(item,['id','text'],['kind','requiredChecks','requiredArtifactIds']);text(item.id);text(item.text,2000);if(item.kind!==undefined)check(['documentation','engineering','playable'].includes(item.kind));if(item.requiredChecks!==undefined){list(item.requiredChecks,5,k=>check(['test','build','typecheck','playable','documentation'].includes(k)));check(item.requiredChecks.length>0);unique(item.requiredChecks);}if(item.requiredArtifactIds!==undefined){list(item.requiredArtifactIds,256,k=>text(k));unique(item.requiredArtifactIds);}});check(value.length>0);unique(value.map(item=>item.id));}
 function decision(value){fields(value,['id','option','reason','dissent','owner','nextAction','reopenEvidence']);text(value.id);for(const key of ['option','reason','owner','nextAction','reopenEvidence'])text(value[key],2000);list(value.dissent,16,item=>text(item,2000));}
 function binding(args){text(args.runId);text(args.projectId);check(Number.isSafeInteger(args.expectedRevision)&&args.expectedRevision>=0&&args.expectedRevision<Number.MAX_SAFE_INTEGER);}
 function validateSupervisionCommand(action,args){

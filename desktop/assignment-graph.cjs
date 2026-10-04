@@ -11,5 +11,16 @@ function validateAssignmentGraph(assignments,{registry=require('./crew-registry.
  for(let i=0;i<assignments.length;i++)for(let j=i+1;j<assignments.length;j++){const a=assignments[i],b=assignments[j];if(a.ownedPaths.some(x=>b.ownedPaths.some(y=>overlap(normalized(x),normalized(y))))&&!ancestors(a,byId).has(b.id)&&!ancestors(b,byId).has(a.id))throw Error('Unordered owned path overlap');}
  return {assignments:structuredClone(assignments),base};
 }
-function readyAssignments(run,state={}){const byId=new Map(run.assignments.map(a=>[a.id,a]));return run.assignments.filter(a=>a.state==='queued'&&!a.launchReservationId&&!a.taskId&&!run.assignments.some(b=>live(b)&&b.crewId===a.crewId)&&a.dependencies.every(id=>byId.get(id)?.state==='finished')&&[...ancestors(a,byId)].every(id=>{const old=byId.get(id);if(!a.ownedPaths.some(x=>old.ownedPaths.some(y=>overlap(normalized(x),normalized(y)))))return true;if(old.state==='finished'&&run.assignments.some(middle=>ancestors(a,byId).has(middle.id)&&middle.state==='finished'&&middle.ownershipTransfers?.some(t=>t.fromAssignmentId===id&&t.fromWorkspaceId===old.workspaceId)))return true;return old.state==='finished'&&a.ownershipTransfers?.some(t=>t.fromAssignmentId===id&&t.fromWorkspaceId===old.workspaceId&&t.newBase===a.baseCommit&&a.baseCommit!==old.baseCommit&&require('./review-verdicts.cjs').sameSource(t.source,old.sourceResult));})&&!state.tasks?.some(t=>t.crewId===a.crewId&&['starting','working','waiting','unknown'].includes(t.status)));}
+function receiptMatches(owner,target){return target.ownershipTransfers?.some(t=>t.fromAssignmentId===owner.id&&t.fromWorkspaceId===owner.workspaceId&&t.newBase===target.baseCommit&&target.baseCommit!==owner.baseCommit&&require('./review-verdicts.cjs').sameSource(t.source,owner.sourceResult));}
+function covers(owned,region){return owned===region||region.startsWith(owned+'/');}
+function transferredRegion(owner,target,region,byId,seen=new Set()){
+ const key=owner.id+'\0'+target.id;if(owner.state!=='finished'||seen.has(key))return false;
+ if(receiptMatches(owner,target))return true;
+ const visited=new Set(seen);visited.add(key);
+ for(const id of ancestors(target,byId)){const middle=byId.get(id);if(middle.id===owner.id||middle.state!=='finished'||!middle.ownedPaths.some(p=>covers(normalized(p),region)))continue;
+  if(transferredRegion(owner,middle,region,byId,visited)&&transferredRegion(middle,target,region,byId,visited))return true;
+ }
+ return false;
+}
+function readyAssignments(run,state={}){const byId=new Map(run.assignments.map(a=>[a.id,a]));return run.assignments.filter(a=>a.state==='queued'&&!a.launchReservationId&&!a.taskId&&!run.assignments.some(b=>live(b)&&b.crewId===a.crewId)&&a.dependencies.every(id=>byId.get(id)?.state==='finished')&&[...ancestors(a,byId)].every(id=>{const old=byId.get(id);return a.ownedPaths.every(x=>old.ownedPaths.every(y=>{const current=normalized(x),previous=normalized(y);if(!overlap(current,previous))return true;const region=current.length>=previous.length?current:previous;return transferredRegion(old,a,region,byId);}));})&&!state.tasks?.some(t=>t.crewId===a.crewId&&['starting','working','waiting','unknown'].includes(t.status)));}
 module.exports={validateAssignmentGraph,readyAssignments,normalized,overlap,live,ancestors};

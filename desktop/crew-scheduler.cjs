@@ -2,7 +2,7 @@ const {randomUUID}=require('node:crypto');
 const {readyAssignments,live}=require('./assignment-graph.cjs');
 class CrewScheduler {
  constructor(deps){this.deps=deps;this.pending=new Map();}
- pump(runId){if(this.pending.has(runId))return this.pending.get(runId);const promise=this.drain(runId).finally(()=>this.pending.delete(runId));this.pending.set(runId,promise);return promise;}
+ pump(runId){const current=this.pending.get(runId);if(current){current.rerun=true;return current.promise;}const entry={rerun:false,promise:null};entry.promise=Promise.resolve().then(async()=>{do{entry.rerun=false;await this.drain(runId);}while(entry.rerun);}).finally(()=>this.pending.delete(runId));this.pending.set(runId,entry);return entry.promise;}
  async drain(runId){const d=this.deps;let run=d.getRun(runId);if(!run||!['waiting','executing','repairing'].includes(run.phase)||run.stopIntent||run.blockers?.length||require('./repair-policy.cjs').repairExhausted(run))return;
   const starts=[];
   for(const candidate of readyAssignments(run,d.state?.()||{})){

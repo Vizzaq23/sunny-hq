@@ -36,3 +36,11 @@ Native run-ui states are hardcoded labelled display fixtures only; seeded ready
 and accepted receipts prove rendering, not actual acceptance. Actual actions are
 covered separately with the trusted offline Hub. The frozen fixture and zero-effect
 offline transport remain unchanged.
+
+Reviewed corrections: run-bound mission starts are coordinator-only. Worker calls
+and navigation resolve the coordinator ancestry to its mission attempt; assignment
+ownership supplements (never rewrites) mission task membership. Roster retains
+all assignment history and selects current work first. Cancelled dependencies stay
+blocked. Recovery selects the latest saved request revision/time. The private
+run-ui window uses offscreen painting and bounded capture; normal windows retain
+their security settings. Driver phase1 exit73 and distinct-main checks include run-ui.

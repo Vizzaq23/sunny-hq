@@ -25,8 +25,9 @@ function validateMembership(reference,state){
  if(found.task&&found.task.projectId!==reference.projectId)throw Error('Workspace task project membership mismatch.');
  if(found.mission&&found.mission.projectId!==reference.projectId)throw Error('Workspace mission project membership mismatch.');
  if(found.attempt&&(found.attempt.mission.projectId!==reference.projectId||(reference.missionId!==undefined&&found.attempt.mission.id!==reference.missionId)))throw Error('Workspace attempt mission membership mismatch.');
- if(found.task&&found.mission&&reference.attemptId===undefined&&!(found.mission.attempts||[]).some(attempt=>(attempt.taskIds||[]).includes(found.task.id)))throw Error('Workspace task mission membership mismatch.');
- if(found.task&&found.attempt&&!(found.attempt.attempt.taskIds||[]).includes(found.task.id))throw Error('Workspace task attempt membership mismatch.');
+ const worker=Boolean(found.task&&run&&found.task.runId===run.id&&run.assignments.some(a=>a.taskId===found.task.id)&&(!found.attempt||found.attempt.attempt.taskIds.includes(found.task.parentTaskId)));
+ if(!worker&&found.task&&found.mission&&reference.attemptId===undefined&&!(found.mission.attempts||[]).some(attempt=>(attempt.taskIds||[]).includes(found.task.id)))throw Error('Workspace task mission membership mismatch.');
+ if(!worker&&found.task&&found.attempt&&!(found.attempt.attempt.taskIds||[]).includes(found.task.id))throw Error('Workspace task attempt membership mismatch.');
 }
 function getWorkspaceReferenceAvailability(reference,state){
  const found=references(reference,state);return {project:Boolean(found.project),mission:Boolean(found.mission),attempt:Boolean(found.attempt),task:Boolean(found.task)};

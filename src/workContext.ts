@@ -1,4 +1,10 @@
 import type {Mission,MissionResultRef,MissionResultStatus,Snapshot,WorkContext} from './shared';
+export function taskWorkSelection(snapshot:Snapshot,init:{projectId?:string;runId?:string;missionId?:string;attemptId?:string;taskId?:string},context:WorkContext|null){
+ const task=snapshot.tasks.find(t=>t.id===init.taskId),runId=init.runId??task?.runId;const ancestry:string[]=[];let owner=task;while(owner&&!ancestry.includes(owner.id)){ancestry.push(owner.id);owner=snapshot.tasks.find(t=>t.id===owner?.parentTaskId);}
+ const mission=snapshot.missions?.find(m=>init.missionId?m.id===init.missionId:(!runId||m.runId===runId)&&m.taskIds.some(id=>ancestry.includes(id)))??(runId&&context?.runId===runId?snapshot.missions?.find(m=>m.id===context.missionId&&m.runId===runId):undefined);
+ const attempt=mission?.attempts.find(a=>init.attemptId?a.id===init.attemptId:a.taskIds.some(id=>ancestry.includes(id)))??(runId&&context?.runId===runId?mission?.attempts.find(a=>a.id===context.attemptId):!task?mission?.attempts.find(a=>a.id===mission.activeAttemptId):undefined);
+ return {projectId:init.projectId??task?.projectId??mission?.projectId,runId:runId??mission?.runId,missionId:mission?.id??init.missionId,attemptId:attempt?.id??init.attemptId,taskId:init.taskId};
+}
 export function resolveWorkContext(context:WorkContext|null,snapshot:Snapshot):{context:WorkContext|null;unavailable?:string}{
  if(!context)return {context:null};
  const unavailable=(item:string)=>({context,unavailable:`${item} unavailable. Your saved selection is retained.`});
@@ -9,7 +15,8 @@ export function resolveWorkContext(context:WorkContext|null,snapshot:Snapshot):{
  const attempt=context.attemptId?mission?.attempts.find(a=>a.id===context.attemptId):undefined;
  if(context.attemptId&&!attempt)return unavailable('Attempt');
  const task=context.taskId?snapshot.tasks.find(t=>t.id===context.taskId):undefined;
- if(context.taskId&&(!task||task.projectId!==context.projectId||attempt&&!attempt.taskIds.includes(context.taskId)||mission&&!mission.taskIds.includes(context.taskId)))return unavailable('Task');
+ const worker=Boolean(task&&run&&task.runId===run.id&&run.assignments.some(a=>a.taskId===task.id)&&(!attempt||attempt.taskIds.includes(task.parentTaskId??'')));
+ if(context.taskId&&(!task||task.projectId!==context.projectId||!worker&&(attempt&&!attempt.taskIds.includes(context.taskId)||mission&&!mission.taskIds.includes(context.taskId))))return unavailable('Task');
  return {context};
 }
 export function sameResultRef(a:MissionResultRef|undefined,b:MissionResultRef|undefined):boolean {

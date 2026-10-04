@@ -1,10 +1,11 @@
 // Main-derived pending identity. Provider text never creates a call.
 function callBinding(state,approval){
  const task=state.tasks?.find(t=>t.id===approval.taskId);if(!task)return;
- const mission=state.missions?.find(m=>m.taskIds?.includes(task.id)&&m.runId);
+ const ancestry=[];let owner=task;while(owner&&!ancestry.includes(owner.id)){ancestry.push(owner.id);owner=state.tasks?.find(t=>t.id===owner.parentTaskId);}
+ const mission=state.missions?.find(m=>m.runId&&(!task.runId||m.runId===task.runId)&&m.taskIds?.some(id=>ancestry.includes(id)));
  const run=state.runs?.find(r=>r.id===(task.runId||mission?.runId)||r.coordinator?.taskId===task.id||r.coordinatorHistory?.some(c=>c.taskId===task.id));
  if(!run||run.projectId!==task.projectId)return;
- const attempt=mission?.attempts?.find(a=>a.taskIds.includes(task.id));
+ const attempt=mission?.attempts?.find(a=>a.taskIds.some(id=>ancestry.includes(id)));
  return {requestId:approval.id,projectId:run.projectId,runId:run.id,attemptId:attempt?.id||'none',revision:run.revision};
 }
 function assertBinding(actual,input){if(!actual||actual.requestId!==input.requestId||actual.projectId!==input.projectId||actual.runId!==input.runId||actual.attemptId!==input.attemptId||actual.revision!==(input.expectedRevision??input.revision))throw Error('Call binding or revision changed. Review the current request.');}

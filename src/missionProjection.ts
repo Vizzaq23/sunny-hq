@@ -106,6 +106,7 @@ export function projectMission(snapshot:Snapshot,context:WorkContext):MissionPro
    return mission.status==='DRAFT'?show('idle','Ready to start'):unavailable('Attempt');
   }
   identity.attemptId=attempt.id;
+  const boundWorker=task?.runId===mission.runId&&snapshot.runs?.find(r=>r.id===mission!.runId)?.assignments.some(a=>a.taskId===task?.id);if(task&&boundWorker&&!mission.taskIds.includes(task.id)){if(!attempt.taskIds.includes(task.parentTaskId??''))return unavailable('Worker attempt');const run=snapshot.runs?.find(r=>r.id===task!.runId);if(storageOutcomeUncertain(snapshot)||run?.phase==='unknown'||run?.controlReport?.unknownEffects.length)return show('unknown','Run effects require recovery');return {...projectMission(snapshot,{projectId:context.projectId,taskId:task.id,surface:context.surface,returnTo:context.returnTo}),missionId:mission.id,attemptId:attempt.id};}
   const ids=memberIds(attempt);
   if(!validId(attempt.taskId)||!ids.includes(attempt.taskId)||ids.some(id=>!validId(id)||!mission!.taskIds.includes(id))||new Set(ids).size!==ids.length)return unavailable('Attempt membership');
   if(task&&!ids.includes(task.id))return unavailable('Task');

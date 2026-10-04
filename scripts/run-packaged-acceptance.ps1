@@ -110,7 +110,7 @@ try{
   for($cleanupPass=0;$cleanupPass -lt 50 -and @(Get-OwnedRunning).Count;$cleanupPass++){Start-Sleep -Milliseconds 100}
   if(@(Get-OwnedRunning).Count){throw 'Owned package descendants did not exit after the main process.'}
   $owned.Refresh()
-  $expectedExit=if($Scenario -eq 'main-restart' -and $phase -eq 1){73}else{0}
+  $expectedExit=if($Scenario -in @('main-restart','run-ui') -and $phase -eq 1){73}else{0}
   if($owned.ExitCode -ne $expectedExit){throw "Packaged phase $phase exited $($owned.ExitCode); expected $expectedExit."}
   $receipt=Get-Content -LiteralPath (Join-Path $Out "phase-$phase.json") -Raw|ConvertFrom-Json
   if($receipt.pid -ne $owned.Id -or $receipt.executableSha256 -ne $exeHash -or $receipt.asarSha256 -ne $asarHash -or $receipt.phase -ne $phase -or $receipt.scenario -ne $Scenario){throw 'Exact process/package identity mismatch.'}
@@ -120,7 +120,7 @@ try{
   $owned=$null
  }
  $result=@{version=1;scenario=$Scenario;exeSha256=$exeHash;asarSha256=$asarHash;mainProcessRestart=$false;phases=$receipts;ownedProcessesExited=$true}
- if($Scenario -eq 'main-restart'){
+ if($Scenario -in @('main-restart','run-ui')){
   if($receipts[0].pid -eq $receipts[1].pid){throw 'Restart did not produce a distinct main process.'}
   $before=$receipts[0].identity|ConvertTo-Json -Compress -Depth 10
   $after=$receipts[1].identity|ConvertTo-Json -Compress -Depth 10

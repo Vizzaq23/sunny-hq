@@ -44,6 +44,7 @@
     "files": [
       "dist/**/*",
       "desktop/**/*",
+      "tests/fixtures/playable-local/**/*",
       "package.json"
     ],
     "win": {

@@ -9,6 +9,7 @@ function criteria(value){list(value,100,item=>{fields(item,['id','text'],['kind'
 function decision(value){fields(value,['id','option','reason','dissent','owner','nextAction','reopenEvidence']);text(value.id);for(const key of ['option','reason','owner','nextAction','reopenEvidence'])text(value[key],2000);list(value.dissent,16,item=>text(item,2000));}
 function binding(args){text(args.runId);text(args.projectId);check(Number.isSafeInteger(args.expectedRevision)&&args.expectedRevision>=0&&args.expectedRevision<Number.MAX_SAFE_INTEGER);}
 function validateSupervisionCommand(action,args){
+ if(typeof action==='string'&&action.startsWith('result:'))return require('./playable-launches.cjs').validateCommand(action,args);
  if(!['run:ackCall','run:create','run:control','run:setGrant','run:inspect','sunny_plan','sunny_decide'].includes(action)){if(typeof action==='string'&&(action.startsWith('run:')||action.startsWith('sunny_')))throw Error('Unknown supervision command.');return args;}
  if(action==='run:ackCall'){fields(args,['runId','projectId','expectedRevision','requestId','attemptId','state']);binding(args);text(args.requestId);text(args.attemptId);check(['seen','snoozed'].includes(args.state));return structuredClone(args);}
  const base=['runId','projectId','expectedRevision'];

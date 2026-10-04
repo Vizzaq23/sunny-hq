@@ -68,3 +68,43 @@ unaccepted fixture results through a compatible binary; never rewrite historical
 acceptance or restore an old backup over a live profile. No migration is needed
 for profiles without playable results. Failure tests cover altered source/bytes,
 missing assets, foreign identity, invalid schema, links and review freshness.
+
+## Task16 launch and feedback receipts (2026-10-04)
+
+Runs may retain `playableLaunches` (at most 32). Each strict version1 receipt
+binds id, project/run/mission/attempt/producer/workspace/result/artifact IDs,
+missionRevision, resultSha256, SourceIdentity, complete artifact hashes,
+runtime executable/version/SHA256 and trusted runner SHA256, stageKey,
+sessionSha256, state, startup, cleanup, createdAt and up to32 feedback receipts.
+Optional observed PID, startup/exit times, exit code/signal, bounded diagnostics
+and failure text describe observations, never recovered kill authority.
+Feedback binds its original launch/result/manifest/source, text digest and up
+to8 explicit project-local attachment paths/digests/sizes (1MiB each). A receipt
+may retain an explicit new-attempt request and its outcome; retries deduplicate
+the exact content and do not refill budgets or move acceptance.
+
+IPC `result:play` accepts only resultId and expectedRevision (mission revision).
+Stop accepts launchId and expectedRevision (run revision); feedback additionally
+accepts resultId, text, attachments and optional requestNewAttempt. Main resolves
+all membership and historical bindings. No command, cwd, environment, URL, port
+or process identity is caller authority. The pending receipt is durable before
+registerRunEffect's durable budget/effect barrier; spawn follows its synchronous
+beforeEffect fence. A crash between barriers leaves a pending receipt, which
+recovery marks unknown and reserves without manufacturing a process handle.
+Final receipts and settlement are captured owned operations drained by shutdown.
+
+Only the locally approved Node24 executable (24.18.0, SHA256
+9a4eb5f1c29c6a2e93852ead46b999e284a6a5ca8bab4d4e241d587d025a52de)
+runs a fixed packaged HTTP server. Manifest program metadata is descriptive.
+Every asset is staged exclusively, rehashed, loaded and verified in server
+memory before readiness. Preview has its own nonpersistent session, exact
+launch origin, no Sunny bridge, permissions, downloads or popups. Node retains
+the OS account's privileges: hashing and these runtime restrictions are not an
+OS sandbox. This pilot does not execute arbitrary project Node scripts.
+
+Backup/export includes these receipts with the authority profile and workspaces.
+There is no migration for old profiles. Older strict binaries must reject these
+new fields; downgrade requires a preserved consistent backup, never replacement
+of live authority or deletion of unknown receipts. Owned staged builds and old
+feedback remain inspectable. Failure tests cover source/asset races, missing or
+denied launch, exit uncertainty, PID reuse, stale selection and receipt replay.

@@ -4,7 +4,7 @@ param(
  [Parameter(Mandatory)][string]$Asar,
  [Parameter(Mandatory)][string]$Profile,
  [Parameter(Mandatory)][string]$Out,
- [ValidateSet('run-ui','startup','renderer-crash','main-restart','worker-loss','write-failure','lost-ack','pending-approval','pending-check','normal-quit')][string]$Scenario='startup',
+ [ValidateSet('playable','run-ui','startup','renderer-crash','main-restart','worker-loss','write-failure','lost-ack','pending-approval','pending-check','normal-quit')][string]$Scenario='startup',
  [ValidateSet(1,10,30)][int]$MiB=1,
  [ValidateRange(10000,300000)][int]$TimeoutMs=120000
 )
@@ -65,7 +65,11 @@ $owned=$null
 $ownedRecords=@{}
 function Find-OwnedDescendants([int]$RootId,[datetime]$RootStart){
  $name=(Split-Path $Exe -Leaf).Replace("'","''")
+ $nodeOwner=$null
+ $nodeOwnerFile=Join-Path $Out 'owned-node.json'
+ if($Scenario -eq 'playable' -and (Test-Path -LiteralPath $nodeOwnerFile)){$nodeOwner=Get-Content -LiteralPath $nodeOwnerFile -Raw|ConvertFrom-Json;if($nodeOwner.executable -ine 'C:\Program Files\nodejs\node.exe' -or $nodeOwner.sha256 -ne '9a4eb5f1c29c6a2e93852ead46b999e284a6a5ca8bab4d4e241d587d025a52de' -or -not (Is-Inside (Join-Path $Profile 'playable-builds') $nodeOwner.runnerPath)){throw 'Unapproved fixture Node ownership record'};if((Get-FileHash -LiteralPath $nodeOwner.executable -Algorithm SHA256).Hash.ToLowerInvariant() -ne $nodeOwner.sha256){throw 'Owned Node executable changed'}}
  $candidates=@(Get-CimInstance Win32_Process -Filter ("Name = '"+$name+"'") | Where-Object {$_.ExecutablePath -ieq $Exe -and $_.CreationDate -ge $RootStart})
+ if($null -ne $nodeOwner){$nodeCandidate=Get-CimInstance Win32_Process -Filter ('ProcessId = '+[int]$nodeOwner.pid);if($null -ne $nodeCandidate -and $nodeCandidate.ExecutablePath -ieq $nodeOwner.executable -and $nodeCandidate.ParentProcessId -eq $RootId -and $nodeCandidate.CreationDate -ge $RootStart -and $nodeCandidate.CommandLine.Contains($nodeOwner.runnerPath)){$candidates+=,$nodeCandidate}}
  for($pass=0;$pass -lt 4;$pass++){
   foreach($candidate in $candidates){
    if($candidate.ParentProcessId -ne $RootId -and -not $ownedRecords.ContainsKey([int]$candidate.ParentProcessId)){continue}
@@ -76,7 +80,7 @@ function Find-OwnedDescendants([int]$RootId,[datetime]$RootStart){
    if($null -ne $parentCurrent){if($parentCurrent.StartTime -ne $parentRecord.start -or $parentCurrent.Path -ine $parentRecord.path){continue};$parentRecord.lastSeen=[datetime]::Now}
    elseif($candidate.CreationDate -gt $parentRecord.lastSeen){throw 'Owned descendant identity is unresolved after its parent exited.'}
    $current=Get-Process -Id $pidValue -ErrorAction SilentlyContinue
-   if($null -ne $current -and $current.Path -ieq $Exe -and $current.StartTime -ge $RootStart){$ownedRecords[$pidValue]=@{start=$current.StartTime;path=$current.Path;lastSeen=[datetime]::Now}}
+   if($null -ne $current -and ($current.Path -ieq $Exe -or ($null -ne $nodeOwner -and $pidValue -eq $nodeOwner.pid -and $current.Path -ieq $nodeOwner.executable)) -and $current.StartTime -ge $RootStart){$ownedRecords[$pidValue]=@{start=$current.StartTime;path=$current.Path;lastSeen=[datetime]::Now}}
   }
  }
 }
@@ -91,7 +95,7 @@ function Get-OwnedRunning {
 }
 try{
  $env:SUNNY_FIXTURE_NONCE=$nonce
- $phases=if($Scenario -in @('main-restart','run-ui')){@(1,2)}else{@(1)}
+ $phases=if($Scenario -in @('main-restart','run-ui','playable')){@(1,2)}else{@(1)}
  $receipts=@()
  foreach($phase in $phases){
   if((Get-FileHash -LiteralPath $Exe -Algorithm SHA256).Hash.ToLowerInvariant() -ne $exeHash -or (Get-FileHash -LiteralPath $Asar -Algorithm SHA256).Hash.ToLowerInvariant() -ne $asarHash){throw 'Package bytes changed before launch.'}
@@ -126,6 +130,7 @@ try{
   $after=$receipts[1].identity|ConvertTo-Json -Compress -Depth 10
   if($Scenario -eq 'main-restart' -and ($before -ne $after -or -not $receipts[1].identity.uncertainReservation -or $receipts[1].identity.uncertainStatus -ne 'unknown')){throw 'Restart lost durable draft/result identity or uncertain reservation.'}
   if($Scenario -eq 'run-ui' -and (-not $receipts[1].runUI.restartDedup -or $receipts[0].runUI.requestId -ne $receipts[1].runUI.requestId)){throw 'Run UI restart lost the exact unresolved call receipt.'}
+  if($Scenario -eq 'playable' -and (-not $receipts[1].playable.restartIdentity -or $receipts[0].playable.launch.id -ne $receipts[1].playable.launch.id -or @($receipts[0].ownedProcesses|Where-Object {$_.path -ieq 'C:\Program Files\nodejs\node.exe'}).Count -ne 1)){throw 'Playable restart or owned Node proof missing'}
   $result.mainProcessRestart=$true
  }
  if((Get-FileHash -LiteralPath $Exe -Algorithm SHA256).Hash.ToLowerInvariant() -ne $exeHash -or (Get-FileHash -LiteralPath $Asar -Algorithm SHA256).Hash.ToLowerInvariant() -ne $asarHash){throw 'Package bytes changed after launch.'}

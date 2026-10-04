@@ -1,6 +1,6 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const {createHash,timingSafeEqual}=require('node:crypto');const {EventEmitter}=require('node:events');
-const SCENARIOS=Object.freeze(['run-ui','startup','renderer-crash','main-restart','worker-loss','write-failure','lost-ack','pending-approval','pending-check','normal-quit']);
+const SCENARIOS=Object.freeze(['playable','run-ui','startup','renderer-crash','main-restart','worker-loss','write-failure','lost-ack','pending-approval','pending-check','normal-quit']);
 const FROZEN_SHA='219f75242146fb32b8ed8452a0b792b1c76207311b67f74b947b267cc8581590';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 function validateFixtureArguments(argv){
@@ -44,7 +44,7 @@ function loadFrozenFixture(mib){
 }
 function fixtureCatalog(){return Object.freeze({discoverProjects:()=>[],discoverTools:()=>[],discoverAutomations:()=>[],getExecutable:()=>undefined});}
 function fixtureDependencies(){return {client:createOfflineClient(),islandFactory:hub=>({data:hub.state.world,close(){},setConcurrency(){throw Error('Offline fixture scheduler is disabled.');},run(){throw Error('Offline fixture scheduler is disabled.');}})};}
-function assertFixtureAction(action,args={}){if(action==='asset:crewTexture'){if(!args||typeof args!=='object'||Array.isArray(args)||Object.keys(args).length!==1||Object.keys(args)[0]!=='kind'||!['blimp','crew','actions','ship','walk','states','residents'].includes(args.kind))throw Error('Invalid offline fixture texture query.');return;}if(!['run:ackCall','snapshot','workspace:get','workspace:update','transcript:page','mission:resultStatus','app:reload','app:diagnostic','approval:respond','mission:reconcileCheck'].includes(action))throw Error('Offline fixture blocks this action.');}
+function assertFixtureAction(action,args={},manifest){if(manifest?.scenario==='playable'&&['result:play','result:stop','result:feedback','run:control'].includes(action)){require('./supervision-commands.cjs').validateSupervisionCommand(action,args);if(action==='run:control'&&(args.action!=='stop'||args.runId!=='playable-run'||args.projectId!=='playable-project'))throw Error('Offline playable fixture permits only its own Stop-all');return;}if(action==='asset:crewTexture'){if(!args||typeof args!=='object'||Array.isArray(args)||Object.keys(args).length!==1||Object.keys(args)[0]!=='kind'||!['blimp','crew','actions','ship','walk','states','residents'].includes(args.kind))throw Error('Invalid offline fixture texture query.');return;}if(!['run:ackCall','snapshot','workspace:get','workspace:update','transcript:page','mission:resultStatus','app:reload','app:diagnostic','approval:respond','mission:reconcileCheck'].includes(action))throw Error('Offline fixture blocks this action.');}
 function seedState(manifest){
  const state=loadFrozenFixture(manifest.mib);const project=path.join(manifest.profileDir,'synthetic-project');fs.mkdirSync(project);state.projects[0].path=project;
  const mission=state.missionBook.missions[0],task=state.tasks[0],message=task.messages.find(item=>item.role==='assistant');
@@ -59,7 +59,7 @@ function seedState(manifest){
 async function bootFixtureHub(manifest){
  const {openOrderedStore}=require('./ordered-store.cjs'),{Hub}=require('./hub.cjs');
  const options={kind:'sqlite',file:path.join(manifest.profileDir,'sunny.sqlite'),backupDir:path.join(manifest.profileDir,'mission-profile-backups')};let store=await openOrderedStore(options),hub;
- try{if(manifest.phase===1){await store.barrier(seedState(manifest),'mission');await store.close();store=await openOrderedStore(options);}hub=new Hub({home:manifest.profileDir,store,catalog:fixtureCatalog(),fixtureDependencies:fixtureDependencies()});await hub.initializeRecovery();return hub;}catch(error){if(hub)await hub.close().catch(()=>{});else await store.close().catch(()=>{});throw error;}
+ try{if(manifest.phase===1){await store.barrier(seedState(manifest),'mission');await store.close();store=await openOrderedStore(options);}hub=new Hub({home:manifest.profileDir,store,catalog:fixtureCatalog(),fixtureDependencies:{...fixtureDependencies(),playableFixture:manifest.scenario==='playable'}});await hub.initializeRecovery();return hub;}catch(error){if(hub)await hub.close().catch(()=>{});else await store.close().catch(()=>{});throw error;}
 }
 function hashPackageFiles({exeFile,asarFile}){
  if(typeof exeFile!=='string'||!path.isAbsolute(exeFile)||typeof asarFile!=='string'||!path.isAbsolute(asarFile))throw Error('Absolute package identity paths required.');
@@ -134,6 +134,7 @@ async function runPackagedAcceptance({app,profileDir,outputDir,scenario,fixtureT
   const task=hub.state.tasks.find(item=>item.id==='fixture-uncertain');task.status='working';hub.request({id:'fixture-rpc',method:'item/commandExecution/requestApproval',params:{threadId:task.threadId,turnId:task.turnId,command:'synthetic unavailable command'}});assert.equal(hub.state.approvals.length,1);await hub.persist('mission');const observed=await trustedInvoke(win,'snapshot');assert.equal(observed.approvals.length,1);const approval=observed.approvals[0];await assert.rejects(trustedInvoke(win,'approval:respond',{id:approval.id,decision:'decline'}),/offline/i);assert.equal(task.approvalResponseIntent.state,'prepared');evidence.pendingApprovalVisible=true;evidence.approvalResponseRetained=true;
  }
  if(scenario==='pending-check'){assert.equal(hub.missionBook.get('mission-0').checkExecution.id,'fixture-check');assert.ok(hub.gate.active.has('mission-evidence:mission-0'));const current=hub.missionBook.get('mission-0');await assert.rejects(trustedInvoke(win,'mission:reconcileCheck',{missionId:current.id,revision:current.revision,executionId:current.checkExecution.id,confirmedStopped:false}),/Confirm/i);assert.ok(current.checkExecution);evidence.pendingCheckRetained=true;}
+ if(scenario==='playable')evidence.playable=await require('./playable-fixture.cjs').run({win,hub,manifest,trustedInvoke,waitForRenderer});
  if(scenario==='run-ui')evidence.runUI=await require('./run-ui-fixture.cjs').run({win,hub,manifest,trustedInvoke,waitForRenderer});
  const {createIncidentManifest}=require('./diagnostics.cjs');evidence.incident=createIncidentManifest({buildInfo,exeHash:evidence.executableSha256,asarHash:evidence.asarSha256,runtime:process.versions,events:diagnosticEvents});
  // Persist proof before driver-triggered process exit; phase two independently reads the DB.

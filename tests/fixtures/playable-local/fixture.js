@@ -1,0 +1,1 @@
+document.querySelector('#advance').addEventListener('click',async()=>{const response=await fetch('/__interact',{method:'POST'});const value=await response.json();document.querySelector('#counter').textContent=String(value.counter);});

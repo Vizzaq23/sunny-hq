@@ -3,6 +3,7 @@ import type {Snapshot,WorkContext} from '../shared';
 import {workEntries} from '../taskFlow';
 import {boundResultStatus,resolveWorkContext,storageOutcomeUncertain} from '../workContext';
 import {projectMission} from '../missionProjection';
+import {projectRun} from '../runProjection';
 import {requestMissionResultStatus} from '../useMissionResultStatus';
 import './captain-log.css';
 type Invoke=<T=unknown>(action:string,args?:unknown)=>Promise<T>;
@@ -31,7 +32,7 @@ export function CaptainLog({snapshot,context,onContext,onOpenResult,onRequestCha
   {unavailable?<p className="captain-unavailable" role="alert">{unavailable}</p>:null}
   {mission?<section className="captain-current" data-mission-id={mission.id} data-attempt-id={attempt?.id}>
    <small>{snapshot.projects.find(p=>p.id===mission.projectId)?.name??'Project unavailable'}</small><h3>{mission.title}</h3>
-   <p className="captain-log-status" role="status" aria-live="polite">{mission.status==='COMPLETE'?(projection?.state==='accepted'?'Accepted by captain':verificationText):labels[mission.status]??mission.status}{mission.connection==='reconciling'?' — Connection needs reconciliation':''}</p>
+   <p className="captain-log-status" role="status" aria-live="polite">{mission.runId?projectRun(snapshot,mission.runId).label:mission.status==='COMPLETE'?(projection?.state==='accepted'?'Accepted by captain':verificationText):labels[mission.status]??mission.status}{mission.connection==='reconciling'?' — Connection needs reconciliation':''}</p>
    <p className="captain-stage">{stage?`${stage.id}: ${owner?.crewId??'Awaiting assignment'} · ${stage.status}`:attempt?.workflow?.complete?'All linked stages reported results':attempt?'Inspect linked crew tasks':'No attempt started'}</p>
    <ul className="captain-criteria">{mission.acceptanceCriteria.map((criterion,i)=><li key={i}>{criterion}</li>)}</ul>
    {attempt?.workflow?<ol aria-label="Linked mission stages">{attempt.workflow.stages.map(s=><li key={s.id}><span>{s.id} · {s.status}</span>{s.taskId?<button onClick={()=>onOpenResult(s.taskId!)}>Open {snapshot.tasks.find(t=>t.id===s.taskId)?.crewId??'crew'} result</button>:null}</li>)}</ol>:null}

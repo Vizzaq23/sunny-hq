@@ -44,6 +44,7 @@ function applyRunCommand(run,command,{now,actor=['plan','decide'].includes(comma
   if(next.assignments.length)throw Error('Initial assignment proposal already exists.');
   if(a.assignments.length>next.grant.maxInitialAssignments)throw Error('Initial assignment limit exceeded.');
   for(const item of a.assignments){if(next.criteria&&!item.criteriaIds.every(id=>next.criteria.some(value=>value.id===id)))throw Error('Assignment criterion is outside the original criteria.');}
+  require('./assignment-graph.cjs').validateAssignmentGraph(a.assignments,{scope:{activities:['read','write','test','review','research','build']},base:a.assignments[0].baseCommit});
   next.assignments=a.assignments;
   const needed=requiredActivity;
   for(const item of next.assignments){const activity=needed[item.capability];if(!activity||!next.grant.scope.activities.includes(activity))block('scope','Missing captain scope for '+item.capability);}

@@ -32,9 +32,11 @@ function validateMissionAuthority(mission){
  if(mission.activeAttemptId!==undefined&&!attempts.has(mission.activeAttemptId))throw Error('Invalid saved active attempt.');
  if(mission.acceptedAt!==undefined&&!timestamp(mission.acceptedAt))throw Error('Invalid saved mission acceptance time.');
  const result=mission.selectedResult;
+ for(const artifact of mission.artifacts||[])if(artifact?.kind==='playable')require('./playable-results.cjs').validatePlayableArtifact(artifact,mission);
  if(result!==undefined){
+  require('./mission-results.cjs').validateMissionResultRef(result.ref);
   const attempt=mission.attempts.find(value=>value.id===result?.attemptId),ref=result?.ref;
-  if(!object(result)||!id(result.id)||!attempt||result.attemptId!==mission.activeAttemptId||!id(result.producerTaskId)||!attempt.taskIds.includes(result.producerTaskId)||!timestamp(result.selectedAt)||!object(ref)||!sha(ref.sha256)||!((ref.kind==='reply'&&id(ref.taskId)&&ref.taskId===result.producerTaskId&&id(ref.messageId))||(ref.kind==='deliverable'&&id(ref.artifactId)&&mission.artifacts?.some(artifact=>artifact.id===ref.artifactId&&artifact.attemptId===result.attemptId&&['deliverable','image'].includes(artifact.kind)))))throw Error('Invalid saved selected mission result.');
+  if(!object(result)||!id(result.id)||!attempt||result.attemptId!==mission.activeAttemptId||!id(result.producerTaskId)||!attempt.taskIds.includes(result.producerTaskId)||!timestamp(result.selectedAt)||!object(ref)||!sha(ref.sha256)||!((ref.kind==='reply'&&id(ref.taskId)&&ref.taskId===result.producerTaskId&&id(ref.messageId))||(['deliverable','playable'].includes(ref.kind)&&id(ref.artifactId)&&mission.artifacts?.some(artifact=>artifact.id===ref.artifactId&&artifact.attemptId===result.attemptId&&(ref.kind==='playable'?artifact.kind==='playable':['deliverable','image'].includes(artifact.kind))))))throw Error('Invalid saved selected mission result.');
  }
  const acceptance=mission.acceptance;
  if(mission.status==='COMPLETE'&&acceptance===undefined)throw Error('Invalid saved completed mission without acceptance evidence.');

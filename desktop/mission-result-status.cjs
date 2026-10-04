@@ -15,13 +15,14 @@ function lookup(context,args){
 }
 const binding=mission=>JSON.stringify({id:mission.id,projectId:mission.projectId,revision:mission.revision,status:mission.status,activeAttemptId:mission.activeAttemptId,acceptanceCriteria:mission.acceptanceCriteria,completionBoundary:mission.completionBoundary,selectedResult:mission.selectedResult,acceptance:mission.acceptance,pendingAcceptance:mission.pendingAcceptance,acceptanceRecovery:mission.acceptanceRecovery});
 const projectBinding=(state,projectId)=>JSON.stringify(state.projects.filter(project=>project.id===projectId).map(project=>({id:project.id,path:project.path})));
-const artifactBinding=artifact=>JSON.stringify({id:artifact.id,kind:artifact.kind,projectId:artifact.projectId,attemptId:artifact.attemptId,filePath:artifact.filePath,sha256:artifact.sha256,bytes:artifact.bytes});
+const artifactBinding=artifact=>JSON.stringify(artifact);
 // Read-only observation. This cannot accept work or replace the fresh checks in
 // select/accept. COMPLETE is examined through a detached review view, never reopened.
 async function getMissionResultStatus(context,args){
  const {state,mission}=lookup(context,args),result=mission.selectedResult;
  let ref;try{if(result)ref=validateMissionResultRef(result.ref);}catch{/* Invalid opaque metadata is never a public reference. */}
- const base={missionId:mission.id,revision:mission.revision,...(id(mission.activeAttemptId)?{attemptId:mission.activeAttemptId}:{}),...(result&&id(result.id)?{resultId:result.id}:{}),...(result&&id(result.producerTaskId)?{producerTaskId:result.producerTaskId}:{}),...(ref?{ref}:{})};
+ const runBinding=JSON.stringify(state.runs?.find(r=>r.id===mission.runId));
+ const base={missionId:mission.id,revision:mission.revision,...(ref?.kind==='playable'?{runRevision:state.runs?.find(r=>r.id===mission.runId)?.revision}:{}),...(id(mission.activeAttemptId)?{attemptId:mission.activeAttemptId}:{}),...(result&&id(result.id)?{resultId:result.id}:{}),...(result&&id(result.producerTaskId)?{producerTaskId:result.producerTaskId}:{}),...(ref?{ref}:{})};
  if(mission.pendingAcceptance||mission.acceptanceRecovery)return {...base,available:false,unavailable:'Acceptance needs storage recovery.'};
  if(!result)return {...base,available:false,unavailable:'No result selected. Review an original crew result.'};
  if(!['WAITING_FOR_REVIEW','COMPLETE'].includes(mission.status))return {...base,available:false,unavailable:'Mission is not ready for result review.'};
@@ -36,9 +37,21 @@ async function getMissionResultStatus(context,args){
  if(binding(current.mission)!==expected)throw Error('Mission result changed during review.');
  try{
   validateMissionAuthority(current.mission);
+  if(result.ref.kind==='playable'){
+   await resolveMissionResult({mission:{...current.mission,status:'WAITING_FOR_REVIEW'},tasks:current.state.tasks,ref:result.ref,producerTaskId:result.producerTaskId,readArtifact:async artifact=>{if(artifactBinding(artifact)!==proof?.identity)throw Error('Playable binding changed.');const observed=await context.readArtifact(artifact);proof={identity:artifactBinding(artifact),observed};return observed;}});
+   const latest=lookup(context,args);if(binding(latest.mission)!==expected||projectBinding(latest.state,args.projectId)!==expectedProject)throw Error('Playable result changed during review.');
+   if(JSON.stringify(latest.state.runs?.find(r=>r.id===mission.runId))!==runBinding)throw Error('Playable review authority changed during inspection.');
+  }
   verifyMissionResultCurrent({mission:{...current.mission,status:'WAITING_FOR_REVIEW'},tasks:current.state.tasks,ref:result.ref,producerTaskId:result.producerTaskId,readArtifact:artifact=>{if(!proof||artifactBinding(artifact)!==proof.identity)throw Error('Artifact binding changed during review.');return proof.observed;}});
   const task=member(current.state,args.projectId,result.producerTaskId),text=result.ref.kind==='reply'?task.messages.find(message=>message.id===result.ref.messageId).text:undefined;
-  return {...base,available:true,...(text===undefined?{}:{preview:preview(text)})};
+  let playable;if(result.ref.kind==='playable'){
+   const run=current.state.runs?.find(r=>r.id===current.mission.runId),observed=proof.observed;
+   if(!run||!observed.summary||!observed.manifest||!observed.source)throw Error('Playable inspection proof missing.');
+   const candidate=require('./playable-results.cjs').evaluateCandidate({run,source:observed.source,tasks:current.state.tasks}),final=require('./review-verdicts.cjs').evaluateReadiness({run,...run.verification,source:observed.source,reviews:run.reviews,tasks:current.state.tasks}),missingCheckIds=observed.manifest.requiredCheckIds.filter(id=>!run.verification?.checks.some(c=>c.id===id&&c.status==='passed'&&require('./review-verdicts.cjs').sameSource(c.source,observed.source)));
+   if(run.verification?.resultId!==result.id||run.verification?.resultSha256!==result.ref.sha256){candidate.eligible=false;candidate.blockers.push('Verification belongs to another result.');}
+   playable={...observed.summary,candidateEligible:candidate.eligible,candidateBlockers:candidate.blockers,ready:final.ready&&candidate.eligible&&!missingCheckIds.length,readinessBlockers:[...final.blockers,...missingCheckIds.map(id=>'Missing manifest check: '+id)],missingCheckIds};
+  }
+  return {...base,available:true,...(text===undefined?{}:{preview:preview(text)}),...(playable?{playable}:{})};
  }catch{return {...base,available:false,unavailable:'Selected result unavailable or changed. Review its current content.'};}
 }
 // Called only after main validates sender, page epoch/revision and membership.

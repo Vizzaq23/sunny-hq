@@ -45,10 +45,10 @@ function selectedResult(snapshot:Snapshot,mission:Mission,attempt:MissionAttempt
  if(!ref||typeof ref.sha256!=='string'||!/^[a-f0-9]{64}$/.test(ref.sha256))return;
  if(ref.kind==='reply'){
   if(ref.taskId!==producer.id||!validId(ref.messageId))return;
- }else if(ref.kind==='deliverable'){
+ }else if(ref.kind==='deliverable'||ref.kind==='playable'){
   if(!validId(ref.artifactId))return;
   const artifact=unique((mission.artifacts??[]).filter(value=>value.id===ref.artifactId));
-  if(!artifact||!['deliverable','image'].includes(artifact.kind)||artifact.attemptId!==attempt.id||artifact.projectId!==mission.projectId||artifact.sha256!==ref.sha256)return;
+  if(!artifact||!(ref.kind==='playable'?artifact.kind==='playable':['deliverable','image'].includes(artifact.kind))||artifact.attemptId!==attempt.id||artifact.projectId!==mission.projectId||artifact.sha256!==ref.sha256)return;
  }else return;
  // Explicit main-held status verifies whole reply/file content. Missing pages cannot
  // disprove a result, and renderer previews cannot prove one.

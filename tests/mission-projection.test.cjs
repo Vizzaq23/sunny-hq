@@ -30,6 +30,7 @@ function accepted(refKind='reply'){
  s.resultStatuses={m:{key:require('../src/workContext.ts').resultStatusKey(s,m),state:'ready',status:{epoch:'e',missionId:'m',revision:m.revision,attemptId:'a',resultId:'result',producerTaskId:'root',ref,available:true,preview:text}}};
  return s;
 }
+test('playable result projection binds manifest membership and refreshes when the run review revision changes',()=>{const s=accepted('deliverable'),m=s.missions[0],ref={...m.selectedResult.ref,kind:'playable'};m.runId='r';m.selectedResult.ref=ref;m.artifacts[0].kind='playable';s.runs=[{id:'r',revision:2}];const work=require('../src/workContext.ts'),status=s.resultStatuses.m;status.key=work.resultStatusKey(s,m);status.status.ref=ref;status.status.runRevision=2;assert.equal(project(s,context({missionId:'m',attemptId:'a'})).state,'accepted');s.runs[0].revision=3;assert.equal(work.boundResultStatus(s,m),undefined);assert.notEqual(project(s,context({missionId:'m',attemptId:'a'})).state,'accepted');status.key=work.resultStatusKey(s,m);status.status.runRevision=3;assert.equal(project(s,context({missionId:'m',attemptId:'a'})).state,'accepted');m.artifacts[0].kind='deliverable';assert.notEqual(project(s,context({missionId:'m',attemptId:'a'})).state,'accepted');});
 
 test('project context without a selection is idle even with newer active work and a saved workspace selection',()=>{
  const s=snapshot({missions:[mission()],workspace:{version:1,revision:0,context:context({missionId:'m'}),drafts:[],seenAcceptanceIds:[]}});

@@ -14,14 +14,14 @@ function executeCheck(node,npm,script,cwd,timeout=120000,deps={}){
  return new Promise((resolve,reject)=>{
   const child=(deps.spawn||spawn)(node,[npm,'run',script],{cwd,windowsHide:true,detached:process.platform!=='win32',stdio:['ignore','ignore','ignore'],env:{...process.env,ELECTRON_RUN_AS_NODE:'1'}});
   let settled=false,timedOut=false,cleanupDone=false,closedResult,cleanupTimer;
-  const finish=(error,result)=>{if(settled)return;settled=true;clearTimeout(timer);clearTimeout(cleanupTimer);error?reject(error):resolve(result);};
+  const finish=(error,result)=>{if(settled)return;settled=true;if(deps.control)deps.control.state=error?'unknown':'completed';clearTimeout(timer);clearTimeout(cleanupTimer);error?reject(error):resolve(result);};
   const uncertain=()=>finish(Object.assign(Error('Check cleanup could not be verified. Inspect the process before starting more work.'),{uncertain:true}));
-  const timer=setTimeout(()=>{
-   timedOut=true;cleanupTimer=setTimeout(uncertain,15000);
+  const cancel=()=>{
+   if(settled||timedOut)return;timedOut=true;cleanupTimer=setTimeout(uncertain,15000);
    try{(deps.killTree||killTree)(child,error=>{if(error){uncertain();return;}cleanupDone=true;if(closedResult)finish(null,closedResult);});}catch{uncertain();}
-  },timeout);
+  };const timer=setTimeout(cancel,timeout);if(deps.control)Object.assign(deps.control,{pid:child.pid,state:'running',exited:false,cancel});
   child.once('error',error=>{if(timedOut)uncertain();else finish(error);});
-  child.once('close',(exitCode,signal)=>{closedResult={exitCode:Number.isInteger(exitCode)?exitCode:null,timedOut,signal:signal||null};if(!timedOut||cleanupDone)finish(null,closedResult);});
+  child.once('close',(exitCode,signal)=>{if(deps.control)Object.assign(deps.control,{exited:true,exitCode,signal});closedResult={exitCode:Number.isInteger(exitCode)?exitCode:null,timedOut,signal:signal||null};if(!timedOut||cleanupDone)finish(null,closedResult);});
  });
 }
 class MissionEvidence {
@@ -53,13 +53,13 @@ class MissionEvidence {
   }
   return {kind:'git',branch:branch||'(detached)',commit,dirty:paths.length>0,paths,fingerprint:hash.digest('hex'),recordedAt:Date.now()};
  }
- async runCheck(root,script,beforeEffect){
+ async runCheck(root,script,beforeEffect,control){
   if(!['test','build','typecheck','lint'].includes(script))throw Error('Choose a supported check.');
   const file=path.join(root,'package.json');if(!fs.existsSync(file)||fs.statSync(file).size>1024*1024)throw Error('Project package.json is unavailable.');
   const pkg=JSON.parse(fs.readFileSync(file,'utf8'));if(typeof pkg.scripts?.[script]!=='string'||!pkg.scripts[script].trim())throw Error('The '+script+' script is unavailable in this project.');
   const before=await this.gitState(root),startedAt=Date.now(),runtime=this.runtime();
   await beforeEffect?.();
-  const result=await this.execute(runtime.node,runtime.npm,script,root);
+  const result=await this.execute(runtime.node,runtime.npm,script,root,120000,{control});
   const after=await this.gitState(root);
   return {kind:'check',script,command:'npm run '+script,startedAt,recordedAt:Date.now(),durationMs:Date.now()-startedAt,...result,commit:before.commit,branch:before.branch,beforeFingerprint:before.fingerprint,fingerprint:after.fingerprint,status:result.timedOut||result.exitCode!==0?'failed':before.fingerprint!==after.fingerprint?'stale':'passed'};
  }

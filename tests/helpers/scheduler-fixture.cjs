@@ -2,9 +2,9 @@
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
 const {execFileSync}=require('node:child_process'),{EventEmitter}=require('node:events');
 const {Hub}=require('../../desktop/hub.cjs'),registry=require('../../desktop/crew-registry.cjs');
-async function schedulerFixture(t,{onTurn,onThread}={}){
+async function schedulerFixture(t,{onTurn,onThread,onBase}={}){
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-scheduler-fix-')),original=path.join(dir,'original');fs.mkdirSync(original);
- const gitAt=(root,args)=>execFileSync('git',args,{cwd:root,encoding:'utf8',windowsHide:true}).trim();gitAt(original,['init']);gitAt(original,['config','user.name','Fixture']);gitAt(original,['config','user.email','fixture@example.invalid']);fs.mkdirSync(path.join(original,'src'));fs.writeFileSync(path.join(original,'src','base.txt'),'original');gitAt(original,['add','.']);gitAt(original,['commit','-m','base']);const base=gitAt(original,['rev-parse','HEAD']);
+ const gitAt=(root,args)=>execFileSync('git',args,{cwd:root,encoding:'utf8',windowsHide:true}).trim();gitAt(original,['init']);gitAt(original,['config','user.name','Fixture']);gitAt(original,['config','user.email','fixture@example.invalid']);fs.mkdirSync(path.join(original,'src'));fs.writeFileSync(path.join(original,'src','base.txt'),'original');onBase?.(original);gitAt(original,['add','.']);gitAt(original,['commit','-m','base']);const base=gitAt(original,['rev-parse','HEAD']);
  let hub,stored={},sequence=0;const starts=[],turns=[],errors=[],enforced=new Set([original.toLowerCase()]),client=new EventEmitter();client.connected=true;client.close=()=>{};
  client.request=async(method,p)=>{
   if(method==='skills/list')return {data:[]};

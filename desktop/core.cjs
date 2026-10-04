@@ -26,7 +26,7 @@ class TaskGate{
  constructor(limit=3,fixtureScopeEnforcement){this.limit=limit;this.active=new Map();this.logical=new Map();this.fixtureScopeEnforcement=fixtureScopeEnforcement;}
  root(root){return path.resolve(fs.existsSync(root)?fs.realpathSync(root):root).toLowerCase();}
  reserve(id,root,scope={}){this.active.set(id,this.root(root));this.logical.set(id,{...scope});}
- blocked(root,scope={}){const normalized=this.root(root);return [...this.active.values()].some(other=>inside(other,normalized)||inside(normalized,other))||[...this.logical.entries()].some(([id,other])=>scope.projectId&&other.projectId===scope.projectId&&!(scope.runId&&scope.runId===other.runId&&this.fixtureScopeEnforcement?.({root:normalized,otherRoot:this.active.get(id),scope,other})===true));}
+ blocked(root,scope={}){const normalized=this.root(root);return [...this.active.values()].some(other=>inside(other,normalized)||inside(normalized,other))||[...this.logical.entries()].some(([id,other])=>scope.projectId&&other.projectId===scope.projectId&&!(!scope.integrating&&!other.integrating&&scope.runId&&scope.runId===other.runId&&this.fixtureScopeEnforcement?.({root:normalized,otherRoot:this.active.get(id),scope,other})===true));}
  acquire(id,root,scope={}){const normalized=this.root(root);if(this.active.has(id))throw Error('This task is already running');if(this.blocked(root,scope))throw Error('A task is already writing in this checkout. Finish or interrupt it first.');if(this.active.size>=this.limit)throw Error('The active-run limit is reached. Finish or interrupt a task first.');this.reserve(id,normalized,scope);}
  release(id){this.active.delete(id);this.logical.delete(id);}
 }

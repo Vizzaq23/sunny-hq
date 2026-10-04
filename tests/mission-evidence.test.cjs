@@ -1,5 +1,10 @@
 const {test}=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs');const os=require('node:os');const path=require('node:path');const {execFileSync}=require('node:child_process');
 const {MissionEvidence,executeCheck}=require('../desktop/mission-evidence.cjs');
+test('owned check cancellation acknowledgment does not imply process exit',async()=>{
+ const {EventEmitter}=require('node:events'),child=new EventEmitter();child.pid=123;const control={};let kill;
+ const pending=executeCheck('node','npm','test','unused',1000,{spawn:()=>child,control,killTree:(_child,done)=>{kill=done;}});pending.catch(()=>{});
+ assert.equal(typeof control.cancel,'function');assert.equal(control.exited,false);control.cancel();kill(null);assert.equal(control.exited,false);child.emit('close',null,'SIGKILL');const result=await pending;assert.equal(control.exited,true);assert.equal(result.timedOut,true);
+});
 function repo(t){
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-evidence-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
  const git=(...args)=>execFileSync('git',args,{cwd:root,windowsHide:true,stdio:'pipe'});

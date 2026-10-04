@@ -25,7 +25,7 @@ async function submit(hub,p){
   const run=book.data.runs.find(r=>r.id===args.runId);if(!run||require('./repair-policy.cjs').repairExhausted(run)||task.runId!==run.id||run.projectId!==args.projectId||run.revision!==args.expectedRevision||['paused','unknown','blocked','stopping','stopped'].includes(run.phase)||run.stopIntent)throw Error('Review run authority or revision changed.');
   if(!run.verification)throw Error('Missing main-held exact source verification.');
   const verdict={...claim,runId:run.id,assignmentId:task.assignmentId,reviewerTaskId:task.id,time:Date.now()};
-  validateReviewVerdict(verdict,{run,tasks:hub.state.tasks,source:run.verification.source,authors:run.verification.authors,authorSessions:book.data.runs.flatMap(r=>r.verification?.authorSessions||[])});
+  validateReviewVerdict(verdict,{run,tasks:hub.state.tasks,source:run.verification.source,authors:run.verification.authors,authorSessions:book.data.runs.flatMap(r=>[...(r.authorHistory||[]).filter(s=>s.state==='ready'),...(r.verification?.authorSessions||[])])});
   if(run.reviews.some(r=>r.id===verdict.id)||run.reviews.length>=256||(run.reviewCalls?.length||0)>=1000||run.revision===Number.MAX_SAFE_INTEGER)throw Error('Review record limit or duplicate verdict ID.');
   run.revision++;run.reviews.push(verdict);run.readiness=null;
   const repairs=verdict.decision==='request_changes'||verdict.findings.some(f=>f.status==='open'&&f.severity!=='minor');

@@ -32,3 +32,18 @@ unavailableServices. Entries contain bounded identifiers, source revision, time
 and fixed main-derived descriptions. No arbitrary transcript, tool configuration,
 thread/session identity or command output is copied. Formatting uses no provider.
 Imported news remains an independent archive.
+
+Reviewed correction: completion assessments pin the captured completed head.
+For a head not yet integrated, main resolves the original completed worker and
+its managed workspace from the durable receipt, verifies exact source and clean
+Git identity, and rechecks ownership/admission after awaits. Only this canonical
+read-only assessment may use that source workspace to create its pinned view;
+ordinary workspace sources remain restricted to the integration checkout.
+No new profile fields or general source-root authority are added.
+
+Report generation time is distinct from each evidence event time. Reviews retain
+their own source/time; checks use their source and corresponding combined-check
+receipt time. Missing trustworthy event time is null and rendered as unavailable.
+Acceptance cites its own receipt identity/time instead of a current Git head.
+Assessment resume resolves config first, then rechecks captured task/thread,
+assignment identity, open/control/live gates and budget immediately before resume.

@@ -23,7 +23,7 @@ function applyRunCommand(run,command,{now,actor=['plan','decide'].includes(comma
  if(run.phase==='unknown'&&!(policyStop&&a.type==='stop'&&actor==='captain'))throw Error('Run authority is uncertain; reconcile before changing work.');
  if(run.phase==='stopped')throw Error('This run has stopped. Create a new run for further work.');
  if(['stopping','paused'].includes(run.phase)&&actor==='coordinator')throw Error('Run is not accepting coordinator decisions.');
- const next=structuredClone(run),effects=[],events=[];
+ const next=structuredClone(run),effects=[],events=[];if(require('./repair-policy.cjs').repairExhausted(run))next.repairExhausted=true;
  if(next.revision===Number.MAX_SAFE_INTEGER||next.decisions.length>=1000||(next.events?.length||0)>=MAX_EVENTS)throw Error('Run record limit reached. Inspect and create a new run.');
  next.revision++;next.events??=[];next.blockers??=[];next.grantHistory??=[];next.coordinatorCalls??=[];next.disagreementRounds??=0;
  const event={id:'run-'+require('node:crypto').createHash('sha256').update(JSON.stringify([run.id,next.revision])).digest('hex'),runId:run.id,revision:next.revision,type:a.type,time:now,details:{}};
@@ -62,6 +62,7 @@ function applyRunCommand(run,command,{now,actor=['plan','decide'].includes(comma
  }
  if(a.decision){if(next.decisions.some(value=>value.id===a.decision.id))throw Error('Decision ID already exists.');next.decisions.push({...a.decision,runId:run.id,revision:next.revision,type:a.type,time:now,details:{...event.details}});}
  else next.decisions.push({id:event.id,runId:run.id,revision:next.revision,type:a.type,time:now,details:{},option:a.type,reason:a.reason||'Captain control',dissent:[],owner:'captain',nextAction:a.type==='stop'?'Confirm stopped work':'Inspect run',reopenEvidence:'New captain instruction'});
+ if(require('./repair-policy.cjs').repairExhausted(next)){next.repairExhausted=true;next.readiness=null;if(!['paused','stopping','stopped','unknown'].includes(next.phase))next.phase='blocked';}
  next.events.push(event);events.push(event);validateSupervisedRun(next);return {next,events,effects};
 }
 // A failed reliability gate cannot be bypassed by profile, renderer, model, or env.

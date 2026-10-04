@@ -23,10 +23,12 @@ function writeText(root,input,text,expectedHash){
 }
 function deriveStatus(status){if(!status)return 'unknown';const type=typeof status==='string'?status:status.type;if(type==='active')return status.activeFlags?.length?'waiting':'working';if(type==='idle')return 'idle';if(type==='systemError')return 'failed';return 'unknown';}
 class TaskGate{
- constructor(limit=3){this.limit=limit;this.active=new Map();}
- blocked(root){const normalized=path.resolve(root).toLowerCase();return [...this.active.values()].some(other=>inside(other,normalized)||inside(normalized,other));}
- acquire(id,root){const normalized=path.resolve(root).toLowerCase();if(this.active.has(id))throw Error('This task is already running');if(this.blocked(root))throw Error('A task is already writing in this checkout. Finish or interrupt it first.');if(this.active.size>=this.limit)throw Error('The active-run limit is reached. Finish or interrupt a task first.');this.active.set(id,normalized);}
- release(id){this.active.delete(id);}
+ constructor(limit=3){this.limit=limit;this.active=new Map();this.logical=new Map();}
+ root(root){return path.resolve(fs.existsSync(root)?fs.realpathSync(root):root).toLowerCase();}
+ reserve(id,root,scope={}){this.active.set(id,this.root(root));this.logical.set(id,{...scope});}
+ blocked(root,scope={}){const normalized=this.root(root);return [...this.active.values()].some(other=>inside(other,normalized)||inside(normalized,other))||[...this.logical.values()].some(other=>scope.projectId&&other.projectId===scope.projectId);}
+ acquire(id,root,scope={}){const normalized=this.root(root);if(this.active.has(id))throw Error('This task is already running');if(this.blocked(root,scope))throw Error('A task is already writing in this checkout. Finish or interrupt it first.');if(this.active.size>=this.limit)throw Error('The active-run limit is reached. Finish or interrupt a task first.');this.reserve(id,normalized,scope);}
+ release(id){this.active.delete(id);this.logical.delete(id);}
 }
 class StateStore{
  constructor(file){this.file=file;fs.mkdirSync(path.dirname(file),{recursive:true});}

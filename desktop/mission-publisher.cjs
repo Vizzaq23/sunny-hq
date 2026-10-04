@@ -75,10 +75,10 @@ class MissionPublication{
  async act(input,mode){
   const hub=this.hub;hub.validateMissionAction(input,mode==='prepare'?['missionId','revision','base']:mode==='publish'?['missionId','revision','previewId','confirmed']:['missionId','revision','prNumber']);
   const mission=hub.missionBook.get(input.missionId);hub.missionBook.check(mission,input.revision);if(mission.status!=='WAITING_FOR_REVIEW')throw Error('Finish the attempt before preparing a pull request.');
-  const project=hub.project(mission.projectId),lock='mission-publication:'+mission.id;
+  const project=hub.missionProject(mission),lock='mission-publication:'+mission.id;if(project.executionWorkspace)await hub.assertExecutionProject(project);
   hub.publicationRuns??=new Set();const recovering=mode==='reconcile'&&hub.gate.active.has(lock)&&!hub.publicationRuns.has(mission.id);
   if(hub.missionActions.has(mission.id)&&!recovering)throw Error('Reconcile the existing publication or wait for the current mission action.');
-  if(!recovering)hub.gate.acquire(lock,project.path);hub.missionActions.add(mission.id);hub.publicationRuns.add(mission.id);
+  if(!recovering)hub.gate.acquire(lock,project.path,{projectId:project.id,runId:mission.runId,integrating:true});hub.missionActions.add(mission.id);hub.publicationRuns.add(mission.id);
   let externalStarted=false,outcomeDurable=false;
   try{
    if(mode==='prepare'){
@@ -92,7 +92,7 @@ class MissionPublication{
     if(input.confirmed!==true||input.previewId!==preview.id||preview.state!=='prepared'||Date.now()>preview.expiresAt)throw Error('Review and confirm the current unexpired PR preview.');
     await hub.publisher.validate(project.path,preview);if(hub.closed||hub.quiescing)throw Error('Sunny closed before publication.');
     await hub.missionMutation(book=>{const current=book.get(mission.id);book.check(current,input.revision);current.prPublication.state='publishing';current.prPublication.authorizedAt=Date.now();book.record(current,'PR_PUBLISH_AUTHORIZED',{previewId:preview.id,actor:'captain'});},'publication-intent');
-    const authorized=mission.prPublication;await hub.publisher.validate(project.path,authorized);if(hub.closed||hub.quiescing)throw Error('Sunny closed before publication.');externalStarted=true;
+    const authorized=mission.prPublication;await hub.publisher.validate(project.path,authorized);if(hub.closed||hub.quiescing)throw Error('Sunny closed before publication.');if(project.executionWorkspace)await hub.assertExecutionProject(project);hub.assertOpenForEffect();externalStarted=true;
     try{const result=await hub.publisher.publish(project.path,authorized,()=>hub.assertOpenForEffect());const saved=await hub.missionMutation(book=>{const current=book.get(mission.id);if(current.prPublication?.id!==preview.id)throw Error('Publication intent changed.');current.prPublication.state='published';Object.assign(current.prPublication,result);book.record(current,'PR_CREATED',{previewId:preview.id,url:result.url});return current.prPublication;},'reservation-release');outcomeDurable=true;return saved;}
     catch(error){if(!hub.authorityQueue.uncertain)await hub.missionMutation(book=>{const current=book.get(mission.id);current.prPublication.state='uncertain';book.record(current,'PR_PUBLICATION_UNCERTAIN',{previewId:preview.id});});throw Error('Publication may have reached GitHub. Inspect the repository and reconcile the PR; Sunny will not retry automatically.');}
    }

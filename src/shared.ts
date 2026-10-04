@@ -7,6 +7,7 @@ export interface Crew {roleId?:string;capabilities?:string[];access?:CrewBinding
 export interface Project {id:string;name:string;path:string;category:string;notePath?:string;}
 export interface SkillChoice {id:string;revision:string;}
 export interface SkillOption extends SkillChoice {name:string;path:string;category:string;purpose:string;roles:string[];}
+export interface ExecutionSelection {projectId:string;taskId?:string;workspaceId?:string;runId?:string;}
 export interface Task {crewBinding?:CrewBinding;runId?:string;assignmentId?:string;workspaceId?:string;selectedSkills?:SkillOption[];jobId?:string;model?:string;effort?:string;selectionReason?:string;tokenUsage?:{total:{totalTokens:number;inputTokens:number;outputTokens:number;cachedInputTokens:number;reasoningOutputTokens:number}};captain?:boolean;parentTaskId?:string;id:string;title:string;projectId:string;crewId:CrewId;threadId?:string;status:string;createdAt:number;updatedAt:number;messages:Message[];turnId?:string;external?:boolean;error?:string;}
 export type TaskSummary=Omit<Task,'messages'> & {kind?:'conversation'|'supervised-assignment';transcriptRevision:number;messageCount:number;lastAssistantPreview?:string;latestActivity?:string};
 export interface MissionResultStatus {epoch:string;missionId:string;revision:number;attemptId?:string;resultId?:string;producerTaskId?:string;ref?:MissionResultRef;available:boolean;unavailable?:string;preview?:string;}
@@ -44,7 +45,8 @@ declare global {interface Window {sunny?:SunnyAPI;}}
 // task:send {taskId,prompt} -> void; task:interrupt {taskId}; task:handoff {taskId,crewId,prompt} -> TaskSummary
 // task:history {} -> external read-only thread summaries; task:readExternalPage {threadId,direction?,sessionId?,revision?,cursor?,limit?} -> bounded private history page; task:readExternal is a compatibility alias
 // codex:connect {}; codex:login {} -> {authUrl?}; approval:respond {id,decision:'accept'|'decline',answers?}
-// files:list {projectId,path?} -> FileEntry[]; files:read {projectId,path} -> FileData
+// Privileged file/Git/terminal creation requests accept ExecutionSelection IDs; main resolves the root.
+// files:list {projectId,taskId?,workspaceId?,runId?,path?} -> FileEntry[]; files:read {projectId,path} -> FileData
 // files:write {projectId,path,text,hash} -> FileData; files:search {projectId,query} -> {path,line,text}[]
 // git:status {projectId} -> {branch,files:{path,status}[],diff}; git:diff {projectId,path?} -> string
 // git:commit {projectId,paths,message} -> string; git:branches {projectId} -> string

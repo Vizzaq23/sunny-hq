@@ -7,7 +7,7 @@ function createPublicTransport(hub,options={}){
  const producer=createStateProjection(options);
  let bound=false;
  for(const task of hub.state.tasks)producer.summary(task);
- const context={getState:()=>hub.state,readArtifact:options.readArtifact||((artifact)=>hub.readMissionResultArtifact(hub.project(artifact.projectId),artifact))};
+ const context={getState:()=>hub.state,readArtifact:options.readArtifact||((artifact)=>hub.readVerifiedMissionResultArtifact(hub.project(artifact.projectId),artifact))};
  function member(projectId,taskId){
   if(hub.state.projects.filter(project=>project.id===projectId).length!==1)throw Error('Choose a unique registered project.');
   const matches=hub.state.tasks.filter(task=>task.id===taskId);

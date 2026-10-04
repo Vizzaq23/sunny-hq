@@ -11,7 +11,7 @@ class MissionMerge{
   const mission=hub.missionBook.get(input.missionId);hub.missionBook.check(mission,input.revision);
   if(mission.status!=='WAITING_FOR_REVIEW')throw Error('Finish and review the mission attempt first.');
   if(hub.missionActions.has(mission.id)||['publishing','uncertain'].includes(mission.prPublication?.state))throw Error('Finish or reconcile the current mission action first.');
-  const project=hub.project(mission.projectId),lock='mission-merge:'+mission.id;hub.gate.acquire(lock,project.path);hub.missionActions.add(mission.id);
+  const project=hub.missionProject(mission),lock='mission-merge:'+mission.id;if(project.executionWorkspace)await hub.assertExecutionProject(project);hub.gate.acquire(lock,project.path,{projectId:project.id,runId:mission.runId,integrating:true});hub.missionActions.add(mission.id);
   try{
    if(mode==='prepare'){
     if(['submitting','uncertain'].includes(mission.mergeRequest?.state))throw Error('Reconcile the existing merge request first.');

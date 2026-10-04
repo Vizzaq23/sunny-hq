@@ -58,7 +58,7 @@ class MissionEvidence {
   const file=path.join(root,'package.json');if(!fs.existsSync(file)||fs.statSync(file).size>1024*1024)throw Error('Project package.json is unavailable.');
   const pkg=JSON.parse(fs.readFileSync(file,'utf8'));if(typeof pkg.scripts?.[script]!=='string'||!pkg.scripts[script].trim())throw Error('The '+script+' script is unavailable in this project.');
   const before=await this.gitState(root),startedAt=Date.now(),runtime=this.runtime();
-  beforeEffect?.();
+  await beforeEffect?.();
   const result=await this.execute(runtime.node,runtime.npm,script,root);
   const after=await this.gitState(root);
   return {kind:'check',script,command:'npm run '+script,startedAt,recordedAt:Date.now(),durationMs:Date.now()-startedAt,...result,commit:before.commit,branch:before.branch,beforeFingerprint:before.fingerprint,fingerprint:after.fingerprint,status:result.timedOut||result.exitCode!==0?'failed':before.fingerprint!==after.fingerprint?'stale':'passed'};

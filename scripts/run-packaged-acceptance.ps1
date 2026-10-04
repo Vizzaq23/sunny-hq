@@ -4,7 +4,7 @@ param(
  [Parameter(Mandatory)][string]$Asar,
  [Parameter(Mandatory)][string]$Profile,
  [Parameter(Mandatory)][string]$Out,
- [ValidateSet('startup','renderer-crash','main-restart','worker-loss','write-failure','lost-ack','pending-approval','pending-check','normal-quit')][string]$Scenario='startup',
+ [ValidateSet('run-ui','startup','renderer-crash','main-restart','worker-loss','write-failure','lost-ack','pending-approval','pending-check','normal-quit')][string]$Scenario='startup',
  [ValidateSet(1,10,30)][int]$MiB=1,
  [ValidateRange(10000,300000)][int]$TimeoutMs=120000
 )
@@ -91,7 +91,7 @@ function Get-OwnedRunning {
 }
 try{
  $env:SUNNY_FIXTURE_NONCE=$nonce
- $phases=if($Scenario -eq 'main-restart'){@(1,2)}else{@(1)}
+ $phases=if($Scenario -in @('main-restart','run-ui')){@(1,2)}else{@(1)}
  $receipts=@()
  foreach($phase in $phases){
   if((Get-FileHash -LiteralPath $Exe -Algorithm SHA256).Hash.ToLowerInvariant() -ne $exeHash -or (Get-FileHash -LiteralPath $Asar -Algorithm SHA256).Hash.ToLowerInvariant() -ne $asarHash){throw 'Package bytes changed before launch.'}
@@ -124,7 +124,8 @@ try{
   if($receipts[0].pid -eq $receipts[1].pid){throw 'Restart did not produce a distinct main process.'}
   $before=$receipts[0].identity|ConvertTo-Json -Compress -Depth 10
   $after=$receipts[1].identity|ConvertTo-Json -Compress -Depth 10
-  if($before -ne $after -or -not $receipts[1].identity.uncertainReservation -or $receipts[1].identity.uncertainStatus -ne 'unknown'){throw 'Restart lost durable draft/result identity or uncertain reservation.'}
+  if($Scenario -eq 'main-restart' -and ($before -ne $after -or -not $receipts[1].identity.uncertainReservation -or $receipts[1].identity.uncertainStatus -ne 'unknown')){throw 'Restart lost durable draft/result identity or uncertain reservation.'}
+  if($Scenario -eq 'run-ui' -and (-not $receipts[1].runUI.restartDedup -or $receipts[0].runUI.requestId -ne $receipts[1].runUI.requestId)){throw 'Run UI restart lost the exact unresolved call receipt.'}
   $result.mainProcessRestart=$true
  }
  if((Get-FileHash -LiteralPath $Exe -Algorithm SHA256).Hash.ToLowerInvariant() -ne $exeHash -or (Get-FileHash -LiteralPath $Asar -Algorithm SHA256).Hash.ToLowerInvariant() -ne $asarHash){throw 'Package bytes changed after launch.'}

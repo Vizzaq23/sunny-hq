@@ -1,0 +1,24 @@
+import type {Snapshot,SupervisedRunSummary} from './shared';
+import {projectMission} from './missionProjection.ts';
+const identities=['luffy','zoro','nami','usopp','sanji','chopper','robin','franky','brook','jinbe','law','ace','vivi','perona','morgans'];
+export interface CrewRunView {run?:SupervisedRunSummary;label:string;working:boolean;nextAction:string;missionId?:string;attemptId?:string;taskId?:string;crew:{id:string;name:string;label:string;objective?:string;taskId?:string;working:boolean}[];}
+export function projectRun(snapshot:Snapshot,runId:string):CrewRunView {
+ const run=snapshot.runs?.find(r=>r.id===runId),tasks=snapshot.tasks??[];
+ const unavailable: CrewRunView={label:'Run unavailable',working:false,nextAction:'Restore or inspect the saved run selection.',crew:[]};if(!run)return unavailable;
+ const selected=snapshot.workspace?.context;
+ const mission=snapshot.missions?.find(m=>m.runId===run.id&&run.missionIds.includes(m.id)&&(!selected?.missionId||selected.runId!==run.id||m.id===selected.missionId));
+ const attemptId=selected?.runId===run.id&&selected.attemptId?selected.attemptId:mission?.activeAttemptId;
+ const projection=mission?projectMission(snapshot,{projectId:run.projectId,runId:run.id,missionId:mission.id,attemptId,surface:'deck',returnTo:{view:'ship'}}):undefined;
+ const storageBad=Boolean(snapshot.persistence?.uncertain||['uncertain','unsaved'].includes(snapshot.persistence?.state));
+ const unknown=run.phase==='unknown'||run.controlReport?.unknownEffects.length||run.assignments.some(a=>a.state==='unknown'||tasks.find(t=>t.id===a.taskId)?.status==='unknown');
+ const pending=snapshot.approvals?.some(a=>a.binding?.runId===run.id||run.assignments.some(v=>v.taskId===a.taskId));
+ const exhausted=(['launches','repairs','activeMs','tokens'] as const).some(k=>run.counters[k]>=(k==='launches'?run.grant.maxLaunches:k==='repairs'?run.grant.maxRepairs:k==='tokens'?run.grant.tokenLimit:run.grant.activeMs));
+ const working=!storageBad&&!unknown&&!pending&&!run.stopIntent&&!['waiting','paused','stopping','stopped','blocked','ready'].includes(run.phase)&&run.assignments.some(a=>a.state==='working'&&tasks.find(t=>t.id===a.taskId)?.status==='working');
+ const label=storageBad?'Storage needs recovery':unknown?'Work outcome unknown':pending?'Crew needs your input':projection?.state==='accepted'?'Accepted by captain':run.phase==='ready'&&projection?.state==='review'?'Luffy: ready for your review':run.phase==='ready'?'Result verification required':run.phase==='stopped'?'Stopped':run.phase==='blocked'?'Run blocked':working?'Crew working':run.phase[0].toUpperCase()+run.phase.slice(1);
+ const nextAction=storageBad?'Preserve drafts and recover saved storage.':unknown?'Inspect and reconcile uncertain effects before resuming.':pending?'Open the pending Den Den call.':exhausted?'Review the exhausted budget; work cannot resume within this grant.':run.blockers?.length?run.blockers.at(-1)!.reason:run.phase==='ready'?'Open the selected result and review each acceptance criterion.':run.phase==='stopped'?'Inspect the stop report and retained result.':run.phase==='paused'?'Review the saved run before explicitly resuming.':run.budget?.telemetryUncertain?'Usage unknown: at most one bounded worker may run.':'Inspect assignments, decisions and their evidence.';
+ const crew=identities.map(id=>{const assignment=run.assignments.find(a=>a.crewId===id),task=tasks.find(t=>t.id===assignment?.taskId),dependencies=assignment?.dependencies.filter(dep=>!['finished','cancelled'].includes(run.assignments.find(a=>a.id===dep)?.state??''))??[];
+  const active=Boolean(working&&assignment?.state==='working'&&task?.status==='working');
+  const state=storageBad&&assignment?'Storage needs recovery':unknown&&assignment?'Outcome unknown':assignment?.state==='queued'?dependencies.length?`Queued: dependencies ${dependencies.join(', ')}`:exhausted?'Queued: budget limit':`Queued: awaiting admission / capacity (${run.grant.maxWorkers} worker limit)`:assignment?.state==='working'&&!active?(pending?'Waiting for input':'Work not confirmed'):assignment?.state??(id==='morgans'?'Read-only reports':id==='luffy'?'Coordinator':snapshot.world?.residents.some(r=>r.id===id&&!r.recruited)?'Not recruited':'Available · unassigned');
+  return {id,name:id[0].toUpperCase()+id.slice(1),label:state,objective:assignment?.objective,taskId:assignment?.taskId,working:active};});
+ return {run,label,working,nextAction,missionId:mission?.id,attemptId,taskId:projection?.taskId,crew};
+}

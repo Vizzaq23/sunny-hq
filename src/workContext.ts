@@ -3,8 +3,9 @@ export function resolveWorkContext(context:WorkContext|null,snapshot:Snapshot):{
  if(!context)return {context:null};
  const unavailable=(item:string)=>({context,unavailable:`${item} unavailable. Your saved selection is retained.`});
  if(!snapshot.projects.some(p=>p.id===context.projectId))return unavailable('Project');
+ const run=context.runId?snapshot.runs?.find(r=>r.id===context.runId):undefined;if(context.runId&&(!run||run.projectId!==context.projectId))return unavailable('Run');
  const mission=context.missionId?(snapshot.missions??[]).find(m=>m.id===context.missionId):undefined;
- if(context.missionId&&(!mission||mission.projectId!==context.projectId))return unavailable('Mission');
+ if(context.missionId&&(!mission||mission.projectId!==context.projectId||run&&mission.runId!==run.id))return unavailable('Mission');
  const attempt=context.attemptId?mission?.attempts.find(a=>a.id===context.attemptId):undefined;
  if(context.attemptId&&!attempt)return unavailable('Attempt');
  const task=context.taskId?snapshot.tasks.find(t=>t.id===context.taskId):undefined;
@@ -15,7 +16,7 @@ export function sameResultRef(a:MissionResultRef|undefined,b:MissionResultRef|un
  if(!a||!b||a.kind!==b.kind||a.sha256!==b.sha256)return false;
  return a.kind==='reply'&&b.kind==='reply'?a.taskId===b.taskId&&a.messageId===b.messageId:a.kind==='deliverable'&&b.kind==='deliverable'&&a.artifactId===b.artifactId;
 }
-export function storageOutcomeUncertain(snapshot:Snapshot):boolean {return snapshot.persistence?.uncertain===true||snapshot.persistence?.state==='uncertain';}
+export function storageOutcomeUncertain(snapshot:Snapshot):boolean {return snapshot.persistence?.uncertain===true||['uncertain','unsaved'].includes(snapshot.persistence?.state);}
 export function resultStatusKey(snapshot:Snapshot,mission:Mission):string {
  const result=mission.selectedResult,producer=snapshot.tasks.find(t=>t.id===result?.producerTaskId);
  return JSON.stringify([snapshot.epoch,mission.projectId,mission.id,mission.revision,mission.activeAttemptId,mission.acceptancePending,storageOutcomeUncertain(snapshot),result?.id,result?.attemptId,result?.producerTaskId,result?.ref,producer?.transcriptRevision,producer?.status]);
@@ -32,10 +33,10 @@ export async function resolveReplyDisplay(ref:Extract<MissionResultRef,{kind:'re
  return {text:status.preview??''};
 }
 
-export function workspaceReturnTarget(context:WorkContext|null,selection:{projectId:string;missionId?:string;taskId?:string},view:string,embedded:boolean):WorkContext['returnTo']{
+export function workspaceReturnTarget(context:WorkContext|null,selection:{projectId:string;runId?:string;attemptId?:string;missionId?:string;taskId?:string},view:string,embedded:boolean):WorkContext['returnTo']{
  const sameProject=context?.projectId===selection.projectId;
  const sameMission=Boolean(selection.missionId&&context?.missionId===selection.missionId);
  const sameEmbeddedConversation=embedded&&!selection.missionId&&!context?.missionId&&Boolean(selection.taskId&&context?.taskId===selection.taskId);
  if(context&&sameProject&&(sameMission||sameEmbeddedConversation))return context.returnTo;
- return {view,projectId:selection.projectId,...(selection.missionId?{missionId:selection.missionId}:{})};
+ return {view,projectId:selection.projectId,...(selection.runId?{runId:selection.runId}:{}),...(selection.attemptId?{attemptId:selection.attemptId}:{}),...(selection.missionId?{missionId:selection.missionId}:{})};
 }

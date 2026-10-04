@@ -21,6 +21,7 @@ function references(reference,state){
 }
 function validateMembership(reference,state){
  const found=references(reference,state);
+ const run=state.runs?.find(r=>r.id===reference.runId);if(run&&(run.projectId!==reference.projectId||found.mission&&found.mission.runId!==run.id))throw Error('Workspace run membership mismatch.');
  if(found.task&&found.task.projectId!==reference.projectId)throw Error('Workspace task project membership mismatch.');
  if(found.mission&&found.mission.projectId!==reference.projectId)throw Error('Workspace mission project membership mismatch.');
  if(found.attempt&&(found.attempt.mission.projectId!==reference.projectId||(reference.missionId!==undefined&&found.attempt.mission.id!==reference.missionId)))throw Error('Workspace attempt mission membership mismatch.');

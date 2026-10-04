@@ -14,7 +14,7 @@ function emptyWorkspace(){return {version:1,revision:0,context:null,drafts:[],se
 function keys(value,allowed){return object(value)&&Object.keys(value).every(key=>allowed.includes(key));}
 function optionalIds(value,names){return names.every(name=>value[name]===undefined||id(value[name]));}
 function validContext(context){
- return keys(context,['projectId','missionId','attemptId','taskId','surface','returnTo'])&&id(context.projectId)&&optionalIds(context,['missionId','attemptId','taskId'])&&['deck','workbench','franky'].includes(context.surface)&&keys(context.returnTo,['view','projectId','missionId','taskId'])&&id(context.returnTo.view)&&optionalIds(context.returnTo,['projectId','missionId','taskId']);
+ return keys(context,['projectId','runId','missionId','attemptId','taskId','surface','returnTo'])&&id(context.projectId)&&optionalIds(context,['runId','missionId','attemptId','taskId'])&&['deck','workbench','franky'].includes(context.surface)&&keys(context.returnTo,['view','projectId','runId','attemptId','missionId','taskId'])&&id(context.returnTo.view)&&optionalIds(context.returnTo,['runId','attemptId','projectId','missionId','taskId']);
 }
 function validateWorkspace(workspace){
  if(!keys(workspace,['version','revision','context','drafts','seenAcceptanceIds'])||workspace.version!==1||!revision(workspace.revision)||(workspace.context!==null&&!validContext(workspace.context))||!denseArray(workspace.drafts)||workspace.drafts.length>50||!denseArray(workspace.seenAcceptanceIds)||workspace.seenAcceptanceIds.length>500||workspace.seenAcceptanceIds.some(value=>!id(value))||new Set(workspace.seenAcceptanceIds).size!==workspace.seenAcceptanceIds.length)throw Error('Invalid saved workspace data. Preserve the profile for recovery.');

@@ -3,7 +3,7 @@ export function taskWorkSelection(snapshot:Snapshot,init:{projectId?:string;runI
  const task=snapshot.tasks.find(t=>t.id===init.taskId),runId=init.runId??task?.runId;const ancestry:string[]=[];let owner=task;while(owner&&!ancestry.includes(owner.id)){ancestry.push(owner.id);owner=snapshot.tasks.find(t=>t.id===owner?.parentTaskId);}
  const mission=snapshot.missions?.find(m=>init.missionId?m.id===init.missionId:(!runId||m.runId===runId)&&m.taskIds.some(id=>ancestry.includes(id)))??(runId&&context?.runId===runId?snapshot.missions?.find(m=>m.id===context.missionId&&m.runId===runId):undefined);
  const attempt=mission?.attempts.find(a=>init.attemptId?a.id===init.attemptId:a.taskIds.some(id=>ancestry.includes(id)))??(runId&&context?.runId===runId?mission?.attempts.find(a=>a.id===context.attemptId):!task?mission?.attempts.find(a=>a.id===mission.activeAttemptId):undefined);
- return {projectId:init.projectId??task?.projectId??mission?.projectId,runId:runId??mission?.runId,missionId:mission?.id??init.missionId,attemptId:attempt?.id??init.attemptId,taskId:init.taskId};
+ return {projectId:init.projectId??task?.projectId??mission?.projectId,runId:runId??mission?.runId,missionId:mission?.id??init.missionId,attemptId:init.attemptId??attempt?.id,taskId:init.taskId};
 }
 export function resolveWorkContext(context:WorkContext|null,snapshot:Snapshot):{context:WorkContext|null;unavailable?:string}{
  if(!context)return {context:null};

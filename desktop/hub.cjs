@@ -461,14 +461,25 @@ class Hub extends EventEmitter {
  }
  cancelDiscussion(){this.discussionRun?.cancel();}
  async handoff({taskId,crewId,prompt}){this.assertMissionSendAllowed(taskId);const task=this.task(taskId);if(['working','starting','waiting'].includes(task.status))throw Error('Finish or interrupt this task before handing it off.');const latest=[...task.messages].reverse().find(m=>m.role==='assistant')?.text||'';return this.start({projectId:task.projectId,crewId,title:'Handoff: '+task.title,prompt:`Handoff from ${task.crewId}: ${task.title}\n\nPrevious result (verify against current files):\n${latest.slice(-14000)}\n\nYour objective:\n${prompt||'Review the previous work and report the next useful step.'}`});}
+ async accountRunUsage(threadId,tokenUsage,task){
+  const totalTokens=tokenUsage?.total?.totalTokens;if(!Number.isSafeInteger(totalTokens)||totalTokens<0)return;
+  // Identity comes from this provider transport, never an event-supplied provider.
+  const provider=task?.provider||'codex',currentRunIds=task?this.runIdsForTask(task):new Set();
+  if(!task&&!this.state.runs.some(run=>run.accounting?.usage.some(entry=>entry.provider===provider&&entry.threadId===threadId)))return;
+  if(task){if(!Number.isSafeInteger(task.tokenUsage?.total?.totalTokens)||totalTokens>=task.tokenUsage.total.totalTokens)task.tokenUsage=tokenUsage;this.changed();}
+  await this.missionMutation(book=>{for(let index=0;index<book.data.runs.length;index++){const run=book.data.runs[index];const ownsThread=run.accounting?.usage.some(entry=>entry.provider===provider&&entry.threadId===threadId);if(currentRunIds.has(run.id)||ownsThread)book.data.runs[index]=require('./run-budget.cjs').observeUsage(run,{provider,threadId,totalTokens,now:this.budgetNow()});}},'mission',{skipUnchanged:true});
+  await this.pollRunBudgets();
+ }
  async notification({method,params:p={}}){
  if(method==='account/updated'){this.state.codex.account=p.planType||p.authMode;this.state.codex.status=p.authMode?'connected':'sign-in required';this.changed();return;}
  if(method==='account/rateLimits/updated'){this.state.usage=p;this.changed();return;}
   if(method==='serverRequest/resolved'){const approval=this.state.approvals.find(a=>a.rpcId===p.requestId&&a.threadId===p.threadId);if(approval)this.resolveApproval(approval);return;}
   const threadId=p.threadId||p.thread?.id;if(typeof threadId!=='string'||!threadId.trim())return;
-  const task=this.state.tasks.find(t=>t.threadId===threadId);if(!task)return;
+  const task=this.state.tasks.find(t=>t.threadId===threadId);
+  if(method==='thread/tokenUsage/updated'){await this.accountRunUsage(threadId,p.tokenUsage,task);return;}
+  if(!task)return;
   if(method==='turn/started'&&(!['starting','working','waiting','unknown'].includes(task.status)||typeof p.turn?.id!=='string'||!p.turn.id||(task.turnId&&task.turnId!==p.turn.id)))return;
-  if(method==='thread/tokenUsage/updated'&&p.tokenUsage){const total=p.tokenUsage.total;if(total&&Number.isSafeInteger(total.totalTokens)&&total.totalTokens>=0){if(!Number.isSafeInteger(task.tokenUsage?.total?.totalTokens)||total.totalTokens>=task.tokenUsage.total.totalTokens)task.tokenUsage=p.tokenUsage;this.changed();await this.missionMutation(book=>{for(const id of this.runIdsForTask(task)){const index=book.data.runs.findIndex(value=>value.id===id);book.data.runs[index]=require('./run-budget.cjs').observeUsage(book.data.runs[index],{provider:task.provider||'codex',threadId,totalTokens:total.totalTokens,now:this.budgetNow()});}},'mission',{skipUnchanged:true});await this.pollRunBudgets();}return;}
+
   const resumedFromWait=['item/started','item/agentMessage/delta'].includes(method)&&this.quiescentTasks?.delete(task.id);
   if(['turn/started','turn/completed','thread/status/changed','error'].includes(method))this.bumpTask(task);
   if(method==='turn/started'){this.quiescentTasks?.delete(task.id);task.turnId=p.turn?.id;task.status='working';}

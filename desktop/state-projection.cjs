@@ -54,7 +54,7 @@ function createStateProjection({epoch=randomUUID()}={}){
   return out;
  }
  function snapshot(state){
-  const projected=project(state,stateSchema);
+  const projected=project(state,stateSchema);projected.crewReports=(state.runs||[]).slice(0,1000).map(run=>require('./crew-reports.cjs').buildCrewReport({run,missions:state.missions||[],now:Date.now()}));
   if(projected.runs)projected.runs=projected.runs.map((run,index)=>({...run,budget:{warningIssued:state.runs[index]?.accounting?.warningAt!==null&&state.runs[index]?.accounting?.warningAt!==undefined,clockUncertain:state.runs[index]?.accounting?.clock?.uncertain===true,telemetryUncertain:state.runs[index]?.accounting?.telemetryUncertain===true}}));
   if(projected.missions)projected.missions=projected.missions.map((mission,index)=>({...mission,acceptancePending:Boolean(state.missions[index]?.pendingAcceptance||state.missions[index]?.acceptanceRecovery)}));
   return {...projected,protocolVersion:2,epoch,sequence,taskSummaries:(state.tasks||[]).map(summary)};

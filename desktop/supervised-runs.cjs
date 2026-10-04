@@ -20,7 +20,7 @@ function applyRunCommand(run,command,{now,actor=['plan','decide'].includes(comma
  validateSupervisedRun(run);const a=validateRunCommand(command,actor);
  if(!Number.isFinite(now)||now<0)throw Error('Invalid supervision time.');
  if(a.runId!==run.id||a.projectId!==run.projectId||a.expectedRevision!==run.revision)throw Error('Run project or revision changed. Inspect the current run.');
- if(run.phase==='unknown'&&!(policyStop&&a.type==='stop'&&actor==='captain'))throw Error('Run authority is uncertain; reconcile before changing work.');
+ if(run.phase==='unknown'&&!(['stop','pause','redirect'].includes(a.type)&&actor==='captain'))throw Error('Run authority is uncertain; reconcile before changing work.');
  if(run.phase==='stopped')throw Error('This run has stopped. Create a new run for further work.');
  if(['stopping','paused'].includes(run.phase)&&actor==='coordinator')throw Error('Run is not accepting coordinator decisions.');
  const next=structuredClone(run),effects=[],events=[];if(require('./repair-policy.cjs').repairExhausted(run))next.repairExhausted=true;
@@ -28,10 +28,11 @@ function applyRunCommand(run,command,{now,actor=['plan','decide'].includes(comma
  next.revision++;next.events??=[];next.blockers??=[];next.grantHistory??=[];next.coordinatorCalls??=[];next.disagreementRounds??=0;
  const event={id:'run-'+require('node:crypto').createHash('sha256').update(JSON.stringify([run.id,next.revision])).digest('hex'),runId:run.id,revision:next.revision,type:a.type,time:now,details:{}};
  const block=(kind,reason)=>{if(next.blockers.length>=100)throw Error('Run blocker limit reached.');next.phase='blocked';next.blockers.push({id:event.id+':'+kind+':'+next.blockers.length,kind,reason,time:now,revision:next.revision});event.details.reason=reason;};
- if(a.type==='pause'){if(next.phase==='stopping')throw Error('Stopping work cannot be paused.');next.phase='paused';effects.push({type:'pause-work',runId:run.id,revision:next.revision});}
- if(a.type==='resume'){if(next.phase!=='paused')throw Error('Only paused runs can resume.');next.phase=next.blockers.length?'blocked':'planning';effects.push({type:'resume-planning',runId:run.id,revision:next.revision});}
+ if(a.type==='pause'){if(next.phase==='stopping')throw Error('Stopping work cannot be paused.');next.phase=next.assignments.some(live)||next.coordinator?'stopping':'paused';effects.push({type:'pause-work',runId:run.id,revision:next.revision});}
+ if(a.type==='resume'){if(next.phase!=='paused'||next.controlIntent?.state==='pending')throw Error('Only confirmed quiescent paused runs can resume.');const prior=next.controlIntent?.action==='pause'?next.controlIntent.resumePhase:undefined;delete next.controlIntent;delete next.controlReport;next.phase=next.blockers.length?'blocked':prior==='reviewing'?'reviewing':next.assignments.some(a=>a.state==='queued')?'waiting':'planning';effects.push({type:'resume-planning',runId:run.id,revision:next.revision});}
  if(a.type==='stop'){next.stopIntent={id:event.id,requestedBy:'captain',reason:a.reason||'Captain requested stop',time:now,revision:next.revision};next.phase=next.assignments.some(live)?'stopping':'stopped';effects.push({type:'stop-work',runId:run.id,revision:next.revision});}
- if(a.type==='redirect'){next.blockers=next.blockers.filter(item=>item.kind!=='intent');next.disagreementRounds=0;next.objective=a.objective;next.phase='paused';next.readiness=null;effects.push({type:'replan',runId:run.id,revision:next.revision});}
+ if(a.type==='redirect'){next.blockers=next.blockers.filter(item=>item.kind!=='intent');next.disagreementRounds=0;next.phase=next.assignments.some(live)||next.coordinator?'stopping':'paused';next.readiness=null;effects.push({type:'replan',runId:run.id,revision:next.revision});}
+ if(['pause','stop','redirect'].includes(a.type)){next.controlIntent={id:event.id,action:a.type,revision:next.revision,time:now,state:'pending',...(a.type==='pause'?{resumePhase:run.phase}:{}),...(a.type==='redirect'?{redirect:{objective:a.objective}}:{})};const queued=[];for(const item of next.assignments)if(['queued','reserved'].includes(item.state)&&!item.taskId){if(a.type!=='pause'||item.state==='reserved')item.state='cancelled';queued.push('assignment:'+item.id);}next.controlReport={runId:run.id,revision:next.revision,queuedCancelled:a.type==='pause'?[]:queued,interruptionRequested:[],confirmedStopped:[],unknownEffects:[],errors:[]};}
  if(a.type==='setGrant'){
   if(next.grantHistory.length>=100)throw Error('Grant history limit reached.');next.grantHistory.push({grant:structuredClone(next.grant),replacedAt:now,revision:next.revision,reason:a.reason});
   next.grant={...a.grant,version:1,revision:(next.grant.revision||0)+1};
@@ -39,13 +40,16 @@ function applyRunCommand(run,command,{now,actor=['plan','decide'].includes(comma
   const c=next.counters,g=next.grant;
   if(c.launches>=g.maxLaunches||c.repairs>g.maxRepairs||c.activeMs>=g.activeMs||c.tokens>=g.tokenLimit||next.assignments.filter(live).length>g.maxWorkers||missing.length&&next.assignments.some(item=>live(item)&&missing.includes(item.capability))){next.stopIntent={id:event.id,requestedBy:'policy',reason:'Captain lowered grant below consumed usage or active scope',time:now,revision:next.revision};next.phase=next.assignments.some(live)?'stopping':'stopped';effects.push({type:'stop-work',runId:run.id,revision:next.revision});}
  }
+ if(a.type==='setGrant'&&effects.some(e=>e.type==='stop-work')){next.controlIntent={id:event.id,action:'stop',revision:next.revision,time:now,state:'pending'};const queued=[];for(const item of next.assignments)if(['queued','reserved'].includes(item.state)&&!item.taskId){item.state='cancelled';queued.push('assignment:'+item.id);}next.controlReport={runId:run.id,revision:next.revision,queuedCancelled:queued,interruptionRequested:[],confirmedStopped:[],unknownEffects:[],errors:[]};}
  if(a.type==='plan'){
   if(!['planning','blocked','waiting'].includes(next.phase))throw Error('Run phase does not permit a new proposal.');
-  if(next.assignments.length)throw Error('Initial assignment proposal already exists.');
+  const historical=new Set((next.controlAttempts||[]).flatMap(a=>a.assignments.map(item=>item.id)));
+  if(next.assignments.some(a=>!historical.has(a.id)))throw Error('Initial assignment proposal already exists.');
+  if(a.assignments.some(item=>next.assignments.some(old=>old.id===item.id)))throw Error('Assignment ID already exists in a retained attempt.');
   if(a.assignments.length>next.grant.maxInitialAssignments)throw Error('Initial assignment limit exceeded.');
   for(const item of a.assignments){if(next.criteria&&!item.criteriaIds.every(id=>next.criteria.some(value=>value.id===id)))throw Error('Assignment criterion is outside the original criteria.');}
   require('./assignment-graph.cjs').validateAssignmentGraph(a.assignments,{scope:{activities:['read','write','test','review','research','build']},base:a.assignments[0].baseCommit});
-  next.assignments=a.assignments;
+  next.assignments.push(...a.assignments);
   const needed=requiredActivity;
   for(const item of next.assignments){const activity=needed[item.capability];if(!activity||!next.grant.scope.activities.includes(activity))block('scope','Missing captain scope for '+item.capability);}
   if(next.phase!=='blocked')next.phase='waiting';

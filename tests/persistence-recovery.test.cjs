@@ -10,6 +10,7 @@ const {openOrderedStore}=require('../desktop/ordered-store.cjs');
 const {Hub}=require('../desktop/hub.cjs');
 const {MissionBook}=require('../desktop/missions.cjs');
 const {receiptStore}=require('./helpers/receipt-store.cjs');
+test('shutdown quiesces scheduler before draining required receipts and never writes after uncertain flush',async t=>{const f=await require('./helpers/run-control-fixture.cjs').fixture(t),events=[];f.hub.scheduler();const barrier=f.hub.store.barrier;f.hub.store.barrier=async(image,reason)=>{events.push(reason);return barrier(image,reason);};f.hub.store.flush=async()=>{assert.equal(f.hub.scheduler().closed,true);throw Object.assign(Error('lost shutdown flush'),{code:'COMMIT_UNCERTAIN',uncertain:true});};await assert.rejects(f.hub.close(),/lost shutdown flush/);assert.equal(events.includes('shutdown'),false);assert.equal(f.hub.closed,undefined);assert.equal(f.hub.state.persistence.uncertain,true);});
 const lifecycle=()=>require('../desktop/persistence-lifecycle.cjs');
 const sha=text=>createHash('sha256').update(text).digest('hex');
 function fixture(t,kind='sqlite'){

@@ -59,7 +59,7 @@ async function handle(action,args={},surface='hub'){
  switch(action){
  case 'snapshot':return publicState();
  case 'run:create':return publicTransport.runReply(await hub.createRun(args));
- case 'run:control':return publicTransport.runReply((await hub.controlRun(args)).run);
+ case 'run:control':{const result=await hub.controlRun(args),run=publicTransport.runReply(result.run,result.report);return args.action!==undefined?{run,report:run.controlReport}:run;}
  case 'run:setGrant':return publicTransport.runReply((await hub.setRunGrant(args)).run);
  case 'run:inspect':return publicTransport.runReply(hub.inspectRun(args));
  case 'transcript:page':return publicTransport.page(args);

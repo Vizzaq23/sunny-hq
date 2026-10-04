@@ -19,6 +19,8 @@ async function bootHub({dataDir,home,catalog,openStore,HubClass}){
  try{
   const Constructor=HubClass||require('./hub.cjs').Hub;
   hub=new Constructor({home,store,catalog});
+  // Recovery rebuilds all owned-effect reservations before the caller can
+  // admit scheduling. It observes historical intent and never dispatches it.
   await hub.initializeRecovery();
   return hub;
  }catch(error){

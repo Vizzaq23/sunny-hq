@@ -2,6 +2,7 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const {createHash}=require('node:crypto');
 const {Hub}=require('../desktop/hub.cjs');
+test('whole run missing-thread attestation retains terminal descendant tool intent',async t=>{const f=await require('./helpers/run-control-fixture.cjs').fixture(t),parent=f.task('parent',{threadId:undefined,status:'unknown'});await f.own({...parent,threadId:'old'});f.task('child',{parentTaskId:parent.id,status:'finished',toolDispatchIntent:{id:'tool',name:'opaque'}});await assert.rejects(f.hub.resolveMissingThread({taskId:parent.id,expectedUpdatedAt:1,confirmedStopped:true}),/effect|descendant/);assert.equal(parent.status,'unknown');});
 function fixture(t){
  let sequence=0;
  const store={load:()=>({projects:[{id:'p',path:process.cwd()}],tasks:[{id:'t',projectId:'p',crewId:'franky',threadId:'th',turnId:'turn',status:'idle',messages:[]}]}),barrier:async image=>({epoch:'test',sequence:++sequence,stateSha256:createHash('sha256').update(JSON.stringify(image)).digest('hex'),durableAt:Date.now()}),checkpoint:async function(image){return this.barrier(image);},flush:async()=>null,close:async()=>{}};

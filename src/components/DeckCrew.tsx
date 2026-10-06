@@ -3,11 +3,12 @@ import type {Crew} from '../shared';
 import type {Walker} from '../deckMotion';
 import {ACTIONS,type Moment} from '../crewLife';
 import type {MissionProjection} from '../missionProjection';
+import {crewSceneStatus} from '../roomActivity';
 
 const ROUTINES:Record<string,string>={luffy:'Studying a map',zoro:'Maintaining swords',nami:'Checking charts',usopp:'Tinkering',sanji:'Cooking',chopper:'Sorting supplies',robin:'Reading',franky:'Maintaining the ship',brook:'Practicing music',jinbe:'Tending the helm'};
 export function DeckCrew({crew,index,walker,state,projection,selected,moment,line,textures,onSelect,onHover}:{crew:Crew;index:number;walker:Walker;state:string;projection?:MissionProjection;selected:boolean;moment:Moment|null;line?:{crew:string;text:string};textures:{walk?:string;pet?:string;actions?:string;fallback?:string;chopper:string};onSelect:()=>void;onHover:(hover:boolean)=>void}){
  const chopper=crew.id==='chopper',action=moment?.cast.includes(crew.id)?ACTIONS[crew.id]:undefined,performing=Boolean(action&&textures.actions&&(!projection||projection.state==='idle')),acting=performing&&!walker.moving;
- const working=state==='working'&&!walker.moving&&(!projection||projection.working&&projection.crewId===crew.id&&(crew.id!=='franky'||!projection.stage||projection.stage==='work')),chores=state==='idle'&&walker.mode==='chore'&&!walker.moving&&!selected&&!projection?.missionId;
+ const working=state==='working'&&!walker.moving&&(!projection||crewSceneStatus(projection)==='working'&&projection.crewId===crew.id),chores=state==='idle'&&walker.mode==='chore'&&!walker.moving&&!selected&&(!projection||projection.state==='idle'&&!projection.taskId&&!projection.missionId);
  const petState=walker.moving?(walker.facing===1?'walk-right':'walk-left'):selected&&state==='idle'?'greeting':working||chores?'working':state;
  const start=-(index%2)*288,end=start-288,row=Math.floor(index/2),stateStart=start-(working||chores?144:0);
  let spriteClass='',style:CSSProperties={};

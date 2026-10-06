@@ -1,5 +1,21 @@
 # Sunny HQ artwork
 
+## Full roster reuse — 2026-10-05
+
+Task17 changes renderer labels, direct destinations and state projection only.
+All original image bytes, source/prompt records, atlas layouts and measured
+Franky/quarters/deck geometry remain unchanged. Ten core crew retain their
+existing rooms and atlases; four residents use their existing idle cell at their
+saved districts; Morgans keeps the blimp and sanitized-report-only navigation.
+No new source, sample, crop, exported frame or license is added. Other specialist
+and resident scene entries explicitly have null rest/work anchors and no route.
+
+Hash/container-dimension regressions preserve Chopper, Sunny and Franky source
+contracts; the actual-PNG Franky extraction regression retains its independent
+sole offsets. Native roster/state/reduced-motion, keyboard and 200% text visual
+inspection remains pending during host crash/hang diagnosis. This record is
+source reuse documentation, not fresh visual or performance admission.
+
 Generated on 2026-09-11 with the built-in Codex `image_gen` tool. The files in this directory are project copies; the original generated outputs remain in the Codex generated-images directory.
 
 ## `thousand-sunny.png`

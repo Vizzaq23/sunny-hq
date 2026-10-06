@@ -1,5 +1,26 @@
 # Sunny world bible
 
+## Fifteen direct scene destinations — 2026-10-05
+
+Island and project quarters expose a keyboard-focusable roster of ten core crew,
+four residents and Morgans. Crew buttons open the existing conversation path;
+Morgans opens the news blimp's read-only briefings. Inspect controls open the exact
+selected crew task without waiting for travel. Reporter access remains excluded
+from task-capable crew. Resident districts remain saved choices.
+
+The read-only scene projection now follows the selected supervised run's current
+assignment, retains historical selections, suppresses ambiguous assignments and
+checks worker ancestry against an explicit mission attempt. Run stop, recovery,
+waiting, block and ready states cannot borrow a working task's animation. A
+review stage uses a still pose. Scene pause changes presentation only; task and
+run authority continue updating. Decorative room illustrations remain static;
+only existing measured Franky/quarters/deck geometry is reused. No new world,
+game, provider, persistence schema, dependency or artwork is introduced.
+
+Native state/reduced-motion captures, keyboard journeys, 200% text and exact
+package proof are pending while host crash/hang diagnosis is open. Source checks
+do not admit installed rollout or waive the Stage A performance gate.
+
 The captain leads a living digital crew from Sunny HQ. Projects are destinations, meaningful objectives are missions, and durable evidence belongs in the logbook. The One Piece-inspired premise is permanent; real work and clear controls determine what happens underneath it.
 
 ## Places that exist

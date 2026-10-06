@@ -1,5 +1,29 @@
 # Sunny art bible
 
+## Full roster source extension — 2026-10-05
+
+The shared scene catalog exposes fifteen distinct destinations: ten core crew,
+four residents, and Morgans' read-only news blimp. Each configuration records
+station, atlas reference, state cues and direct navigation. Only the specialist
+Franky scene has admitted rest/work feet and a route. All other specialist and
+resident configurations explicitly retain null anchors and empty routes; their
+decorative room art is not an actor floor. Existing quarters lanes and deck
+geometry remain unchanged. Residents keep their saved districts and a static
+idle atlas cell; no unmeasured work-prop cell or new room travel is admitted.
+
+Scene work follows the authoritative selected run and current assignment, with
+retained historical attempts kept distinct. Review, uncertainty, failed work and
+run stop/pause/block gates stop purposeful work. Visual pause freezes travel and
+frame animation while status still updates; an obsolete Franky work frame clears
+even while paused. System/user reduced motion and the existing opt-in arrival
+audio and durable acceptance-cue contracts remain in force. No bitmap, atlas
+geometry, sound sample, dependency or provenance changed.
+
+Task17 source and tests are separate from native art admission. Exact-package
+captures for the state matrix, all destinations, keyboard routing and 200% text
+remain pending while native crash/hang diagnosis is open. The existing performance
+protocol and failed Stage A promotion gate remain binding.
+
 Established 2026-09-21 from inspected `island-world.png`, `crew-pet-states.png`, existing rendering code and [artwork provenance](../public/assets/ARTWORK.md). A separately named supplied pixel-art sheet was not located; the existing Chopper atlas is the documented user-selected anchor. Do not claim an unseen sheet was reviewed.
 
 ## Identity and current reality

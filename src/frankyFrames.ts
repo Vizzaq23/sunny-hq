@@ -52,8 +52,8 @@ export function frankyBuildCaption(projection:MissionProjection,scene:FrankyScen
 export function stepFrankyScene(scene:FrankyScene,projection:MissionProjection,elapsed:number,reducedMotion:boolean,paused:boolean):FrankyScene{
  const building=frankyBuilding(projection);
  if(reducedMotion)return {progress:building?1:0,frame:building?2:0,moving:false,clock:0};
- if(paused)return {...scene,moving:false};
  if(!building)return {...scene,frame:0,moving:false,clock:0};
+ if(paused)return {...scene,moving:false};
  const dt=Math.min(.1,Math.max(0,elapsed)),progress=Math.min(1,scene.progress+dt/3),clock=progress===1?(scene.clock??0)+dt:0;
  return {progress,frame:progress===1?2+Math.floor(clock/.65)%2:0,moving:progress<1,clock};
 }

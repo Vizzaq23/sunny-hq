@@ -1,16 +1,17 @@
 import {useEffect,useRef,useState} from 'react';
 import type {Snapshot} from '../shared';
 import {CREW} from '../data';
-import {CrewBadge} from '../components/Chrome';
 import {RoomActors} from '../components/RoomActors';
+import {WorldRoster} from '../components/WorldRoster';
 import {ProjectHealth} from '../components/ProjectHealth';
 import {ROOM_STATION_CREW,ROOM_STATION_X,ROOM_BOARD_X,moveRoomCaptain,nearRoomBoard} from '../roomMotion';
 import {roomCrew,roomSignals} from '../roomActivity';
 import {MissionBoard} from './MissionBoard';
 import './project-room.css';
 type Invoke=<T=unknown>(action:string,args?:unknown)=>Promise<T>;
-export function ProjectRoom({projectId,snapshot,invoke,onBack,onOpen}:{projectId:string;snapshot:Snapshot;invoke:Invoke;onBack:()=>void;onOpen:(taskId:string)=>void}){
+export function ProjectRoom({projectId,snapshot,invoke,onBack,onOpen,onCrew,onBriefings}:{projectId:string;snapshot:Snapshot;invoke:Invoke;onBack:()=>void;onOpen:(taskId:string)=>void;onCrew:(crewId:string)=>void;onBriefings:()=>void}){
  const project=snapshot.projects.find(p=>p.id===projectId),[board,setBoard]=useState(false),[position,setPosition]=useState({x:ROOM_BOARD_X,y:74}),[error,setError]=useState('');
+ const [paused,setPaused]=useState(false);
  const [markingSignal,setMarkingSignal]=useState(false),[onlyUnseen,setOnlyUnseen]=useState(false);
  const [focusMission,setFocusMission]=useState<{id:string;sequence:number}>();
  const boardRef=useRef<HTMLDivElement>(null);
@@ -30,12 +31,12 @@ export function ProjectRoom({projectId,snapshot,invoke,onBack,onOpen}:{projectId
    <img className="room-illustration" src={new URL(`${import.meta.env.BASE_URL}assets/project-quarters.png`,location.href).href} alt="Sunlit timber project quarters with a map desk, shipwright bench, review desk and clear walking floor." draggable={false}/>
    <button style={{left:`${ROOM_BOARD_X}%`}} className="room-mission-board" onClick={()=>setBoard(true)}><b>Mission board</b><span>{missions.filter(m=>m.status==='WAITING_FOR_REVIEW').length} ready for review</span></button>
    <div className="room-stations">{ROOM_STATION_CREW.map((id,lane)=>{const c=CREW.find(c=>c.id===id)!;const activity=roomCrew(snapshot,projectId,c.id),task=activity.task;return <button key={c.id} data-station-crew={c.id} style={{left:`${ROOM_STATION_X[lane]}%`}} disabled={!task} className={`room-station ${activity.working?'occupied':''}`} onClick={()=>task&&onOpen(task.id)}><strong>{c.name}</strong><span>{c.role}</span><small>{activity.state}</small></button>;})}</div>
-   <RoomActors snapshot={snapshot} projectId={projectId} onOpen={onOpen}/>
+   <RoomActors snapshot={snapshot} projectId={projectId} onOpen={onOpen} paused={paused}/>
    <div className="room-captain" style={{left:`${position.x}%`,top:`${position.y}%`}} aria-hidden="true"><span>☀</span><b>You · Captain</b></div>
    <span className="room-position" role="status">{nearRoomBoard(position)?'Press Enter to open the mission board':'Walk toward the board, or select it directly.'}</span>
   </div>
-  <div className="room-movement" aria-label="Captain movement"><button aria-label="Walk left" onClick={()=>move(-4,0)}>←</button><button aria-label="Walk forward" onClick={()=>move(0,-4)}>↑</button><button aria-label="Walk back" onClick={()=>move(0,4)}>↓</button><button aria-label="Walk right" onClick={()=>move(4,0)}>→</button><button onClick={()=>setBoard(b=>!b)}>{board?'Close mission board':'Open mission board'}</button></div>
-  <section className="room-crew-roster" aria-label="Project crew stations">{CREW.map(c=>{const activity=roomCrew(snapshot,projectId,c.id);return <button key={c.id} data-crew={c.id} data-state={activity.state} className={`room-crew-card ${activity.attention?'needs-attention':''} ${activity.working?'is-working':''}`} disabled={!activity.task} onClick={()=>activity.task&&onOpen(activity.task.id)}><CrewBadge crew={c}/><span><strong>{c.name}</strong><small>{c.role}</small><b>{activity.state}</b><span>{activity.task?.title??'No assignment in this project'}</span>{activity.mission?<small>Mission: {activity.mission.title}</small>:null}{activity.activeCount>1?<small>{activity.activeCount} active assignments · open selected task</small>:null}</span></button>;})}</section>
+  <div className="room-movement" aria-label="Captain movement"><button aria-pressed={paused} onClick={()=>setPaused(value=>!value)}>{paused?'Resume visuals':'Pause visuals'}</button><button aria-label="Walk left" onClick={()=>move(-4,0)}>←</button><button aria-label="Walk forward" onClick={()=>move(0,-4)}>↑</button><button aria-label="Walk back" onClick={()=>move(0,4)}>↓</button><button aria-label="Walk right" onClick={()=>move(4,0)}>→</button><button onClick={()=>setBoard(b=>!b)}>{board?'Close mission board':'Open mission board'}</button></div>
+  <WorldRoster snapshot={snapshot} projectId={projectId} onCrew={onCrew} onBriefings={onBriefings} onOpen={onOpen}/>
   <section className="panel room-event-log" aria-label="Transponder signals"><h3>Transponder signals · {unseen} unseen</h3><p>Showing up to eight {onlyUnseen?'unseen':'recent'} signals. Marking seen does not approve requests or resolve blockers.</p><button aria-pressed={onlyUnseen} onClick={()=>setOnlyUnseen(value=>!value)}>{onlyUnseen?'Show recent signals':'Show unseen signals'}</button>{signals.length?<ol>{signals.map(e=><li key={e.id} data-signal-id={e.id} data-seen={e.seen}><time dateTime={new Date(e.time).toISOString()}>{new Date(e.time).toLocaleTimeString()}</time><span><strong>{e.title}</strong><small>{e.type.replaceAll('_',' ').toLowerCase()} · {e.seen?'Seen':'New'}</small></span><button onClick={()=>openMission(e.missionId)}>Inspect mission</button>{!e.seen?<button disabled={markingSignal} onClick={()=>void markSeen(e)}>Mark seen</button>:null}</li>)}</ol>:<p>{onlyUnseen?'No unseen signals.':'No mission signals yet.'}</p>}</section>
   <ProjectHealth missions={missions} projectId={projectId} onMission={openMission}/>
   {board?<div ref={boardRef} tabIndex={-1} role="region" aria-label="Project mission board"><MissionBoard focusMission={focusMission} snapshot={{...snapshot,projects:[project],missions}} invoke={invoke} onOpen={onOpen}/></div>:null}

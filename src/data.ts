@@ -1,6 +1,7 @@
 import islandResidents from '../desktop/island-residents.json';
 import crewBindings from '../desktop/crew-bindings.json';
 import type {Crew, CrewId, Snapshot} from './shared';
+import {FRANKY_ROOM_GEOMETRY} from './frankyFrames';
 
 export const CREW: Crew[] = [
   {id:'luffy',name:'Luffy',role:'Captain & Pathfinder',color:'#df5b3f',station:'Lion’s Head',description:'Turns a fuzzy ambition into a brave, concrete first move.'},
@@ -20,6 +21,14 @@ function withBinding(member:Crew):Crew {const binding=crewBindings.find(value=>v
 export const ALL_CREW=[...CREW,...RESIDENT_CATALOG].map(withBinding);
 export const REPORTING_CREW=crewBindings.filter(value=>value.access==='sanitized-report');
 export const CREW_BY_ID = new Map<CrewId,Crew>(ALL_CREW.map(member=>[member.id,member]));
+
+type ScenePoint={x:number;y:number};
+export interface WorldScene {crewId:string;name:string;station:string;access:Crew['access'];district?:string;restAnchor:ScenePoint|null;workAnchor:ScenePoint|null;route:readonly ScenePoint[];atlasRef:string;destination:{kind:'crew'|'briefings';crewId:string};stateCues:Record<string,string>;}
+const stateCues={idle:'Standing by',working:'Confirmed work',input:'Needs your input',approval:'Needs approval',waiting:'Waiting',unknown:'Check connection',failed:'Failed',stopped:'Stopped',review:'Ready to review',accepted:'Accepted by captain'};
+// Decorative specialist backdrops have no admitted actor floor. Only Franky's
+// specialist scene uses measured anchors; quarters/deck keep their own geometry.
+export const WORLD_SCENES:WorldScene[]=[...ALL_CREW.map(c=>({crewId:c.id,name:c.name,station:c.station,access:c.access,district:c.district,restAnchor:c.id==='franky'?FRANKY_ROOM_GEOMETRY.rest:null,workAnchor:c.id==='franky'?FRANKY_ROOM_GEOMETRY.bench:null,route:c.id==='franky'?FRANKY_ROOM_GEOMETRY.path:[],atlasRef:c.id==='chopper'?'chopper-pet.webp':c.spriteRow!==undefined?'island-residents.png':'crew-pet-states.png',destination:{kind:'crew' as const,crewId:c.id},stateCues})),{crewId:'morgans',name:'Morgans',station:'News blimp',access:'sanitized-report',restAnchor:null,workAnchor:null,route:[],atlasRef:'morgans-blimp-key.png',destination:{kind:'briefings',crewId:'morgans'},stateCues}];
+export function worldScene(snapshot:Snapshot,crewId:string):WorldScene|undefined {const scene=WORLD_SCENES.find(c=>c.crewId===crewId);if(!scene)return;const resident=snapshot.world?.residents.find(r=>r.id===crewId);return resident?{...scene,district:resident.district}:scene;}
 
 export const EMPTY_SNAPSHOT: Snapshot = {
   protocolVersion:2,epoch:'',sequence:0,

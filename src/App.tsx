@@ -15,7 +15,7 @@ import {CrewRunPanel} from './components/CrewRunPanel';
 import {CaptainLog} from './components/CaptainLog';
 import {FrankyWorkshop} from './components/FrankyWorkshop';
 import {projectMission} from './missionProjection';
-import {roomRequest} from './roomActivity';
+import {roomRequest,crewSceneProjection} from './roomActivity';
 import {resolveWorkContext,workspaceReturnTarget,taskWorkSelection} from './workContext';
 import {updateWorkspace} from './useDraft';
 const Workbench=lazy(()=>import('./views/Workbench').then(module=>({default:module.Workbench})));
@@ -51,7 +51,8 @@ export default function App(){
  const removeProject=async(projectId:string)=>{await invoke('project:remove',{projectId});sunny.setSnapshot(prev=>({...prev,projects:prev.projects.filter(p=>p.id!==projectId)}));toast('Project removed from Sunny HQ.','success');};
  const topActions=useMemo(()=>view==='projects'?<button className="top-action" onClick={()=>void importProject()}><FolderPlus/>Import</button>:<button className="top-action" onClick={()=>navigate('home')}><Plus/>New goal</button>,[view,workspace]);
  const resolved=resolveWorkContext(context,snapshot);
- const projection=context?projectMission(snapshot,context):undefined;
+ const selectedProjection=context?projectMission(snapshot,context):undefined;
+ const projection=context&&selectedProjection?.crewId?crewSceneProjection(snapshot,selectedProjection.crewId,context):selectedProjection;
  const inFrankyRoom=Boolean(context?.surface==='franky'&&view==='ship'&&!workspace);
  const openFrankyRoom=()=>{if(!context||!guard.current())return;opener.current=document.activeElement instanceof HTMLElement?document.activeElement:null;persistContext({...context,surface:'franky',returnTo:workspaceReturnTarget(context,context,view,Boolean(workspace))});setWorkspace(null);setView('ship');};
  const inspectRoom=()=>{if(projection?.taskId)openWorkspace({projectId:context?.projectId,missionId:projection.missionId,attemptId:projection.attemptId,taskId:projection.taskId});else if(context)selectContext({...context,surface:'deck'});};
@@ -73,7 +74,7 @@ export default function App(){
      {view==='home'?<HomeView launchPending={launchPending} onLaunchPending={setLaunchPending} snapshot={snapshot} invoke={invoke} onWorkspace={openWorkspace} onImport={()=>void importProject()} onExplore={()=>navigate('island')} onSettings={()=>navigate('settings')} onMission={mission=>selectContext({projectId:mission.projectId,runId:mission.runId,missionId:mission.id,attemptId:mission.activeAttemptId,surface:'deck',returnTo:{view:'ship',projectId:mission.projectId,runId:mission.runId,missionId:mission.id}})}/>:null}
      {view==='ship'?<><details className="journey-scene" open={sceneExpanded} onToggle={e=>setSceneExpanded(e.currentTarget.open)}><summary>The Sunny deck</summary><ShipView compact context={context} snapshot={snapshot} onWorkspace={openWorkspace} onNavigate={navigate} onImport={()=>void importProject()} invoke={invoke} toast={toast}/></details><HomeView launchPending={launchPending} onLaunchPending={setLaunchPending} snapshot={snapshot} invoke={invoke} onWorkspace={openWorkspace} onImport={()=>void importProject()} onExplore={()=>navigate('island')} onSettings={()=>navigate('settings')} onMission={mission=>selectContext({projectId:mission.projectId,runId:mission.runId,missionId:mission.id,attemptId:mission.activeAttemptId,surface:'deck',returnTo:{view:'ship',projectId:mission.projectId,runId:mission.runId,missionId:mission.id}})}/></>:null}
      {view==='missions'?<><MissionBoard snapshot={snapshot} invoke={invoke} onOpen={(taskId,selection)=>openWorkspace({taskId,...selection})} focusMission={context?.missionId?{id:context.missionId,sequence:0}:undefined} onSelectMission={mission=>persistContext({projectId:mission.projectId,runId:mission.runId,missionId:mission.id,attemptId:mission.activeAttemptId,surface:'deck',returnTo:{view:'ship',projectId:mission.projectId,runId:mission.runId,missionId:mission.id}})}/><details><summary>Conversation starters</summary><MissionsView automations={snapshot.automations} onStart={(crewId,prompt)=>openWorkspace({projectId:activeProjectId,crewId,prompt})}/></details></>:null}
-     {view==='island'&&roomProjectId?<ProjectRoom projectId={roomProjectId} snapshot={snapshot} invoke={invoke} onBack={()=>setRoomProjectId(undefined)} onOpen={taskId=>openWorkspace({taskId})}/>:null}
+     {view==='island'&&roomProjectId?<ProjectRoom projectId={roomProjectId} snapshot={snapshot} invoke={invoke} onBack={()=>setRoomProjectId(undefined)} onOpen={taskId=>openWorkspace({taskId})} onCrew={crewId=>openWorkspace({projectId:roomProjectId,crewId})} onBriefings={()=>navigate('news')}/>:null}
      {view==='island'&&!roomProjectId?<IslandView onProjectRoom={id=>setRoomProjectId(id)} snapshot={snapshot} invoke={invoke} onWorkspace={openWorkspace} onShip={()=>navigate('ship')} onNews={()=>navigate('news')}/>:null}
      {view==='news'?<MorgansView snapshot={snapshot} invoke={invoke} onWorkspace={openWorkspace} onBack={()=>navigate('island')}/>:null}
      {view==='projects'?<ProjectsView projects={snapshot.projects} tasks={snapshot.tasks} onImport={()=>void importProject()} onOpen={id=>openWorkspace({projectId:id})} onRemove={id=>void removeProject(id)}/>:null}

@@ -1,9 +1,14 @@
-import type {Snapshot,TaskSummary as Task,WorkContext} from './shared';
+import type {Snapshot,TaskSummary as Task,WorkContext,SupervisedAssignmentSummary} from './shared';
 import {projectMission,type MissionProjection} from './missionProjection.ts';
 import {projectRun} from './runProjection.ts';
 import {storageOutcomeUncertain} from './workContext.ts';
 const activeStatuses=new Set(['starting','working','running','in-progress','waiting','awaiting-approval','unknown']);
 const roleStages:Record<string,string>={nami:'plan',franky:'work',zoro:'review',usopp:'validate',sanji:'work',chopper:'work',robin:'work',brook:'work',jinbe:'work'};
+function reviewSceneAssignment(assignment:SupervisedAssignmentSummary|undefined){
+ // Main admits canonical review assignments by selected capability. The one
+ // canonical review-only role is a conservative fallback for older summaries.
+ return assignment?.capability==='review'||assignment?.crewId==='zoro'&&assignment.roleId==='reviewer'&&assignment.capability===undefined;
+}
 export function crewSceneStatus(projection:MissionProjection){
  if(projection.stage==='review')return 'waiting';
  if(projection.working&&projection.state==='working'&&projection.stage&&roleStages[projection.crewId??'']&&roleStages[projection.crewId!]!==projection.stage)return 'waiting';
@@ -33,6 +38,9 @@ export function crewSceneProjection(snapshot:Snapshot,crewId:string,context:Work
   if(!task||task.projectId!==run.projectId||task.crewId!==crewId||task.runId!==run.id||task.external)return {...idle(),state:'unknown',label:'Assignment task unavailable'};
   const projection=projectMission(snapshot,{...context,missionId:undefined,attemptId:undefined,taskId:task.id});
   if(!member.working&&projection.working){const state=view.label.includes('unknown')||view.label.includes('recovery')?'unknown':run.phase==='stopped'?'stopped':run.phase==='ready'?'review':'waiting';return {...projection,state,label:view.working?member.label:view.label,working:false};}
+  const assignment=run.assignments.find(a=>a.crewId===crewId&&a.taskId===member.taskId&&a.state==='working');
+  if(member.working&&projection.working&&reviewSceneAssignment(assignment))return {...projection,stage:'review',label:'Reviewing',working:false};
+  if(run.phase==='reviewing'&&projection.working)return {...projection,state:'waiting',label:'Waiting during independent review',working:false};
   return {...projection,working:member.working&&projection.working};
  }
  if(context){const selected=projectMission(snapshot,context),task=snapshot.tasks.find(t=>t.id===selected.taskId),mission=snapshot.missions?.find(m=>m.id===selected.missionId),runId=task?.runId??mission?.runId;if(runId&&selected.state!=='unknown')return crewSceneProjection(snapshot,crewId,{...context,runId});return selected.crewId===crewId?{...selected,working:selected.working&&!storageOutcomeUncertain(snapshot)}:selected.state==='unknown'?{...selected,crewId,working:false}:idle();}

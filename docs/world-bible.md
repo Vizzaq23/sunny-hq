@@ -12,7 +12,10 @@ The read-only scene projection now follows the selected supervised run's current
 assignment, retains historical selections, suppresses ambiguous assignments and
 checks worker ancestry against an explicit mission attempt. Run stop, recovery,
 waiting, block and ready states cannot borrow a working task's animation. A
-review stage uses a still pose. Scene pause changes presentation only; task and
+review stage or exact selected review-capability assignment uses a still pose,
+including ordinary run children without a workflow stage. A creative-reviewer
+using creative/design capability remains authored work; review phase alone never
+relabels an author as a reviewer. Scene pause changes presentation only; task and
 run authority continue updating. Decorative room illustrations remain static;
 only existing measured Franky/quarters/deck geometry is reused. No new world,
 game, provider, persistence schema, dependency or artwork is introduced.

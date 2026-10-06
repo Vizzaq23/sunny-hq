@@ -6,9 +6,18 @@ param(
  [Parameter(Mandatory)][string]$Out,
  [ValidateSet('playable','run-ui','startup','renderer-crash','main-restart','worker-loss','write-failure','lost-ack','pending-approval','pending-check','normal-quit')][string]$Scenario='startup',
  [ValidateSet(1,10,30)][int]$MiB=1,
- [ValidateRange(10000,300000)][int]$TimeoutMs=120000
+ [ValidateRange(10000,300000)][int]$TimeoutMs=120000,
+ [switch]$ContainedJob
 )
 $ErrorActionPreference='Stop'
+if(-not $ContainedJob){throw 'Use scripts/packaged-supervisor.cjs; direct uncontained fixture launches are disabled.'}
+$deadline=[Diagnostics.Stopwatch]::StartNew()
+function Assert-Deadline {if($deadline.ElapsedMilliseconds -ge $TimeoutMs){throw 'Owned packaged process timed out.'}}
+function Write-DriverStage([string]$Stage,[int]$Phase){
+ if($Stage -notin @('manifest-ready','launch-enter','launch-return','root-registered','scan-enter','scan-exit','process-exit','receipt-verified')){throw 'Unknown fixture driver stage'}
+ if($script:stageCount -ge 96){return};$script:stageCount++
+ [IO.File]::AppendAllText((Join-Path $Out 'driver-stages.jsonl'),((@{version=1;phase=$Phase;stage=$Stage;utc=[DateTime]::UtcNow.ToString('o');elapsedMs=$deadline.ElapsedMilliseconds}|ConvertTo-Json -Compress)+[Environment]::NewLine),[Text.UTF8Encoding]::new($false))
+}
 function Assert-Canonical([string]$Path,[bool]$Directory){
  if(-not [IO.Path]::IsPathFullyQualified($Path)){throw 'All fixture paths must be absolute.'}
  $item=Get-Item -LiteralPath $Path
@@ -63,13 +72,37 @@ $nonceHash=[Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text
 $priorNonce=$env:SUNNY_FIXTURE_NONCE
 $owned=$null
 $ownedRecords=@{}
+Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class SunnyFixtureArgv {
+ [DllImport("kernel32.dll")] static extern IntPtr GetCurrentProcess();
+ [DllImport("kernel32.dll",SetLastError=true)] static extern bool IsProcessInJob(IntPtr process,IntPtr job,out bool answer);
+ [DllImport("shell32.dll",SetLastError=true)] static extern IntPtr CommandLineToArgvW([MarshalAs(UnmanagedType.LPWStr)] string value,out int count);
+ [DllImport("kernel32.dll")] static extern IntPtr LocalFree(IntPtr memory);
+ public static string[] Parse(string value){int count;IntPtr memory=CommandLineToArgvW(value,out count);if(memory==IntPtr.Zero)throw new InvalidOperationException("Invalid fixture process arguments");try{if(count<1||count>16)throw new InvalidOperationException("Invalid fixture process argument count");var result=new string[count];for(int i=0;i<count;i++)result[i]=Marshal.PtrToStringUni(Marshal.ReadIntPtr(memory,i*IntPtr.Size));return result;}finally{LocalFree(memory);}}
+ public static bool Contained(){bool answer;return IsProcessInJob(GetCurrentProcess(),IntPtr.Zero,out answer)&&answer;}
+}
+'@
+if(-not [SunnyFixtureArgv]::Contained()){throw 'Fixture driver requires a contained helper process.'}
+function Read-RootIdentity([Diagnostics.Process]$Process,[string]$Manifest){
+ Assert-Deadline
+ $observed=Get-CimInstance Win32_Process -Filter ('ProcessId = '+$Process.Id) -OperationTimeoutSec 2
+ Assert-Deadline
+ $arguments=[SunnyFixtureArgv]::Parse($observed.CommandLine)
+ if($observed.ExecutablePath -ine $Exe -or $observed.ParentProcessId -ne $PID -or $arguments.Count -ne 2 -or $arguments[0] -ine $Exe -or $arguments[1] -cne ('--packaged-fixture='+$Manifest) -or $Process.Path -ine $Exe){throw 'Root process manifest or parent identity mismatch'}
+ $parent=Get-Process -Id $PID
+ return @{pid=$Process.Id;creation=$Process.StartTime.ToUniversalTime().ToFileTimeUtc().ToString();executable=$Exe;manifest=$Manifest;parentPid=$PID;parentCreation=$parent.StartTime.ToUniversalTime().ToFileTimeUtc().ToString()}
+}
 function Find-OwnedDescendants([int]$RootId,[datetime]$RootStart){
  $name=(Split-Path $Exe -Leaf).Replace("'","''")
  $nodeOwner=$null
  $nodeOwnerFile=Join-Path $Out 'owned-node.json'
  if($Scenario -eq 'playable' -and (Test-Path -LiteralPath $nodeOwnerFile)){$nodeOwner=Get-Content -LiteralPath $nodeOwnerFile -Raw|ConvertFrom-Json;if($nodeOwner.executable -ine 'C:\Program Files\nodejs\node.exe' -or $nodeOwner.sha256 -ne '9a4eb5f1c29c6a2e93852ead46b999e284a6a5ca8bab4d4e241d587d025a52de' -or -not (Is-Inside (Join-Path $Profile 'playable-builds') $nodeOwner.runnerPath)){throw 'Unapproved fixture Node ownership record'};if((Get-FileHash -LiteralPath $nodeOwner.executable -Algorithm SHA256).Hash.ToLowerInvariant() -ne $nodeOwner.sha256){throw 'Owned Node executable changed'}}
- $candidates=@(Get-CimInstance Win32_Process -Filter ("Name = '"+$name+"'") | Where-Object {$_.ExecutablePath -ieq $Exe -and $_.CreationDate -ge $RootStart})
- if($null -ne $nodeOwner){$nodeCandidate=Get-CimInstance Win32_Process -Filter ('ProcessId = '+[int]$nodeOwner.pid);if($null -ne $nodeCandidate -and $nodeCandidate.ExecutablePath -ieq $nodeOwner.executable -and $nodeCandidate.ParentProcessId -eq $RootId -and $nodeCandidate.CreationDate -ge $RootStart -and $nodeCandidate.CommandLine.Contains($nodeOwner.runnerPath)){$candidates+=,$nodeCandidate}}
+ Assert-Deadline
+ $candidates=@(Get-CimInstance Win32_Process -Filter ("Name = '"+$name+"'") -OperationTimeoutSec 2 | Where-Object {$_.ExecutablePath -ieq $Exe -and $_.CreationDate -ge $RootStart})
+ Assert-Deadline
+ if($null -ne $nodeOwner){$nodeCandidate=Get-CimInstance Win32_Process -Filter ('ProcessId = '+[int]$nodeOwner.pid) -OperationTimeoutSec 2;Assert-Deadline;if($null -ne $nodeCandidate){$nodeArguments=[SunnyFixtureArgv]::Parse($nodeCandidate.CommandLine);if($nodeCandidate.ExecutablePath -ieq $nodeOwner.executable -and $nodeCandidate.ParentProcessId -eq $RootId -and $nodeCandidate.CreationDate -ge $RootStart -and $nodeArguments.Count -ge 2 -and $nodeArguments[0] -ieq $nodeOwner.executable -and $nodeArguments[1] -ceq $nodeOwner.runnerPath){$candidates+=,$nodeCandidate}}}
  for($pass=0;$pass -lt 4;$pass++){
   foreach($candidate in $candidates){
    if($candidate.ParentProcessId -ne $RootId -and -not $ownedRecords.ContainsKey([int]$candidate.ParentProcessId)){continue}
@@ -101,15 +134,25 @@ try{
   if((Get-FileHash -LiteralPath $Exe -Algorithm SHA256).Hash.ToLowerInvariant() -ne $exeHash -or (Get-FileHash -LiteralPath $Asar -Algorithm SHA256).Hash.ToLowerInvariant() -ne $asarHash){throw 'Package bytes changed before launch.'}
   $manifest=@{version=1;nonce=$nonce;profileDir=$Profile;outputDir=$Out;scenario=$Scenario;phase=$phase;mib=$MiB}|ConvertTo-Json -Compress
   Write-PrivateManifest $manifestPath $manifest
+  Write-DriverStage 'manifest-ready' $phase
+  Assert-Deadline
+  Write-DriverStage 'launch-enter' $phase
   $owned=Start-Process -FilePath $Exe -ArgumentList @(('"--packaged-fixture='+$manifestPath+'"')) -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $Out "phase-$phase.stdout.log") -RedirectStandardError (Join-Path $Out "phase-$phase.stderr.log")
+  Write-DriverStage 'launch-return' $phase
+  Assert-Deadline
   $ownedStart=$owned.StartTime
+  $rootIdentity=Read-RootIdentity $owned $manifestPath
+  [IO.File]::WriteAllText((Join-Path $Out "root-registration-$phase.json"),($rootIdentity|ConvertTo-Json -Compress),[Text.UTF8Encoding]::new($false))
+  Write-DriverStage 'root-registered' $phase
   $ownedRecords=@{}
   $ownedRecords[$owned.Id]=@{start=$ownedStart;path=$Exe;lastSeen=[datetime]::Now}
-  $deadline=[Diagnostics.Stopwatch]::StartNew()
+  $nextScan=0
   while(-not $owned.WaitForExit(100)){
-   Find-OwnedDescendants $owned.Id $ownedStart
-   if($deadline.ElapsedMilliseconds -ge $TimeoutMs){throw 'Owned packaged process timed out.'}
+   Assert-Deadline
+   if($deadline.ElapsedMilliseconds -ge $nextScan){Write-DriverStage 'scan-enter' $phase;Find-OwnedDescendants $owned.Id $ownedStart;Write-DriverStage 'scan-exit' $phase;Assert-Deadline;$nextScan=$deadline.ElapsedMilliseconds+2000}
   }
+  Write-DriverStage 'process-exit' $phase
+  Assert-Deadline
   Find-OwnedDescendants $owned.Id $ownedStart
   for($cleanupPass=0;$cleanupPass -lt 50 -and @(Get-OwnedRunning).Count;$cleanupPass++){Start-Sleep -Milliseconds 100}
   if(@(Get-OwnedRunning).Count){throw 'Owned package descendants did not exit after the main process.'}
@@ -120,6 +163,8 @@ try{
   if($receipt.pid -ne $owned.Id -or $receipt.executableSha256 -ne $exeHash -or $receipt.asarSha256 -ne $asarHash -or $receipt.phase -ne $phase -or $receipt.scenario -ne $Scenario){throw 'Exact process/package identity mismatch.'}
   $identities=@($ownedRecords.Keys|ForEach-Object {@{pid=$_;creationDate=$ownedRecords[$_].start.ToUniversalTime().ToString('o');path=$ownedRecords[$_].path}})
   $receipt|Add-Member -NotePropertyName ownedProcesses -NotePropertyValue $identities
+  $receipt|Add-Member -NotePropertyName ownedRoot -NotePropertyValue $rootIdentity
+  Write-DriverStage 'receipt-verified' $phase
   $receipts+=,$receipt
   $owned=$null
  }
@@ -137,8 +182,8 @@ try{
  [IO.File]::WriteAllText((Join-Path $Out 'evidence.json'),($result|ConvertTo-Json -Depth 20),[Text.UTF8Encoding]::new($false))
  Write-Output (Join-Path $Out 'evidence.json')
 }finally{
- foreach($current in @(Get-OwnedRunning)){Stop-Process -InputObject $current -Force -ErrorAction SilentlyContinue; $null=$current.WaitForExit(10000)}
- if(@(Get-OwnedRunning).Count){Write-Error 'Owned process cleanup is incomplete.' -ErrorAction Continue}
+ # Cleanup belongs to the externally owned private job. Never recover kill
+ # authority from a PID, executable name or a late observation here.
  if(Test-Path -LiteralPath $manifestPath){Remove-Item -LiteralPath $manifestPath -Force}
  $env:SUNNY_FIXTURE_NONCE=$priorNonce
 }

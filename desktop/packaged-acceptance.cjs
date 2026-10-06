@@ -56,10 +56,10 @@ function seedState(manifest){
  if(manifest.scenario==='run-ui')require('./run-ui-fixture.cjs').seed(state);
  return state;
 }
-async function bootFixtureHub(manifest){
+async function bootFixtureHub(manifest,stage=()=>{}){
  const {openOrderedStore}=require('./ordered-store.cjs'),{Hub}=require('./hub.cjs');
- const options={kind:'sqlite',file:path.join(manifest.profileDir,'sunny.sqlite'),backupDir:path.join(manifest.profileDir,'mission-profile-backups')};let store=await openOrderedStore(options),hub;
- try{if(manifest.phase===1){await store.barrier(seedState(manifest),'mission');await store.close();store=await openOrderedStore(options);}hub=new Hub({home:manifest.profileDir,store,catalog:fixtureCatalog(),fixtureDependencies:{...fixtureDependencies(),playableFixture:manifest.scenario==='playable'}});await hub.initializeRecovery();return hub;}catch(error){if(hub)await hub.close().catch(()=>{});else await store.close().catch(()=>{});throw error;}
+ const options={kind:'sqlite',file:path.join(manifest.profileDir,'sunny.sqlite'),backupDir:path.join(manifest.profileDir,'mission-profile-backups')};let store,hub;
+ return require('./fixture-stages.cjs').withFailureStage(async()=>{stage('store-open-enter');store=await openOrderedStore(options);stage('store-open-exit');if(manifest.phase===1){stage('seed-enter');await store.barrier(seedState(manifest),'mission');stage('seed-exit');stage('store-close-enter');await store.close();stage('store-close-exit');stage('store-reopen-enter');store=await openOrderedStore(options);stage('store-reopen-exit');}hub=new Hub({home:manifest.profileDir,store,catalog:fixtureCatalog(),fixtureDependencies:{...fixtureDependencies(),playableFixture:manifest.scenario==='playable'}});stage('hub-created');stage('recovery-enter');await hub.initializeRecovery();stage('recovery-exit');return hub;},async()=>{if(hub)await hub.close();else if(store)await store.close();},stage);
 }
 function hashPackageFiles({exeFile,asarFile}){
  if(typeof exeFile!=='string'||!path.isAbsolute(exeFile)||typeof asarFile!=='string'||!path.isAbsolute(asarFile))throw Error('Absolute package identity paths required.');
@@ -69,7 +69,7 @@ function hashPackageFiles({exeFile,asarFile}){
 }
 function durableIdentity(hub){const workspace=hub.state.workspace,mission=hub.state.missions[0];return {draftSha256:sha(JSON.stringify(workspace.drafts)),resultRef:mission.selectedResult?.ref,uncertainReservation:hub.gate.active.has('fixture-uncertain'),uncertainStatus:hub.state.tasks.find(task=>task.id==='fixture-uncertain')?.status};}
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-async function bounded(promise,timeoutMs=15000){let timer;try{return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Fixture operation timed out.')),timeoutMs);})]);}finally{clearTimeout(timer);}}
+const {bounded}=require('./fixture-stages.cjs');
 async function trustedInvoke(win,action,args={}){return bounded(win.webContents.executeJavaScript(`window.sunny.invoke(${JSON.stringify(action)},${JSON.stringify(args)})`));}
 function rendererReady(document,surface='deck'){
  if(document.readyState!=='complete'||!document.querySelector('.app-shell')||document.querySelector('.loading-deck,.recovery-screen'))return false;
@@ -78,8 +78,7 @@ function rendererReady(document,surface='deck'){
 }
 async function waitForRenderer(win,context){
  const surface=context?.surface||'deck',probe=`Boolean(window.sunny&&(${rendererReady.toString()})(document,${JSON.stringify(surface)}))`;
- for(let pass=0;pass<120;pass++){if(await win.webContents.executeJavaScript(probe).catch(()=>false))return;await pause(100);}
- throw Error('Production renderer did not restore its expected fixture workspace surface.');
+ await require('./fixture-stages.cjs').waitUntilReady(()=>win.webContents.executeJavaScript(probe));
 }
 function verifyLockedWriteFailure({error,failedReceipt,expectedEpoch,expectedSequence,before,after}){
  if(error?.code!=='COMMIT_UNCERTAIN'||error.epoch!==expectedEpoch||error.sequence!==expectedSequence||!failedReceipt||failedReceipt.type!=='failed'||failedReceipt.epoch!==expectedEpoch||failedReceipt.sequence!==expectedSequence||failedReceipt.uncertain!==true)throw Error('Expected the native SQLite write-failure receipt, not another rejection.');

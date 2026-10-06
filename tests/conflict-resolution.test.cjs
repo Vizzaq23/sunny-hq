@@ -23,7 +23,7 @@ test('public Hub conflict preparation rejects an unaccounted external head',asyn
  assert.ok(f.hub.gate.active.has('integration:'+receipt.id));
 });
 
-async function ownedConflict(t,{prefix=true,onRepair,limit=1,holdSettlement=false}={}){
+async function ownedConflict(t,{prefix=true,onRepair,limit=1,holdSettlement=false,onConflict}={}){
  const commit=(root,file,body)=>{fs.writeFileSync(path.join(root,file),body);f.gitAt(root,['add','--',file]);f.gitAt(root,['commit','-m','explicit synthetic author change']);};
  const f=await schedulerFixture(t,{onBase:root=>{
   require('node:child_process').execFileSync('git',['config','core.autocrlf','false'],{cwd:root});
@@ -46,7 +46,7 @@ async function ownedConflict(t,{prefix=true,onRepair,limit=1,holdSettlement=fals
  const reviewer=f.makeAssignment('review',{crewId:'zoro',ownedPaths:[],dependencies:['author']});
  await f.plan([f.makeAssignment('author',{ownedPaths:['src']}),reviewer]);await f.until(()=>f.turns.includes('author'));await f.complete('author');await f.hub.scheduler().pending.get('r')?.promise;
  await f.hub.missionMutation(book=>{const r=book.data.runs[0];r.grant.scope.activities.push('integrate');r.grant.maxRepairs=limit;});
- f.run=()=>f.hub.state.runs[0];f.source=async()=>{const s=await f.hub.evidence.gitState(f.hub.runSourceProject('r').path);return {baseCommit:f.base,headCommit:s.commit,fingerprint:s.fingerprint,artifactHashes:[]};};
+ f.run=()=>f.hub.state.runs.find(r=>r.id==='r');f.source=async()=>{const s=await f.hub.evidence.gitState(f.hub.runSourceProject('r').path);return {baseCommit:f.base,headCommit:s.commit,fingerprint:s.fingerprint,artifactHashes:[]};};
  if(holdSettlement)f.hub.settleGeneratedResolution=async()=>{};const service=f.hub.integration(),execute=service.execute.bind(service);let injected=false;f.effects=[];
  service.execute=async(w,commits,control)=>{
   f.effects.push([...commits]);
@@ -54,7 +54,7 @@ async function ownedConflict(t,{prefix=true,onRepair,limit=1,holdSettlement=fals
    // Explicit owned-command fault: reorder two dependent commits. Git itself
    // produces the real conflict and sequencer. HEAD's authored prefix remains
    // continuous, and native cherry-pick --abort restores its true start HEAD.
-   return execute(w,reordered,control);
+   const result=await execute(w,reordered,control);await onConflict?.(f);return result;
   }
   return execute(w,commits,control);
  };
@@ -111,4 +111,24 @@ test('prepared repair rejects forged identity, stale source, bundle change and r
  await assert.rejects(f.hub.settleIntegrationResolution(input()),/identity|controller|authority/);
  assert.equal(f.effects.length,count+1);assert.deepEqual(f.effects.at(-1),['--abort']);assert.equal(op().resolution.state,'unknown');assert.ok(f.hub.gate.active.has('integration:'+op().id));assert.equal(f.gitAt(f.hub.runSourceProject('r').path,['rev-parse','HEAD']),op().before.headCommit);
  const {Hub}=require('../desktop/hub.cjs'),recovery=Object.create(Hub.prototype);recovery.state={runs:structuredClone(f.stored.missionBook.runs)};recovery.gate=new(require('../desktop/core.cjs').TaskGate)();recovery.integration().recover();assert.equal(recovery.integrationCommands()[0].exited,false);assert.equal(recovery.integrationCommands()[0].recovered,true);assert.ok(recovery.gate.active.has('integration:'+op().id));
+});
+
+test('another run releasing shared crew wakes the exact prepared repair without a second prepare',async t=>{
+ const f=await ownedConflict(t,{onConflict:async f=>{
+  const other=path.join(f.dir,'other-project');f.gitAt(f.dir,['clone','--local',f.original,other]);f.hub.state.projects.push({id:'other',path:other});
+  const request=f.hub.client.request.bind(f.hub.client);f.hub.client.request=async(method,p)=>{
+   if(method==='thread/start'&&p.cwd===other){const task=f.hub.state.tasks.find(t=>t.projectId==='other'&&t.captain);task.tokenUsage={total:{totalTokens:0}};return {thread:{id:'other-coordinator-thread'}};}
+   if(method==='turn/start'&&p.threadId==='other-coordinator-thread')return {turn:{id:'other-coordinator-turn'}};
+   return request(method,p);
+  };
+  const captain=await f.hub.start({projectId:'other',crewId:'luffy',title:'Synthetic other run',prompt:'Offline shared crew regression'});
+  const grant=structuredClone(f.run().grant);grant.id='other-grant';grant.scope.projectId='other';grant.scope.objective='Offline shared crew regression';
+  await f.hub.createRun({runId:'holder-run',projectId:'other',expectedRevision:0,parentTaskId:captain.id,objective:'Offline shared crew regression',criteria:[{id:'criterion',text:'Occupy then release crew'}],grant});
+  await f.hub.captain.supervise({threadId:captain.threadId,turnId:captain.turnId,callId:'holder-plan',tool:'sunny_plan',arguments:{runId:'holder-run',projectId:'other',expectedRevision:0,assignments:[f.makeAssignment('holder',{ownedPaths:['src']})],decision:{id:'holder-decision',option:'Bounded holder',reason:'Exercise ordinary shared release',dissent:[],owner:'franky',nextAction:'Release crew',reopenEvidence:'Changed capacity'}}});
+  await f.until(()=>f.turns.includes('holder')&&f.hub.state.tasks.find(t=>t.assignmentId==='holder')?.turnId);
+ }});
+ const op=()=>f.run().integrations[0],repairId=op().resolution.assignmentId;assert.equal(op().resolution.state,'prepared',JSON.stringify(f.errors));await f.until(()=>!f.hub.scheduler().pending.has('r'));
+ assert.equal(f.run().assignments.find(a=>a.id===repairId).state,'queued');assert.equal(f.turns.includes(repairId),false);const preparationRevision=op().resolution.prepareRevision;
+ await f.complete('holder','holder-run');await f.until(()=>f.turns.includes(repairId)&&f.hub.state.tasks.find(t=>t.assignmentId===repairId)?.turnId,10000);
+ assert.equal(op().resolution.prepareRevision,preparationRevision);assert.equal(f.run().counters.repairs,1);assert.equal(f.run().counters.launches,2);assert.ok(f.hub.gate.active.has('integration:'+op().id));await f.complete(repairId);assert.equal(op().resolution.state,'completed');
 });

@@ -4,6 +4,13 @@ const policy=require('./conflict-resolution.cjs'),bundles=require('./conflict-bu
 const literal=v=>typeof v==='string'&&/^[a-f0-9]{40,64}$/.test(v);
 class IntegrationResolution {
  constructor(service){this.service=service;this.hub=service.hub;this.bundles=bundles;this.inflight=new Set();this.scopes=new WeakMap();}
+ canWake(run){
+  if(run.phase!=='blocked')return false;
+  const pending=policy.pending(run);if(pending.length!==1||pending[0].resolution?.state!=='prepared')return false;
+  const op=pending[0],a=run.assignments.find(a=>a.id===op.resolution.assignmentId);
+  if(!a||a.state!=='queued'||a.taskId||a.launchReservationId||!a.resolutionOwnership)return false;
+  try{this.current({runId:run.id,projectId:run.projectId,operationId:op.id},{revision:false,states:['prepared']});return true;}catch{return false;}
+ }
  current(input,{revision=true,states=['reserved','prepared']}={}){
   const h=this.hub,r=this.service.run(input.runId),op=r.integrations?.find(o=>o.id===input.operationId),v=op?.resolution,a=r.assignments.find(a=>a.id===v?.assignmentId),control=this.service.commands.get(op?.id);
   h.assertSupervisedExecutionAdmission();h.assertOpenForEffect();

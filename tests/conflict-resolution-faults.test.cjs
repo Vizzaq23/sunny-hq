@@ -4,6 +4,15 @@ const {test}=require('node:test'),assert=require('node:assert/strict');
 const {IntegrationResolution}=require('../desktop/integration-resolution.cjs');
 const A='a'.repeat(40),B='b'.repeat(40),C='c'.repeat(40);
 const source=head=>({baseCommit:A,headCommit:head,fingerprint:head,artifactHashes:[]});
+test('shared wake exception is only the queued prepared repair and still requires live admission',()=>{
+ const run={id:'run',projectId:'project',phase:'blocked',assignments:[{id:'repair',state:'queued',resolutionOwnership:{}}],integrations:[{id:'op',state:'conflict',resolution:{state:'prepared',assignmentId:'repair'}}]};
+ const resolution=new IntegrationResolution({hub:{}}),calls=[];let denied=false;
+ resolution.current=(input,options)=>{calls.push({input,options});if(denied)throw Error('Unknown or recovered controller');};
+ assert.equal(resolution.canWake(run),true);assert.deepEqual(calls[0],{input:{runId:'run',projectId:'project',operationId:'op'},options:{revision:false,states:['prepared']}});
+ denied=true;assert.equal(resolution.canWake(run),false);denied=false;
+ const variants=[r=>r.phase='unknown',r=>r.phase='paused',r=>r.integrations=[],r=>r.integrations[0].resolution.state='unknown',r=>r.integrations[0].resolution.state='reserved',r=>r.assignments[0].state='working',r=>r.assignments[0].taskId='task',r=>r.assignments[0].launchReservationId='launch',r=>delete r.assignments[0].resolutionOwnership,r=>r.assignments[0].id='ordinary',r=>r.integrations.push({id:'other',state:'conflict'})];
+ for(const mutate of variants){const copy=structuredClone(run);mutate(copy);const count=calls.length;assert.equal(resolution.canWake(copy),false);assert.equal(calls.length,count);}
+});
 test('ordinary non-exhausted assignment never receives the conflict budget exception',()=>{
  const run={phase:'blocked',counters:{repairs:0},grant:{maxRepairs:3},assignments:[{id:'ordinary'}],integrations:[]};
  assert.equal(require('../desktop/conflict-resolution.cjs').budgetAllowance(run,{assignmentId:'ordinary'}),false);

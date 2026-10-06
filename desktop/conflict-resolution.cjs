@@ -12,6 +12,7 @@ function binding(run,assignment){
 function contribution(run,r){
  if(r.state==='completed')return {before:r.before,after:r.after,commits:r.resultingCommits,assignments:[r.assignmentId]};
  const v=r.resolution,a=run.assignments.find(a=>a.id===v?.assignmentId);
+ if(v?.state==='completed'){try{validate(run,r);}catch{return null;}}
  if(v?.state!=='completed'||!binding(run,a)||!a.resolutionOwnership||a.state!=='finished'||a.sourceResult?.headCommit!==v.candidate?.workerHead||a.sourceResult.fingerprint!==v.candidate.workerFingerprint||a.taskId!==v.author?.taskId||!run.authorHistory?.some(s=>s.taskId===a.taskId&&s.threadId===v.author.threadId&&s.state==='ready'))return null;
  return {before:r.before,after:v.finalSource,commits:v.resultingCommits,assignments:[r.assignmentId,a.id]};
 }
@@ -55,7 +56,7 @@ function validate(run,r){
  check(Boolean(v.abortResult)===Boolean(v.abortSource));
  if(v.finalSource)require('./supervision-schema.cjs').validateSource(v.finalSource);
  if(v.resultingCommits)bounded(v.resultingCommits,256,oid);
- if(v.state==='completed')check(v.abortResult&&sameSource(v.abortSource,r.before)&&v.finalSource&&v.resultingCommits?.length===v.candidate.commits.length&&v.finalSource.baseCommit===r.before.baseCommit);
+ if(v.state==='completed')check(r.command?.id===r.id&&r.command.state==='completed'&&v.abortResult&&sameSource(v.abortSource,r.before)&&v.finalSource&&v.resultingCommits?.length===v.candidate.commits.length&&new Set(v.resultingCommits).size===v.resultingCommits.length&&v.resultingCommits.at(-1)===v.finalSource.headCommit&&v.finalSource.baseCommit===r.before.baseCommit);
  if(v.error!==undefined)check(typeof v.error==='string'&&v.error.length<=4096);
  if(a.resolutionOwnership){const t=a.resolutionOwnership;fields(t,['operationId','fromAssignmentId','fromWorkspaceId','source','bundleSha256']);require('./supervision-schema.cjs').validateSource(t.source);check(t.operationId===r.id&&t.fromAssignmentId===owner.id&&t.fromWorkspaceId===owner.workspaceId&&sameSource(t.source,owner.sourceResult)&&t.bundleSha256===v.bundle?.sha256);}
 }

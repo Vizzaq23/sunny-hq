@@ -41,7 +41,7 @@ class Captain {
    if(p.tool==='sunny_plan'&&run.ordinary)require('./mission-delivery.cjs').partition(run,args.assignments,hub.state.world);
    if(p.tool==='sunny_plan'){require('./assignment-graph.cjs').validateAssignmentGraph(args.assignments,{registry,scope:run.grant.scope,base:args.assignments[0].baseCommit});}
    const transition=require('./supervised-runs.cjs').applyRunCommand(run,{type:p.tool==='sunny_plan'?'plan':'decide',...args},{now:Date.now(),actor:'coordinator'}),next=transition.next,response={runId:next.id,revision:next.revision,phase:next.phase,decisionId:args.decision.id,assignmentIds:next.assignments.map(item=>item.id)};
-   if(p.tool==='sunny_plan'&&next.currentEpoch)next.currentEpoch.assignmentIds=next.assignments.map(a=>a.id);
+   if(p.tool==='sunny_plan'&&next.currentEpoch){next.currentEpoch.assignmentIds=next.assignments.map(a=>a.id);if(next.ordinary.checkpointWaves)next.currentEpoch.productionWaves=require('./production-waves.cjs').derive(next.assignments);}
    if(p.tool==='sunny_plan')for(const a of next.assignments)a.queueBinding=structuredClone(registry.assertWorkerBinding(registry.crewBinding(a.crewId,hub.state.world)));
    next.coordinatorCalls.push({callId:p.callId,taskId:parent.id,threadId:p.threadId,turnId:p.turnId,tool:p.tool,requestSha256,revision:next.revision,response});book.data.runs[index]=next;return structuredClone(response);
   },'mission',{skipUnchanged:true,validate});

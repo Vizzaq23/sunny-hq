@@ -2,7 +2,7 @@ const {randomUUID}=require('node:crypto');
 const {readyAssignments,live}=require('./assignment-graph.cjs');
 const {reviewAssignment}=require('./crew-registry.cjs');
 const resolution=require('./conflict-resolution.cjs');
-const phaseAllows=(run,a)=>(!run.ordinary||!reviewAssignment(a)||require('./mission-context.cjs').currentReview(run,a.reviewBinding))&&resolution.assignmentAllowed(run,a)&&(['waiting','executing','repairing'].includes(run.phase)||run.phase==='reviewing'&&reviewAssignment(a)||run.phase==='blocked'&&resolution.binding(run,a));
+const phaseAllows=(run,a)=>require('./production-waves.cjs').allowed(run,a)&&(!run.ordinary||!reviewAssignment(a)||require('./mission-context.cjs').currentReview(run,a.reviewBinding))&&resolution.assignmentAllowed(run,a)&&(['waiting','executing','repairing'].includes(run.phase)||run.phase==='reviewing'&&reviewAssignment(a)||run.phase==='blocked'&&resolution.binding(run,a));
 class CrewScheduler {
  constructor(deps){this.deps=deps;this.pending=new Map();this.closed=false;}
  quiesce(){this.closed=true;for(const entry of this.pending.values())entry.rerun=false;}

@@ -1,5 +1,13 @@
 # Assignment scheduling — 2026-10-03
 
+## Ordinary production checkpoints — 2026-10-06
+
+New ordinary runs explicitly select `checkpointWaves:1`. Main freezes the original normalized graph and bases at plan admission, derives ranks across author dependencies, and admits only the current production wave. Read-only dependencies preserve their rank; author dependencies advance it. Admission applies before workspace preparation and again at reservation and dispatch. Finished dependencies alone do not admit even a disjoint successor.
+
+The existing delivery operation serially integrates the genuinely completed prefix and executes the pinned project suite after writer/effect quiescence. A separate prefix proof binds exact source, workspace metadata identity, integration/check receipts and never-started successors. One durable mutation installs the complete successor wave's bases, checkpoint bindings and direct overlap receipts, then wakes the scheduler once. Fresh roots start at that checked head. Prefix evidence never becomes final verification or selected-result authority. Historical roots, author/control sessions and cumulative budgets remain retained.
+
+Unknown receipts, changed source/recipes, unfinished processes and stale bindings block admission. Restart does not replay a checkpoint. The legacy final-proof transfer shares the existing parent/child region receipt validation. Exhausted final-conflict allowance cannot fund another production wave. The total managed-root cap remains 33, including reserved/unknown roots. Live-provider admission is unchanged.
+
 Workflow v2 proposals validate a bounded acyclic graph, canonical roles, scope and a common pinned base. Unordered case-insensitive file/directory overlaps reject. The scheduler alone reserves and starts queued nodes through Hub.start. Ordinary delegation retains its sequential guards. Real supervision and same-project parallel provider work remain disabled pending genuine capability evidence.
 
 Assignment records optionally add queueBinding (main-derived role/recruitment snapshot) and ownershipTransfers (predecessor assignment/workspace/source, newBase). These are additive v3 storage fields. Older queued proposals without a binding do not launch. Back up the profile before upgrading; rollback requires retaining the new fields and uncertain reservations, not deleting or retrying them. No migration or profile restoration occurs here.

@@ -11,7 +11,7 @@ function validateAssignmentGraph(assignments,{registry=require('./crew-registry.
  for(let i=0;i<assignments.length;i++)for(let j=i+1;j<assignments.length;j++){const a=assignments[i],b=assignments[j];if(a.ownedPaths.some(x=>b.ownedPaths.some(y=>overlap(normalized(x),normalized(y))))&&!ancestors(a,byId).has(b.id)&&!ancestors(b,byId).has(a.id))throw Error('Unordered owned path overlap');}
  return {assignments:structuredClone(assignments),base};
 }
-function receiptMatches(owner,target){return target.ownershipTransfers?.some(t=>t.fromAssignmentId===owner.id&&t.fromWorkspaceId===owner.workspaceId&&t.newBase===target.baseCommit&&target.baseCommit!==owner.baseCommit&&require('./review-verdicts.cjs').sameSource(t.source,owner.sourceResult));}
+function receiptMatches(owner,target){return (target.resolutionOwnership?.fromAssignmentId===owner.id&&target.resolutionOwnership.fromWorkspaceId===owner.workspaceId&&require('./review-verdicts.cjs').sameSource(target.resolutionOwnership.source,owner.sourceResult))||target.ownershipTransfers?.some(t=>t.fromAssignmentId===owner.id&&t.fromWorkspaceId===owner.workspaceId&&t.newBase===target.baseCommit&&target.baseCommit!==owner.baseCommit&&require('./review-verdicts.cjs').sameSource(t.source,owner.sourceResult));}
 function covers(owned,region){return owned===region||region.startsWith(owned+'/');}
 function transferredRegion(owner,target,region,byId,seen=new Set()){
  const key=owner.id+'\0'+target.id;if(owner.state!=='finished'||seen.has(key))return false;

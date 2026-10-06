@@ -10,7 +10,7 @@ function report(hub,runId,prior={}){
  for(const c of controllers(hub,runId))if(!c.exited||c.state==='unknown'||c.state==='pending')unknown('effect:'+c.id);else out.confirmedStopped.push('effect:'+c.id);
  for(const e of run.ownedEffects||[])if(e.state!=='stopped')unknown('effect:'+e.id);
  for(const m of hub.state.missions.filter(m=>m.runId===runId))if(m.checkExecution||m.pendingAcceptance||m.acceptanceRecovery||m.branch?.state==='preparing'||['publishing','uncertain'].includes(m.prPublication?.state)||['submitting','uncertain'].includes(m.mergeRequest?.state))unknown('mission:'+m.id);
- for(const e of [...(run.integrations||[]),...(run.combinedChecks||[])])if(['pending','unknown','conflict'].includes(e.state))unknown('effect:'+e.id);
+ for(const e of [...(run.integrations||[]),...(run.combinedChecks||[])])if(['pending','unknown','conflict'].includes(e.state)&&!(run.integrations||[]).some(r=>r.id===e.id&&require('./conflict-resolution.cjs').contribution(run,r)))unknown('effect:'+e.id);
  for(const w of run.workspaces)if(['reserved','unknown','blocked'].includes(w.state))unknown('workspace:'+w.id);
  return out;
 }

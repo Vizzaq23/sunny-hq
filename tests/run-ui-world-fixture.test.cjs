@@ -42,6 +42,23 @@ test('same-context working to unknown to failed remains a strict saved mission p
  state.tasks[0].status='failed';state.missionBook.runs[0].assignments[0].state='failed';state.missionBook.runs[0].phase='blocked';state.missionBook.missions[0].status='FAILED';state.missionBook.missions[0].attempts.find(a=>a.id===state.missionBook.missions[0].activeAttemptId).status='failed';valid();
 });
 
+test('roster open and close receipts precede the next durably published deck seed',async t=>{
+ const {receiptStore}=require('./helpers/receipt-store.cjs'),{Hub}=require('../desktop/hub.cjs');let saved=base();
+ const store=receiptStore({load:()=>structuredClone(saved),save:image=>{saved=structuredClone(image);},close(){}});
+ const hub=new Hub({home:process.cwd(),store,catalog:{discoverProjects:()=>[],discoverTools:()=>[],discoverAutomations:()=>[]}});
+ t.after(()=>hub.close());
+ const seed=world.seedWorldCase(base(),'idle'),deck=seed.missionBook.workspace.context,workbench={...deck,surface:'workbench',returnTo:{...deck.returnTo,view:'island'}};
+ const opened=await hub.updateWorkspace({expectedRevision:hub.state.workspace.revision,context:workbench});
+ let release;const pending=new Promise(resolve=>release=resolve).then(()=>hub.updateWorkspace({expectedRevision:hub.state.workspace.revision,context:deck}));
+ const invoke=async(_win,action)=>{assert.equal(action,'workspace:get');return structuredClone(hub.state.workspace);};
+ let settled=false;const closeBarrier=worldEvidence.awaitWorkspaceSurface(invoke,{},'deck',opened.revision).then(value=>{settled=true;return value;});
+ await new Promise(resolve=>setTimeout(resolve,120));assert.equal(settled,false,'earlier workbench receipt cannot satisfy the close barrier');
+ release();await pending;const closed=await closeBarrier;assert.equal(closed.context.surface,'deck');assert.ok(closed.revision>opened.revision);
+ await worldEvidence.publishWorldProfile(hub,seed);
+ assert.equal(saved.missionBook.workspace.context.surface,'deck');assert.equal(saved.missionBook.workspace.revision,closed.revision+1);
+ assert.deepEqual(saved.missionBook.workspace,hub.state.workspace);
+});
+
 test('renderer asset sample crosses the bridge as bounded scalars before receipt writing',()=>{
  const inline='data:image/png;base64,'+'A'.repeat(5*1024*1024),images=[inline,'file:///synthetic/app/assets/franky-shipwright-room.png'].map(src=>({currentSrc:src,src,offsetParent:{},complete:true,naturalWidth:128,naturalHeight:128,getAttribute:()=>src}));
  const clip={parentElement:null,getBoundingClientRect:()=>({left:100,top:100,right:105,bottom:200})};
@@ -70,14 +87,33 @@ test('pannable island viewport and real actor contact govern the scene, while ra
  assert.throws(()=>worldEvidence.sceneVisibility({...sample,island:{...sample.island,visibleRect:{...sample.island.visibleRect,width:100}}},'island'),/does not cover/);
 });
 
+test('resident map labels stay out of busy art while roster status retains a readable backed presentation',()=>{
+ const {contrastRatio,sceneVisibility}=worldEvidence;
+ assert.ok(contrastRatio('rgb(35, 78, 72)','rgb(255, 248, 233)')>4.5);
+ assert.equal(contrastRatio('rgb(128, 128, 128)','rgba(255, 255, 255, 0)'),0);
+ const visible={visibleFraction:1,contactVisible:true,visibleRect:{x:0,y:0,width:100,height:100}},sample={island:visible,mapViewport:visible,deck:visible,deckSpriteBox:visible,residentMapLabels:0,residentAccess:[{id:'law',label:'Law: Run effects require reconciliation. Talk to Law'}],roster:[{id:'law',label:'Run effects require reconciliation'}],rosterColors:{background:'rgb(255, 248, 233)',foreground:'rgb(35, 78, 72)'}};
+ assert.doesNotThrow(()=>sceneVisibility(sample,'island'));
+ assert.throws(()=>sceneVisibility({...sample,residentMapLabels:1},'island'),/obscures the island art/);
+ assert.throws(()=>sceneVisibility({...sample,residentAccess:[{id:'law',label:'Law: unknown'}]},'island'),/status must remain complete/);
+ assert.throws(()=>sceneVisibility({...sample,rosterColors:{background:'rgb(128, 128, 128)',foreground:'rgb(128, 128, 128)'}},'island'),/opaque contrasting backdrop/);
+});
+
 test('quarters and workshop retain art, actor, and contact visibility requirements',()=>{
  const visible={visibleFraction:.8,contactVisible:true},clipped={visibleFraction:.05,contactVisible:false};
  for(const [surface,art,actor,contact] of [['quarters','quarter','roomActor','roomSpriteBox'],['workshop','roomArt','actor','groundShadow']]){
-  assert.deepEqual(worldEvidence.sceneVisibility({[art]:visible,[actor]:visible,[contact]:visible},surface),{artVisibleFraction:.8,actorVisibleFraction:.8,contactVisible:true});
-  assert.throws(()=>worldEvidence.sceneVisibility({[art]:visible,[actor]:clipped,[contact]:visible},surface),/actor is below/);
-  assert.throws(()=>worldEvidence.sceneVisibility({[art]:visible,[actor]:visible,[contact]:clipped},surface),/actor contact/);
-  assert.throws(()=>worldEvidence.sceneVisibility({[art]:clipped,[actor]:visible,[contact]:visible},surface),/art is clipped/);
+  const labels=surface==='quarters'?{roomStationCards:[{rect:{x:10,y:10,width:20,height:20}},{rect:{x:40,y:10,width:20,height:20}},{rect:{x:70,y:10,width:20,height:20}}],roomActorLabels:[{rect:{x:10,y:50,width:10,height:10}},{rect:{x:40,y:50,width:10,height:10}},{rect:{x:70,y:50,width:10,height:10}}],roomCaptainLabel:{rect:{x:55,y:80,width:10,height:10}}}:{};
+  assert.deepEqual(worldEvidence.sceneVisibility({[art]:visible,[actor]:visible,[contact]:visible,...labels},surface),{artVisibleFraction:.8,actorVisibleFraction:.8,contactVisible:true,...(surface==='quarters'?{stationGap:10,captainLabelClear:true}:{})});
+  assert.throws(()=>worldEvidence.sceneVisibility({[art]:visible,[actor]:clipped,[contact]:visible,...labels},surface),/actor is below/);
+  assert.throws(()=>worldEvidence.sceneVisibility({[art]:visible,[actor]:visible,[contact]:clipped,...labels},surface),/actor contact/);
+  assert.throws(()=>worldEvidence.sceneVisibility({[art]:clipped,[actor]:visible,[contact]:visible,...labels},surface),/art is clipped/);
  }
+});
+
+test('quarters status labels retain room between stations and clear the captain at compact and doubled text geometry',()=>{
+ const rect=(x,y,width,height)=>({rect:{x,y,width,height}}),sample={roomStationCards:[rect(412,239,130,60),rect(585,239,130,60),rect(741,239,130,60)],roomActorLabels:[rect(469,393,42,17),rect(640,393,48,17),rect(795,393,44,17)],roomCaptainLabel:rect(550,419,79,17)};
+ assert.equal(worldEvidence.quarterLabelSeparation(sample).stationGap,26);
+ assert.throws(()=>worldEvidence.quarterLabelSeparation({...sample,roomStationCards:[...sample.roomStationCards.slice(0,2),rect(718,239,130,60)]}),/station labels touch/);
+ assert.throws(()=>worldEvidence.quarterLabelSeparation({...sample,roomActorLabels:[...sample.roomActorLabels.slice(0,1),rect(560,419,90,17),sample.roomActorLabels[2]]}),/obscures the captain/);
 });
 
 test('positive motion is admitted only after all three visible actor controls change',()=>{

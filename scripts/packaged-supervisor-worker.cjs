@@ -24,7 +24,7 @@ async function run(){
  const live=target(path.join(process.env.USERPROFILE||require('node:os').homedir(),'AppData','Local','Sunny HQ'));
  if(inside(live,profile)||inside(profile,live)||inside(live,out)||inside(out,live)||inside(profile,out)||inside(out,profile))throw Error('Private fixture directories overlap');
  const hash=async file=>crypto.createHash('sha256').update(await fs.promises.readFile(file)).digest('hex');
- const expected={scenario:config.scenario,exeSha256:await hash(exe),asarSha256:await hash(asar)};send('expected',{expected});
+ const expected={scenario:config.scenario,exeSha256:await hash(exe),asarSha256:await hash(asar),...(config.scenario.startsWith('journey-')?{entryHashes:require('./journey-package.cjs').entryHashes(asar)}:{})};send('expected',{expected});
  if(closed||Date.now()>=config.deadlineUnixMs)throw Error('Deadline expired before platform launch');
  const candidates=[path.join(process.env.USERPROFILE||'','.cache','codex-runtimes','codex-primary-runtime','dependencies','native','powershell','pwsh.exe'),path.join(process.env.ProgramFiles||'C:\\Program Files','PowerShell','7','pwsh.exe')];
  const pwsh=candidates.find(file=>fs.existsSync(file));if(!pwsh)throw Error('Approved PowerShell runtime unavailable');canonical(pwsh,false);
@@ -42,6 +42,7 @@ async function run(){
  const evidence=JSON.parse(await fs.promises.readFile(evidenceFile,'utf8')),registrations=[];
  for(let phase=1;phase<=evidence.phases.length;phase++){const file=path.join(out,`root-registration-${phase}.json`);if((await fs.promises.stat(file)).size>4096)throw Error('Oversize root registration');registrations.push(JSON.parse(await fs.promises.readFile(file,'utf8')));}
  if(await hash(exe)!==expected.exeSha256||await hash(asar)!==expected.asarSha256)throw Error('Package changed during contained run');
+ if(expected.entryHashes)require('node:assert/strict').deepEqual(require('./journey-package.cjs').entryHashes(asar),expected.entryHashes);
  send('completed',{value:{exitCode:report.exitCode,job:report,evidence,registrations}});
 }
 run().catch(()=>send('failed',{}));

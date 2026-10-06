@@ -32,8 +32,8 @@ function applyRunCommand(run,command,{now,actor=['plan','decide'].includes(comma
  if(a.type==='resume'){if(next.phase!=='paused'||next.controlIntent?.state==='pending')throw Error('Only confirmed quiescent paused runs can resume.');const prior=next.controlIntent?.action==='pause'?next.controlIntent.resumePhase:undefined;delete next.controlIntent;delete next.controlReport;next.phase=next.blockers.length?'blocked':prior==='reviewing'?'reviewing':next.assignments.some(a=>a.state==='queued')?'waiting':'planning';effects.push({type:'resume-planning',runId:run.id,revision:next.revision});}
  if(a.type==='stop'){next.stopIntent={id:event.id,requestedBy:'captain',reason:a.reason||'Captain requested stop',time:now,revision:next.revision};next.phase=next.assignments.some(live)?'stopping':'stopped';effects.push({type:'stop-work',runId:run.id,revision:next.revision});}
  if(a.type==='redirect'){next.blockers=next.blockers.filter(item=>item.kind!=='intent');next.disagreementRounds=0;next.phase=next.assignments.some(live)||next.coordinator?'stopping':'paused';next.readiness=null;effects.push({type:'replan',runId:run.id,revision:next.revision});}
- if(['pause','stop','redirect'].includes(a.type)){next.controlIntent={id:event.id,action:a.type,revision:next.revision,time:now,state:'pending',...(a.type==='pause'?{resumePhase:run.phase}:{}),...(a.type==='redirect'?{redirect:{objective:a.objective}}:{})};const queued=[];for(const item of next.assignments)if(['queued','reserved'].includes(item.state)&&!item.taskId){if(a.type!=='pause'||item.state==='reserved')item.state='cancelled';queued.push('assignment:'+item.id);}next.controlReport={runId:run.id,revision:next.revision,queuedCancelled:a.type==='pause'?[]:queued,interruptionRequested:[],confirmedStopped:[],unknownEffects:[],errors:[]};}
- if(a.type==='setGrant'){
+ if(['pause','stop','redirect'].includes(a.type)){require('./feedback-epochs.cjs').revoke(next,'CAPTAIN_CONTROL');next.controlIntent={id:event.id,action:a.type,revision:next.revision,time:now,state:'pending',...(a.type==='pause'?{resumePhase:run.phase}:{}),...(a.type==='redirect'?{redirect:{objective:a.objective}}:{})};const queued=[];for(const item of next.assignments)if(['queued','reserved'].includes(item.state)&&!item.taskId){if(a.type!=='pause'||item.state==='reserved')item.state='cancelled';queued.push('assignment:'+item.id);}next.controlReport={runId:run.id,revision:next.revision,queuedCancelled:a.type==='pause'?[]:queued,interruptionRequested:[],confirmedStopped:[],unknownEffects:[],errors:[]};}
+ if(a.type==='setGrant'){require('./feedback-epochs.cjs').revoke(next,'GRANT_CHANGED');
   if(next.grantHistory.length>=100)throw Error('Grant history limit reached.');next.grantHistory.push({grant:structuredClone(next.grant),replacedAt:now,revision:next.revision,reason:a.reason});
   next.grant={...a.grant,version:1,revision:(next.grant.revision||0)+1};
   const missing=reconcileScope(next,event);
@@ -43,7 +43,7 @@ function applyRunCommand(run,command,{now,actor=['plan','decide'].includes(comma
  if(a.type==='setGrant'&&effects.some(e=>e.type==='stop-work')){next.controlIntent={id:event.id,action:'stop',revision:next.revision,time:now,state:'pending'};const queued=[];for(const item of next.assignments)if(['queued','reserved'].includes(item.state)&&!item.taskId){item.state='cancelled';queued.push('assignment:'+item.id);}next.controlReport={runId:run.id,revision:next.revision,queuedCancelled:queued,interruptionRequested:[],confirmedStopped:[],unknownEffects:[],errors:[]};}
  if(a.type==='plan'){
   if(!['planning','blocked','waiting'].includes(next.phase))throw Error('Run phase does not permit a new proposal.');
-  const historical=new Set((next.controlAttempts||[]).flatMap(a=>a.assignments.map(item=>item.id)));
+  const historical=new Set([...(next.controlAttempts||[]).flatMap(a=>a.assignments.map(item=>item.id)),...require('./feedback-epochs.cjs').historicalIds(next)]);
   if(next.assignments.some(a=>!historical.has(a.id)))throw Error('Initial assignment proposal already exists.');
   if(a.assignments.some(item=>next.assignments.some(old=>old.id===item.id)))throw Error('Assignment ID already exists in a retained attempt.');
   if(a.assignments.length>next.grant.maxInitialAssignments)throw Error('Initial assignment limit exceeded.');
@@ -67,7 +67,7 @@ function applyRunCommand(run,command,{now,actor=['plan','decide'].includes(comma
  }
  if(a.decision){if(next.decisions.some(value=>value.id===a.decision.id))throw Error('Decision ID already exists.');next.decisions.push({...a.decision,runId:run.id,revision:next.revision,type:a.type,time:now,details:{...event.details}});}
  else next.decisions.push({id:event.id,runId:run.id,revision:next.revision,type:a.type,time:now,details:{},option:a.type,reason:a.reason||'Captain control',dissent:[],owner:'captain',nextAction:a.type==='stop'?'Confirm stopped work':'Inspect run',reopenEvidence:'New captain instruction'});
- if(require('./repair-policy.cjs').repairExhausted(next)){next.repairExhausted=true;next.readiness=null;if(!['paused','stopping','stopped','unknown'].includes(next.phase))next.phase='blocked';}
+ if(require('./repair-policy.cjs').repairExhausted(next)&&!require('./feedback-epochs.cjs').active(next)){next.repairExhausted=true;next.readiness=null;if(!['paused','stopping','stopped','unknown'].includes(next.phase))next.phase='blocked';}
  next.events.push(event);events.push(event);validateSupervisedRun(next);return {next,events,effects};
 }
 // A failed reliability gate cannot be bypassed by profile, renderer, model, or env.

@@ -22,7 +22,7 @@ function entitled(run){return !run?.stopIntent&&!['paused','stopping','stopped',
 function completed(run){const records=run?.integrations||[];return records.at(-1)?.resolution?.state==='completed'&&records.every(r=>contribution(run,r));}
 function assignmentAllowed(run,a){
  const p=pending(run);if(p.length)return p.length===1&&binding(run,a)===p[0]&&p[0].resolution.state==='prepared'&&!!a.resolutionOwnership;
- return !require('./repair-policy.cjs').repairExhausted(run)||completed(run)&&require('./crew-registry.cjs').reviewAssignment(a)&&run.verification?.integrationVerified&&a.baseCommit===run.verification.source.headCommit;
+ return require('./feedback-epochs.cjs').allows(run,{assignmentId:a?.id,taskId:a?.taskId})||!require('./repair-policy.cjs').repairExhausted(run)||completed(run)&&require('./crew-registry.cjs').reviewAssignment(a)&&run.verification?.integrationVerified&&a.baseCommit===run.verification.source.headCommit;
 }
 function budgetAllowance(run,{assignmentId,purpose}={}){
  if(assignmentId)return (pending(run).length>0||completed(run))&&assignmentAllowed(run,run.assignments.find(a=>a.id===assignmentId));

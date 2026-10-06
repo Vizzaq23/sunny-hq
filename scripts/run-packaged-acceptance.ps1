@@ -4,12 +4,13 @@ param(
  [Parameter(Mandatory)][string]$Asar,
  [Parameter(Mandatory)][string]$Profile,
  [Parameter(Mandatory)][string]$Out,
- [ValidateSet('playable','run-ui','startup','renderer-crash','main-restart','worker-loss','write-failure','lost-ack','pending-approval','pending-check','normal-quit')][string]$Scenario='startup',
+ [ValidateSet('journey-cue','journey-motion-user','journey-motion-system','journey-audio','playable','run-ui','startup','renderer-crash','main-restart','worker-loss','write-failure','lost-ack','pending-approval','pending-check','normal-quit')][string]$Scenario='startup',
  [ValidateSet(1,10,30)][int]$MiB=1,
  [ValidateRange(10000,300000)][int]$TimeoutMs=120000,
  [switch]$ContainedJob
 )
 $ErrorActionPreference='Stop'
+if($Scenario.StartsWith('journey-') -and $MiB -ne 1){throw 'Fixed journey requires MiB 1'}
 if(-not $ContainedJob){throw 'Use scripts/packaged-supervisor.cjs; direct uncontained fixture launches are disabled.'}
 $deadline=[Diagnostics.Stopwatch]::StartNew()
 function Assert-Deadline {if($deadline.ElapsedMilliseconds -ge $TimeoutMs){throw 'Owned packaged process timed out.'}}
@@ -96,13 +97,26 @@ function Read-RootIdentity([Diagnostics.Process]$Process,[string]$Manifest){
 }
 function Find-OwnedDescendants([int]$RootId,[datetime]$RootStart){
  $name=(Split-Path $Exe -Leaf).Replace("'","''")
- $nodeOwner=$null
- $nodeOwnerFile=Join-Path $Out 'owned-node.json'
- if($Scenario -eq 'playable' -and (Test-Path -LiteralPath $nodeOwnerFile)){$nodeOwner=Get-Content -LiteralPath $nodeOwnerFile -Raw|ConvertFrom-Json;if($nodeOwner.executable -ine 'C:\Program Files\nodejs\node.exe' -or $nodeOwner.sha256 -ne '9a4eb5f1c29c6a2e93852ead46b999e284a6a5ca8bab4d4e241d587d025a52de' -or -not (Is-Inside (Join-Path $Profile 'playable-builds') $nodeOwner.runnerPath)){throw 'Unapproved fixture Node ownership record'};if((Get-FileHash -LiteralPath $nodeOwner.executable -Algorithm SHA256).Hash.ToLowerInvariant() -ne $nodeOwner.sha256){throw 'Owned Node executable changed'}}
+ $nodeOwners=@()
+ $ownerNames=if($Scenario -eq 'journey-cue' -and $phase -eq 1){@('owned-node-1','owned-node-2')}elseif($Scenario -eq 'playable'){@('owned-node')}else{@()}
+ foreach($ownerName in $ownerNames){
+  $nodeOwnerFile=Join-Path $Out ($ownerName+'.json')
+  if(-not (Test-Path -LiteralPath $nodeOwnerFile)){continue}
+  $item=Get-Item -LiteralPath $nodeOwnerFile
+  if($item.Length -gt 4096 -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)){throw 'Invalid Node ownership receipt'}
+  $nodeOwner=Get-Content -LiteralPath $nodeOwnerFile -Raw|ConvertFrom-Json
+  if($nodeOwner.executable -ine 'C:\Program Files\nodejs\node.exe' -or $nodeOwner.sha256 -ne '9a4eb5f1c29c6a2e93852ead46b999e284a6a5ca8bab4d4e241d587d025a52de' -or -not (Is-Inside (Join-Path $Profile 'playable-builds') $nodeOwner.runnerPath) -or [IO.Path]::GetFileName($nodeOwner.runnerPath) -cne 'runner.cjs'){throw 'Unapproved fixture Node ownership record'}
+  if((Get-FileHash -LiteralPath $nodeOwner.executable -Algorithm SHA256).Hash.ToLowerInvariant() -ne $nodeOwner.sha256){throw 'Owned Node executable changed'}
+  $nodeOwner|Add-Member -NotePropertyName receiptName -NotePropertyValue $ownerName
+  $nodeOwners+=,$nodeOwner
+ }
  Assert-Deadline
  $candidates=@(Get-CimInstance Win32_Process -Filter ("Name = '"+$name+"'") -OperationTimeoutSec 2 | Where-Object {$_.ExecutablePath -ieq $Exe -and $_.CreationDate -ge $RootStart})
  Assert-Deadline
- if($null -ne $nodeOwner){$nodeCandidate=Get-CimInstance Win32_Process -Filter ('ProcessId = '+[int]$nodeOwner.pid) -OperationTimeoutSec 2;Assert-Deadline;if($null -ne $nodeCandidate){$nodeArguments=[SunnyFixtureArgv]::Parse($nodeCandidate.CommandLine);if($nodeCandidate.ExecutablePath -ieq $nodeOwner.executable -and $nodeCandidate.ParentProcessId -eq $RootId -and $nodeCandidate.CreationDate -ge $RootStart -and $nodeArguments.Count -ge 2 -and $nodeArguments[0] -ieq $nodeOwner.executable -and $nodeArguments[1] -ceq $nodeOwner.runnerPath){$candidates+=,$nodeCandidate}}}
+ foreach($nodeOwner in $nodeOwners){
+  $nodeCandidate=Get-CimInstance Win32_Process -Filter ('ProcessId = '+[int]$nodeOwner.pid) -OperationTimeoutSec 2;Assert-Deadline
+  if($null -ne $nodeCandidate){$nodeArguments=[SunnyFixtureArgv]::Parse($nodeCandidate.CommandLine);if($nodeCandidate.ExecutablePath -ieq $nodeOwner.executable -and $nodeCandidate.ParentProcessId -eq $RootId -and $nodeCandidate.CreationDate -ge $RootStart -and $nodeArguments.Count -eq 2 -and $nodeArguments[0] -ieq $nodeOwner.executable -and $nodeArguments[1] -ceq $nodeOwner.runnerPath){$candidates+=,$nodeCandidate}else{throw 'Node ownership generation or arguments changed'}}
+ }
  for($pass=0;$pass -lt 4;$pass++){
   foreach($candidate in $candidates){
    if($candidate.ParentProcessId -ne $RootId -and -not $ownedRecords.ContainsKey([int]$candidate.ParentProcessId)){continue}
@@ -113,8 +127,18 @@ function Find-OwnedDescendants([int]$RootId,[datetime]$RootStart){
    if($null -ne $parentCurrent){if($parentCurrent.StartTime -ne $parentRecord.start -or $parentCurrent.Path -ine $parentRecord.path){continue};$parentRecord.lastSeen=[datetime]::Now}
    elseif($candidate.CreationDate -gt $parentRecord.lastSeen){throw 'Owned descendant identity is unresolved after its parent exited.'}
    $current=Get-Process -Id $pidValue -ErrorAction SilentlyContinue
-   if($null -ne $current -and ($current.Path -ieq $Exe -or ($null -ne $nodeOwner -and $pidValue -eq $nodeOwner.pid -and $current.Path -ieq $nodeOwner.executable)) -and $current.StartTime -ge $RootStart){$ownedRecords[$pidValue]=@{start=$current.StartTime;path=$current.Path;lastSeen=[datetime]::Now}}
+   if($null -ne $current -and ($current.Path -ieq $Exe -or @($nodeOwners|Where-Object {$pidValue -eq $_.pid -and $current.Path -ieq $_.executable}).Count -eq 1) -and $current.StartTime -ge $RootStart){$ownedRecords[$pidValue]=@{start=$current.StartTime;path=$current.Path;lastSeen=[datetime]::Now}}
   }
+ }
+ foreach($nodeOwner in $nodeOwners){
+  if($Scenario -ne 'journey-cue'){continue}
+  $verified=Join-Path $Out ($nodeOwner.receiptName+'-verified.json')
+  if(Test-Path -LiteralPath $verified){continue}
+  $record=$ownedRecords[[int]$nodeOwner.pid]
+  if($null -eq $record){continue}
+  $current=Get-Process -Id $nodeOwner.pid -ErrorAction SilentlyContinue
+  if($null -eq $current -or $current.StartTime -ne $record.start -or $current.Path -ine $record.path){throw 'Node exited before ownership acknowledgement'}
+  [IO.File]::WriteAllText($verified,(@{pid=$nodeOwner.pid;launchId=$nodeOwner.launchId;runnerPath=$nodeOwner.runnerPath;sha256=$nodeOwner.sha256;creation=$record.start.ToUniversalTime().ToFileTimeUtc().ToString()}|ConvertTo-Json -Compress),[Text.UTF8Encoding]::new($false))
  }
 }
 function Get-OwnedRunning {
@@ -128,7 +152,7 @@ function Get-OwnedRunning {
 }
 try{
  $env:SUNNY_FIXTURE_NONCE=$nonce
- $phases=if($Scenario -in @('main-restart','run-ui','playable')){@(1,2)}else{@(1)}
+ $phases=if($Scenario -in @('main-restart','run-ui','playable','journey-cue')){@(1,2)}else{@(1)}
  $receipts=@()
  foreach($phase in $phases){
   if((Get-FileHash -LiteralPath $Exe -Algorithm SHA256).Hash.ToLowerInvariant() -ne $exeHash -or (Get-FileHash -LiteralPath $Asar -Algorithm SHA256).Hash.ToLowerInvariant() -ne $asarHash){throw 'Package bytes changed before launch.'}
@@ -157,7 +181,7 @@ try{
   for($cleanupPass=0;$cleanupPass -lt 50 -and @(Get-OwnedRunning).Count;$cleanupPass++){Start-Sleep -Milliseconds 100}
   if(@(Get-OwnedRunning).Count){throw 'Owned package descendants did not exit after the main process.'}
   $owned.Refresh()
-  $expectedExit=if($Scenario -in @('main-restart','run-ui','playable') -and $phase -eq 1){73}else{0}
+  $expectedExit=if($Scenario -in @('main-restart','run-ui','playable','journey-cue') -and $phase -eq 1){73}else{0}
   if($owned.ExitCode -ne $expectedExit){throw "Packaged phase $phase exited $($owned.ExitCode); expected $expectedExit."}
   $receipt=Get-Content -LiteralPath (Join-Path $Out "phase-$phase.json") -Raw|ConvertFrom-Json
   if($receipt.pid -ne $owned.Id -or $receipt.executableSha256 -ne $exeHash -or $receipt.asarSha256 -ne $asarHash -or $receipt.phase -ne $phase -or $receipt.scenario -ne $Scenario){throw 'Exact process/package identity mismatch.'}
@@ -169,7 +193,7 @@ try{
   $owned=$null
  }
  $result=@{version=1;scenario=$Scenario;exeSha256=$exeHash;asarSha256=$asarHash;mainProcessRestart=$false;phases=$receipts;ownedProcessesExited=$true}
- if($Scenario -in @('main-restart','run-ui','playable')){
+ if($Scenario -in @('main-restart','run-ui','playable','journey-cue')){
   if($receipts[0].pid -eq $receipts[1].pid){throw 'Restart did not produce a distinct main process.'}
   $before=$receipts[0].identity|ConvertTo-Json -Compress -Depth 10
   $after=$receipts[1].identity|ConvertTo-Json -Compress -Depth 10
@@ -179,7 +203,7 @@ try{
   $result.mainProcessRestart=$true
  }
  if((Get-FileHash -LiteralPath $Exe -Algorithm SHA256).Hash.ToLowerInvariant() -ne $exeHash -or (Get-FileHash -LiteralPath $Asar -Algorithm SHA256).Hash.ToLowerInvariant() -ne $asarHash){throw 'Package bytes changed after launch.'}
- [IO.File]::WriteAllText((Join-Path $Out 'evidence.json'),($result|ConvertTo-Json -Depth 20),[Text.UTF8Encoding]::new($false))
+ [IO.File]::WriteAllText((Join-Path $Out 'evidence.json'),($result|ConvertTo-Json -Depth 64),[Text.UTF8Encoding]::new($false))
  Write-Output (Join-Path $Out 'evidence.json')
 }finally{
  # Cleanup belongs to the externally owned private job. Never recover kill

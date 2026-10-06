@@ -20,13 +20,16 @@ function readBinary(root,name,limit=LIMITS.file){
 }
 function validateManifest(m,authority){
  fields(m,['version','runId','missionId','attemptId','producerTaskId','workspaceId','source','build','toolchain','runtime','artifacts','entrypoint','cwd','environment','requiredCheckIds','limitations','producedAt']);
- if(m.version!==1||m.runtime!=='node-http'||m.cwd!=='.'||!Number.isSafeInteger(m.producedAt)||m.producedAt<0)throw Error('Unsupported playable runtime or version.');
+ if(![1,2].includes(m.version)||m.runtime!=='node-http'||m.cwd!=='.'||!Number.isSafeInteger(m.producedAt)||m.producedAt<0)throw Error('Unsupported playable runtime or version.');
  for(const k of ['runId','missionId','attemptId','producerTaskId','workspaceId'])if(!text(m[k])||m[k]!==authority?.[k])throw Error('Playable identity changed: '+k);
  require('./supervision-schema.cjs').validateSource(m.source);if(!sameSource(m.source,authority.source))throw Error('Playable source identity changed.');
  if(!/^[a-f0-9]{40,64}$/.test(m.source.baseCommit)||!/^[a-f0-9]{40,64}$/.test(m.source.headCommit)||!hash(m.source.fingerprint))throw Error('Invalid playable source fingerprint or commit.');
- fields(m.build,['program','args']);list(m.build.args,1);fields(m.toolchain,['name','version']);if(m.build.program!=='node'||m.build.args.length!==1||m.toolchain.name!=='node'||!/^24\.\d+\.\d+$/.test(m.toolchain.version))throw Error('Unsupported playable build description or toolchain.');relative(m.build.args[0]);relative(m.entrypoint);
+ fields(m.toolchain,['name','version']);if(m.toolchain.name!=='node'||!/^24\.\d+\.\d+$/.test(m.toolchain.version))throw Error('Unsupported playable toolchain.');
+ if(m.version===1){fields(m.build,['program','args']);list(m.build.args,1);if(m.build.program!=='node'||m.build.args.length!==1)throw Error('Unsupported playable build description.');relative(m.build.args[0]);}
+ else{fields(m.build,['resolverId','script','scriptSha256','receiptId','command','runtime']);fields(m.build.runtime,['nodeVersion','nodeSha256','npmSha256']);if(m.build.resolverId!=='project-suite-v1'||m.build.script!=='build'||m.build.command!=='npm run build'||!hash(m.build.scriptSha256)||!text(m.build.receiptId)||m.build.runtime.nodeVersion!==m.toolchain.version||!hash(m.build.runtime.nodeSha256)||!hash(m.build.runtime.npmSha256))throw Error('Unsupported pinned playable build receipt.');}
+ relative(m.entrypoint);
  list(m.environment,0);list(m.artifacts,LIMITS.count);if(!m.artifacts.length)throw Error('Playable artifacts missing.');const paths=new Set();for(const a of m.artifacts){fields(a,['path','sha256']);relative(a.path);const key=a.path.toLowerCase();if(paths.has(key)||!hash(a.sha256))throw Error('Duplicate playable path or invalid hash.');paths.add(key);}
- if(!m.artifacts.some(a=>a.path===m.entrypoint)||!m.artifacts.some(a=>a.path===m.build.args[0])||!sameSource([...m.artifacts].sort((a,b)=>a.path.localeCompare(b.path)),[...m.source.artifactHashes].sort((a,b)=>a.path.localeCompare(b.path))))throw Error('Playable entrypoint or complete source artifact hashes missing.');
+ if(!m.artifacts.some(a=>a.path===m.entrypoint)||m.version===1&&!m.artifacts.some(a=>a.path===m.build.args[0])||!sameSource([...m.artifacts].sort((a,b)=>a.path.localeCompare(b.path)),[...m.source.artifactHashes].sort((a,b)=>a.path.localeCompare(b.path))))throw Error('Playable entrypoint or complete source artifact hashes missing.');
  for(const [key,max] of [['requiredCheckIds',1000],['limitations',32]]){list(m[key],max);if(m[key].some(v=>!text(v,key==='limitations'?2000:200))||new Set(m[key]).size!==m[key].length)throw Error('Invalid playable '+key);}if(!m.requiredCheckIds.length)throw Error('Playable required checks missing.');return m;
 }
 function validatePlayableArtifact(a,mission){fields(a,['id','kind','missionId','projectId','attemptId','runId','workspaceId','producerTaskId','producer','filePath','sha256','bytes','source','recordedAt']);if(a.kind!=='playable'||!['id','missionId','projectId','attemptId','runId','workspaceId','producerTaskId','producer'].every(k=>text(a[k]))||a.missionId!==mission.id||a.projectId!==mission.projectId||a.runId!==mission.runId||!mission.attempts.some(v=>v.id===a.attemptId&&v.taskIds.includes(a.producerTaskId))||!hash(a.sha256)||!Number.isSafeInteger(a.bytes)||a.bytes<1||a.bytes>LIMITS.manifest||!Number.isSafeInteger(a.recordedAt)||a.recordedAt<0)throw Error('Invalid saved playable artifact identity.');relative(a.filePath);require('./supervision-schema.cjs').validateSource(a.source);}
@@ -43,10 +46,17 @@ async function inspectPlayableManifest({project,workspace,manifest,authority,evi
  const current=s=>!s.dirty&&s.commit===authority.source.headCommit&&s.fingerprint===authority.source.fingerprint;if(!current(before))throw Error('Playable source is dirty or stale.');
  const proof=inspectPlayableBytes({project,workspace,manifest,authority});await require('./execution-workspaces.cjs').verifyWorkspace(workspace,original);const after=await evidence.gitState(workspace.canonicalRoot);if(!current(after)||expected!==JSON.stringify({workspace,authority}))throw Error('Playable source changed during inspection.');return proof;
 }
+function runtimeBlockers(run){
+ const allowed=new Set(),plan=run.ordinary?.runtimePlan;
+ if(run.ordinary){if(!run.ordinary.deliverable||!plan)return allowed;require('./playable-contract.cjs').validate(run.ordinary.deliverable,plan,run.criteria);}
+ for(const c of run.criteria||[])if(c.kind==='playable'&&(!run.ordinary||['startup','interaction'].every(kind=>plan.entries.some(e=>e.criterionId===c.id&&e.kind===kind))))allowed.add('Missing passing playable evidence: '+c.id);
+ const ids=run.ordinary?plan.entries.map(e=>e.id):['startup','gameplay'];for(const id of ids)allowed.add('Missing manifest check: '+id);return allowed;
+}
+function sourceReadiness(input){const evaluation=evaluateReadiness(input),allowed=runtimeBlockers(input.run),blockers=evaluation.blockers.filter(b=>!allowed.has(b));return {ready:blockers.length===0,blockers};}
 function evaluateCandidate({run,source,tasks}){
  if(!run?.verification)return {eligible:false,blockers:['Missing independent source verification.']};
- const evaluation=evaluateReadiness({run,...run.verification,source,reviews:run.reviews||[],tasks});
- // Only the evidence obtained through the first validation launch may be absent.
- const blockers=evaluation.blockers.filter(b=>!/^Missing passing playable evidence: |^Missing manifest check: /.test(b));return {eligible:!blockers.length,blockers};
+ const evaluation=sourceReadiness({run,...run.verification,source,reviews:run.reviews||[],tasks}),blockers=[...evaluation.blockers];
+ if(run.ordinary){const d=run.deliveries?.find(d=>d.epochId===run.currentEpoch?.id&&d.selectedResult?.id===run.verification.resultId);if(!d||d.stage!=='completed'||d.continuation?.state!=='completed'||tasks?.find(t=>t.id===d.continuation.taskId)?.status!=='finished'||d.reviewAssignmentIds.some(id=>{const a=run.assignments.find(a=>a.id===id);return a?.state!=='finished'||tasks?.find(t=>t.id===a.taskId)?.status!=='finished';}))blockers.push('Source review and provider completion are pending.');}
+ return {eligible:!blockers.length,blockers};
 }
-module.exports={LIMITS,readBinary,validateManifest,validatePlayableArtifact,inspectPlayableBytes,inspectPlayableManifest,evaluateCandidate};
+module.exports={LIMITS,relative,readBinary,validateManifest,validatePlayableArtifact,inspectPlayableBytes,inspectPlayableManifest,evaluateCandidate,runtimeBlockers,sourceReadiness};

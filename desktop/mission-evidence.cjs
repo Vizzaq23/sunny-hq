@@ -26,6 +26,8 @@ function executeCheck(node,npm,script,cwd,timeout=120000,deps={}){
 }
 class MissionEvidence {
  constructor({git='git',runtime=npmRuntime,execute=executeCheck}={}){this.git=git;this.runtime=runtime;this.execute=execute;}
+ async runtimeIdentity(){const runtime=this.runtime(),read=require('./playable-results.cjs').readBinary,node=read(path.dirname(runtime.node),path.basename(runtime.node),128*1024*1024),npm=read(path.dirname(runtime.npm),path.basename(runtime.npm),1024*1024);const version=(await runFile(runtime.node,['--version'],{windowsHide:true,encoding:'utf8',timeout:10000,env:{...process.env,ELECTRON_RUN_AS_NODE:'1'}})).stdout.trim();if(!/^v24\.\d+\.\d+$/.test(version))throw Error('Unsupported build runtime');return {nodeVersion:version.slice(1),nodeSha256:node.sha256,npmSha256:npm.sha256};}
+ assertRuntime(identity){const runtime=this.runtime(),read=require('./playable-results.cjs').readBinary;if(read(path.dirname(runtime.node),path.basename(runtime.node),128*1024*1024).sha256!==identity.nodeSha256||read(path.dirname(runtime.npm),path.basename(runtime.npm),1024*1024).sha256!==identity.npmSha256)throw Error('Pinned build runtime changed');return runtime;}
  async command(root,args){return (await runFile(this.git,args,{cwd:root,windowsHide:true,encoding:'utf8',maxBuffer:8*1024*1024,timeout:15000})).stdout;}
  async gitState(root){
   const actual=fs.realpathSync(root),repo=fs.realpathSync((await this.command(actual,['rev-parse','--show-toplevel'])).trim());
@@ -57,10 +59,11 @@ class MissionEvidence {
   if(!['test','build','typecheck','lint'].includes(script))throw Error('Choose a supported check.');
   const file=path.join(root,'package.json');if(!fs.existsSync(file)||fs.statSync(file).size>1024*1024)throw Error('Project package.json is unavailable.');
   const pkg=JSON.parse(fs.readFileSync(file,'utf8'));if(typeof pkg.scripts?.[script]!=='string'||!pkg.scripts[script].trim())throw Error('The '+script+' script is unavailable in this project.');
-  const before=await this.gitState(root),startedAt=Date.now(),runtime=this.runtime();
+  const before=await this.gitState(root),startedAt=Date.now(),runtime=control?.runtimeIdentity?this.assertRuntime(control.runtimeIdentity):this.runtime();
   await beforeEffect?.();
+  if(control?.runtimeIdentity)this.assertRuntime(control.runtimeIdentity);
   const result=await this.execute(runtime.node,runtime.npm,script,root,120000,{control});
-  const after=await this.gitState(root);
+  const after=await this.gitState(root);if(control?.runtimeIdentity)this.assertRuntime(control.runtimeIdentity);
   return {kind:'check',script,command:'npm run '+script,startedAt,recordedAt:Date.now(),durationMs:Date.now()-startedAt,...result,commit:before.commit,branch:before.branch,beforeFingerprint:before.fingerprint,fingerprint:after.fingerprint,status:result.timedOut||result.exitCode!==0?'failed':before.fingerprint!==after.fingerprint?'stale':'passed'};
  }
 }

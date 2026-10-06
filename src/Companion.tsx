@@ -11,7 +11,7 @@ export default function Companion(){
  const context=sunny.snapshot.workspace?.context,projection=context?projectMission(sunny.snapshot,context):undefined,previous=useRef<MissionProjection|undefined>(undefined),[acceptedCue,setAcceptedCue]=useState(false),[systemReduced,setSystemReduced]=useState(()=>window.matchMedia('(prefers-reduced-motion: reduce)').matches);
  useEffect(()=>{const media=window.matchMedia('(prefers-reduced-motion: reduce)'),change=()=>setSystemReduced(media.matches);media.addEventListener('change',change);return()=>media.removeEventListener('change',change);},[]);
  useEffect(()=>{if(!sunny.ready)return;let alive=true;const prior=previous.current;previous.current=projection;if(projection)void claimLiveAcceptanceCue(prior,projection,async()=>Boolean((await sunny.invoke<{play:boolean}>('workspace:claimAcceptanceCue',{acceptanceId:projection.acceptanceId})).play),sunny.snapshot.settings.reducedMotion||systemReduced).then(play=>{if(alive&&play)setAcceptedCue(true);}).catch(()=>{});return()=>{alive=false;};},[sunny.ready,projection?.state,projection?.acceptanceId,projection?.missionId,projection?.attemptId]);
- useEffect(()=>{if(!acceptedCue)return;const timer=window.setTimeout(()=>setAcceptedCue(false),1400);return()=>clearTimeout(timer);},[acceptedCue]);
+ useEffect(()=>{if(!acceptedCue)return;const timer=window.setTimeout(()=>setAcceptedCue(false),1200);return()=>clearTimeout(timer);},[acceptedCue]);
  useEffect(()=>{
   document.documentElement.classList.add('companion-document');
   let previous=false;

@@ -1,6 +1,9 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const {createHash,timingSafeEqual}=require('node:crypto');const {EventEmitter}=require('node:events');
-const SCENARIOS=Object.freeze(['playable','run-ui','startup','renderer-crash','main-restart','worker-loss','write-failure','lost-ack','pending-approval','pending-check','normal-quit']);
+const JOURNEY_SCENARIOS=Object.freeze(['journey-cue','journey-motion-user','journey-motion-system','journey-audio']);
+const admittedCapabilities=new WeakSet();
+function assertFixtureCapability(value){if(!value||!admittedCapabilities.has(value))throw Error('Private admitted capability required before fixture imports or Hub construction.');return value;}
+const SCENARIOS=Object.freeze([...JOURNEY_SCENARIOS,'playable','run-ui','startup','renderer-crash','main-restart','worker-loss','write-failure','lost-ack','pending-approval','pending-check','normal-quit']);
 const FROZEN_SHA='219f75242146fb32b8ed8452a0b792b1c76207311b67f74b947b267cc8581590';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 function validateFixtureArguments(argv){
@@ -13,8 +16,8 @@ function canonical(directory){
  for(let current=resolved;;current=path.dirname(current)){if(fs.lstatSync(current).isSymbolicLink())throw Error('Fixture path contains a link or junction.');if(path.dirname(current)===current)break;}
  return resolved;
 }
-function assertOwnedTree(directory){
- let count=0;function inspect(current){if(++count>256)throw Error('Fixture tree exceeds owned path bound.');const stat=fs.lstatSync(current);if(stat.isSymbolicLink()||(!stat.isDirectory()&&stat.nlink>1))throw Error('Fixture files cannot alias another profile.');if(stat.isDirectory())for(const entry of fs.readdirSync(current))inspect(path.join(current,entry));}inspect(directory);
+function assertOwnedTree(directory,limit=256){
+ let count=0;function inspect(current){if(++count>limit)throw Error('Fixture tree exceeds owned path bound.');const stat=fs.lstatSync(current);if(stat.isSymbolicLink()||(!stat.isDirectory()&&stat.nlink>1))throw Error('Fixture files cannot alias another profile.');if(stat.isDirectory())for(const entry of fs.readdirSync(current))inspect(path.join(current,entry));}inspect(directory);
 }
 function canonicalTarget(target){let ancestor=path.resolve(target),suffix=[];while(!fs.existsSync(ancestor)){suffix.unshift(path.basename(ancestor));const next=path.dirname(ancestor);if(next===ancestor)throw Error('Default profile path unavailable.');ancestor=next;}return path.join(fs.realpathSync.native(ancestor),...suffix);}
 function overlaps(a,b){const relative=path.relative(a,b);return relative===''||(!relative.startsWith('..'+path.sep)&&relative!=='..'&&!path.isAbsolute(relative));}
@@ -24,6 +27,7 @@ function admitFixture({manifestPath,nonce,defaultProfile,env=process.env}){
  canonical(path.dirname(manifestPath));const value=JSON.parse(fs.readFileSync(manifestPath,'utf8'));
  const keys=['version','nonce','profileDir','outputDir','scenario','phase','mib'];
  if(!value||Object.keys(value).length!==keys.length||Object.keys(value).some(key=>!keys.includes(key))||value.version!==1||!SCENARIOS.includes(value.scenario)||![1,2].includes(value.phase)||![1,10,30].includes(value.mib)||typeof value.nonce!=='string'||value.nonce.length!==nonce.length||!timingSafeEqual(Buffer.from(value.nonce),Buffer.from(nonce)))throw Error('Invalid fixture manifest or nonce.');
+ if(JOURNEY_SCENARIOS.includes(value.scenario)&&(value.mib!==1||value.scenario!=='journey-cue'&&value.phase!==1))throw Error('Invalid fixed journey phase or size');
  if(env.ELECTRON_RUN_AS_NODE||env.SUNNY_DEV_URL||env.SUNNY_PROVIDER_MISSION||env.SUNNY_LIVE_MISSION)throw Error('Fixture runtime rejects provider/dev/runtime opt-ins.');
  const profileDir=canonical(value.profileDir),outputDir=canonical(value.outputDir),live=canonicalTarget(defaultProfile).toLowerCase();
  if(overlaps(live,profileDir.toLowerCase())||overlaps(profileDir.toLowerCase(),live)||overlaps(profileDir,outputDir)||overlaps(outputDir,profileDir)||overlaps(profileDir,manifestPath)||overlaps(outputDir,manifestPath))throw Error('Fixture profile must be isolated from default/live profile and evidence.');
@@ -32,8 +36,9 @@ function admitFixture({manifestPath,nonce,defaultProfile,env=process.env}){
  const outputOwner=JSON.parse(fs.readFileSync(outputMarker,'utf8'));if(outputOwner.version!==1||outputOwner.nonceSha256!==nonceSha256)throw Error('Evidence directory is not owned by this fixture.');
  const marker=path.join(profileDir,'.sunny-packaged-fixture.json');
  if(value.phase===1){if(fs.readdirSync(profileDir).length)throw Error('Fixture profile must be empty and manifested.');fs.writeFileSync(marker,JSON.stringify({version:1,nonceSha256,scenario:value.scenario}),{flag:'wx',mode:0o600});}
- else{assertOwnedTree(profileDir);const owned=JSON.parse(fs.readFileSync(marker,'utf8'));if(owned.nonceSha256!==nonceSha256||owned.scenario!==value.scenario||owned.version!==1)throw Error('Profile is not owned by this fixture manifest.');}
- return Object.freeze({...value,profileDir,outputDir});
+ else{assertOwnedTree(profileDir,JOURNEY_SCENARIOS.includes(value.scenario)?4096:256);const owned=JSON.parse(fs.readFileSync(marker,'utf8'));if(owned.nonceSha256!==nonceSha256||owned.scenario!==value.scenario||owned.version!==1)throw Error('Profile is not owned by this fixture manifest.');}
+ if(value.scenario==='journey-cue'&&value.phase===2){const priorFile=path.join(outputDir,'phase-1.json');if(fs.lstatSync(priorFile).isSymbolicLink()||fs.statSync(priorFile).size>2*1024*1024)throw Error('Invalid completed journey receipt');require('./journey-receipts.cjs').validatePhase(JSON.parse(fs.readFileSync(priorFile,'utf8')),{scenario:value.scenario,phase:1,nonceSha256});}
+ const capability=Object.freeze({...value,profileDir,outputDir});admittedCapabilities.add(capability);return capability;
 }
 function createOfflineClient(){const client=new EventEmitter();client.connected=false;let blocked=0;Object.defineProperty(client,'fixtureEffects',{get:()=>Object.freeze({blockedAttempts:blocked,providerEffects:0})});const deny=()=>{blocked++;throw Error('Offline fixture forbids provider effects.');};for(const method of ['connect','request','respond','start','turn','rejectRequest'])client[method]=deny;client.close=()=>{};return client;}
 function loadFrozenFixture(mib){
@@ -51,7 +56,7 @@ function assertRunUISettings(args){
  for(const key of ['reducedMotion','roomSoundEnabled'])if(Object.hasOwn(args,key)&&typeof args[key]!=='boolean')throw Error('Invalid run UI fixture boolean setting.');
  if(Object.hasOwn(args,'roomSoundVolume')&&(typeof args.roomSoundVolume!=='number'||!Number.isFinite(args.roomSoundVolume)||args.roomSoundVolume<0||args.roomSoundVolume>.65))throw Error('Invalid run UI fixture sound volume.');
 }
-function assertFixtureAction(action,args={},manifest){if(manifest?.scenario==='playable'&&['result:play','result:stop','result:feedback','run:control'].includes(action)){require('./supervision-commands.cjs').validateSupervisionCommand(action,args);if(action==='run:control'&&(args.action!=='stop'||args.runId!=='playable-run'||args.projectId!=='playable-project'))throw Error('Offline playable fixture permits only its own Stop-all');return;}if(action==='settings:update'&&manifest?.scenario==='run-ui'&&manifest.phase===1){assertRunUISettings(args);return;}if(action==='asset:crewTexture'){if(!args||typeof args!=='object'||Array.isArray(args)||Object.keys(args).length!==1||Object.keys(args)[0]!=='kind'||!['blimp','crew','actions','ship','walk','states','residents'].includes(args.kind))throw Error('Invalid offline fixture texture query.');return;}if(!['run:ackCall','snapshot','workspace:get','workspace:update','transcript:page','mission:resultStatus','app:reload','app:diagnostic','approval:respond','mission:reconcileCheck'].includes(action))throw Error('Offline fixture blocks this action.');}
+function assertFixtureAction(action,args={},manifest){if(JOURNEY_SCENARIOS.includes(manifest?.scenario)&&action!=='asset:crewTexture')return require('./journey-actions.cjs').assert(action,args,manifest);if(manifest?.scenario==='playable'&&['result:play','result:stop','result:feedback','run:control'].includes(action)){require('./supervision-commands.cjs').validateSupervisionCommand(action,args);if(action==='run:control'&&(args.action!=='stop'||args.runId!=='playable-run'||args.projectId!=='playable-project'))throw Error('Offline playable fixture permits only its own Stop-all');return;}if(action==='settings:update'&&manifest?.scenario==='run-ui'&&manifest.phase===1){assertRunUISettings(args);return;}if(action==='asset:crewTexture'){if(!args||typeof args!=='object'||Array.isArray(args)||Object.keys(args).length!==1||Object.keys(args)[0]!=='kind'||!['blimp','crew','actions','ship','walk','states','residents'].includes(args.kind))throw Error('Invalid offline fixture texture query.');return;}if(!['run:ackCall','snapshot','workspace:get','workspace:update','transcript:page','mission:resultStatus','app:reload','app:diagnostic','approval:respond','mission:reconcileCheck'].includes(action))throw Error('Offline fixture blocks this action.');}
 function seedState(manifest){
  const state=loadFrozenFixture(manifest.mib);const project=path.join(manifest.profileDir,'synthetic-project');fs.mkdirSync(project);state.projects[0].path=project;
  const mission=state.missionBook.missions[0],task=state.tasks[0],message=task.messages.find(item=>item.role==='assistant');
@@ -64,6 +69,8 @@ function seedState(manifest){
  return state;
 }
 async function bootFixtureHub(manifest,stage=()=>{}){
+ assertFixtureCapability(manifest);
+ if(JOURNEY_SCENARIOS.includes(manifest.scenario))return require('./journey-bootstrap.cjs').boot(manifest,stage);
  const {openOrderedStore}=require('./ordered-store.cjs'),{Hub}=require('./hub.cjs');
  const options={kind:'sqlite',file:path.join(manifest.profileDir,'sunny.sqlite'),backupDir:path.join(manifest.profileDir,'mission-profile-backups')};let store,hub;
  return require('./fixture-stages.cjs').withFailureStage(async()=>{stage('store-open-enter');store=await openOrderedStore(options);stage('store-open-exit');if(manifest.phase===1){stage('seed-enter');await store.barrier(seedState(manifest),'mission');stage('seed-exit');stage('store-close-enter');await store.close();stage('store-close-exit');stage('store-reopen-enter');store=await openOrderedStore(options);stage('store-reopen-exit');}hub=new Hub({home:manifest.profileDir,store,catalog:fixtureCatalog(),fixtureDependencies:{...fixtureDependencies(),playableFixture:manifest.scenario==='playable'}});stage('hub-created');stage('recovery-enter');await hub.initializeRecovery();stage('recovery-exit');return hub;},async()=>{if(hub)await hub.close();else if(store)await store.close();},stage);
@@ -126,6 +133,8 @@ async function faultStore(profileDir,scenario){
 }
 async function runPackagedAcceptance({app,profileDir,outputDir,scenario,fixtureTransport}){
  const {win,hub,manifest,buildInfo,diagnosticEvents=[]}=fixtureTransport;if(profileDir!==manifest.profileDir||outputDir!==manifest.outputDir||scenario!==manifest.scenario)throw Error('Fixture transport does not match admission.');
+ assertFixtureCapability(manifest);
+ if(JOURNEY_SCENARIOS.includes(scenario))return require('./journey-fixture.cjs').run({app,...fixtureTransport,trustedInvoke,waitForRenderer,hashPackageFiles});
  await waitForRenderer(win,hub.state.workspace.context);const start=performance.now();const snapshot=await trustedInvoke(win,'snapshot');assert.ok(snapshot.workspace);const invokeMs=performance.now()-start;
  let workspace=await trustedInvoke(win,'workspace:get');assert.equal(workspace.drafts[0].id,'draft-brief');
  if(manifest.phase===1){const writeStart=performance.now();await trustedInvoke(win,'workspace:update',{expectedRevision:workspace.revision,draft:workspace.drafts[0]});workspace=await trustedInvoke(win,'workspace:get');fixtureTransport.workspaceWriteMs=performance.now()-writeStart;}
@@ -147,4 +156,4 @@ async function runPackagedAcceptance({app,profileDir,outputDir,scenario,fixtureT
  await hub.persist('workspace');evidence.identity=durableIdentity(hub);Object.assign(evidence,hub.client.fixtureEffects);fs.writeFileSync(path.join(outputDir,`phase-${manifest.phase}.json`),JSON.stringify(evidence,null,2),{flag:'wx',mode:0o600});
  return evidence;
 }
-module.exports={SCENARIOS,FROZEN_SHA,validateFixtureArguments,admitFixture,createOfflineClient,fixtureCatalog,fixtureDependencies,assertFixtureAction,loadFrozenFixture,seedState,bootFixtureHub,hashPackageFiles,durableIdentity,verifyLockedWriteFailure,faultStore,rendererReady,runPackagedAcceptance};
+module.exports={assertFixtureCapability,JOURNEY_SCENARIOS,SCENARIOS,FROZEN_SHA,validateFixtureArguments,admitFixture,createOfflineClient,fixtureCatalog,fixtureDependencies,assertFixtureAction,loadFrozenFixture,seedState,bootFixtureHub,hashPackageFiles,durableIdentity,verifyLockedWriteFailure,faultStore,rendererReady,runPackagedAcceptance};

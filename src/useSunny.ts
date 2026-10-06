@@ -4,6 +4,7 @@ import {EMPTY_SNAPSHOT} from './data';
 import {publicStateReducer} from './transcriptState';
 import type {PublicState} from './transcriptState';
 import {useMissionResultStatuses} from './useMissionResultStatus';
+import {stopRoomAudio} from './roomAudio';
 
 export type Toast={id:number;message:string;tone?:'default'|'success'|'error'};
 
@@ -22,6 +23,8 @@ export function useSunny(){
   },[]);
 
   const invoke=useCallback(async<T=unknown>(action:string,args?:unknown):Promise<T>=>{
+    const control=args&&typeof args==='object'?args as Record<string,unknown>:undefined;
+    if(action==='run:control'&&(control?.action==='stop'||control?.control==='stop')||action==='settings:update'&&(control?.roomSoundEnabled===false||control?.roomSoundVolume!==undefined))stopRoomAudio();
     if(!window.sunny){
       toast('This action is available in the Sunny HQ desktop app.');
       throw new Error('Desktop app required');

@@ -31,6 +31,8 @@ class Captain {
   const args=require('./supervision-commands.cjs').validateSupervisionCommand(p.tool,p.arguments),parents=hub.state.tasks.filter(task=>task.threadId===p.threadId),parent=parents[0];
   const validate=()=>{hub.supervisionProject(args.projectId);if(parents.length!==1||hub.state.tasks.filter(task=>task.threadId===p.threadId).length!==1||hub.state.tasks.find(task=>task.id===parent?.id)!==parent||!parent?.captain||parent.crewId!=='luffy'||parent.external||parent.projectId!==args.projectId||parent.turnId!==p.turnId||!['working','waiting'].includes(parent.status)||this.stopping.has(parent.id))throw Error('Coordinator project or active parent turn changed.');};validate();
   const requestSha256=require('node:crypto').createHash('sha256').update(JSON.stringify(stable({tool:p.tool,args}))).digest('hex');
+  const replay=hub.state.runs.flatMap(r=>r.coordinatorCalls||[]).find(c=>c.taskId===parent.id&&c.threadId===p.threadId&&c.turnId===p.turnId&&c.callId===p.callId);if(replay){if(replay.requestSha256!==requestSha256)throw Error('Coordinator call ID was replayed with conflicting arguments or run.');return structuredClone(replay.response);}
+  const preparedAssignments=p.tool==='sunny_plan'?await require('./feedback-epochs.cjs').prepareGraph(hub,hub.state.runs.find(r=>r.id===args.runId),args.assignments):undefined;
   const response=await hub.missionMutation(book=>{
    validate();const receipts=book.data.runs.flatMap(run=>run.coordinatorCalls||[]).filter(record=>record.callId===p.callId&&record.taskId===parent.id&&record.threadId===p.threadId&&record.turnId===p.turnId);
    if(receipts.length){if(receipts.length!==1||receipts[0].requestSha256!==requestSha256)throw Error('Coordinator call ID was replayed with conflicting arguments or run.');return structuredClone(receipts[0].response);}
@@ -40,11 +42,11 @@ class Captain {
    if((run.coordinatorCalls?.length||0)>=1000)throw Error('Coordinator call limit reached.');
    if(p.tool==='sunny_plan'&&run.ordinary)require('./mission-delivery.cjs').partition(run,args.assignments,hub.state.world);
    if(p.tool==='sunny_plan'){require('./assignment-graph.cjs').validateAssignmentGraph(args.assignments,{registry,scope:run.grant.scope,base:args.assignments[0].baseCommit});}
-   const transition=require('./supervised-runs.cjs').applyRunCommand(run,{type:p.tool==='sunny_plan'?'plan':'decide',...args},{now:Date.now(),actor:'coordinator'}),next=transition.next,response={runId:next.id,revision:next.revision,phase:next.phase,decisionId:args.decision.id,assignmentIds:next.assignments.map(item=>item.id)};
-   if(p.tool==='sunny_plan'&&next.currentEpoch){next.currentEpoch.assignmentIds=next.assignments.map(a=>a.id);if(next.ordinary.checkpointWaves)next.currentEpoch.productionWaves=require('./production-waves.cjs').derive(next.assignments);}
-   if(p.tool==='sunny_plan')for(const a of next.assignments)a.queueBinding=structuredClone(registry.assertWorkerBinding(registry.crewBinding(a.crewId,hub.state.world)));
+   const transition=require('./supervised-runs.cjs').applyRunCommand(run,{type:p.tool==='sunny_plan'?'plan':'decide',...args},{now:Date.now(),actor:'coordinator'}),next=transition.next,response={runId:next.id,revision:next.revision,phase:next.phase,decisionId:args.decision.id,assignmentIds:(p.tool==='sunny_plan'?args.assignments:next.assignments.filter(a=>!next.ordinary||next.currentEpoch?.assignmentIds.includes(a.id))).map(item=>item.id)};
+   if(p.tool==='sunny_plan'&&next.currentEpoch){next.currentEpoch.assignmentIds=args.assignments.map(a=>a.id);for(const a of preparedAssignments?.assignments||[]){const target=next.assignments.find(v=>v.id===a.id);if(a.epochTransfers)target.epochTransfers=a.epochTransfers;}if(next.ordinary.checkpointWaves)next.currentEpoch.productionWaves=require('./production-waves.cjs').derive(args.assignments);require('./feedback-epochs.cjs').sealGraph(next,args.assignments);}
+   if(p.tool==='sunny_plan')for(const a of next.assignments.filter(a=>args.assignments.some(v=>v.id===a.id)))a.queueBinding=structuredClone(registry.assertWorkerBinding(registry.crewBinding(a.crewId,hub.state.world)));
    next.coordinatorCalls.push({callId:p.callId,taskId:parent.id,threadId:p.threadId,turnId:p.turnId,tool:p.tool,requestSha256,revision:next.revision,response});book.data.runs[index]=next;return structuredClone(response);
-  },'mission',{skipUnchanged:true,validate});
+  },'mission',{skipUnchanged:true,validate:async()=>{validate();await preparedAssignments?.validate?.();validate();}});
   if(p.tool==='sunny_plan')hub.wakeCrewScheduler?.(args.runId);
   return response;
  }

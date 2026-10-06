@@ -48,22 +48,26 @@ public static class SunnyFixtureJob {
   public void Free(Attributes value){if(value.list!=IntPtr.Zero){DeleteProcThreadAttributeList(value.list);Marshal.FreeHGlobal(value.list);}if(value.value!=IntPtr.Zero)Marshal.FreeHGlobal(value.value);}
  }
  public static Result Run(string runtime,string[] arguments,long deadline){return Run(runtime,arguments,deadline,new WindowsNative());}
- public static Result Run(string runtime,string[] arguments,long deadline,Native native){
-  var result=new Result{exitCode=1,activeProcesses=uint.MaxValue};IntPtr job=IntPtr.Zero;Attributes attributes=new Attributes();ProcessInfo info=new ProcessInfo();Task<ProcessInfo> launch=null;
+ public static Result Run(string runtime,string[] arguments,long deadline,Native native,Func<Func<ProcessInfo>,Task<ProcessInfo>> launchTaskFactory=null){
+  var result=new Result{exitCode=1,activeProcesses=uint.MaxValue};IntPtr job=IntPtr.Zero;Attributes attributes=new Attributes();ProcessInfo info=new ProcessInfo();Task<ProcessInfo> launch=null;bool creationCollected=false;
   try{
    Need(!Expired(deadline));job=native.NewJob();attributes=native.Prepare(job);result.atomic=true;Need(!Expired(deadline));
-   launch=Task.Run(()=>native.Create(runtime,arguments,attributes.list));
+   launch=launchTaskFactory==null?Task.Run(()=>native.Create(runtime,arguments,attributes.list)):launchTaskFactory(()=>native.Create(runtime,arguments,attributes.list));
    while(!launch.Wait(25)){if(Expired(deadline)){result.timedOut=true;throw new TimeoutException();}}
-   info=launch.GetAwaiter().GetResult();Need(native.Contains(info.process,job));result.verified=true;
+   info=launch.GetAwaiter().GetResult();creationCollected=true;Need(native.Contains(info.process,job));result.verified=true;
    Need(!Expired(deadline));native.Resume(info.thread);
    while(!native.Exited(info.process)){if(Expired(deadline)){result.timedOut=true;throw new TimeoutException();}Thread.Sleep(25);}
    result.exitCode=native.ExitCode(info.process);result.activeProcesses=native.Active(job);result.cleanupObserved=result.activeProcesses==0;
   }catch{result.exitCode=1;result.timedOut=result.timedOut||Expired(deadline);}
   finally{
+   // Capture this before any zero-active sample. A later completion cannot turn
+   // that earlier sample (or job closure) into observed process termination.
+   bool unresolvedCreation=launch!=null&&!creationCollected;
    if(job!=IntPtr.Zero){try{if(!result.cleanupObserved){result.forcedStop=true;result.exitCode=1;try{native.Terminate(job);}catch{}var end=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()+2000;do{try{result.activeProcesses=native.Active(job);result.cleanupObserved=result.activeProcesses==0;}catch{}if(result.cleanupObserved)break;Thread.Sleep(25);}while(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()<end);}}finally{native.Close(job);}}
    // A pending CreateProcess still owns its attribute buffers. The launcher
    // exits after reporting; do not free memory underneath that native call.
-   if(launch==null||launch.IsCompleted){if(info.thread!=IntPtr.Zero)native.Close(info.thread);if(info.process!=IntPtr.Zero)native.Close(info.process);native.Free(attributes);}else result.cleanupObserved=false;
+   if(launch==null||launch.IsCompleted){if(launch!=null&&!creationCollected){try{info=launch.GetAwaiter().GetResult();creationCollected=true;}catch{}}if(info.thread!=IntPtr.Zero)native.Close(info.thread);if(info.process!=IntPtr.Zero)native.Close(info.process);native.Free(attributes);}
+   if(unresolvedCreation)result.cleanupObserved=false;
   }
   return result;
  }

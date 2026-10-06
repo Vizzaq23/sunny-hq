@@ -4,7 +4,7 @@ test('compiled launcher control uses only injected fake native operations for al
  const fake=String.raw`
 public static class FixtureJobContracts {
  sealed class Fake : SunnyFixtureJob.Native {
-  public string fail="";public bool resumed,terminated,closedJob,freed,contained=true,hangLaunch,hangExit;public int count;
+  public string fail="";public bool resumed,terminated,closedJob,freed,contained=true,hangLaunch,hangExit,closedProcess,closedThread;public int count;public System.Threading.Tasks.TaskCompletionSource<SunnyFixtureJob.ProcessInfo> lateAtClose;
   void Check(string step){if(fail==step)throw new System.InvalidOperationException(step);}
   public System.IntPtr NewJob(){Check("job");return (System.IntPtr)101;}
   public SunnyFixtureJob.Attributes Prepare(System.IntPtr job){Check("attributes");return new SunnyFixtureJob.Attributes{list=(System.IntPtr)102,value=(System.IntPtr)103};}
@@ -15,7 +15,7 @@ public static class FixtureJobContracts {
   public int ExitCode(System.IntPtr process){return 0;}
   public uint Active(System.IntPtr job){Check("observe");return (uint)count;}
   public void Terminate(System.IntPtr job){if(job!=(System.IntPtr)101)throw new System.Exception("foreign job");terminated=true;count=0;}
-  public void Close(System.IntPtr handle){if(handle==(System.IntPtr)101)closedJob=true;}
+  public void Close(System.IntPtr handle){if(handle==(System.IntPtr)101){closedJob=true;if(lateAtClose!=null)lateAtClose.SetResult(new SunnyFixtureJob.ProcessInfo{process=(System.IntPtr)104,thread=(System.IntPtr)105,pid=41});}if(handle==(System.IntPtr)104)closedProcess=true;if(handle==(System.IntPtr)105)closedThread=true;}
   public void Free(SunnyFixtureJob.Attributes attrs){freed=true;}
  }
  static SunnyFixtureJob.Result Run(Fake fake,int budget=1000){return SunnyFixtureJob.Run("never-executed",new string[0],System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()+budget,fake);}
@@ -25,6 +25,7 @@ public static class FixtureJobContracts {
   foreach(string step in new[]{"job","attributes","create","verify","resume","wait","observe"}){var fake=new Fake{fail=step};var result=Run(fake,50);Need(result.exitCode!=0,"failure accepted "+step);if(step!="job")Need(fake.closedJob,"job leak "+step);if(step!="job"&&step!="attributes")Need(fake.freed,"attribute leak "+step);if(step=="create"||step=="verify")Need(!fake.resumed,"failed containment resumed");if(step=="observe")Need(!result.cleanupObserved,"observation failure called cleanup");}
   var denied=new Fake{contained=false};var deniedResult=Run(denied);Need(!denied.resumed&&denied.terminated&&denied.closedJob&&deniedResult.exitCode!=0,"foreign membership resumed");
   var late=new Fake{hangLaunch=true};var lateResult=Run(late,20);Need(lateResult.timedOut&&!late.resumed&&late.closedJob&&!late.freed&&!lateResult.cleanupObserved,"late launch resources/resume");
+  var gate=new System.Threading.Tasks.TaskCompletionSource<SunnyFixtureJob.ProcessInfo>();var raced=new Fake{lateAtClose=gate};var racedResult=SunnyFixtureJob.Run("never-executed",new string[0],System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()+20,raced,operation=>gate.Task);Need(racedResult.timedOut&&!racedResult.cleanupObserved,"late completion after zero-active observation falsely proved cleanup");Need(raced.closedProcess&&raced.closedThread&&raced.freed&&!raced.resumed,"late process/thread handles were not collected and closed without resume");
   var stuck=new Fake{hangExit=true};var stopped=Run(stuck,20);Need(stopped.timedOut&&stopped.forcedStop&&stopped.cleanupObserved&&stuck.terminated&&stuck.closedJob,"owned timeout");
  }
 }`;

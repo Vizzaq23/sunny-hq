@@ -25,6 +25,8 @@ function partition(run,assignments,world){
 class MissionDelivery {
  constructor(hub){this.hub=hub;this.pumps=new Map();this.waiters=new Set();this.sealed=false;}
  find(runId,id){const run=this.hub.state.runs.find(r=>r.id===runId),delivery=run?.deliveries?.find(d=>d.id===id);if(!delivery)throw fail('DELIVERY_NOT_FOUND');return {run,delivery};}
+ assertSource(run,d,actual){this.assertCurrent(run,d);if(!d.source||actual.dirty||!sameSource(actual.source,d.source))throw fail('SOURCE_CHANGED','Source changed from the frozen delivery checkpoint');}
+ async verifySource(runId,id){let {run,delivery:d}=this.find(runId,id);this.assertCurrent(run,d);const actual=await this.hub.integration().source(this.hub.runSourceProject(runId).executionWorkspace);({run,delivery:d}=this.find(runId,id));this.assertSource(run,d,actual);return actual;}
  assertCurrent(run,d){
   if(this.sealed||this.hub.closed||this.hub.quiescing)throw fail('HUB_CLOSING');
   if(!this.hub.client.connected)throw fail('CONNECTION_LOST');
@@ -35,6 +37,29 @@ class MissionDelivery {
   const mission=this.hub.missionBook.get(d.missionId);if(mission.activeAttemptId!==d.attemptId||d.selectedResult&&(mission.selectedResult?.id!==d.selectedResult.id||mission.selectedResult.ref.sha256!==d.selectedResult.sha256))throw fail('STALE_OPERATION');
  }
  async change(runId,id,mutate){return this.hub.missionMutation(book=>{const run=book.data.runs.find(r=>r.id===runId),d=run.deliveries.find(d=>d.id===id);mutate(d,run);d.generation++;run.revision++;return structuredClone(d);});}
+ #aliasBinding(p,runId,id){
+  const {run,task,delivery}=protocol.authenticate(this.hub,p),args=require('./supervision-commands.cjs').validateSupervisionCommand(p.tool,p.arguments),d=run.deliveries?.find(d=>d.id===id);
+  if(run.id!==runId||!d)throw fail('DELIVERY_NOT_FOUND');if(run.revision!==args.expectedRevision)throw fail('STALE_REVISION');this.assertCurrent(run,d);
+  if(p.tool==='sunny_deliver'){const descriptor={missionId:args.missionId,attemptId:args.attemptId,producerAssignmentId:args.producerAssignmentId,result:args.result};if(!sameSource(d.descriptor,descriptor)||!sameSource(d.caller,{taskId:task.id,threadId:p.threadId,turnId:p.turnId}))throw fail('DELIVERY_DESCRIPTOR_CHANGED');if(!['collecting','integrating','awaiting-production-completion','blocked'].includes(d.stage))throw fail('STALE_OPERATION');}
+  else if(p.tool==='sunny_validate'){if(delivery?.id!==d.id||d.continuation?.id!==args.continuationId||d.continuation.taskId!==task.id||d.continuation.threadId!==p.threadId||d.continuation.turnId!==p.turnId)throw fail('CONTINUATION_CHANGED');if(!['validating','awaiting-review','blocked'].includes(d.stage))throw fail('STALE_OPERATION');}else throw fail('SESSION_STALE');
+  return {run,d,record:{taskId:task.id,threadId:p.threadId,turnId:p.turnId,callId:p.callId,tool:p.tool,requestSha256:protocol.digest({tool:p.tool,args:p.arguments})}};
+ }
+ async #appendAlias(p,runId,id){
+  const validate=()=>this.#aliasBinding(p,runId,id);
+  return this.hub.missionMutation(book=>{const {record}=validate(),run=book.data.runs.find(r=>r.id===runId),d=run.deliveries.find(d=>d.id===id),key=c=>['taskId','threadId','turnId','callId'].every(k=>c[k]===record[k]);
+   const other=[...(run.protocolCalls||[]),...(run.coordinatorCalls||[]),...(run.reviewCalls||[]),...(run.deliveries||[]).filter(v=>v.id!==id).flatMap(v=>v.calls||[])].find(key);if(other)throw fail('DELIVERY_CALL_CONFLICT');
+   const prior=d.calls?.find(key);if(prior){if(prior.tool!==record.tool||prior.requestSha256!==record.requestSha256)throw fail('DELIVERY_CALL_CONFLICT');return structuredClone(prior);}
+   if((d.calls?.length||0)>=1000)throw fail('DELIVERY_CALL_LIMIT');(d.calls??=[]).push(record);return structuredClone(record);
+  },'mission',{validate,skipUnchanged:true});
+ }
+ async #settleResponse(runId,id,record,result){
+  // Only the local waiter below supplies this response. Audit settlement never grants effects.
+  return this.hub.missionMutation(book=>{const d=book.data.runs.find(r=>r.id===runId)?.deliveries?.find(d=>d.id===id),call=d?.calls?.find(c=>['taskId','threadId','turnId','callId','tool','requestSha256'].every(k=>c[k]===record[k]));if(!call)throw fail('DELIVERY_CALL_CONFLICT');
+   const shapes={pending:['status','operationId','reasonCode'],delivered:['status','operationId','candidate','source'],validated:['status','operationId','continuationId'],blocked:['status','operationId','code'],unknown:['status','operationId','code']},keys=shapes[result.status];if(!keys||result.operationId!==id||Object.keys(result).length!==keys.length||keys.some(k=>!Object.hasOwn(result,k))||Buffer.byteLength(JSON.stringify(result))>80000)throw fail('DELIVERY_RESPONSE_CONFLICT');
+   if(result.status==='pending'&&result.reasonCode!=='AWAITING_DURABLE_OUTCOME'||result.status==='delivered'&&(record.tool!=='sunny_deliver'||!sameSource(result.candidate,d.candidate)||!sameSource(result.source,d.source))||result.status==='validated'&&(record.tool!=='sunny_validate'||result.continuationId!==d.continuation?.id||d.validationOutcome!=='approved')||['blocked','unknown'].includes(result.status)&&(typeof result.code!=='string'||!result.code.length||result.code.length>200||result.code.includes('\0')))throw fail('DELIVERY_RESPONSE_CONFLICT');
+   if(call.response){if(!sameSource(call.response,result))throw fail('DELIVERY_RESPONSE_CONFLICT');return structuredClone(call.response);}call.response=structuredClone(result);return structuredClone(result);
+  },'mission',{skipUnchanged:true});
+ }
  async call(p){
   const h=this.hub,{run,task,delivery:boundDelivery}=protocol.authenticate(h,p),args=require('./supervision-commands.cjs').validateSupervisionCommand(p.tool,p.arguments);let d,admitted=false;const callRecord={taskId:task.id,threadId:p.threadId,turnId:p.turnId,callId:p.callId,tool:p.tool,requestSha256:protocol.digest({tool:p.tool,args:p.arguments})};
   if(p.tool==='sunny_deliver'){
@@ -52,8 +77,8 @@ class MissionDelivery {
    if(d.stage==='validation-bound'){await this.change(run.id,d.id,(d,r)=>{if(r.revision!==args.expectedRevision)throw fail('STALE_REVISION');d.stage='validating';(d.calls??=[]).push(callRecord);});admitted=true;}
   }else throw fail('SESSION_STALE');
   this.assertCurrent(this.find(run.id,d.id).run,this.find(run.id,d.id).delivery);
-  if(!admitted)await this.change(run.id,d.id,(d,r)=>{if(r.revision!==args.expectedRevision)throw fail('STALE_REVISION');if((d.calls?.length||0)>=1000)throw fail('DELIVERY_CALL_LIMIT');(d.calls??=[]).push(callRecord);});
-  const waiting=this.wait(run.id,d.id,p.tool);this.wake(run.id);const result=await waiting;if(!this.sealed&&!h.quiescing&&!h.closed)await this.change(run.id,d.id,d=>{d.calls.find(c=>c.taskId===task.id&&c.callId===p.callId).response=structuredClone(result);});return result;
+  if(!admitted)await this.#appendAlias(p,run.id,d.id);
+  const waiting=this.wait(run.id,d.id,p.tool);this.wake(run.id);const result=await waiting;if(!this.sealed&&!h.quiescing&&!h.closed)await this.#settleResponse(run.id,d.id,callRecord,result);return result;
  }
  outcome(runId,id,tool){const {delivery:d}=this.find(runId,id);if(d.stage==='unknown')return {status:'unknown',code:d.reasonCode||'OUTCOME_UNKNOWN',operationId:id};if(d.stage==='blocked')return {status:'blocked',code:d.reasonCode,operationId:id};if(tool==='sunny_deliver'&&d.candidate)return {status:'delivered',operationId:id,candidate:structuredClone(d.candidate),source:structuredClone(d.source)};if(tool==='sunny_validate'&&d.validationOutcome==='approved')return {status:'validated',operationId:id,continuationId:d.continuation.id};return null;}
  wait(runId,id,tool){return new Promise(resolve=>{const entry={runId,id,tool,resolve,timer:null};entry.finish=value=>{if(!this.waiters.delete(entry))return;clearTimeout(entry.timer);resolve(value);};this.waiters.add(entry);entry.timer=setTimeout(()=>entry.finish({status:'pending',operationId:id,reasonCode:'AWAITING_DURABLE_OUTCOME'}),30000);const current=this.outcome(runId,id,tool);if(current)entry.finish(current);if(this.sealed)entry.finish({status:'unknown',code:'HUB_CLOSING',operationId:id});});}
@@ -88,6 +113,7 @@ class MissionDelivery {
    const selected=await h.selectMissionResult({missionId:mission.id,revision:mission.revision,ref:d.candidate,producerTaskId:d.candidate.taskId});refresh();await this.change(runId,id,d=>{d.selectedResult={id:selected.selectedResult.id,sha256:selected.selectedResult.ref.sha256};d.stage='selected';});refresh();
   }
   if(d.stage==='selected'){
+   await this.verifySource(runId,id);refresh();
    if(h.state.tasks.filter(t=>t.captain&&['starting','working','waiting','unknown'].includes(t.status)).length>=3||h.sharedExecutionCapacity().available<=0)return;
    const continuation={id:randomUUID(),taskId:randomUUID(),executionId:randomUUID(),workspaceId:h.runSourceProject(runId).executionWorkspace.id,state:'pending'};
    await this.change(runId,id,(d,r)=>{d.continuation=continuation;d.stage='continuation-dispatch-intent';require('./run-control.cjs').archiveCoordinator(r);delete r.coordinator;r.phase='validating';});refresh();

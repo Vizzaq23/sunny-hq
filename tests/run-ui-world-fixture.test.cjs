@@ -8,6 +8,39 @@ const {crewSceneProjection}=require('../src/roomActivity.ts');
 function base(){const state=packaged.loadFrozenFixture(1),mission=state.missionBook.missions[0],task=state.tasks[0],message=task.messages.find(item=>item.role==='assistant');mission.selectedResult={id:'fixture-result',attemptId:mission.activeAttemptId,producerTaskId:task.id,ref:{kind:'reply',taskId:task.id,messageId:message.id,sha256:createHash('sha256').update(message.text).digest('hex')},selectedAt:1};return state;}
 function snapshot(state){return {...state,approvals:[],missions:state.missionBook.missions,runs:state.missionBook.runs,workspace:state.missionBook.workspace,persistence:{state:'saved'}};}
 
+// The DOM-order model comes from WorldRoster's actual React children and handlers.
+// Tab advances one control; Enter invokes that control, never the requested target.
+function rosterKeyboard(surface,{slice=false}={}){
+ const file=require('node:path').resolve(__dirname,'../src/components/WorldRoster.tsx'),mod=new Module(file,module);mod.filename=file;mod.paths=module.paths;
+ mod._compile(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,esModuleInterop:true,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,file);
+ const state=world.seedWorldCase(base(),'idle'),opened=[],inspected=[],props={snapshot:snapshot(state),onCrew:id=>opened.push(id),onBriefings:()=>opened.push('morgans'),onOpen:id=>inspected.push(id)};
+ if(surface==='.project-room')props.projectId=state.tasks[0].projectId;
+ const tree=mod.exports.WorldRoster(props),cards=tree.props.children.filter(card=>!slice||['robin','brook'].includes(card.props.children[0].props['data-world-destination'])).map(card=>{
+  const buttons=card.props.children.filter(Boolean).map(node=>({dataset:{worldDestination:node.props['data-world-destination']},className:node.props.className||'',disabled:Boolean(node.props.disabled),tabIndex:node.props.tabIndex??0,activate:node.props.onClick}));
+  return {buttons,querySelector:selector=>{assert.equal(selector,'[data-world-destination]');return buttons.find(button=>button.dataset.worldDestination);},querySelectorAll:selector=>{assert.equal(selector,'button');return buttons;}};
+ });
+ const before={},controls=[before,...cards.flatMap(card=>card.buttons)],document={activeElement:null,querySelectorAll:selector=>{assert.equal(selector,surface+' .world-roster-card');return cards;},querySelector:selector=>{
+  if(selector===(surface==='.island-page'?'.island-intro .primary-button':'.room-movement button:last-child'))return before;
+  const match=selector.match(/\.world-roster-card:nth-child\((\d+)\) > button:nth-of-type\((\d+)\)$/);assert.ok(match,'unexpected predecessor selector: '+selector);return cards[Number(match[1])-1].buttons[Number(match[2])-1];
+ }};
+ const tabThenEnter=id=>{
+  const prior=worldEvidence.rosterTabPredecessor(document,surface,id);document.activeElement=document.querySelector(prior);
+  const index=controls.indexOf(document.activeElement);assert.ok(index>=0,'predecessor belongs to actual DOM order');document.activeElement=controls[index+1];
+  assert.equal(document.activeElement?.dataset.worldDestination,id,'Tab must land on exact '+id+' destination before Enter');document.activeElement.activate();assert.equal(opened.at(-1),id);assert.deepEqual(inspected,[],'Enter must not activate Inspect');
+ };
+ return {cards,tabThenEnter};
+}
+
+for(const surface of ['.island-page','.project-room']){
+ test(surface+' idle roster Tab passes Robin Inspect before the next actual destination',()=>{
+  const keyboard=rosterKeyboard(surface),robin=keyboard.cards.findIndex(card=>card.buttons[0].dataset.worldDestination==='robin');
+  assert.equal(keyboard.cards[robin].buttons[1].className,'world-inspect','retained idle task renders Robin Inspect');
+  assert.equal(keyboard.cards[robin+1].buttons[0].dataset.worldDestination,'franky','actual full roster order');keyboard.tabThenEnter('franky');
+ });
+ test(surface+' Robin Inspect Brook DOM slice lands on Brook before Enter',()=>{rosterKeyboard(surface,{slice:true}).tabThenEnter('brook');});
+ test(surface+' first destination and ordinary no-Inspect predecessor preserve Tab order',()=>{const keyboard=rosterKeyboard(surface);keyboard.tabThenEnter('luffy');keyboard.tabThenEnter('zoro');keyboard.tabThenEnter('brook');});
+}
+
 test('private run UI admits only bounded production settings updates',()=>{
  const runUI={scenario:'run-ui',phase:1};
  for(const args of [{reducedMotion:true},{reducedMotion:false,roomSoundEnabled:true,roomSoundVolume:.65},{roomSoundEnabled:false,roomSoundVolume:0}])assert.doesNotThrow(()=>packaged.assertFixtureAction('settings:update',args,runUI));

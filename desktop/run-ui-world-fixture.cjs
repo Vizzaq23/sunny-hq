@@ -16,6 +16,14 @@ const RENDERER_SAMPLE_SCRIPT=`(()=>{
  return {visibility:document.visibilityState,width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth,island:node('.island-art'),mapViewport:node('.island-viewport'),mapClip:mapClip(),residentMapLabels:document.querySelectorAll('.island-resident small').length,residentAccess:[...document.querySelectorAll('.island-resident')].slice(0,4).map(e=>({id:short(e.dataset.crewId),label:short(e.getAttribute('aria-label'))})),rosterColors:rosterCard&&rosterButton?{background:short(getComputedStyle(rosterCard).backgroundColor),foreground:short(getComputedStyle(rosterButton).color)}:null,quarter:node('.room-illustration'),roomActor:node('.room-actor[data-room-crew="franky"]'),roomSpriteBox:node('.room-actor[data-room-crew="franky"] .room-actor-sprite'),roomStationCards:[...document.querySelectorAll('.project-room-scene .room-station')].slice(0,3).map(e=>node('.project-room-scene .room-station:nth-child('+([...e.parentElement.children].indexOf(e)+1)+')')),roomActorLabels:[...document.querySelectorAll('.project-room-scene .room-actor b')].slice(0,3).map(e=>node('.project-room-scene .room-actor[data-room-crew="'+e.parentElement.dataset.roomCrew+'"] b')),roomCaptainLabel:node('.project-room-scene .room-captain b'),deck:node('.deck-crew[data-crew-id="franky"]'),deckSpriteBox:node('.deck-crew[data-crew-id="franky"] .deck-sprite'),workshop:node('.franky-workshop'),workshopStatus:short(document.querySelector('.franky-work-status b')?.textContent),roster:[...document.querySelectorAll('.world-roster-card')].map(card=>({id:short(card.querySelector('[data-world-destination]')?.dataset.worldDestination),state:short(card.dataset.worldState),label:short(card.querySelector('[data-world-destination] small')?.textContent)})),roomArt:node('.franky-room-art'),actor:node('.franky-actor'),actorImage:node('.franky-actor img'),groundShadow:node('.franky-ground-shadow'),workLoop:node('.room-actor-sprite'),glow:node('.franky-acceptance-cue'),assets:[...document.images].filter(image=>image.offsetParent!==null&&getComputedStyle(image).visibility==='visible'&&image.getAttribute('src')).map(asset)};
 })()`;
 function progressJSON(value){const json=JSON.stringify(value,null,2);assert.ok(Buffer.byteLength(json,'utf8')<=MAX_PROGRESS_BYTES,'World receipt exceeded 4 MiB before write');return json;}
+function rosterTabPredecessor(document,surface,id){
+ const cards=[...document.querySelectorAll(surface+' .world-roster-card')],index=cards.findIndex(card=>card.querySelector('[data-world-destination]')?.dataset.worldDestination===id);
+ if(index<0)throw Error('Missing roster destination: '+id);
+ if(index===0)return surface==='.island-page'?'.island-intro .primary-button':'.room-movement button:last-child';
+ const buttons=[...cards[index-1].querySelectorAll('button')],prior=buttons.findLastIndex(button=>!button.disabled&&button.tabIndex>=0);
+ if(prior<0)throw Error('Missing focusable predecessor for: '+id);
+ return surface+' .world-roster-card:nth-child('+index+') > button:nth-of-type('+(prior+1)+')';
+}
 function contrastRatio(foreground,background){
  const rgb=value=>{const match=/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)$/.exec(value||'');if(!match||match[4]!==undefined&&Number(match[4])<1)return null;return match.slice(1,4).map(Number);};
  const fg=rgb(foreground),bg=rgb(background);if(!fg||!bg)return 0;
@@ -129,8 +137,8 @@ async function run(o){
   // are still dispatched for every destination, including the reporter-only route.
   for(const surface of ['.island-page','.project-room']){
    await publish(seedWorldCase(structuredClone(base),'idle'));await island();if(surface==='.project-room')await quarters();await roster(surface);const before=authority();
-   for(const [index,id] of WORLD_IDS.entries()){
-    const selector=surface+' .world-roster [data-world-destination="'+id+'"]',prior=index?surface+' .world-roster [data-world-destination="'+WORLD_IDS[index-1]+'"]':surface==='.island-page'?'.island-intro .primary-button':'.room-movement button:last-child';
+   for(const id of WORLD_IDS){
+    const selector=surface+' .world-roster [data-world-destination="'+id+'"]',prior=await js(`(${rosterTabPredecessor.toString()})(document,${JSON.stringify(surface)},${JSON.stringify(id)})`);
     await reachable(selector);await reachable(prior);await js(`document.querySelector(${JSON.stringify(prior)}).focus()`);await key('Tab','Tab');
     const tabTarget=await js(`(()=>{const e=document.activeElement,r=e?.getBoundingClientRect();return {tag:e?.tagName,id:e?.dataset.worldDestination||null,focusVisible:e?.matches(':focus-visible')||false,visible:Boolean(r&&r.width>0&&r.height>0&&r.top>=0&&r.bottom<=innerHeight&&r.left>=0&&r.right<=innerWidth)};})()`);
     assert.deepEqual([tabTarget.tag,tabTarget.id,tabTarget.focusVisible,tabTarget.visible],['BUTTON',id,true,true],id+' native Tab must reach the visible roster destination');
@@ -173,4 +181,4 @@ async function run(o){
   const gate=motionGate(cases),motionPositive=gate==='passed';assert.equal(hub.client.fixtureEffects.providerEffects,0);assert.ok(!errors.some(e=>/assets\/undefined/.test(JSON.stringify(e))));save(motionPositive?'complete':'motion-partial');return {cases,samples,keyboard,errors,providerEffects:0,motionPositive,motionGate:gate,liveAcceptanceClaim:false,audioStopObserved:false};
  }finally{win.webContents.off('console-message',consoleListener);win.webContents.off('did-fail-load',loadListener);save('exit');}
 }
-module.exports={run,RENDERER_SAMPLE_SCRIPT,progressJSON,sceneVisibility,motionGate,visibleMotionPair,withTemporaryReducedMotion,awaitWorkspaceSurface,publishWorldProfile,quarterLabelSeparation,contrastRatio};
+module.exports={run,RENDERER_SAMPLE_SCRIPT,progressJSON,sceneVisibility,motionGate,visibleMotionPair,withTemporaryReducedMotion,awaitWorkspaceSurface,publishWorldProfile,quarterLabelSeparation,contrastRatio,rosterTabPredecessor};

@@ -43,7 +43,7 @@ export async function resolveReplyDisplay(ref:Extract<MissionResultRef,{kind:'re
 
 export function workspaceReturnTarget(context:WorkContext|null,selection:{projectId:string;runId?:string;attemptId?:string;missionId?:string;taskId?:string},view:string,embedded:boolean):WorkContext['returnTo']{
  const sameProject=context?.projectId===selection.projectId;
- const sameMission=Boolean(selection.missionId&&context?.missionId===selection.missionId);
+ const sameMission=embedded&&Boolean(selection.missionId&&context?.missionId===selection.missionId);
  const sameEmbeddedConversation=embedded&&!selection.missionId&&!context?.missionId&&Boolean(selection.taskId&&context?.taskId===selection.taskId);
  if(context&&sameProject&&(sameMission||sameEmbeddedConversation))return context.returnTo;
  return {view,projectId:selection.projectId,...(selection.runId?{runId:selection.runId}:{}),...(selection.attemptId?{attemptId:selection.attemptId}:{}),...(selection.missionId?{missionId:selection.missionId}:{})};

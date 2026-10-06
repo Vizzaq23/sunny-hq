@@ -36,3 +36,12 @@ test('new Home conversation does not inherit another ordinary task return target
  assert.deepEqual(workspaceReturnTarget(mission,{projectId:'p',missionId:'m',taskId:'other-stage'},'ship',true),mission.returnTo);
  assert.deepEqual(workspaceReturnTarget(note,{projectId:'p'},'home',false),{view:'home',projectId:'p'});
 });
+
+test('same mission opened from a visible new origin owns Back while embedded task switches retain their origin',()=>{
+ const {workspaceReturnTarget}=require('../src/workContext.ts');
+ const context={projectId:'p',runId:'r',missionId:'m',attemptId:'a',surface:'deck',returnTo:{view:'ship',projectId:'p',runId:'r',missionId:'m',attemptId:'a'}};
+ const selection={projectId:'p',runId:'r',missionId:'m',attemptId:'a',taskId:'zoro'};
+ for(const view of ['island','home','missions'])assert.deepEqual(workspaceReturnTarget(context,selection,view,false),{...context.returnTo,view},view+' must replace the old ship origin');
+ const embedded={...context,surface:'workbench',returnTo:{...context.returnTo,view:'island'}};
+ assert.deepEqual(workspaceReturnTarget(embedded,{...selection,taskId:'nami'},'ship',true),embedded.returnTo,'an in-workbench task switch must still return to the original island');
+});

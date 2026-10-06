@@ -53,12 +53,30 @@ test('renderer asset sample crosses the bridge as bounded scalars before receipt
  assert.ok(Buffer.byteLength(worldEvidence.progressJSON({samples:[sample]}))<3072);assert.throws(()=>worldEvidence.progressJSON({samples:['A'.repeat(4*1024*1024)]}),/4 MiB/);
 });
 
-test('native scene receipts require visible art and actor rather than document visibility alone',()=>{
- const visible={visibleFraction:.8},clipped={visibleFraction:.05};
- for(const [surface,art,actor] of [['island','island','deck'],['quarters','quarter','roomActor'],['workshop','roomArt','actor']]){
-  assert.deepEqual(worldEvidence.sceneVisibility({[art]:visible,[actor]:visible},surface),{artVisibleFraction:.8,actorVisibleFraction:.8});
-  assert.throws(()=>worldEvidence.sceneVisibility({[art]:visible,[actor]:clipped},surface),/actor is below/);
-  assert.throws(()=>worldEvidence.sceneVisibility({[art]:clipped,[actor]:visible},surface),/art is clipped/);
+test('pannable island viewport and real actor contact govern the scene, while raw map cropping stays visible in telemetry',()=>{
+ const css=fs.readFileSync(require('node:path').join(__dirname,'../src/island.css'),'utf8');assert.match(css,/\.island-viewport\{height:580px;overflow:auto/);assert.match(css,/\.island-page \.island-scene\{min-width:860px/);
+ const element=(rect,parent=null,extra={})=>({dataset:{},className:'',parentElement:parent,getBoundingClientRect:()=>({...rect,x:rect.left,y:rect.top,width:rect.right-rect.left,height:rect.bottom-rect.top}),...extra});
+ const viewport=element({left:489,top:73.3125,right:912,bottom:718.3125},null,{className:'island-viewport',scrollLeft:437,scrollTop:0,scrollWidth:860,scrollHeight:645,clientWidth:423,clientHeight:645});
+ const art=element({left:52,top:73.3125,right:912,bottom:718.3125},viewport),actor=element({left:613.390625,top:151.15,right:677.390625,bottom:208.75},viewport),sprite=element({left:620,top:153,right:672,bottom:205},actor);
+ const targets={'.island-art':art,'.island-viewport':viewport,'.deck-crew[data-crew-id="franky"]':actor,'.deck-crew[data-crew-id="franky"] .deck-sprite':sprite};
+ const document={visibilityState:'visible',documentElement:{scrollWidth:1424},images:[],querySelector:selector=>targets[selector]||null,querySelectorAll:()=>[]};
+ const sample=vm.runInNewContext(worldEvidence.RENDERER_SAMPLE_SCRIPT,{document,innerWidth:1424,innerHeight:961,getComputedStyle:e=>({overflowX:e===viewport?'auto':'visible',overflowY:e===viewport?'auto':'visible',visibility:'visible'})});
+ assert.ok(Math.abs(sample.island.visibleFraction-.49186)<.001);assert.equal(sample.deck.visibleFraction,1);assert.equal(sample.mapClip[0].className,'island-viewport');
+ const evidence=worldEvidence.sceneVisibility(sample,'island');assert.equal(evidence.viewportCoverage,1);assert.equal(evidence.contactVisible,true);assert.ok(evidence.artVisibleFraction<.7);
+ assert.equal(worldEvidence.visibleMotionPair({first:sample,second:sample},'island').second,sample);
+ assert.throws(()=>worldEvidence.visibleMotionPair({first:sample,second:{...sample,deckSpriteBox:{...sample.deckSpriteBox,contactVisible:false}}},'island'),/actor contact/);
+ assert.throws(()=>worldEvidence.sceneVisibility({...sample,mapViewport:null},'island'),/map viewport/);
+ assert.throws(()=>worldEvidence.sceneVisibility({...sample,deckSpriteBox:{...sample.deckSpriteBox,contactVisible:false}},'island'),/actor contact/);
+ assert.throws(()=>worldEvidence.sceneVisibility({...sample,island:{...sample.island,visibleRect:{...sample.island.visibleRect,width:100}}},'island'),/does not cover/);
+});
+
+test('quarters and workshop retain art, actor, and contact visibility requirements',()=>{
+ const visible={visibleFraction:.8,contactVisible:true},clipped={visibleFraction:.05,contactVisible:false};
+ for(const [surface,art,actor,contact] of [['quarters','quarter','roomActor','roomSpriteBox'],['workshop','roomArt','actor','groundShadow']]){
+  assert.deepEqual(worldEvidence.sceneVisibility({[art]:visible,[actor]:visible,[contact]:visible},surface),{artVisibleFraction:.8,actorVisibleFraction:.8,contactVisible:true});
+  assert.throws(()=>worldEvidence.sceneVisibility({[art]:visible,[actor]:clipped,[contact]:visible},surface),/actor is below/);
+  assert.throws(()=>worldEvidence.sceneVisibility({[art]:visible,[actor]:visible,[contact]:clipped},surface),/actor contact/);
+  assert.throws(()=>worldEvidence.sceneVisibility({[art]:clipped,[actor]:visible,[contact]:visible},surface),/art is clipped/);
  }
 });
 

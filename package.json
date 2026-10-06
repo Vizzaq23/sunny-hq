@@ -45,6 +45,10 @@
       "dist/**/*",
       "desktop/**/*",
       "tests/fixtures/playable-local/**/*",
+      "scripts/ordered-control-check.cjs",
+      "tests/helpers/frozen-control-loader.cjs",
+      "tests/helpers/frozen-control-fixture.cjs",
+      "docs/evidence/protocols/ordered-control-2026-10-02.md",
       "package.json"
     ],
     "win": {

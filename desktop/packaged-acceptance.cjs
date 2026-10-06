@@ -3,7 +3,7 @@ const {createHash,timingSafeEqual}=require('node:crypto');const {EventEmitter}=r
 const JOURNEY_SCENARIOS=Object.freeze(['journey-cue','journey-motion-user','journey-motion-system','journey-audio']);
 const admittedCapabilities=new WeakSet();
 function assertFixtureCapability(value){if(!value||!admittedCapabilities.has(value))throw Error('Private admitted capability required before fixture imports or Hub construction.');return value;}
-const SCENARIOS=Object.freeze([...JOURNEY_SCENARIOS,'playable','run-ui','startup','renderer-crash','main-restart','worker-loss','write-failure','lost-ack','pending-approval','pending-check','normal-quit']);
+const SCENARIOS=Object.freeze([...JOURNEY_SCENARIOS,'ordered-control','playable','run-ui','startup','renderer-crash','main-restart','worker-loss','write-failure','lost-ack','pending-approval','pending-check','normal-quit']);
 const FROZEN_SHA='219f75242146fb32b8ed8452a0b792b1c76207311b67f74b947b267cc8581590';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 function validateFixtureArguments(argv){
@@ -28,6 +28,7 @@ function admitFixture({manifestPath,nonce,defaultProfile,env=process.env}){
  const keys=['version','nonce','profileDir','outputDir','scenario','phase','mib'];
  if(!value||Object.keys(value).length!==keys.length||Object.keys(value).some(key=>!keys.includes(key))||value.version!==1||!SCENARIOS.includes(value.scenario)||![1,2].includes(value.phase)||![1,10,30].includes(value.mib)||typeof value.nonce!=='string'||value.nonce.length!==nonce.length||!timingSafeEqual(Buffer.from(value.nonce),Buffer.from(nonce)))throw Error('Invalid fixture manifest or nonce.');
  if(JOURNEY_SCENARIOS.includes(value.scenario)&&(value.mib!==1||value.scenario!=='journey-cue'&&value.phase!==1))throw Error('Invalid fixed journey phase or size');
+ if(value.scenario==='ordered-control'&&value.phase!==1)throw Error('Ordered control requires phase one');
  if(env.ELECTRON_RUN_AS_NODE||env.SUNNY_DEV_URL||env.SUNNY_PROVIDER_MISSION||env.SUNNY_LIVE_MISSION)throw Error('Fixture runtime rejects provider/dev/runtime opt-ins.');
  const profileDir=canonical(value.profileDir),outputDir=canonical(value.outputDir),live=canonicalTarget(defaultProfile).toLowerCase();
  if(overlaps(live,profileDir.toLowerCase())||overlaps(profileDir.toLowerCase(),live)||overlaps(profileDir,outputDir)||overlaps(outputDir,profileDir)||overlaps(profileDir,manifestPath)||overlaps(outputDir,manifestPath))throw Error('Fixture profile must be isolated from default/live profile and evidence.');
@@ -70,6 +71,7 @@ function seedState(manifest){
 }
 async function bootFixtureHub(manifest,stage=()=>{}){
  assertFixtureCapability(manifest);
+ if(manifest.scenario==='ordered-control')throw Error('Ordered control owns its exclusive bootstrap');
  if(JOURNEY_SCENARIOS.includes(manifest.scenario))return require('./journey-bootstrap.cjs').boot(manifest,stage);
  const {openOrderedStore}=require('./ordered-store.cjs'),{Hub}=require('./hub.cjs');
  const options={kind:'sqlite',file:path.join(manifest.profileDir,'sunny.sqlite'),backupDir:path.join(manifest.profileDir,'mission-profile-backups')};let store,hub;

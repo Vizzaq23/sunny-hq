@@ -55,16 +55,13 @@ function isDirectEntry(runtime,main,current,filename){
 }
 function failure(error){return {name:error?.name||'Error',code:error?.code||null,message:String(error?.message||error),stack:String(error?.stack||error)};}
 function explicitFailure(reply){return Boolean(reply&&typeof reply==='object'&&(reply.success===false||reply.ok===false||reply.failure||reply.error));}
-async function finalizeAndExit({cleanup,evidence,write,beforeExit=()=>{},exit}){
- const report=(phase,error)=>{
-  evidence.errors.push({phase,...failure(error)});evidence.passed=false;
-  try{write();}catch(writeError){evidence.errors.push({phase:'final-evidence-write',...failure(writeError)});console.error('SUNNY_ORDERED_CONTROL_FINAL_WRITE_FAILED',failure(writeError));}
- };
- try{await cleanup();}catch(error){report('final-cleanup',error);}
- finally{
-  try{beforeExit();}catch(error){report('final-exit-preparation',error);}
-  finally{exit(evidence.passed===true?0:1);}
- }
+async function finalizeAndExit({cleanup,evidence,write,summary=()=>{},beforeExit=()=>{},exit}){
+ const report=(phase,error)=>{evidence.errors.push({phase,...failure(error)});evidence.passed=false;};
+ let timer;
+ try{await Promise.race([Promise.resolve().then(cleanup),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Final cleanup exceeded 5000ms')),5000);})]);}catch(error){report('final-cleanup',error);}finally{clearTimeout(timer);}
+ try{write();summary();}catch(error){report('final-evidence-write',error);try{write();}catch{/* Exit failure even when no evidence can be written. */}}
+ try{beforeExit();}catch(error){report('final-exit-preparation',error);}
+ finally{exit(evidence.passed===true?0:1);}
 }
 // Start before any background/authority image capture and stay armed through all
 // awaited control receipts. Sample the outstanding deadline at settlement too:
@@ -146,7 +143,7 @@ let db;try{
  const hash=value=>createHash('sha256').update(value).digest('hex');
  const state=JSON.parse(compact),expectedCompact=JSON.stringify(workerData.expected);
  const persisted=state.tasks.find(task=>task.id===workerData.taskId);
- const proof={compactBytes:Buffer.byteLength(compact),stateSha256:hash(compact),expectedStateSha256:hash(expectedCompact),exactWholeState:compact===expectedCompact,receiptMatches:hash(compact)===workerData.receipt.stateSha256,task:persisted?{id:persisted.id,status:persisted.status,threadId:persisted.threadId,turnId:persisted.turnId,executionId:persisted.executionId,approvalResponseIntent:persisted.approvalResponseIntent}:null,fixtureTasks:state.tasks.filter(task=>task.id.startsWith('synthetic-')).length,fullTranscriptsSha256:hash(JSON.stringify(state.tasks.map(task=>({id:task.id,messages:task.messages})))),workspaceSha256:hash(JSON.stringify(state.missionBook.workspace)),opaqueRoot:state.opaqueRoot,opaqueBook:state.missionBook.opaqueBook,opaqueProject:state.projects[0].opaqueProject,opaqueMission:state.missionBook.missions[0].opaqueMission,missionStatus:state.missionBook.missions[0].status,journalMode:db.prepare('PRAGMA journal_mode').get().journal_mode};
+ const proof={runtime:{electron:process.versions.electron,node:process.versions.node,executable:process.execPath,threadId:require('node:worker_threads').threadId},compactBytes:Buffer.byteLength(compact),stateSha256:hash(compact),expectedStateSha256:hash(expectedCompact),exactWholeState:compact===expectedCompact,receiptMatches:hash(compact)===workerData.receipt.stateSha256,task:persisted?{id:persisted.id,status:persisted.status,threadId:persisted.threadId,turnId:persisted.turnId,executionId:persisted.executionId,approvalResponseIntent:persisted.approvalResponseIntent}:null,fixtureTasks:state.tasks.filter(task=>task.id.startsWith('synthetic-')).length,fullTranscriptsSha256:hash(JSON.stringify(state.tasks.map(task=>({id:task.id,messages:task.messages})))),workspaceSha256:hash(JSON.stringify(state.missionBook.workspace)),opaqueRoot:state.opaqueRoot,opaqueBook:state.missionBook.opaqueBook,opaqueProject:state.projects[0].opaqueProject,opaqueMission:state.missionBook.missions[0].opaqueMission,missionStatus:state.missionBook.missions[0].status,journalMode:db.prepare('PRAGMA journal_mode').get().journal_mode};
  parentPort.postMessage({proof});
 }catch(error){parentPort.postMessage({error:{name:error.name,message:error.message,stack:error.stack}});}finally{db?.close();parentPort.close();}`;
 async function readonlyProof(data,workers){
@@ -158,8 +155,13 @@ async function readonlyProof(data,workers){
  });}finally{await worker.terminate();workers.delete(worker);}
 }
 
-async function run(){
- const mib=parseSize(process.argv.slice(2)),latencyProbe=process.argv.includes('--latency-probe');
+async function runAdmittedControl(admission){
+ require('../desktop/packaged-acceptance.cjs').assertFixtureCapability(admission);
+ if(admission.scenario!=='ordered-control'||admission.phase!==1||![1,10,30].includes(admission.mib))throw Error('Invalid ordered control admission');
+ return run(admission);
+}
+async function run(admission){
+ const mib=admission?admission.mib:parseSize(process.argv.slice(2)),latencyProbe=admission?false:process.argv.includes('--latency-probe');
  const {fixtureFile}=resolveControlInputs(root);
  const {app,BrowserWindow,ipcMain,session}=require('electron');
  assert.equal(Number(process.versions.electron.split('.')[0]),44,'Use the exact approved Electron 44 executable');
@@ -167,20 +169,24 @@ async function run(){
  const {openOrderedStore}=require('../desktop/ordered-store.cjs');
  const {createPublicTransport}=require('../desktop/public-transport.cjs');
  const {fixture}=require('../tests/helpers/frozen-control-loader.cjs').loadFrozenControlFixture(fixtureFile,root);
- const output=path.join(root,'.sunny-dev','ordered-control-check',new Date().toISOString().replace(/[:.]/g,'-')+'-'+mib+'MiB');
+ const host=admission?require('../desktop/control-receipts.cjs').packagedHost(admission):null;
+ const proof=()=>host?host.proof():sourceProof();
+ const output=admission?admission.outputDir:path.join(root,'.sunny-dev','ordered-control-check',new Date().toISOString().replace(/[:.]/g,'-')+'-'+mib+'MiB');
  fs.mkdirSync(output,{recursive:true});
- const runtime=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-ordered-control-'));
+ const runtime=admission?admission.profileDir:fs.mkdtempSync(path.join(os.tmpdir(),'sunny-ordered-control-'));
  app.setPath('userData',path.join(runtime,'electron-profile'));
  const project=path.join(runtime,'project');fs.mkdirSync(project);fs.writeFileSync(path.join(project,'fixture.txt'),'SYNTHETIC offline read fixture\n');
  const file=path.join(runtime,'state.sqlite'),workers=new Set(),timers=new Set();
- const evidence={synthetic:true,sizeMiB:mib,startedAt:new Date().toISOString(),output,source:sourceProof(),runtime:{electron:process.versions.electron,node:process.versions.node,chrome:process.versions.chrome,executable:process.execPath,executableSha256:sha(fs.readFileSync(process.execPath)),platform:process.platform,arch:process.arch,cpu:os.cpus()[0]?.model},method:{samplesPerControl:SAMPLES,warmupsPerControl:WARMUPS,percentile:'nearest-rank',controls:['task:interrupt','approval:respond'],pendingBackground:'At actual control IPC entry, inject one production Hub checkpoint, then yield one setImmediate before the real Hub control. Require actual native checkpoint promise pending and authority queue active at control admission. If already settled, retain the raw rejected sample as invalid load. Worker/receipt delivery unmodified.',rtt:'Renderer performance.now immediately before await window.sunny.invoke to fulfilled/rejected settlement; includes background load injection/capture, authority queue waiting and all required durable receipts; executeJavaScript overhead excluded',timer:'Continuous independent 1ms monitor starts before background prepare/image capture and stays armed through real Hub control and every required receipt; records every raw observation plus settlement-tail deadline excess. All raw max <=100ms. Supplementary per-submit/admission/handler timers and twenty idle controls are retained without subtraction.',heartbeat:'Separate continuous 5ms interval across the same main control window, with settlement-tail observation; never substitutes for the 1ms metric',excludedFromMainMonitor:'Renderer executeJavaScript return/frame overhead, readonly proof workers and result/log JSON serialization after Hub control settlement',mutation:'Append 64 ASCII x characters outside each warmup/sample',noGC:true,noNetwork:true,sqlite:'production WAL/FULL; existing compact single-row state'},assertions:[],errors:[],ipcCalls:[],providerCalls:[],submissions:[],warmups:[],samples:[],timerControls:[]};
+ const evidence={synthetic:true,sizeMiB:mib,startedAt:new Date().toISOString(),output,source:proof(),runtime:{electron:process.versions.electron,node:process.versions.node,chrome:process.versions.chrome,executable:process.execPath,executableSha256:sha(fs.readFileSync(process.execPath)),platform:process.platform,arch:process.arch,cpu:os.cpus()[0]?.model},method:{samplesPerControl:SAMPLES,warmupsPerControl:WARMUPS,percentile:'nearest-rank',controls:['task:interrupt','approval:respond'],pendingBackground:'At actual control IPC entry, inject one production Hub checkpoint, then yield one setImmediate before the real Hub control. Require actual native checkpoint promise pending and authority queue active at control admission. If already settled, retain the raw rejected sample as invalid load. Worker/receipt delivery unmodified.',rtt:'Renderer performance.now immediately before await window.sunny.invoke to fulfilled/rejected settlement; includes background load injection/capture, authority queue waiting and all required durable receipts; executeJavaScript overhead excluded',timer:'Continuous independent 1ms monitor starts before background prepare/image capture and stays armed through real Hub control and every required receipt; records every raw observation plus settlement-tail deadline excess. All raw max <=100ms. Supplementary per-submit/admission/handler timers and twenty idle controls are retained without subtraction.',heartbeat:'Separate continuous 5ms interval across the same main control window, with settlement-tail observation; never substitutes for the 1ms metric',excludedFromMainMonitor:'Renderer executeJavaScript return/frame overhead, readonly proof workers and result/log JSON serialization after Hub control settlement',mutation:'Append 64 ASCII x characters outside each warmup/sample',noGC:true,noNetwork:true,sqlite:'production WAL/FULL; existing compact single-row state'},assertions:[],errors:[],ipcCalls:[],providerCalls:[],submissions:[],warmups:[],samples:[],timerControls:[]};
  evidence.method.fixtureDescription='Exact frozen predominantly ASCII fixture: 40 messages per task; each initial message is 1024 characters / 1026 UTF-8 bytes, with exactly one U+2014 em dash and otherwise ASCII codepoints. Fixture contents are unchanged.';
  evidence.method.fixtureSha256=FROZEN_FIXTURE_SHA256;
  evidence.method.fixtureDescriptionCorrection='The earlier ASCII-only descriptor was incorrect for the frozen source. The failed ASCII bootstrap is retained as failure evidence. This corrects workload labeling and shape validation; it does not replace the fixture or change samples, queue/load, timing, durability, or the 100ms/200ms gates.';
- let hub,store,win,transport,finished=false,cleanupPromise,currentSample=null,stopMainMonitors;
+ let hub,store,win,transport,finished=false,cleanupPromise,finishPromise,currentSample=null,stopMainMonitors;
  evidence.latencyProbe={enabled:latencyProbe,limit:2048,overflow:0,queue:[],worker:[]};
  const observe=kind=>record=>{const list=evidence.latencyProbe[kind];if(list.length<evidence.latencyProbe.limit)list.push({...record,sampleId:currentSample?.id??null});else evidence.latencyProbe.overflow++;};
  const probeOptions=latencyProbe?{latencyProbe:true,observeCommit:observe('worker')}:{};
+ evidence.persistenceWorkers=[];
+ if(host)probeOptions.workerFactory=(file,settings)=>{const worker=new Worker(file,settings);worker.once('message',message=>{if(message.type==='ready')evidence.persistenceWorkers.push({entry:file,epoch:message.epoch,runtime:message.runtime});});return worker;};
  const write=()=>fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(evidence,null,2));
  const log=(kind,details)=>{fs.appendFileSync(path.join(output,'events.jsonl'),JSON.stringify({kind,...details})+'\n');};
  function check(name,condition,details){const item={name,status:condition?'pass':'fail',details};evidence.assertions.push(item);log('assertion',item);write();return condition;}
@@ -199,19 +205,21 @@ async function run(){
    }
    for(const worker of [...workers])try{await worker.terminate();workers.delete(worker);evidence.cleanup.readonlyWorkersTerminated++;}catch(error){recordCleanupError('cleanup-readonly-worker',error);}
    evidence.cleanup.readonlyWorkersRemaining=workers.size;
-   evidence.finishedAt=new Date().toISOString();write();
+   evidence.finishedAt=new Date().toISOString();
    // Chromium still owns userData files until app.exit. Retain this synthetic
    // runtime for review; never recursively delete a live Electron profile.
   })();return cleanupPromise;
  }
- const watchdog=setTimeout(()=>{
-  evidence.errors.push({phase:'watchdog',message:'240s internal watchdog expired'});write();
-  void Promise.race([cleanup(),pause(5000)]).finally(()=>{for(const worker of workers)void worker.terminate();app.exit(1);});
- },WATCHDOG_MS);
+ function finish(phase,error){
+  if(phase){evidence.errors.push({phase,...failure(error)});evidence.passed=false;}
+  if(!finishPromise)finishPromise=finalizeAndExit({cleanup,evidence,write:()=>{log('finalized',{passed:evidence.passed===true,cleanup:evidence.cleanup});write();},summary:()=>{if(host)host.summary(evidence);},beforeExit:()=>{clearTimeout(watchdog);finished=true;console.log('SUNNY_ORDERED_CONTROL_RESULT '+JSON.stringify({sizeMiB:mib,passed:evidence.passed===true,output}));},exit:code=>app.exit(code)});
+  return finishPromise;
+ }
+ const watchdog=setTimeout(()=>void finish('watchdog',Error('240s internal watchdog expired')),WATCHDOG_MS);
  app.on('window-all-closed',()=>{});
- app.on('before-quit',event=>{if(!finished){event.preventDefault();void cleanup().finally(()=>{finished=true;app.exit(1);});}});
- process.on('uncaughtException',error=>{evidence.errors.push({phase:'uncaughtException',...failure(error)});write();void cleanup().finally(()=>app.exit(1));});
- process.on('unhandledRejection',error=>{evidence.errors.push({phase:'unhandledRejection',...failure(error)});write();void cleanup().finally(()=>app.exit(1));});
+ app.on('before-quit',event=>{if(!finished){event.preventDefault();void finish('before-quit',Error('Unexpected quit before finalization'));}});
+ process.on('uncaughtException',error=>void finish('uncaughtException',error));
+ process.on('unhandledRejection',error=>void finish('unhandledRejection',error));
  try{
   await app.whenReady();
   session.defaultSession.webRequest.onBeforeRequest((details,callback)=>{const local=/^(file:|devtools:)/.test(details.url);if(!local)evidence.errors.push({phase:'network-denied',scheme:details.url.split(':')[0]});callback({cancel:!local});});
@@ -235,23 +243,25 @@ async function run(){
    const start=performance.now();const promise=reason===null?nativeStore.checkpoint(image):nativeStore.barrier(image,reason);record.syncHandoffMs=performance.now()-start;
    return promise.then(receipt=>{record.receipt=receipt;record.awaitedReceiptMs=performance.now()-record.startedAtMs;return receipt;},error=>{record.failure=failure(error);throw error;}).finally(()=>{if(sample&&reason===null)sample.nativeCheckpointPending=false;});
   }
-  hub=new Hub({home:runtime,store,catalog:{discoverProjects:()=>[],discoverTools:()=>[],discoverAutomations:()=>[]}});
-  const forbid=async()=>{throw Error('OFFLINE fixture forbids provider process/connection');};
-  if(latencyProbe)hub.authorityQueue.observeCommit=observe('queue');
-  hub.connect=forbid;hub.connectCodex=forbid;hub.client.start=forbid;hub.client.connect=forbid;
-  await hub.initializeRecovery();check('mandatory startup recovery awaited',hub.recoveryReady===true);
-  transport=createPublicTransport(hub);transport.bindTranscript(envelope=>{if(win&&!win.isDestroyed())win.webContents.send('sunny:event',envelope);});
-  hub.client.connected=true;hub.state.codex={status:'connected',version:'SYNTHETIC OFFLINE'};
-  hub.client.request=async(method,args)=>{
+  const dependencies=require('../desktop/packaged-acceptance.cjs').fixtureDependencies();
+  const client=dependencies.client;
+  const unexpected=method=>{evidence.errors.push({phase:'unexpected-synthetic-method',method});throw Error('Unexpected offline provider request '+method);};
+  client.request=async(method,args)=>{
    evidence.providerCalls.push({method,...(currentSample?{sampleId:currentSample.id}:{})});
    const task=hub.state.tasks.find(task=>task.threadId===args?.threadId);
    if(method==='turn/interrupt'){assert.equal(args.turnId,task.turnId);return {};}
    if(method==='thread/read')return {thread:{id:task.threadId,status:'active',turns:[{id:task.turnId,status:'inProgress'}]}};
    if(method==='thread/start')return {thread:{id:'offline-thread'}};
    if(method==='turn/start')return {turn:{id:'offline-turn'}};
-   throw Error('Unexpected offline provider request '+method);
+   return unexpected(method);
   };
-  hub.client.respond=(id,result)=>{evidence.providerCalls.push({method:'respond',sampleId:currentSample?.id,id,result:structuredClone(result)});};
+  client.respond=(id,result)=>{evidence.providerCalls.push({method:'respond',sampleId:currentSample?.id,id,result:structuredClone(result)});};
+
+  hub=new Hub({home:runtime,store,catalog:{discoverProjects:()=>[],discoverTools:()=>[],discoverAutomations:()=>[]},fixtureDependencies:dependencies});
+  if(latencyProbe)hub.authorityQueue.observeCommit=observe('queue');
+  await hub.initializeRecovery();check('mandatory startup recovery awaited',hub.recoveryReady===true);
+  transport=createPublicTransport(hub);transport.bindTranscript(envelope=>{if(win&&!win.isDestroyed())win.webContents.send('sunny:event',envelope);});
+  hub.client.connected=true;hub.state.codex={status:'connected',version:'SYNTHETIC OFFLINE'};
   hub.on('event',event=>{if(event.type==='error')evidence.errors.push({phase:'hub',message:event.data?.message});if(win&&!win.isDestroyed())win.webContents.send('sunny:event',transport.event(event.type,event.data));});
   win=new BrowserWindow({title:'Sunny OFFLINE ordered control verification',width:1520,height:980,show:false,webPreferences:{preload:path.join(root,'desktop','preload.cjs'),contextIsolation:true,sandbox:true,nodeIntegration:false,offscreen:true,backgroundThrottling:false}});
   win.webContents.setWindowOpenHandler(()=>({action:'deny'}));win.webContents.on('will-navigate',event=>event.preventDefault());
@@ -335,14 +345,16 @@ async function run(){
    check(action+' unchanged main 1ms timer excess <=100ms',metrics.mainContinuous1msExcessMs.max!==null&&metrics.mainContinuous1msExcessMs.max<=100&&metrics.mainTimerExcessMs.max!==null&&metrics.mainTimerExcessMs.max<=100,{continuous1ms:metrics.mainContinuous1msExcessMs,supplementaryOperationTimers:metrics.mainTimerExcessMs});
   }
   check('all mutated warmups succeeded',evidence.warmups.length===WARMUPS*2&&evidence.warmups.every(sample=>sample.success));
+  const hubEffects={...hub.client.fixtureEffects};
   await hub.close();const lastReceipt=hub.lastReceipt,expected=hub.savedProfile;hub=null;
   evidence.afterCloseProof=await readonlyProof({file,expected,receipt:lastReceipt,taskId:controlTask.id},workers);
   check('full transcript/draft/opaque state survives close/reopen',evidence.afterCloseProof.exactWholeState&&evidence.afterCloseProof.receiptMatches&&evidence.afterCloseProof.journalMode==='wal',evidence.afterCloseProof);
-  const after=sourceProof();check('source/build frozen throughout process',after.sourceDigest===evidence.source.sourceDigest&&after.builtDigest===evidence.source.builtDigest,{sourceDigest:after.sourceDigest,builtDigest:after.builtDigest});
-  check('no runtime errors',evidence.errors.length===0,{errors:evidence.errors});
+  const after=proof();check('source/build frozen throughout process',after.sourceDigest===evidence.source.sourceDigest&&after.builtDigest===evidence.source.builtDigest,{sourceDigest:after.sourceDigest,builtDigest:after.builtDigest});
+  evidence.syntheticMethods={mode:'finite-offline',calls:evidence.providerCalls.length,...hubEffects};
+  check('no runtime errors',evidence.errors.length===0&&hubEffects.blockedAttempts===0,{errors:evidence.errors});
   evidence.passed=evidence.assertions.every(item=>item.status==='pass');write();
  }catch(error){evidence.errors.push({phase:'run',...failure(error)});evidence.passed=false;write();}
- finally{await finalizeAndExit({cleanup,evidence,write,beforeExit:()=>{clearTimeout(watchdog);finished=true;console.log('SUNNY_ORDERED_CONTROL_RESULT '+JSON.stringify({sizeMiB:mib,passed:evidence.passed===true,output}));},exit:code=>app.exit(code)});}
+ finally{await finish();}
 }
 if(isDirectEntry(process,require.main,module,__filename))run().catch(error=>{console.error(error);process.exitCode=1;});
-module.exports={resolveControlInputs,parseSize,isDirectEntry,validateFrozenTextShape,summarize,explicitFailure,finalizeAndExit,startControlMonitors,rendererControl,makeDispatch,readonlyProof,READONLY_PROOF};
+module.exports={runAdmittedControl,resolveControlInputs,parseSize,isDirectEntry,validateFrozenTextShape,summarize,explicitFailure,finalizeAndExit,startControlMonitors,rendererControl,makeDispatch,readonlyProof,READONLY_PROOF};

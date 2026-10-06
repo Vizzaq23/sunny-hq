@@ -7,6 +7,9 @@ const packagedFixture=fixtureArg?require('./packaged-acceptance.cjs'):null;
 const fixture=packagedFixture?packagedFixture.admitFixture({manifestPath:fixtureArg.slice('--packaged-fixture='.length),nonce:process.env.SUNNY_FIXTURE_NONCE,defaultProfile:path.join(process.env.USERPROFILE||os.homedir(),'AppData','Local','Sunny HQ')}):null;
 const fixtureStage=fixture?require('./fixture-stages.cjs').createStages(fixture):()=>{};
 if(fixture&&process.env.SUNNY_DATA_DIR&&path.resolve(process.env.SUNNY_DATA_DIR).toLowerCase()!==fixture.profileDir.toLowerCase())throw Error('Fixture cannot use a live profile override.');
+if(fixture?.scenario==='ordered-control'){
+ void require('./packaged-control.cjs').runPackagedControl(fixture).catch(error=>{console.error(error);app.exit(1);});
+}else{
 const {guardedPath,readText,writeText,hash}=require('./core.cjs');const catalog=fixture?packagedFixture.fixtureCatalog():require('./catalog.cjs');
 const {scanMorgansInbox}=require('./morgans-inbox.cjs');
 const {searchProjectFiles}=require('./project-search.cjs');
@@ -213,4 +216,5 @@ app.on('window-all-closed',()=>{if(quitting)app.quit();});app.on('activate',()=>
 
 
 
+}
 }

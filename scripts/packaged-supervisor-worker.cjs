@@ -24,7 +24,9 @@ async function run(){
  const live=target(path.join(process.env.USERPROFILE||require('node:os').homedir(),'AppData','Local','Sunny HQ'));
  if(inside(live,profile)||inside(profile,live)||inside(live,out)||inside(out,live)||inside(profile,out)||inside(out,profile))throw Error('Private fixture directories overlap');
  const hash=async file=>crypto.createHash('sha256').update(await fs.promises.readFile(file)).digest('hex');
- const expected={scenario:config.scenario,exeSha256:await hash(exe),asarSha256:await hash(asar),...(config.scenario.startsWith('journey-')?{entryHashes:require('./journey-package.cjs').entryHashes(asar)}:{})};send('expected',{expected});
+ const expected={scenario:config.scenario,exeSha256:await hash(exe),asarSha256:await hash(asar),...(config.scenario.startsWith('journey-')?{entryHashes:require('./journey-package.cjs').entryHashes(asar)}:{})};
+ if(config.scenario==='ordered-control'){expected.mib=config.mib;expected.packageProof=require('./control-package.cjs').packageProof(asar,{executableSha256:expected.exeSha256,asarSha256:expected.asarSha256});}
+ send('expected',{expected});
  if(closed||Date.now()>=config.deadlineUnixMs)throw Error('Deadline expired before platform launch');
  const candidates=[path.join(process.env.USERPROFILE||'','.cache','codex-runtimes','codex-primary-runtime','dependencies','native','powershell','pwsh.exe'),path.join(process.env.ProgramFiles||'C:\\Program Files','PowerShell','7','pwsh.exe')];
  const pwsh=candidates.find(file=>fs.existsSync(file));if(!pwsh)throw Error('Approved PowerShell runtime unavailable');canonical(pwsh,false);
@@ -43,6 +45,12 @@ async function run(){
  for(let phase=1;phase<=evidence.phases.length;phase++){const file=path.join(out,`root-registration-${phase}.json`);if((await fs.promises.stat(file)).size>4096)throw Error('Oversize root registration');registrations.push(JSON.parse(await fs.promises.readFile(file,'utf8')));}
  if(await hash(exe)!==expected.exeSha256||await hash(asar)!==expected.asarSha256)throw Error('Package changed during contained run');
  if(expected.entryHashes)require('node:assert/strict').deepEqual(require('./journey-package.cjs').entryHashes(asar),expected.entryHashes);
- send('completed',{value:{exitCode:report.exitCode,job:report,evidence,registrations}});
+ let controlArtifacts;
+ if(config.scenario==='ordered-control'){
+  const read=async name=>{const file=path.join(out,name),stat=await fs.promises.lstat(file);if(!stat.isFile()||stat.isSymbolicLink()||stat.size<=0||stat.size>64*1024*1024)throw Error('Invalid raw ordered control artifact');return fs.promises.readFile(file);};
+  controlArtifacts={resultBytes:await read('result.json'),eventBytes:await read('events.jsonl')};
+  require('node:assert/strict').deepEqual(require('./control-package.cjs').packageProof(asar,{executableSha256:expected.exeSha256,asarSha256:expected.asarSha256}),expected.packageProof);
+ }
+ send('completed',{value:{exitCode:report.exitCode,job:report,evidence,registrations,...(controlArtifacts?{controlArtifacts}:{})}});
 }
 run().catch(()=>send('failed',{}));

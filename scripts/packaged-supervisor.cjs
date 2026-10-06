@@ -19,6 +19,7 @@ function validateCompletion(value,expected){
  if(!Array.isArray(value.registrations)||value.registrations.length!==phases.length)throw Error('Root registrations missing');
  for(let index=0;index<phases.length;index++){const p=phases[index];if(!Number.isSafeInteger(p.pid)||p.pid<=0||p.phase!==index+1||p.scenario!==expected.scenario||p.executableSha256!==expected.exeSha256||p.asarSha256!==expected.asarSha256||p.providerEffects!==0)throw Error('Exact phase identity or provider effect mismatch');if(p.pid!==p.ownedRoot?.pid||!sameOwnedIdentity(value.registrations[index],p.ownedRoot))throw Error('Root generation or manifest mismatch');}
  if(expected.scenario.startsWith('journey-')){const receipts=require('../desktop/journey-receipts.cjs');for(const p of phases){receipts.validatePhase(p,{scenario:expected.scenario,phase:p.phase});require('node:assert/strict').deepEqual(p.entryHashes,expected.entryHashes);}if(restart){const assert=require('node:assert/strict');assert.deepEqual(phases[1].journey.identity,phases[0].journey.identity);assert.equal(phases[1].admissionSha256,phases[0].admissionSha256);}}
+ if(expected.scenario==='ordered-control')require('../desktop/control-receipts.cjs').validatePhase(phases[0],{mib:expected.mib,packageProof:expected.packageProof,resultBytes:Buffer.from(value.controlArtifacts.resultBytes),eventBytes:Buffer.from(value.controlArtifacts.eventBytes),ownedRoot:value.registrations[0]});
  if(restart&&(!evidence.mainProcessRestart||phases[0].pid===phases[1].pid))throw Error('Distinct restart proof missing');
  return true;
 }
@@ -30,6 +31,7 @@ function supervise(adapter,{timeoutMs,cleanupMs=5000,intervalMs=2000}){
    if(terminal)return;terminal=true;clearTimeout(deadline);clearInterval(poll);
    let cleanup='unresolved',cleanupTimer;
    try{const report=await Promise.race([Promise.resolve().then(()=>adapter.close()),new Promise(resolve=>{cleanupTimer=setTimeout(()=>resolve(null),cleanupMs);})]);if(report?.cleanupObserved===true&&report.activeProcesses===0)cleanup='observed';}catch{}finally{clearTimeout(cleanupTimer);}
+   if(status==='completed'&&performance.now()-started>=timeoutMs)status='timeout';
    const accepted=status==='completed'&&cleanup==='observed';
    resolve(Object.freeze({version:1,status:accepted?'completed':status==='completed'?'failed':status,accepted,cleanup,lastStage,elapsedMs:Math.round(performance.now()-started),...(accepted?{scenario:value.evidence.scenario}:{})}));
   }
@@ -38,7 +40,7 @@ function supervise(adapter,{timeoutMs,cleanupMs=5000,intervalMs=2000}){
   Promise.resolve().then(()=>adapter.start()).then(async handle=>{if(terminal)return;lastStage='launcher-started';poll=setInterval(()=>void inspect(),intervalMs);void inspect();const value=await handle.completion;if(terminal)return;adapter.validate(value);await finish('completed',value);}).catch(()=>void finish('failed'));
  });
 }
-function parseArgs(argv){const allowed=new Set(['exe','asar','profile','out','scenario','mib','timeout-ms']),args={};for(const arg of argv){const match=/^--([^=]+)=(.+)$/.exec(arg);if(!match||!allowed.has(match[1])||Object.hasOwn(args,match[1]))throw Error('Invalid supervisor argument');args[match[1]]=match[2];}for(const key of ['exe','asar','profile','out'])if(!path.isAbsolute(args[key]||''))throw Error('Absolute fixture paths required');const scenario=args.scenario||'startup',mib=Number(args.mib||1),timeoutMs=Number(args['timeout-ms']||120000);if(!require('../desktop/packaged-acceptance.cjs').SCENARIOS.includes(scenario)||![1,10,30].includes(mib)||scenario.startsWith('journey-')&&mib!==1||!Number.isSafeInteger(timeoutMs)||timeoutMs<10000||timeoutMs>300000)throw Error('Invalid bounded fixture scenario');return {exe:args.exe,asar:args.asar,profile:args.profile,out:args.out,scenario,mib,timeoutMs};}
+function parseArgs(argv){const allowed=new Set(['exe','asar','profile','out','scenario','mib','timeout-ms']),args={};for(const arg of argv){const match=/^--([^=]+)=(.+)$/.exec(arg);if(!match||!allowed.has(match[1])||Object.hasOwn(args,match[1]))throw Error('Invalid supervisor argument');args[match[1]]=match[2];}for(const key of ['exe','asar','profile','out'])if(!path.isAbsolute(args[key]||''))throw Error('Absolute fixture paths required');const scenario=args.scenario||'startup',mib=Number(args.mib||1),timeoutMs=Number(args['timeout-ms']||(scenario==='ordered-control'?300000:120000));if(!require('../desktop/packaged-acceptance.cjs').SCENARIOS.includes(scenario)||![1,10,30].includes(mib)||scenario.startsWith('journey-')&&mib!==1||!Number.isSafeInteger(timeoutMs)||timeoutMs<10000||timeoutMs>300000||scenario==='ordered-control'&&timeoutMs!==300000)throw Error('Invalid bounded fixture scenario');return {exe:args.exe,asar:args.asar,profile:args.profile,out:args.out,scenario,mib,timeoutMs};}
 async function main(argv){
  const config=parseArgs(argv),deadlineUnixMs=Date.now()+config.timeoutMs;
  let worker,complete,failed,lastStage='armed',cleanupReply,expected;

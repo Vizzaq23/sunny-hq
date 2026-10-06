@@ -4,13 +4,14 @@ param(
  [Parameter(Mandatory)][string]$Asar,
  [Parameter(Mandatory)][string]$Profile,
  [Parameter(Mandatory)][string]$Out,
- [ValidateSet('journey-cue','journey-motion-user','journey-motion-system','journey-audio','playable','run-ui','startup','renderer-crash','main-restart','worker-loss','write-failure','lost-ack','pending-approval','pending-check','normal-quit')][string]$Scenario='startup',
+ [ValidateSet('ordered-control','journey-cue','journey-motion-user','journey-motion-system','journey-audio','playable','run-ui','startup','renderer-crash','main-restart','worker-loss','write-failure','lost-ack','pending-approval','pending-check','normal-quit')][string]$Scenario='startup',
  [ValidateSet(1,10,30)][int]$MiB=1,
  [ValidateRange(10000,300000)][int]$TimeoutMs=120000,
  [switch]$ContainedJob
 )
 $ErrorActionPreference='Stop'
 if($Scenario.StartsWith('journey-') -and $MiB -ne 1){throw 'Fixed journey requires MiB 1'}
+if($Scenario -eq 'ordered-control' -and $TimeoutMs -ne 300000){throw 'Fixed ordered control requires 300000 ms outer budget'}
 if(-not $ContainedJob){throw 'Use scripts/packaged-supervisor.cjs; direct uncontained fixture launches are disabled.'}
 $deadline=[Diagnostics.Stopwatch]::StartNew()
 function Assert-Deadline {if($deadline.ElapsedMilliseconds -ge $TimeoutMs){throw 'Owned packaged process timed out.'}}

@@ -48,7 +48,7 @@ try{
   if(raw.db.prepare('PRAGMA journal_mode').get().journal_mode!=='wal'||raw.db.prepare('PRAGMA synchronous').get().synchronous!==2)throw Error('SQLite WAL/FULL durability is required');
  }
  store=prepareWorkerMissionProfileStore(raw,workerData.backupDir,backend.writeCompact);
- post({type:'ready',image:store.load(),recovery:store.recovery});
+ post({type:'ready',image:store.load(),recovery:store.recovery,runtime:{electron:process.versions.electron,node:process.versions.node,executable:process.execPath,threadId:require('node:worker_threads').threadId,entry:__filename}});
 }catch(error){post({type:'failed',error:error.message,uncertain:false});finish();}
 parentPort.on('message',message=>{
  if(ended)return;let writeStarted=false;

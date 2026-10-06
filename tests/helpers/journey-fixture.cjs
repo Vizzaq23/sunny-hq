@@ -3,13 +3,14 @@
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
 const {execFileSync}=require('node:child_process'),{EventEmitter}=require('node:events');
 const {Hub}=require('../../desktop/hub.cjs');
-async function journeyFixture(t,{onTurn,onThread,afterPersist,expectedCloseError,telemetry=()=>true,checkpoint=false}={}){
+async function journeyFixture(t,{onTurn,onThread,afterPersist,expectedCloseError,telemetry=()=>true,checkpoint=false,threeWave=false}={}){
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-journey-')),original=path.join(dir,'original'),managed=path.join(dir,'managed');fs.mkdirSync(original);fs.mkdirSync(path.join(original,'src'));
  const git=(cwd,args)=>execFileSync('git',args,{cwd,encoding:'utf8',windowsHide:true}).trim();
  git(original,['init']);git(original,['config','core.autocrlf','false']);git(original,['config','user.name','Offline journey']);git(original,['config','user.email','offline@example.invalid']);
  fs.writeFileSync(path.join(original,'package.json'),JSON.stringify({private:true,scripts:{test:'node check.cjs',build:'node check.cjs'}}));
  fs.writeFileSync(path.join(original,'check.cjs'),"const a=require('node:assert/strict'); a.equal(require('./src/alpha.cjs')(),42); a.equal(require('./src/beta.cjs')('crew'),'Hello crew');\n");
  if(checkpoint)fs.appendFileSync(path.join(original,'check.cjs'),`const alpha=require('./src/alpha.cjs'); if(alpha.compose)a.equal(alpha.compose('crew'),'Hello crew: 42'); const fs=require('node:fs'),gate=${JSON.stringify(path.join(dir,'hold-build'))}; if(process.env.npm_lifecycle_event==='build'&&fs.existsSync(gate)){fs.writeFileSync(gate+'.entered','entered');while(fs.existsSync(gate))Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,20);}\n`);
+ if(threeWave)fs.appendFileSync(path.join(original,'check.cjs'),"if(require('node:fs').existsSync('src/a/middle.cjs'))a.equal(require('./src/a/middle.cjs')(),43);\n");
  fs.writeFileSync(path.join(original,'src/alpha.cjs'),'module.exports=()=>0;\n');fs.writeFileSync(path.join(original,'src/beta.cjs'),"module.exports=()=>'';\n");git(original,['add','.']);git(original,['commit','-m','Original fixture']);
  let sequence=0,threadSequence=0,callSequence=0,hub,stored;const threads=[],turns=[],turnRequests=[],errors=[],responses=new Map();const client=new EventEmitter();client.connected=true;client.close=()=>{client.connected=false;};client.respond=(id,result)=>responses.set(id,result);
  client.request=async(method,p)=>{

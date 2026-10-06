@@ -19,6 +19,9 @@ relabels an author as a reviewer. Scene pause changes presentation only; task an
 run authority continue updating. Decorative room illustrations remain static;
 only existing measured Franky/quarters/deck geometry is reused. No new world,
 game, provider, persistence schema, dependency or artwork is introduced.
+Existing-task resident conversations intentionally omit room art because only
+the ten core crew have admitted room illustrations; resident identity and work
+controls remain available without an invalid `assets/undefined` image request.
 
 Native state/reduced-motion captures, keyboard journeys, 200% text and exact
 package proof are pending while host crash/hang diagnosis is open. Source checks

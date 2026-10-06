@@ -7,6 +7,10 @@ All original image bytes, source/prompt records, atlas layouts and measured
 Franky/quarters/deck geometry remain unchanged. Ten core crew retain their
 existing rooms and atlases; four residents use their existing idle cell at their
 saved districts; Morgans keeps the blimp and sanitized-report-only navigation.
+An existing-task resident conversation now omits the room illustration element;
+there is no resident room bitmap to load. The ten core conversation images keep
+their original filenames. This closes an `assets/undefined` URL exposed by the
+full-roster route without assigning an unmeasured room to residents.
 No new source, sample, crop, exported frame or license is added. Other specialist
 and resident scene entries explicitly have null rest/work anchors and no route.
 

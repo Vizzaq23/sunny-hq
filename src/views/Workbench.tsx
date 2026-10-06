@@ -15,7 +15,7 @@ import {playRoomCue,ROOM_SOUND_DEFAULT_VOLUME,stopRoomAudio,unlockRoomAudio} fro
 import {useTaskTranscript} from '../useTaskTranscript';
 
 type Invoke=<T=unknown>(action:string,args?:unknown)=>Promise<T>;
-const ROOM_ART:Record<CrewId,string>={luffy:'luffy-captains-den.png',zoro:'zoro-dojo-room.png',nami:'nami-chart-room.png',usopp:'usopp-inventors-workshop.png',sanji:'sanji-galley-room.png',chopper:'chopper-infirmary-room.png',robin:'robin-ship-library.png',franky:'franky-shipwright-room.png',brook:'brook-music-room.png',jinbe:'jinbe-helm-room.png'};
+const ROOM_ART:Partial<Record<CrewId,string>>={luffy:'luffy-captains-den.png',zoro:'zoro-dojo-room.png',nami:'nami-chart-room.png',usopp:'usopp-inventors-workshop.png',sanji:'sanji-galley-room.png',chopper:'chopper-infirmary-room.png',robin:'robin-ship-library.png',franky:'franky-shipwright-room.png',brook:'brook-music-room.png',jinbe:'jinbe-helm-room.png'};
 
 const subscribeTranscript=(handler:Parameters<NonNullable<Window['sunny']>['subscribe']>[0])=>window.sunny?.subscribe?.(handler)??(()=>{});
 
@@ -41,7 +41,7 @@ export function Workbench({snapshot,initial,invoke,toast,onClose,onSettings,onOp
   const binding=toolsBinding.current,executionIdentity=binding.identity;
   const toolsInvoke=useMemo<Invoke>(()=><T,>(action:string,args?:unknown)=>{const bound=args&&typeof args==='object'?{...args,...(binding.taskId?{taskId:binding.taskId,...(binding.runId?{runId:binding.runId,workspaceId:binding.workspaceId}:{})}:{})}:args;return invoke<T>(action,/^(files:|git:|terminal:create)/.test(action)?bound:args);},[invoke,binding.taskId,binding.runId,binding.workspaceId]);
   const crew=CREW_BY_ID.get(activeTask?.crewId??crewId)!;
-  const roomArt=new URL(`${import.meta.env.BASE_URL}assets/${ROOM_ART[crew.id]}`,location.href).href;
+  const roomArtName=ROOM_ART[crew.id],roomArt=roomArtName?new URL(`${import.meta.env.BASE_URL}assets/${roomArtName}`,location.href).href:undefined;
   const roomSoundEnabled=snapshot.settings.roomSoundEnabled===true;
   const roomSoundVolume=snapshot.settings.roomSoundVolume??ROOM_SOUND_DEFAULT_VOLUME;
   useEffect(()=>{if(roomSoundEnabled)void playRoomCue(crew.id,roomSoundVolume);},[crew.id,roomSoundEnabled]);

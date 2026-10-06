@@ -38,6 +38,25 @@ test('Workbench passes selected summary identity to paged conversation and leave
  assert.equal(findElement(element,e=>e.type==='textarea').props.value,'Keep the unsent draft');
 });
 
+test('every task-capable crew room resolves only its admitted illustration',()=>{
+ global.window={sunny:{},confirm:()=>true,location:{href:'https://fixture.invalid/'},addEventListener(){},removeEventListener(){}};global.location=window.location;global.sessionStorage={getItem:()=>null};
+ const Workbench=componentForNode(),{renderToStaticMarkup}=require('react-dom/server');
+ const art={luffy:'luffy-captains-den.png',zoro:'zoro-dojo-room.png',nami:'nami-chart-room.png',usopp:'usopp-inventors-workshop.png',sanji:'sanji-galley-room.png',chopper:'chopper-infirmary-room.png',robin:'robin-ship-library.png',franky:'franky-shipwright-room.png',brook:'brook-music-room.png',jinbe:'jinbe-helm-room.png'};
+ for(const id of [...Object.keys(art),'law','ace','vivi','perona']){
+  const snapshot={projects:[{id:'p',name:'Fixture'}],tasks:[{id:'t',projectId:'p',crewId:id,status:'finished',transcriptRevision:1,messageCount:1}],approvals:[],settings:{reducedMotion:true},workspace:{version:1,revision:0,context:null,drafts:[],seenAcceptanceIds:[]},world:{residents:['law','ace','vivi','perona'].map(crewId=>({id:crewId,recruited:true}))}};
+  const tree=Workbench({snapshot,initial:{taskId:'t',projectId:'p',crewId:id},invoke:async()=>{},toast(){},onClose(){},embedded:true});
+  assert.equal(tree.props['data-crew-id'],id);
+  assert.ok(findElement(tree,e=>e.type==='button'&&e.props['aria-label']==='Back to workspace'));
+  assert.ok(findElement(tree,e=>e.type==='textarea'&&e.props['aria-label']==='Message the crew'));
+  const conversation=findElement(tree,e=>typeof e.type==='function'&&e.type.name==='Conversation');
+  assert.ok(conversation,id+' conversation');
+  const html=renderToStaticMarkup(conversation.type(conversation.props));
+  assert.doesNotMatch(html,/assets\/undefined/);
+  if(art[id])assert.match(html,new RegExp('class="conversation-room-art"[^>]+assets/'+art[id].replaceAll('.','\\.')));
+  else assert.doesNotMatch(html,/conversation-room-art/,id+' has no unmeasured room art');
+ }
+});
+
 test('actual managed Git pane sends workspace IDs for status diff and commit',async()=>{
  global.window={sunny:{},confirm:()=>true,location:{href:'https://fixture.invalid/'},addEventListener(){},removeEventListener(){}};global.location=window.location;global.sessionStorage={getItem:()=>null};let index=0,mode='workbench';const effects=[],calls=[];
  const Workbench=componentForNode({state(value){if(mode==='workbench'){const n=index++;return n===4?true:n===5?'git':value;}if(value===null)return {branch:'worker',files:[{path:'result.md',status:' M'}],diff:'worker changes'};if(Array.isArray(value))return ['result.md'];return 'Worker commit';},effect(fn){if(mode==='git')effects.push(fn);}});

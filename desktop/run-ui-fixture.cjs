@@ -2,11 +2,14 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const {createHash}=require('node:crypto');const sha=v=>createHash('sha256').update(v).digest('hex');
 const STATES=['normal','pending-call','unknown','stopped','ready','accepted'];
+const WORLD_IDS=['luffy','zoro','nami','usopp','sanji','chopper','robin','franky','brook','jinbe','law','ace','vivi','perona','morgans'];
+const WORLD_CASES=['idle','working','waiting','unknown','failed','ready','accepted','reduced-motion'];
+const WORLD_NEGATIVES=['stopped','pending-call','blocked'];
 function seed(state,kind='normal'){
  assert.ok(STATES.includes(kind));const m=state.missionBook.missions[0],p=state.projects[0],t=state.tasks[0],reviewer=state.tasks[1],source={baseCommit:'a'.repeat(40),headCommit:'b'.repeat(40),fingerprint:'fixture-source',artifactHashes:[]};
  const grant={id:'display-grant',createdBy:'captain',scope:{projectId:p.id,objective:'SYNTHETIC DISPLAY PROOF — crew work and captain review',activities:['read','write','test','build','review']},maxWorkers:3,maxInitialAssignments:16,maxLaunches:32,maxRepairs:3,workerMs:900000,activeMs:3600000,tokenLimit:100000,improvementMs:0,improvementTokens:0};
  const run=require('./supervised-runs.cjs').createSupervisedRun({runId:'display-run',projectId:p.id,expectedRevision:0,objective:grant.scope.objective,criteria:[{id:'c',text:'Review exact history'}],grant,missionIds:[m.id]},{now:1});run.revision=7;run.phase=kind==='normal'?'executing':kind==='pending-call'?'waiting':kind==='accepted'?'ready':kind;run.counters={launches:2,repairs:0,activeMs:120000,tokens:2300,improvementMs:0,improvementTokens:0};
- const assignment=(id,crewId,state,taskId)=>{const b=require('./crew-registry.cjs').crewBinding(crewId,state.world);return {id,crewId,roleId:b.roleId,capability:b.capabilities[0],objective:'SYNTHETIC display evidence',ownedPaths:[],dependencies:[],criteriaIds:['c'],baseCommit:source.baseCommit,state,taskId};};
+ const assignment=(id,crewId,assignmentState,taskId)=>{const b=require('./crew-registry.cjs').crewBinding(crewId,state.world);return {id,crewId,roleId:b.roleId,capability:b.capabilities[0],objective:'SYNTHETIC display evidence',ownedPaths:[],dependencies:[],criteriaIds:['c'],baseCommit:source.baseCommit,state:assignmentState,taskId};};
  const taskState=kind==='normal'?'working':kind==='pending-call'?'waiting':kind==='unknown'?'unknown':kind==='stopped'?'interrupted':'finished';
  run.assignments=[assignment('display-author','franky',taskState==='interrupted'?'cancelled':taskState,t.id),assignment('display-review','zoro','finished',reviewer.id)];
  Object.assign(t,{status:taskState,runId:run.id,assignmentId:'display-author',turnId:'display-turn',executionId:'display-execution',title:'SYNTHETIC DISPLAY PROOF — retained work'});Object.assign(reviewer,{crewId:'zoro',status:'finished',runId:run.id,assignmentId:'display-review'});
@@ -20,6 +23,35 @@ function seed(state,kind='normal'){
   if(kind==='accepted'){m.acceptance={id:'display-acceptance',actor:'captain',attemptId:attempt.id,reviewedRevision:7,resultId:result.id,resultSha256:result.ref.sha256,criteria:[true],acceptedAt:1};m.acceptedAt=1;}
  }
  state.missionBook.runs=[run];state.missionBook.workspace.context={projectId:p.id,runId:run.id,missionId:m.id,attemptId:attempt.id,surface:'deck',returnTo:{view:'ship',projectId:p.id,runId:run.id,missionId:m.id,attemptId:attempt.id}};
+ assert.equal(require('./mission-profile.cjs').inspectMissionProfile(state).mode,'v3');return state;
+}
+function seedWorldCase(state,kind){
+ assert.ok(WORLD_CASES.includes(kind)||WORLD_NEGATIVES.includes(kind));
+ const residents=require('./island-residents.json');
+ state.world.residents=residents.map(resident=>{const saved=state.world.residents?.find(value=>value.id===resident.id);return {...resident,...saved,district:saved?.district??resident.district,recruited:true};});
+ state.settings={...state.settings,reducedMotion:kind==='reduced-motion',roomSoundEnabled:false,roomSoundVolume:.32};
+ seed(state,kind==='working'||kind==='idle'||kind==='failed'||kind==='blocked'||kind==='reduced-motion'?'normal':kind==='waiting'?'pending-call':kind);
+ const run=state.missionBook.runs[0],mission=state.missionBook.missions[0],attempt=mission.attempts.find(a=>a.id===mission.activeAttemptId),task=state.tasks[0];
+ if(kind==='idle'){const binding=require('./crew-registry.cjs').crewBinding('robin',state.world);Object.assign(run.assignments[0],{crewId:'robin',roleId:binding.roleId,capability:binding.capabilities[0],state:'finished'});task.crewId='robin';task.status='finished';attempt.status='finished';delete state.missionBook.workspace.context.missionId;delete state.missionBook.workspace.context.attemptId;}
+ if(kind==='waiting'){mission.status='RUNNING';attempt.status='waiting';}
+ if(kind==='failed'){run.phase='blocked';run.assignments[0].state='failed';task.status='failed';attempt.status='failed';mission.status='FAILED';}
+ if(kind==='blocked'){run.phase='blocked';run.assignments[0].state='waiting';task.status='waiting';attempt.status='waiting';mission.status='BLOCKED';}
+ assert.equal(require('./mission-profile.cjs').inspectMissionProfile(state).mode,'v3');
+ return state;
+}
+function seedWorldRole(state,crewId,capability){
+ assert.ok(WORLD_IDS.slice(0,-1).includes(crewId));seedWorldCase(state,'working');
+ const binding=require('./crew-registry.cjs').crewBinding(crewId,state.world);
+ const selected=capability??binding.capabilities[0];assert.ok(binding.capabilities.includes(selected));
+ const task=state.tasks[0],assignment=state.missionBook.runs[0].assignments[0];
+ task.crewId=crewId;task.title='SYNTHETIC DISPLAY PROOF — '+crewId+' current work';
+ Object.assign(assignment,{crewId,roleId:binding.roleId,capability:selected});
+ return state;
+}
+function seedWorldHistory(state){
+ seedWorldRole(state,'franky');const run=state.missionBook.runs[0],older=state.tasks[2];
+ Object.assign(older,{crewId:'franky',status:'finished',runId:run.id,assignmentId:'display-history',title:'SYNTHETIC retained historical task'});
+ run.assignments.push({...run.assignments[0],id:'display-history',state:'finished',taskId:older.id});run.counters.launches=3;
  assert.equal(require('./mission-profile.cjs').inspectMissionProfile(state).mode,'v3');return state;
 }
 async function run({win,hub,manifest,trustedInvoke,waitForRenderer}){
@@ -46,7 +78,8 @@ async function run({win,hub,manifest,trustedInvoke,waitForRenderer}){
   const over=await js(`['.crew-run-panel','.den-den-calls','.run-status'].map(s=>{const e=document.querySelector(s);return {s,scroll:e.scrollWidth,client:e.clientWidth}})`);assert.ok(over.every(x=>x.scroll<=x.client+1));await js(`document.querySelector('.crew-run-panel').scrollIntoView({block:'start',behavior:'instant'})`);await capture(kind+'-compact-200-text');
   assert.equal(JSON.stringify(hub.state.workspace.context),selection);assert.equal(sha(JSON.stringify(hub.state.workspace.drafts)),drafts);assert.equal(hub.client.fixtureEffects.providerEffects,0);
  }
- // Actual keyboard activation and presentation persistence are separate from display seeds.
+  const world=await require('./run-ui-world-fixture.cjs').run({win,hub,manifest,trustedInvoke,waitForRenderer,base,js,wait,pause,capture,key,reachable,progress,sha,seedWorldCase,seedWorldRole,seedWorldHistory,WORLD_IDS,WORLD_CASES,WORLD_NEGATIVES});
+  // Actual keyboard activation and presentation persistence are separate from display seeds.
  const next=seed(structuredClone(base),'pending-call');hub.state.tasks=next.tasks;hub.state.missions.splice(0,hub.state.missions.length,...next.missionBook.missions);hub.state.runs.splice(0,hub.state.runs.length,...next.missionBook.runs);const t=hub.state.tasks[0];hub.request({id:'run-ui-final-rpc',method:'item/tool/requestUserInput',params:{threadId:t.threadId,turnId:t.turnId,questions:[{id:'q',question:'Offline fixture input'}]}});await hub.persist('mission');hub.publishSnapshot();win.reload();await waitForRenderer(win,hub.state.workspace.context);await wait(`Boolean(document.querySelector('.call-open'))`);
  const a=(await trustedInvoke(win,'snapshot')).approvals[0],phase=hub.state.runs[0].phase;
  await js(`document.querySelector('.call-open').focus()`);await key('Tab','Tab');assert.equal(await js(`document.activeElement.className`),'call-seen');keyboard.push({key:'Tab',focus:'call-seen'});await key('Enter','Enter');await wait(`document.querySelector('.den-den-calls')?.textContent.includes('· seen')`);keyboard.push({key:'Enter',effect:'durable seen only'});
@@ -54,6 +87,6 @@ async function run({win,hub,manifest,trustedInvoke,waitForRenderer}){
  await js(`document.querySelector('.call-open').focus()`);await key('Enter','Enter');await wait(`Boolean(document.querySelector('.embedded-workbench'))`);assert.equal(hub.state.workspace.context.runId,'display-run');assert.equal(hub.state.workspace.context.attemptId,'attempt-0');geometry.push({kind:'keyboard-open',...await reachable('[aria-label="Back to workspace"]')});await js(`document.querySelector('[aria-label="Back to workspace"]').focus()`);await key('Enter','Enter');await wait(`Boolean(document.querySelector('.crew-run-panel'))`);keyboard.push({key:'Enter',effect:'open input and return',focus:await js(`document.activeElement.className`)});
  await assert.rejects(trustedInvoke(win,'run:control',{runId:'display-run',projectId:t.projectId,expectedRevision:hub.state.runs[0].revision,action:'stop'}),/offline/i);assert.equal(hub.client.fixtureEffects.providerEffects,0);assert.equal(sha(JSON.stringify(hub.state.workspace.drafts)),drafts);
  await js(`document.querySelector('.call-snooze').focus()`);await key('Enter','Enter');await wait(`document.querySelector('.den-den-calls')?.textContent.includes('· snoozed')`);assert.equal(hub.state.runs[0].presentation.calls.at(-1).state,'snoozed');keyboard.push({key:'Enter',effect:'final durable snooze after returning'});
- await capture('keyboard-return');return {screenshots,geometry,keyboard,requestId:a.id,displayProofOnly:true,actualPresentationNoResponse:true,draftsRetained:true};
+  await capture('keyboard-return');return {screenshots,geometry,keyboard,world,requestId:a.id,displayProofOnly:true,actualPresentationNoResponse:true,draftsRetained:true};
 }
-module.exports={seed,run,STATES};
+module.exports={seed,seedWorldCase,seedWorldRole,seedWorldHistory,run,STATES,WORLD_IDS,WORLD_CASES,WORLD_NEGATIVES};

@@ -19,6 +19,12 @@ even while paused. System/user reduced motion and the existing opt-in arrival
 audio and durable acceptance-cue contracts remain in force. No bitmap, atlas
 geometry, sound sample, dependency or provenance changed.
 
+The ten core conversation rooms retain their original illustrated backdrops.
+Law, Ace, Vivi and Perona have no measured room illustration, so an existing-task
+resident conversation leaves that decorative image absent. The prior constructed
+`assets/undefined` URL is removed; the resident's name and direct work controls
+remain. The rendered source regression covers all fourteen task-capable rooms.
+
 Task17 source and tests are separate from native art admission. Exact-package
 captures for the state matrix, all destinations, keyboard routing and 200% text
 remain pending while native crash/hang diagnosis is open. The existing performance

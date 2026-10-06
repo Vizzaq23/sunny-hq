@@ -22,7 +22,8 @@ function resolveExecutionRoot(selection,state){
  if(task&&(selection.runId&&selection.runId!==ownedRun||selection.workspaceId&&selection.workspaceId!==ownedWorkspace))throw Error('Execution task workspace changed.');
  if(!runId&&!workspaceId){const ref={id:'original:'+project.id,projectId:project.id,canonicalRoot:canonical(project.path),legacy:true,state:'ready'};return ref;}
  const run=state.runs.find(r=>r.id===runId&&r.projectId===project.id),ref=run?.workspaces.find(w=>w.id===workspaceId);
- if(!ref||ref.runId!==run.id||task&&!coordinatorRun&&(!ref.assignmentId||ref.assignmentId!==task.assignmentId||!run.assignments.some(a=>a.id===task.assignmentId&&a.taskId===task.id&&a.workspaceId===ref.id)))throw Error('Exact managed workspace binding is missing.');
+ const continuation=task&&require('./mission-delivery.cjs').continuationFor(run,task);if(continuation&&(task.deliveryId!==continuation.id||ref?.id!==continuation.continuation.workspaceId||!ref.integration))throw Error('Continuation workspace changed');
+ if(!ref||ref.runId!==run.id||task&&!coordinatorRun&&!continuation&&(!ref.assignmentId||ref.assignmentId!==task.assignmentId||!run.assignments.some(a=>a.id===task.assignmentId&&a.taskId===task.id&&a.workspaceId===ref.id)))throw Error('Exact managed workspace binding is missing.');
  if(run.workspaces.some(w=>w.id!==ref.id&&same(w.canonicalRoot,ref.canonicalRoot)))throw Error('Workspace case alias collision.');if(!['ready','active'].includes(ref.state)||!same(canonical(ref.canonicalRoot),ref.canonicalRoot))throw Error('Execution workspace is unresolved.');return structuredClone(ref);
 }
 async function createWorkspace({project,runId,assignmentId,baseCommit,kind},deps){

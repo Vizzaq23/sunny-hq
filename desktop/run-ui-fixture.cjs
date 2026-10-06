@@ -45,7 +45,18 @@ function seedWorldRole(state,crewId,capability){
  const selected=capability??binding.capabilities[0];assert.ok(binding.capabilities.includes(selected));
  const task=state.tasks[0],assignment=state.missionBook.runs[0].assignments[0];
  task.crewId=crewId;task.title='SYNTHETIC DISPLAY PROOF — '+crewId+' current work';
+ // Luffy is the coordinator, never a specialist assignment. A selected
+ // standalone Luffy task exercises his real Inspect route without forging
+ // supervised worker authority.
+ if(crewId==='luffy'){
+  assert.equal(binding.access,'coordinator');assert.equal(capability,undefined);
+  delete task.runId;delete task.assignmentId;delete state.tasks[1].runId;delete state.tasks[1].assignmentId;
+  delete state.missionBook.missions[0].runId;state.missionBook.runs=[];
+  state.missionBook.workspace.context={projectId:task.projectId,taskId:task.id,surface:'deck',returnTo:{view:'ship'}};
+  assert.equal(require('./mission-profile.cjs').inspectMissionProfile(state).mode,'v3');return state;
+ }
  Object.assign(assignment,{crewId,roleId:binding.roleId,capability:selected});
+ assert.equal(require('./mission-profile.cjs').inspectMissionProfile(state).mode,'v3');
  return state;
 }
 function seedWorldHistory(state){

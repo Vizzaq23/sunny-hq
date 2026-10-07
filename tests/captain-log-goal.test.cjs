@@ -1,5 +1,6 @@
 const {test}=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs');const path=require('node:path');const Module=require('node:module');const ts=require('typescript');
 Module._extensions['.ts']=(mod,filename)=>mod._compile(ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,filename);
+Module._extensions['.tsx']=(mod,filename)=>mod._compile(ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText,filename);
 function loadComponent(name){const filename=path.resolve(__dirname,'../src/components/'+name+'.tsx');if(!fs.existsSync(filename))return {};const mod=new Module(filename,module);mod.filename=filename;mod.paths=module.paths;const original=Module._extensions['.css'];Module._extensions['.css']=()=>{};try{mod._compile(ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText,filename);return mod.exports;}finally{if(original)Module._extensions['.css']=original;else delete Module._extensions['.css'];}}
 
 function renderGoal(objective){

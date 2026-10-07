@@ -44,3 +44,14 @@ all assignment history and selects current work first. Cancelled dependencies st
 blocked. Recovery selects the latest saved request revision/time. The private
 run-ui window uses offscreen painting and bounded capture; normal windows retain
 their security settings. Driver phase1 exit73 and distinct-main checks include run-ui.
+
+Final integration correction — 2026-10-07: notification identity is the stable
+project/run/attempt/request tuple. A live request retains its seen/snoozed state
+through unrelated run revisions; its response binding still uses the exact current
+revision. New acknowledgments update the latest unresolved receipt for that tuple
+instead of allocating one receipt per revision. Existing multiple-revision receipts
+remain accepted and retained, with the newest time/revision used for the live call;
+there is no schema change or destructive migration. A failed required acknowledgment
+still cannot start audio. The optional sound controller deduplicates by that same
+stable tuple, cancels pending playback on mute/unmount, and stops/closes active audio
+immediately. Cancellation is presentation-only; the required acknowledgment continues.

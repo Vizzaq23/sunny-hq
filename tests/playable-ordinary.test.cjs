@@ -1,5 +1,5 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
-const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
+const fs=require('node:fs'),path=require('node:path');
 const evidenceGeneration=fs.mkdtempSync(path.join(path.resolve(__dirname,'../../evidence'),'task-18-playable-evidence-'));
 const {journeyFixture}=require('./helpers/journey-fixture.cjs');
 test('public goal enrolls a committed bounded playable contract before provider dispatch',{timeout:90000},async t=>{

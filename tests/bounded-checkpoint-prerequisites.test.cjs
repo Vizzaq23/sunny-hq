@@ -16,7 +16,7 @@ function actualMain(hub){
  const app={setName(){},setPath(){},getPath:()=>process.cwd(),getVersion:()=> 'fixture',requestSingleInstanceLock:()=>true,on(){},whenReady:()=>({then:callback=>{startup=callback;return {catch(){}};}})};
  const context={require:id=>id==='electron'?{app,ipcMain:{handle(){}},dialog:{}}:id==='./diagnostics.cjs'?{readBuildInfo:()=>({}),record(){}}:id==='./persistence-lifecycle.cjs'?{...nativeRequire(id),bootHub:async()=>hub}:nativeRequire(id),__dirname:path.dirname(file),process:{argv:[],env:{USERPROFILE:process.cwd()},versions:process.versions},console,URL,Buffer,structuredClone,setTimeout,clearTimeout,setInterval:()=>0,clearInterval};
  // Expose the real handler without executing Electron startup or changing its code.
- const source=fs.readFileSync(file,'utf8').replace(/\}\s*$/,"globalThis.mainFixture={handle,setHub:value=>{hub=value},setWindowCreation:callback=>{createWindow=callback;scanMorgansBriefings=()=>{};}};\n}");
+ const source=fs.readFileSync(file,'utf8').replace('async function handle(',"globalThis.mainFixture={handle,setHub:value=>{hub=value},setWindowCreation:callback=>{createWindow=callback;scanMorgansBriefings=()=>{};}};\nasync function handle(");
  vm.runInNewContext(source,context,{filename:file});context.mainFixture.setHub(hub);return {...context.mainFixture,startup:()=>startup()};
 }
 const early={routingPolicy:'thorough',reducedMotion:true,notifications:false,roomSoundEnabled:true};

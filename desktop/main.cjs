@@ -37,6 +37,17 @@ async function executionProject(args){const selection=executionSelection(args);c
 async function assertExecution(project){await require('./execution-workspaces.cjs').verifyWorkspace(project.executionWorkspace,registered(project.id));const ref=require('./execution-workspaces.cjs').resolveExecutionRoot({projectId:project.id,...(project.executionWorkspace.legacy?{}:{runId:project.executionWorkspace.runId,workspaceId:project.executionWorkspace.id})},hub.state);if(JSON.stringify(ref)!==JSON.stringify(project.executionWorkspace))throw Error('Execution workspace changed during operation.');}
 async function invalidateWorkspaceSource(project){if(project.executionWorkspace.runId){hub.verifiedWorkspaceReads?.delete(project.executionWorkspace.id);await hub.invalidateRunSource(project.executionWorkspace.runId);}}
 async function manualWrite(project){await assertExecution(project);if(hub.gate.blocked(project.path,{projectId:project.id}))throw Error('An agent is writing in this project. Finish or interrupt it first.');}
+function assertProjectRemoval(project){
+ const active=task=>['starting','working','waiting','unknown'].includes(task.status)||hub.hasTaskRecoveryIntent(task)||hub.launchingTasks.has(task.id)||hub.preparingTurns.has(task.id)||hub.pendingDispatches?.has(task.id)||hub.providerCalls?.has(task.id);
+ if(hub.gate.blocked(project.path,{projectId:project.id})||hub.state.tasks.some(task=>task.projectId===project.id&&active(task))||hub.state.runs.filter(run=>run.projectId===project.id).some(run=>run.controlIntent?.state==='pending'||require('./run-control.cjs').report(hub,run.id).unknownEffects.length))throw Error('Reconcile active tasks and owned effects before removing this project.');
+}
+async function withManualFileWrite(project,args){
+ await assertExecution(project);const id='manual-file:'+randomUUID();
+ // Acquire synchronously after the final asynchronous preflight, through invalidation.
+ hub.gate.acquire(id,project.path,{projectId:project.id,runId:project.executionWorkspace.runId,integrating:true});
+ try{return writeText(project.path,args.path,args.text,args.hash);}
+ finally{try{await invalidateWorkspaceSource(project);}finally{hub.gate.release(id);}}
+}
 function registered(id){const project=hub.project(id);if(!fs.existsSync(project.path))throw Error('Project folder is unavailable.');return project;}
 async function command(exe,args,cwd,timeout=20000){if(fixture)throw Error('Offline fixture forbids shell commands.');if(!exe)throw Error('This tool is not installed. Open Tools for setup.');try{const result=await runFile(exe,args,{cwd,windowsHide:true,timeout,maxBuffer:4*1024*1024,encoding:'utf8'});return result.stdout;}catch(e){throw Error((e.stderr||e.message||'Command failed').slice(0,2000));}}
 async function git(selection,args,reservation){const project=await executionProject(selection);await assertExecution(project);if(reservation){if(hub.gate.active.get(reservation.id)!==hub.gate.root(project.path)||project.id!==reservation.project.id||JSON.stringify(project.executionWorkspace)!==JSON.stringify(reservation.project.executionWorkspace))throw Error('Manual Git reservation changed.');}else if(['add','commit'].includes(args[0]))throw Error('Manual Git mutation requires its operation reservation.');if(reservation&&['add','commit'].includes(args[0]))reservation.mutated=true;const result=await command(catalog.getExecutable('git',home)||'git.exe',args,project.path);await assertExecution(project);return result;}
@@ -130,7 +141,7 @@ async function handle(action,args={},surface='hub'){
  case 'codex:connect':return hub.connect();
  case 'codex:login':{if(!hub.client.connected)await hub.client.connect(home);const result=await hub.client.request('account/login/start',{type:'chatgpt'});if(result.authUrl)await openUrl(result.authUrl);return result;}
  case 'project:add':{const result=await dialog.showOpenDialog(win,{title:'Bring a project aboard',properties:['openDirectory']});if(result.canceled)return null;const root=fs.realpathSync(result.filePaths[0]);const existing=hub.state.projects.find(p=>p.path.toLowerCase()===root.toLowerCase());if(existing)return existing;const project={id:hash(root.toLowerCase()).slice(0,16),name:path.basename(root),path:root,category:'development'};hub.state.projects.push(project);hub.changed();return project;}
- case 'project:remove':{const p=registered(args.projectId);if(hub.gate.blocked(p.path)||hub.state.tasks.some(t=>t.projectId===p.id&&['working','waiting','starting'].includes(t.status)))throw Error('Finish active tasks before removing this project.');hub.state.projects=hub.state.projects.filter(x=>x.id!==p.id);hub.changed();return;}
+ case 'project:remove':{const p=registered(args.projectId);assertProjectRemoval(p);hub.state.projects=hub.state.projects.filter(x=>x.id!==p.id);hub.changed();return;}
  case 'task:start':return publicTransport.taskReply(await hub.start(args));
  case 'task:send':return publicTransport.taskReply(await hub.send(args.taskId,args.prompt));
  case 'task:interrupt':return publicTransport.taskReply(await hub.interrupt(args.taskId));
@@ -142,7 +153,7 @@ async function handle(action,args={},surface='hub'){
  case 'approval:respond':return hub.respond(args);
  case 'files:list':return fileList(args,args.path);
  case 'files:read':return readText((await executionProject(args)).path,args.path);
- case 'files:write':{const p=await executionProject(args);await manualWrite(p);const result=writeText(p.path,args.path,args.text,args.hash);await invalidateWorkspaceSource(p);return result;}
+ case 'files:write':{const p=await executionProject(args);return withManualFileWrite(p,args);}
  case 'files:search':return searchFiles(args,args.query);
  case 'git:status':{const raw=await git(args,['status','--porcelain=v1','-z']);const entries=raw.split('\0');const files=[];for(let i=0;i<entries.length;i++){const row=entries[i];if(!row)continue;files.push({status:row.slice(0,2),path:row.slice(3)});if(/[RC]/.test(row.slice(0,2)))i++;}let branch='No commits yet';try{branch=(await git(args,['branch','--show-current'])).trim();}catch{}return {branch,files,diff:await git(args,['diff','--no-ext-diff'])};}
  case 'git:diff':{if(args.path)guardedPath((await executionProject(args)).path,args.path);const staged=await git(args,['diff','--cached','--no-ext-diff','--',...(args.path?[args.path]:[])]);const working=await git(args,['diff','--no-ext-diff','--',...(args.path?[args.path]:[])]);return [staged&&'STAGED\n'+staged,working&&'WORKING TREE\n'+working].filter(Boolean).join('\n')||'No tracked changes. New untracked files appear in the file explorer.';}

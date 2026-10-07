@@ -9,7 +9,7 @@ test('actual worker reuses its sole full-profile encoding at raw binding and rec
  const filename=path.join(__dirname,'../desktop/persistence-worker.cjs');
  const profileModule={exports:{}};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../desktop/mission-profile.cjs'),'utf8'),{require:name=>name.startsWith('./')?require('../desktop/'+name.slice(2)):require(name),module:profileModule,JSON:{stringify:encode,parse:JSON.parse},structuredClone,Buffer},{filename:path.join(__dirname,'../desktop/mission-profile.cjs')});
  const req=name=>name==='./core.cjs'?core:name==='node:worker_threads'?{isMainThread:false,parentPort:port,workerData:{kind:'sqlite',file:path.join(__dirname,'nonexistent-boundary.sqlite'),epoch:'test',backupDir:__dirname}}:name==='./mission-profile.cjs'?profileModule.exports:require(name);
- vm.runInNewContext(fs.readFileSync(filename,'utf8'),{require:req,JSON:{stringify:encode,parse:JSON.parse},structuredClone,Date,Buffer,process},{filename});
+ vm.runInNewContext(fs.readFileSync(filename,'utf8'),{require:req,JSON:{stringify:encode,parse:JSON.parse},structuredClone,Date,Buffer,process,__filename:filename},{filename});
  listener({type:'commit',epoch:'test',sequence:1,image:structuredClone(image)});
  assert.equal(messages.at(-1).type,'committed',JSON.stringify(messages));assert.equal(bound,JSON.stringify(image));assert.equal(messages.at(-1).receipt.stateSha256,require('node:crypto').createHash('sha256').update(bound).digest('hex'));
  assert.equal(encodings,1,'one full-profile encoding across worker and raw binding');

@@ -12,18 +12,19 @@ async function main(){
  for(const root of [request.sourceRoot,request.generationRoot])assert.ok(path.isAbsolute(root));
  const baseline=path.join(request.generationRoot,'baseline'),working=path.join(request.generationRoot,'working'),control=path.join(request.generationRoot,'control');
  assert.deepEqual(fs.readdirSync(baseline),[]);assert.deepEqual(fs.readdirSync(working),[]);
- const archiveBytes=fs.readFileSync(path.join(request.generationRoot,'acquisition','chatgpt-history.json'));
- const archive=require('../desktop/local-history-archive.cjs').decodeArchive(archiveBytes);
+ const absence=fs.readdirSync(control).includes('archive-epoch.bin')?require('../desktop/copied-capture.cjs').readArchiveEpoch(request.generationRoot,request.nonce):null;
+ const acquisition=path.join(request.generationRoot,'acquisition');assert.deepEqual(fs.readdirSync(acquisition).sort(),[...(!absence?['chatgpt-history.json']:[]),'sunny.sqlite','sunny.sqlite-shm','sunny.sqlite-wal']);
+ const archive=absence?null:require('../desktop/local-history-archive.cjs').decodeArchive(fs.readFileSync(path.join(acquisition,'chatgpt-history.json')));
  const image=await require('../desktop/copied-database.cjs').backupDatabase(path.join(request.sourceRoot,'sunny.sqlite'),path.join(baseline,'sunny.sqlite'));
- fs.writeFileSync(path.join(baseline,'chatgpt-history.json'),archive.raw,{flag:'wx',mode:0o600});
+ if(archive)fs.writeFileSync(path.join(baseline,'chatgpt-history.json'),archive.raw,{flag:'wx',mode:0o600});
  const descriptor=name=>{const original=fs.readFileSync(path.join(baseline,name));fs.copyFileSync(path.join(baseline,name),path.join(working,name),fs.constants.COPYFILE_EXCL);assert.deepEqual(fs.readFileSync(path.join(working,name)),original);return {bytes:original.length,sha256:sha(original)};};
- const database=descriptor('sunny.sqlite'),auxiliary=descriptor('chatgpt-history.json');
+ const database=descriptor('sunny.sqlite'),auxiliary=archive?descriptor('chatgpt-history.json'):null;
  assert.deepEqual(require('../desktop/copied-database.cjs').readDatabaseImage(path.join(working,'sunny.sqlite')),image);
- assert.deepEqual(require('../desktop/local-history-archive.cjs').decodeArchive(fs.readFileSync(path.join(working,'chatgpt-history.json'))).value,archive.value);
+ if(archive)assert.deepEqual(require('../desktop/local-history-archive.cjs').decodeArchive(fs.readFileSync(path.join(working,'chatgpt-history.json'))).value,archive.value);
  const probe=new(require('node:sqlite').DatabaseSync)(path.join(baseline,'sunny.sqlite'),{readOnly:true,allowExtension:false,timeout:0});let sqlite;try{sqlite=probe.prepare('SELECT sqlite_version() AS version').get().version;}finally{probe.close();}assert.equal(sqlite,'3.53.4');
  // Full source transaction projection is private evidence, not a public digest.
  fs.writeFileSync(path.join(control,'source-projection.private.json'),JSON.stringify(image),{flag:'wx',mode:0o600});
- fs.writeFileSync(path.join(control,'capture-receipt.json'),JSON.stringify({version:1,stage:'logical-verified',nonceSha256:sha(request.nonce),fidelity:'sqlite-database',fullTree:false,archiveStatus:'present-verified',database,archive:auxiliary,runtime:{electron:process.versions.electron,node:process.versions.node,sqlite}}),{flag:'wx',mode:0o600});
+ fs.writeFileSync(path.join(control,'capture-receipt.json'),JSON.stringify({version:absence?2:1,stage:'logical-verified',nonceSha256:sha(request.nonce),fidelity:'sqlite-database',fullTree:false,archiveStatus:absence?'absent-verified':'present-verified',database,archive:auxiliary,runtime:{electron:process.versions.electron,node:process.versions.node,sqlite},...(absence?{absence}:{})}),{flag:'wx',mode:0o600});
  fs.writeFileSync(path.join(control,'fixture.json'),JSON.stringify({version:1,nonce:request.nonce,profileDir:working,outputDir:path.join(request.generationRoot,'consumer-output'),scenario:'stopped-profile-copy',phase:1,mib:1}),{flag:'wx',mode:0o600});
 }
 main().catch(error=>{console.error(error);process.exitCode=31;});

@@ -3,6 +3,7 @@
 #include <aclapi.h>
 #include <sddl.h>
 #include <bcrypt.h>
+#include <winternl.h>
 /* Fixed offline capture tool, outside renderer and ordinary startup.
  * The reviewed private per-generation header supplies only literal paths,
  * fresh nonce and exact input digests. No arguments or caller executor.
@@ -11,6 +12,11 @@
 #include "copied-profile-private.h"
 #define CAP (256u*1024u*1024u)
 static HANDLE files[4], ancestors[128], pins[4], sealed[2], receipt_handle;
+static HANDLE source_parent,epoch_handle;static BY_HANDLE_FILE_INFORMATION parent_info;
+static BOOL archive_absent,archive_attempted;static DWORD source_count=3,sealed_count=1;
+static ULONGLONG lookup_entry,lookup_completion;static DWORD lookup_status;
+static DWORD acquisition_member=0xffffffff,acquisition_error;
+static BYTE epoch_hash[32];
 static BYTE sealed_hash[2][32];static BY_HANDLE_FILE_INFORMATION sealed_info[2];
 #ifdef COPIED_SYNTHETIC_FIXTURE
 static BOOL preparing_fixture,positive_rename,positive_restore,positive_identity,positive_acl;
@@ -144,14 +150,45 @@ done:
  if(created){CloseHandle(process.hThread);CloseHandle(process.hProcess);}if(initialized)DeleteProcThreadAttributeList(startup.lpAttributeList);if(startup.lpAttributeList)HeapFree(GetProcessHeap(),0,startup.lpAttributeList);if(job)CloseHandle(job);return result;
 }
 static BOOL hold_sources(void){
- for(DWORD i=0;i<4;i++){files[i]=CreateFileW(names[i],GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_FLAG_OPEN_REPARSE_POINT,NULL);
-  if(files[i]==INVALID_HANDLE_VALUE||!ordinary(files[i],names[i],FALSE,&before_info[i])||!before_info[i].nFileSizeLow||!hash_handle(files[i],before_hash[i]))return FALSE;
+ // Acquire the complete database protection interval before the one designated
+ // archive lookup. These handles are never closed/reacquired before finish.
+ for(DWORD i=0;i<3;i++){files[i]=CreateFileW(names[i],GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_FLAG_OPEN_REPARSE_POINT,NULL);
+  if(files[i]==INVALID_HANDLE_VALUE){acquisition_member=i;acquisition_error=GetLastError();return FALSE;}
+  if(!ordinary(files[i],names[i],FALSE,&before_info[i])||!before_info[i].nFileSizeLow||!hash_handle(files[i],before_hash[i])){acquisition_member=i;return FALSE;}
  }
+ if(archive_attempted||!source_parent)return FALSE;archive_attempted=TRUE;
+ BY_HANDLE_FILE_INFORMATION parent;DWORD case_flags=0;WCHAR filesystem[32];
+ if(!ordinary(source_parent,SOURCE,TRUE,&parent)||!same_identity(&parent_info,&parent)||!GetFileInformationByHandleEx(source_parent,(FILE_INFO_BY_HANDLE_CLASS)23,&case_flags,sizeof(case_flags))||case_flags!=0)return FALSE;
+ if(!GetVolumeInformationByHandleW(source_parent,NULL,0,NULL,NULL,NULL,filesystem,32)||lstrcmpiW(filesystem,L"NTFS")!=0)return FALSE;
+ for(DWORD i=0;i<3;i++)if(before_info[i].dwVolumeSerialNumber!=parent.dwVolumeSerialNumber)return FALSE;
+ typedef NTSTATUS (NTAPI *OpenRelative)(PHANDLE,ACCESS_MASK,POBJECT_ATTRIBUTES,PIO_STATUS_BLOCK,PLARGE_INTEGER,ULONG,ULONG,ULONG,ULONG,PVOID,ULONG);
+ OpenRelative open_relative=(OpenRelative)GetProcAddress(GetModuleHandleW(L"ntdll.dll"),"NtCreateFile");if(!open_relative)return FALSE;
+ WCHAR basename[]=L"chatgpt-history.json";UNICODE_STRING name;name.Buffer=basename;name.Length=(USHORT)(sizeof(basename)-sizeof(WCHAR));name.MaximumLength=sizeof(basename);
+ OBJECT_ATTRIBUTES attributes;zero(&attributes,sizeof(attributes));attributes.Length=sizeof(attributes);attributes.RootDirectory=source_parent;attributes.ObjectName=&name;attributes.Attributes=OBJ_CASE_INSENSITIVE;
+ IO_STATUS_BLOCK result;zero(&result,sizeof(result));
+ lookup_entry=GetTickCount64();
+ NTSTATUS status=open_relative(&files[3],GENERIC_READ|SYNCHRONIZE,&attributes,&result,NULL,FILE_ATTRIBUTE_NORMAL,FILE_SHARE_READ,FILE_OPEN,FILE_OPEN_REPARSE_POINT|FILE_SYNCHRONOUS_IO_NONALERT,NULL,0);
+ lookup_completion=GetTickCount64();lookup_status=(DWORD)status;
+ // E is the negative name-resolution event inside this recorded interval.
+ // It is not lookup_completion, source close, or continuous archive absence.
+ if(lookup_status==0xc0000034){archive_absent=TRUE;files[3]=NULL;return TRUE;}
+ if(status!=0||!ordinary(files[3],names[3],FALSE,&before_info[3])||before_info[3].dwVolumeSerialNumber!=parent.dwVolumeSerialNumber||!before_info[3].nFileSizeLow||!hash_handle(files[3],before_hash[3]))return FALSE;
+ source_count=4;sealed_count=2;
  return TRUE;
 }
 static BOOL unchanged(void){
- for(DWORD i=0;i<4;i++){BY_HANDLE_FILE_INFORMATION after;BYTE hash[32];if(!ordinary(files[i],names[i],FALSE,&after)||!same_identity(&before_info[i],&after)||after.nFileSizeLow!=before_info[i].nFileSizeLow||!equal(&after.ftLastWriteTime,&before_info[i].ftLastWriteTime,sizeof(FILETIME))||!hash_handle(files[i],hash)||!equal(before_hash[i],hash,32))return FALSE;}
+ BY_HANDLE_FILE_INFORMATION parent;DWORD case_flags=0;if(!ordinary(source_parent,SOURCE,TRUE,&parent)||!same_identity(&parent_info,&parent)||!GetFileInformationByHandleEx(source_parent,(FILE_INFO_BY_HANDLE_CLASS)23,&case_flags,sizeof(case_flags))||case_flags!=0)return FALSE;
+ for(DWORD i=0;i<source_count;i++){BY_HANDLE_FILE_INFORMATION after;BYTE hash[32];if(!ordinary(files[i],names[i],FALSE,&after)||!same_identity(&before_info[i],&after)||after.nFileSizeLow!=before_info[i].nFileSizeLow||!equal(&after.ftLastWriteTime,&before_info[i].ftLastWriteTime,sizeof(FILETIME))||!hash_handle(files[i],hash)||!equal(before_hash[i],hash,32))return FALSE;}
  return TRUE;
+}
+static BOOL record_epoch(void){
+ if(!archive_absent)return TRUE;
+ BYTE bytes[64]={'S','U','N','A','B','S','2',0},nonce_hash[32]=NONCE_SHA256;
+ for(DWORD i=0;i<32;i++)bytes[8+i]=nonce_hash[i];
+ DWORD values[2]={lookup_status,1};for(DWORD i=0;i<8;i++)bytes[40+i]=((BYTE *)values)[i];
+ for(DWORD i=0;i<8;i++){bytes[48+i]=((BYTE *)&lookup_entry)[i];bytes[56+i]=((BYTE *)&lookup_completion)[i];}
+ epoch_handle=CreateFileW(BASE L"\\control\\archive-epoch.bin",GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ,NULL,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,NULL);
+ return epoch_handle!=INVALID_HANDLE_VALUE&&write_bytes(epoch_handle,(const char *)bytes,64)&&hash_handle(epoch_handle,epoch_hash);
 }
 static BOOL copy_held(HANDLE source,const WCHAR *destination,const BYTE expected[32]){
  HANDLE target=CreateFileW(destination,GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ,NULL,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,NULL);if(target==INVALID_HANDLE_VALUE)return FALSE;
@@ -163,13 +200,15 @@ done:if(buffer)HeapFree(GetProcessHeap(),0,buffer);CloseHandle(target);return ok
 }
 static BOOL capture_raw(void){
  const WCHAR *destinations[4]={BASE L"\\acquisition\\sunny.sqlite",BASE L"\\acquisition\\sunny.sqlite-wal",BASE L"\\acquisition\\sunny.sqlite-shm",BASE L"\\acquisition\\chatgpt-history.json"};
- ULONGLONG bytes=0;for(DWORD i=0;i<4;i++)bytes+=before_info[i].nFileSizeLow;if(bytes>512ull*1024ull*1024ull)return FALSE;
- for(DWORD i=0;i<4;i++)if(!copy_held(files[i],destinations[i],before_hash[i]))return FALSE;return TRUE;
+ ULONGLONG bytes=0;for(DWORD i=0;i<source_count;i++)bytes+=before_info[i].nFileSizeLow;if(bytes>512ull*1024ull*1024ull)return FALSE;
+ for(DWORD i=0;i<source_count;i++)if(!copy_held(files[i],destinations[i],before_hash[i]))return FALSE;return record_epoch();
 }
 static const WCHAR *sealed_paths[2]={BASE L"\\baseline\\sunny.sqlite",BASE L"\\baseline\\chatgpt-history.json"};
+static BOOL missing(const WCHAR *name);
 static BOOL seal_baseline(void){
+ if(archive_absent&&(!missing(BASE L"\\baseline\\chatgpt-history.json")||!missing(BASE L"\\working\\chatgpt-history.json")))return FALSE;
  const WCHAR *working[2]={BASE L"\\working\\sunny.sqlite",BASE L"\\working\\chatgpt-history.json"};
- for(DWORD i=0;i<2;i++){
+ for(DWORD i=0;i<sealed_count;i++){
   sealed[i]=CreateFileW(sealed_paths[i],GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_FLAG_OPEN_REPARSE_POINT,NULL);
   if(sealed[i]==INVALID_HANDLE_VALUE||!ordinary(sealed[i],sealed_paths[i],FALSE,&sealed_info[i])||!sealed_info[i].nFileSizeLow||!hash_handle(sealed[i],sealed_hash[i]))return FALSE;
   HANDLE staged=CreateFileW(working[i],GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_FLAG_OPEN_REPARSE_POINT,NULL);BY_HANDLE_FILE_INFORMATION info;BYTE hash[32];
@@ -178,13 +217,14 @@ static BOOL seal_baseline(void){
  // Header-supplied nonce digest binds the native completion to the one fresh
  // reviewed generation. Logical worker output alone is never completed input.
  receipt_handle=CreateFileW(BASE L"\\control\\capture-receipt.json",GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_FLAG_OPEN_REPARSE_POINT,NULL);
- BY_HANDLE_FILE_INFORMATION receipt_info;BYTE complete[72]={'S','U','N','C','P','Y','1',0},nonce_hash[32]=NONCE_SHA256;
+ BY_HANDLE_FILE_INFORMATION receipt_info;BYTE complete[104]={'S','U','N','C','P','Y','1',0},nonce_hash[32]=NONCE_SHA256;
  if(receipt_handle==INVALID_HANDLE_VALUE||!ordinary(receipt_handle,BASE L"\\control\\capture-receipt.json",FALSE,&receipt_info)||receipt_info.nFileSizeLow>16384)return FALSE;
  for(DWORD i=0;i<32;i++)complete[8+i]=nonce_hash[i];if(!hash_handle(receipt_handle,complete+40))return FALSE;
+ if(archive_absent){complete[6]='2';for(DWORD i=0;i<32;i++)complete[72+i]=epoch_hash[i];}
  HANDLE output=CreateFileW(BASE L"\\control\\native-complete.bin",GENERIC_WRITE,0,NULL,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,NULL);if(output==INVALID_HANDLE_VALUE)return FALSE;
- BOOL ok=write_bytes(output,(const char *)complete,72);CloseHandle(output);return ok;
+ BOOL ok=write_bytes(output,(const char *)complete,archive_absent?104:72);CloseHandle(output);return ok;
 }
-static BOOL baseline_unchanged(void){for(DWORD i=0;i<2;i++){BY_HANDLE_FILE_INFORMATION after;BYTE hash[32];if(!ordinary(sealed[i],sealed_paths[i],FALSE,&after)||!same_identity(&sealed_info[i],&after)||after.nFileSizeLow!=sealed_info[i].nFileSizeLow||!equal(&after.ftLastWriteTime,&sealed_info[i].ftLastWriteTime,sizeof(FILETIME))||!hash_handle(sealed[i],hash)||!equal(hash,sealed_hash[i],32))return FALSE;}return TRUE;}
+static BOOL baseline_unchanged(void){if(archive_absent&&!missing(BASE L"\\baseline\\chatgpt-history.json"))return FALSE;for(DWORD i=0;i<sealed_count;i++){BY_HANDLE_FILE_INFORMATION after;BYTE hash[32];if(!ordinary(sealed[i],sealed_paths[i],FALSE,&after)||!same_identity(&sealed_info[i],&after)||after.nFileSizeLow!=sealed_info[i].nFileSizeLow||!equal(&after.ftLastWriteTime,&sealed_info[i].ftLastWriteTime,sizeof(FILETIME))||!hash_handle(sealed[i],hash)||!equal(hash,sealed_hash[i],32))return FALSE;}return TRUE;}
 static BOOL missing(const WCHAR *name){DWORD attributes=GetFileAttributesW(name);return attributes==INVALID_FILE_ATTRIBUTES&&GetLastError()==ERROR_FILE_NOT_FOUND;}
 static BOOL environment(void){
  if(!SetEnvironmentVariableW(L"ELECTRON_RUN_AS_NODE",L"1")||!SetEnvironmentVariableW(L"SUNNY_FIXTURE_NONCE",NONCE)||!SetEnvironmentVariableW(L"TEMP",BASE L"\\temp")||!SetEnvironmentVariableW(L"TMP",BASE L"\\temp"))return FALSE;
@@ -201,10 +241,10 @@ static void append_number(char *out,DWORD number){char reversed[11],value[11];DW
 static BOOL record_identities(void){
  HANDLE out=CreateFileW(BASE L"\\control\\held-identities.private.bin",GENERIC_WRITE,0,NULL,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,NULL);if(out==INVALID_HANDLE_VALUE)return FALSE;
  BOOL ok=write_bytes(out,(const char *)before_info,sizeof(before_info))&&write_bytes(out,(const char *)before_hash,sizeof(before_hash));
- for(DWORD i=0;i<4&&ok;i++){BY_HANDLE_FILE_INFORMATION info;BYTE hash[32];ok=ordinary(files[i],names[i],FALSE,&info)&&hash_handle(files[i],hash)&&write_bytes(out,(const char *)&info,sizeof(info))&&write_bytes(out,(const char *)hash,sizeof(hash));}CloseHandle(out);return ok;
+ for(DWORD i=0;i<source_count&&ok;i++){BY_HANDLE_FILE_INFORMATION info;BYTE hash[32];ok=ordinary(files[i],names[i],FALSE,&info)&&hash_handle(files[i],hash)&&write_bytes(out,(const char *)&info,sizeof(info))&&write_bytes(out,(const char *)hash,sizeof(hash));}CloseHandle(out);return ok;
 }
 static BOOL record_result(DWORD code,BOOL source_stable,BOOL baseline_stable){
- static char text[16384];lstrcpyA(text,"{\"version\":1,\"nativeExit\":");append_number(text,code);lstrcatA(text,",\"captureExit\":");append_number(text,capture_exit);lstrcatA(text,",\"copyExit\":");append_number(text,copy_exit);lstrcatA(text,",\"sourceUnchanged\":");lstrcatA(text,source_stable?"true":"false");lstrcatA(text,",\"baselineUnchanged\":");lstrcatA(text,baseline_stable?"true":"false");lstrcatA(text,",\"ownedCounts\":[");
+ static char text[16384];lstrcpyA(text,"{\"version\":1,\"archiveAttempted\":");lstrcatA(text,archive_attempted?"true":"false");lstrcatA(text,",\"archiveAbsent\":");lstrcatA(text,archive_absent?"true":"false");lstrcatA(text,",\"lookupStatus\":");append_number(text,lookup_status);lstrcatA(text,",\"sourceCount\":");append_number(text,source_count);lstrcatA(text,",\"acquisitionMember\":");append_number(text,acquisition_member);lstrcatA(text,",\"acquisitionError\":");append_number(text,acquisition_error);lstrcatA(text,",\"nativeExit\":");append_number(text,code);lstrcatA(text,",\"captureExit\":");append_number(text,capture_exit);lstrcatA(text,",\"copyExit\":");append_number(text,copy_exit);lstrcatA(text,",\"sourceUnchanged\":");lstrcatA(text,source_stable?"true":"false");lstrcatA(text,",\"baselineUnchanged\":");lstrcatA(text,baseline_stable?"true":"false");lstrcatA(text,",\"ownedCounts\":[");
  for(DWORD i=0;i<owned_count;i++){if(i)lstrcatA(text,",");lstrcatA(text,"{\"stage\":");append_number(text,owned_counts[i].stage);lstrcatA(text,",\"active\":");append_number(text,owned_counts[i].active);lstrcatA(text,",\"error\":");append_number(text,owned_counts[i].error);lstrcatA(text,"}");}lstrcatA(text,"]");
 #ifdef COPIED_SYNTHETIC_FIXTURE
  lstrcatA(text,",\"syntheticExit\":");append_number(text,synthetic_exit);lstrcatA(text,",\"positiveIdentityAcl\":");lstrcatA(text,positive_rename&&positive_restore&&positive_identity&&positive_acl?"true":"false");lstrcatA(text,",\"denials\":[");for(DWORD i=0;i<denial_count;i++){if(i)lstrcatA(text,",");lstrcatA(text,"{\"operation\":");append_number(text,denial_events[i].operation);lstrcatA(text,",\"member\":");append_number(text,denial_events[i].member);lstrcatA(text,",\"error\":");append_number(text,denial_events[i].error);lstrcatA(text,",\"denied\":");lstrcatA(text,denial_events[i].denied?"true":"false");lstrcatA(text,"}");}lstrcatA(text,"]");
@@ -212,7 +252,7 @@ static BOOL record_result(DWORD code,BOOL source_stable,BOOL baseline_stable){
  lstrcatA(text,"}");
  HANDLE report=CreateFileW(BASE L"\\native-result.private.json",GENERIC_WRITE,0,NULL,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,NULL);if(report==INVALID_HANDLE_VALUE)return FALSE;BOOL ok=write_bytes(report,text,(DWORD)lstrlenA(text));CloseHandle(report);return ok;
 }
-static void close_all(void){for(DWORD i=0;i<4;i++)if(files[i]&&files[i]!=INVALID_HANDLE_VALUE)CloseHandle(files[i]);for(DWORD i=0;i<2;i++)if(sealed[i]&&sealed[i]!=INVALID_HANDLE_VALUE)CloseHandle(sealed[i]);if(receipt_handle&&receipt_handle!=INVALID_HANDLE_VALUE)CloseHandle(receipt_handle);for(DWORD i=0;i<ancestor_count;i++)CloseHandle(ancestors[i]);for(DWORD i=0;i<4;i++)if(pins[i]&&pins[i]!=INVALID_HANDLE_VALUE)CloseHandle(pins[i]);if(input_handle&&input_handle!=INVALID_HANDLE_VALUE)CloseHandle(input_handle);if(output_handle&&output_handle!=INVALID_HANDLE_VALUE)CloseHandle(output_handle);if(error_handle&&error_handle!=INVALID_HANDLE_VALUE)CloseHandle(error_handle);if(private_sd)LocalFree(private_sd);}
+static void close_all(void){if(epoch_handle&&epoch_handle!=INVALID_HANDLE_VALUE)CloseHandle(epoch_handle);for(DWORD i=0;i<4;i++)if(files[i]&&files[i]!=INVALID_HANDLE_VALUE)CloseHandle(files[i]);for(DWORD i=0;i<2;i++)if(sealed[i]&&sealed[i]!=INVALID_HANDLE_VALUE)CloseHandle(sealed[i]);if(receipt_handle&&receipt_handle!=INVALID_HANDLE_VALUE)CloseHandle(receipt_handle);for(DWORD i=0;i<ancestor_count;i++)CloseHandle(ancestors[i]);for(DWORD i=0;i<4;i++)if(pins[i]&&pins[i]!=INVALID_HANDLE_VALUE)CloseHandle(pins[i]);if(input_handle&&input_handle!=INVALID_HANDLE_VALUE)CloseHandle(input_handle);if(output_handle&&output_handle!=INVALID_HANDLE_VALUE)CloseHandle(output_handle);if(error_handle&&error_handle!=INVALID_HANDLE_VALUE)CloseHandle(error_handle);if(private_sd)LocalFree(private_sd);}
 #ifdef COPIED_SYNTHETIC_FIXTURE
 static BOOL directory_positive_control(void){
  // Fresh empty synthetic directory only, before strict source handle or any
@@ -225,7 +265,7 @@ static BOOL directory_positive_control(void){
  CloseHandle(handle);return ok&&positive_rename&&positive_restore&&positive_identity&&positive_acl;
 }
 static BOOL denied_sources(void){
- for(DWORD i=0;i<4;i++){
+ for(DWORD i=0;i<source_count;i++){
   HANDLE write=CreateFileW(names[i],GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
   DWORD error=write==INVALID_HANDLE_VALUE?GetLastError():0;record_denial(1,i,write==INVALID_HANDLE_VALUE,error);if(write!=INVALID_HANDLE_VALUE){CloseHandle(write);return FALSE;}if(error!=ERROR_SHARING_VIOLATION)return FALSE;
   HANDLE mapping=CreateFileMappingW(files[i],NULL,PAGE_READWRITE,0,0,NULL);error=mapping?0:GetLastError();record_denial(2,i,mapping==NULL,error);if(mapping){CloseHandle(mapping);return FALSE;}if(error!=ERROR_ACCESS_DENIED)return FALSE;
@@ -237,7 +277,9 @@ static BOOL denied_sources(void){
 }
 static BOOL prepare_synthetic(void){
  SECURITY_ATTRIBUTES sa;zero(&sa,sizeof(sa));sa.nLength=sizeof(sa);sa.lpSecurityDescriptor=private_sd;
+ DWORD parent_index=ancestor_count;
  if(!CreateDirectoryW(SOURCE,&sa)||!protected_acl(SOURCE)||!directory_positive_control()||!hold_ancestors(SOURCE))return FALSE;
+ source_parent=ancestors[parent_index];if(!ordinary(source_parent,SOURCE,TRUE,&parent_info))return FALSE;
  pins[3]=CreateFileW(SYNTHETIC_GENERATOR,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_FLAG_OPEN_REPARSE_POINT,NULL);BY_HANDLE_FILE_INFORMATION info;BYTE digest[32],expected[32]=SYNTHETIC_GENERATOR_SHA256;
  if(pins[3]==INVALID_HANDLE_VALUE||!ordinary(pins[3],SYNTHETIC_GENERATOR,FALSE,&info)||!hash_handle(pins[3],digest)||!equal(digest,expected,32))return FALSE;
  preparing_fixture=TRUE;synthetic_exit=child(TRUE);preparing_fixture=FALSE;return synthetic_exit==0;
@@ -246,6 +288,7 @@ static BOOL prepare_synthetic(void){
 static BOOL fixed_paths(void){
  const WCHAR *paths[7]={BASE,SOURCE,OWN,HOST,CAPTURE_WORKER,COPIED_WORKER,PRIVATE_PARENT};
  for(DWORD i=0;i<7;i++)if(lstrlenW(paths[i])>800||paths[i][1]!=L':'||paths[i][2]!=L'\\')return FALSE;
+ WCHAR source_drive[4]={SOURCE[0],L':',L'\\',0};if(lstrcmpiW(source_drive,SOURCE_DRIVE)!=0)return FALSE;
  int base=lstrlenW(BASE),source=lstrlenW(SOURCE);int common=base<source?base:source;BOOL prefix=TRUE;for(int i=0;i<common;i++)if(BASE[i]!=SOURCE[i])prefix=FALSE;
  return !(prefix&&(base==source||(base<source&&SOURCE[base]==L'\\')||(source<base&&BASE[source]==L'\\')));
 }
@@ -259,10 +302,10 @@ void WINAPI copied_entry(void){
 #ifdef COPIED_SYNTHETIC_FIXTURE
  if(!prepare_synthetic()){code=26;goto finish;}
 #else
- if(!hold_ancestors(SOURCE)){code=81;goto finish;}
+ DWORD parent_index=ancestor_count;if(!hold_ancestors(SOURCE)){code=81;goto finish;}
+ source_parent=ancestors[parent_index];if(!ordinary(source_parent,SOURCE,TRUE,&parent_info)){code=81;goto finish;}
 #endif
  if(!missing(SOURCE L"\\state.json")||!missing(SOURCE L"\\sunny.sqlite-journal")){code=23;goto finish;}
- if(missing(SOURCE L"\\chatgpt-history.json")){code=22;goto finish;}
   if(!hold_sources()){code=21;goto finish;}locks=TRUE;
 #ifdef COPIED_SYNTHETIC_FIXTURE
  if(!denied_sources()){code=82;goto verify;}

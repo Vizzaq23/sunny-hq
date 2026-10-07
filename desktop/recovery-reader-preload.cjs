@@ -13,4 +13,4 @@ try{
   transcriptPage:(...args)=>request('transcript:page',args),runInspection:(...args)=>request('run:inspect',args),
   localHistoryIndex:(...args)=>noargs('task:history',args),localHistoryPage:(...args)=>request('task:readExternalPage',args)
  }));
-}catch{/* Dedicated recovery document displays its fixed error without a bridge. */}
+}catch{throw Error('RECOVERY_PRELOAD_FAILED');}

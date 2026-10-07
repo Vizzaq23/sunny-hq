@@ -43,13 +43,16 @@ static void cleanup(void *ignored){(void)ignored;if(cleanup_called)return;cleanu
  Completion result;r_zero(&result,sizeof(result));result.magic=0x52444331;result.version=1;result.parent=admission.parent;result.child=admission.child;r_copy(&result.parent_created,&admission.parent_created,sizeof(FILETIME));r_copy(&result.child_created,&admission.child_created,sizeof(FILETIME));r_copy(result.generation,admission.generation,16);r_copy(result.descriptor_hash,admission.descriptor_hash,32);result.format=descriptor.json?1:2;result.count=source_count;result.compared=unchanged?1:0;result.complete=snapshot_ready?1:0;
  // This record certifies source comparison only. Bootstrap independently
  // requires successful actual child exit and an empty retained Job.
- if(completion_writer&&completion_writer!=INVALID_HANDLE_VALUE)r_write(completion_writer,&result,sizeof(result));
+ BOOL recorded=completion_writer&&completion_writer!=INVALID_HANDLE_VALUE&&r_write(completion_writer,&result,sizeof(result));
  // Flush above precedes every source-handle disposal, even on failure.
  for(DWORD i=0;i<source_count;i++)r_close(&source_files[i]);for(DWORD i=0;i<3;i++)r_close(&native_files[i]);if(completion_writer&&completion_writer!=INVALID_HANDLE_VALUE)CloseHandle(completion_writer);completion_writer=NULL;if(json_bytes)HeapFree(GetProcessHeap(),0,json_bytes);if(archive_bytes)HeapFree(GetProcessHeap(),0,archive_bytes);json_bytes=NULL;archive_bytes=NULL;r_close_chain();
+ // A complete cached record is insufficient when truncate or flush failed.
+ // Force the actual exit after attempted receipt I/O and handle disposal.
+ if(!recorded)ExitProcess(75);
 }
 static BOOL locator(WCHAR *name){DWORD n=GetEnvironmentVariableW(L"SUNNY_RECOVERY_PIPE",name,128);const WCHAR *prefix=L"\\\\.\\pipe\\SunnyRecovery-";DWORD prefix_length=(DWORD)lstrlenW(prefix);if(n!=prefix_length+32||n>=128)return FALSE;for(DWORD i=0;i<prefix_length;i++)if(name[i]!=prefix[i])return FALSE;for(DWORD i=prefix_length;i<n;i++)if(!((name[i]>=L'0'&&name[i]<=L'9')||(name[i]>=L'a'&&name[i]<=L'f')))return FALSE;return TRUE;}
 static __attribute__((noinline)) BOOL handshake(void){WCHAR name[128];HANDLE pipe=INVALID_HANDLE_VALUE,parent=NULL;BOOL ok=FALSE;DWORD server=0,again=0;FILETIME parent_created,child_created;ULONGLONG deadline=GetTickCount64()+10000;
- if(!locator(name)||!r_user()||!r_ancestors(RECOVERY_PACKAGE,FALSE)||!r_hold(&native_files[0],RECOVERY_BOOTSTRAP,FALSE,FALSE)||!r_hold(&native_files[1],RECOVERY_EXE,FALSE,FALSE)||!r_hold(&native_files[2],RECOVERY_BRIDGE,FALSE,FALSE))goto done;
+ if(!locator(name)||!r_user()||!r_release_parents()||!r_hold(&native_files[0],RECOVERY_BOOTSTRAP,FALSE,FALSE)||!r_hold(&native_files[1],RECOVERY_EXE,FALSE,FALSE)||!r_hold(&native_files[2],RECOVERY_BRIDGE,FALSE,FALSE))goto done;
  {const BYTE expected[32]=RECOVERY_BOOTSTRAP_HASH;if(!r_equal(expected,native_files[0].hash,32))goto done;}
  pipe=CreateFileW(name,GENERIC_READ|GENERIC_WRITE,0,NULL,OPEN_EXISTING,FILE_FLAG_OVERLAPPED,NULL);if(pipe==INVALID_HANDLE_VALUE)goto done;DWORD mode=PIPE_READMODE_MESSAGE;if(!SetNamedPipeHandleState(pipe,&mode,NULL,NULL)||!GetNamedPipeServerProcessId(pipe,&server))goto done;
  parent=OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION|SYNCHRONIZE,FALSE,server);if(!parent||!r_process(parent,RECOVERY_BOOTSTRAP,&parent_created)||!r_process(GetCurrentProcess(),RECOVERY_EXE,&child_created)||!GetNamedPipeServerProcessId(pipe,&again)||again!=server)goto done;

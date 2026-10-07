@@ -7,7 +7,23 @@ test('dedicated preload has exactly immutable bootstrap and six hardcoded query 
  await assert.rejects(bridge.snapshot('task:start'));await assert.rejects(bridge.transcriptPage({},'ordinary-channel'));assert.equal(calls.length,7);
 });
 test('invalid or absent bootstrap exposes no ordinary or recovery bridge',()=>{
- for(const bootstrap of [null,{}, {version:1,mode:'ordinary'}, {version:1,mode:'recovery-reader',epoch:'e',buildIdentity:'a'.repeat(64),capabilities:{editing:true}}]){let calls=0;vm.runInNewContext(fs.readFileSync(require.resolve('../desktop/recovery-reader-preload.cjs'),'utf8'),{require:()=>({contextBridge:{exposeInMainWorld(){calls++;}},ipcRenderer:{sendSync:()=>bootstrap}})});assert.equal(calls,0);}
+ for(const bootstrap of [null,{}, {version:1,mode:'ordinary'}, {version:1,mode:'recovery-reader',epoch:'e',buildIdentity:'a'.repeat(64),capabilities:{editing:true}}]){let calls=0;assert.throws(()=>vm.runInNewContext(fs.readFileSync(require.resolve('../desktop/recovery-reader-preload.cjs'),'utf8'),{require:()=>({contextBridge:{exposeInMainWorld(){calls++;}},ipcRenderer:{sendSync:()=>bootstrap}})}),{message:'RECOVERY_PRELOAD_FAILED'});assert.equal(calls,0);}
+});
+
+test('bootstrap and exposure failures reach the main preload failure lifecycle with a fixed error and nonzero exit',async()=>{
+ for(const failure of ['bootstrap','sync','exposure']){
+  const app=new EventEmitter(),ipcMain=new EventEmitter(),paths=new Map(),exits=[],windows=[],errors=[];let closed=0;
+  Object.assign(app,{setName(){},setPath:(key,value)=>paths.set(key,value),getPath:key=>paths.get(key),commandLine:{appendSwitch(){}},requestSingleInstanceLock:()=>true,whenReady:()=>Promise.resolve(),exit:code=>exits.push(code)});
+  ipcMain.handle=()=>{};ipcMain.removeHandler=()=>{};
+  const bootstrap={version:1,mode:'recovery-reader',epoch:'e',buildIdentity:'a'.repeat(64),capabilities:{editing:false,dispatch:false,providers:false,sourceWrites:false}};
+  class Window extends EventEmitter{constructor(){super();this.webContents=new EventEmitter();this.webContents.mainFrame={};this.webContents.setWindowOpenHandler=()=>{};windows.push(this);}isDestroyed(){return false;}async loadFile(){
+   try{vm.runInNewContext(fs.readFileSync(require.resolve('../desktop/recovery-reader-preload.cjs'),'utf8'),{require:()=>({contextBridge:{exposeInMainWorld(){throw Error('SECRET_EXPOSURE_DETAIL');}},ipcRenderer:{sendSync(){if(failure==='sync')throw Error('SECRET_SYNC_DETAIL');return failure==='bootstrap'?null:bootstrap;}}})});}
+   catch(error){errors.push(error);this.webContents.emit('preload-error',{},'fixed-preload',error);}
+  }show(){}}
+  const sandbox={module:{exports:{}},process:new EventEmitter(),__dirname:'/fixed/desktop',console:{error(){}},require(name){if(name==='./recovery-reader-guard.cjs')return {assertAdmission(){}};if(name==='electron')return {app,BrowserWindow:Window,ipcMain,session:{fromPartition:()=>({setPermissionRequestHandler(){},setPermissionCheckHandler(){},on(){},webRequest:{onBeforeRequest(){}}})}};if(name==='./recovery-reader.cjs')return {openRecoveryReader:()=>({metadata:bootstrap,close(){closed++;}})};if(name==='./recovery-reader-ipc.cjs')return {registerRecoveryIpc:()=>()=>{}};return require(name);}};
+  vm.runInNewContext(fs.readFileSync(require.resolve('../desktop/recovery-reader-main.cjs'),'utf8'),sandbox);sandbox.module.exports.start({runtimeDir:'/private',epoch:'e'});await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(errors.length,1,failure);assert.equal(errors[0].message,'RECOVERY_PRELOAD_FAILED');assert.equal(errors[0].cause,undefined);assert.equal(sandbox.process.exitCode,75);assert.equal(exits.at(-1),75);assert.equal(closed,1);
+ }
 });
 test('main independently denies foreign frames, pre-bootstrap requests, extra args and stale navigation',async()=>{
  const ipcMain=new EventEmitter(),handlers=new Map();ipcMain.handle=(name,handler)=>handlers.set(name,handler);ipcMain.removeHandler=name=>handlers.delete(name);

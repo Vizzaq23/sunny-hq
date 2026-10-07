@@ -17,7 +17,7 @@ static __attribute__((noinline)) BOOL private_runtime(void){
  return completion_file!=INVALID_HANDLE_VALUE&&r_security(completion_file,TRUE)&&GetFileInformationByHandle(completion_file,&admission.completion);
 }
 static BOOL pin_release(void){
- if(!r_ancestors(RECOVERY_PACKAGE,FALSE)||!r_ancestors(RECOVERY_HANDOFF,TRUE))return FALSE;
+ if(!r_release_parents()||!r_ancestors(RECOVERY_HANDOFF,TRUE))return FALSE;
  const WCHAR *names[5]={RECOVERY_BOOTSTRAP,RECOVERY_EXE,RECOVERY_ASAR,RECOVERY_BRIDGE,RECOVERY_DESCRIPTOR};for(DWORD i=0;i<5;i++)if(!r_hold(&release_files[i],names[i],FALSE,i==4))return FALSE;
  if(!r_read(&release_files[4],admission.descriptor,R_DESCRIPTOR,&admission.descriptor_length)||!r_descriptor(admission.descriptor,admission.descriptor_length,&descriptor))return FALSE;
  const BYTE *hashes[4]={descriptor.bootstrap,descriptor.exe,descriptor.asar,descriptor.bridge};for(DWORD i=0;i<4;i++)if(!r_equal(release_files[i].hash,hashes[i],32))return FALSE;r_copy(admission.descriptor_hash,release_files[4].hash,32);return TRUE;

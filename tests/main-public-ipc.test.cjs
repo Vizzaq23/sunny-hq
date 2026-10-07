@@ -7,14 +7,15 @@ const ts=require('typescript');
 const {createPublicTransport}=require('../desktop/public-transport.cjs');
 function fixture({packagedMode=false,assetRoot}={}){
  const filename=path.resolve(__dirname,'../desktop/main.cjs'),source=ts.createSourceFile(filename,fs.readFileSync(filename,'utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.JS),declarations=new Map();let ipc;
- function visit(node){if(ts.isFunctionDeclaration(node)&&node.name)declarations.set(node.name.text,node.getText(source));if(ts.isCallExpression(node)&&node.expression.getText(source)==='ipcMain.handle'&&node.arguments[0]?.text==='sunny:invoke')ipc=node.arguments[1].getText(source);ts.forEachChild(node,visit);}visit(source);assert.ok(ipc);
+ function visit(node){if(ts.isFunctionDeclaration(node)&&node.name)declarations.set(node.name.text,node.getText(source));if(ts.isCallExpression(node)&&node.expression.getText(source)==="require('./trusted-ipc.cjs').registerTrustedIpc")ipc=node.getText(source);ts.forEachChild(node,visit);}visit(source);assert.ok(ipc);
  const task={id:'t',projectId:'p',crewId:'franky',status:'finished',messages:[{id:'m',role:'assistant',time:1,text:'秘密🚀'.repeat(100000)}]},hub=new EventEmitter();hub.state={projects:[{id:'p',path:process.cwd()}],tasks:[task],missions:[],approvals:[]};let effects=0;
  for(const method of ['startMission','start','send','interrupt','checkStatus','resolveMissingThread','handoff'])hub[method]=async()=>{effects++;return task;};
  const publicTransport=createPublicTransport(hub,{epoch:'ipc'}),win={isDestroyed:()=>false,webContents:{mainFrame:{}}},companion={isDestroyed:()=>false,webContents:{mainFrame:{}}};
  const externalHistoryPager=require('../desktop/external-history-pages.cjs').createExternalHistoryPager();
  hub.ensure=async()=>{};hub.client={request:async()=>({thread:{turns:[{items:[{type:'agentMessage',text:'provider text '.repeat(90000)}]}]}})};
- const context=vm.createContext({fs,path,__dirname:assetRoot?path.join(assetRoot,'desktop'):path.dirname(filename),require:createRequire(filename),fixture:packagedMode?{}:null,packagedFixture:require('../desktop/packaged-acceptance.cjs'),hub,win,companion,publicTransport,externalHistoryPager,importedHistory:()=>[{id:'chatgpt:fixture',messages:[{role:'user',text:'import text '.repeat(90000)}]}]});
- const handler=new vm.Script(declarations.get('textArg')+'\n'+declarations.get('loadExternalHistory')+'\n'+declarations.get('publicState')+'\n'+declarations.get('handle')+'\n('+ipc+')').runInContext(context);
+ let handler;const ipcMain={handle(channel,fn){assert.equal(channel,'sunny:invoke');handler=fn;}};
+ const context=vm.createContext({ipcMain,fs,path,__dirname:assetRoot?path.join(assetRoot,'desktop'):path.dirname(filename),require:createRequire(filename),fixture:packagedMode?{}:null,packagedFixture:require('../desktop/packaged-acceptance.cjs'),hub,win,companion,publicTransport,externalHistoryPager,importedHistory:()=>[{id:'chatgpt:fixture',messages:[{role:'user',text:'import text '.repeat(90000)}]}]});
+ new vm.Script(declarations.get('textArg')+'\n'+declarations.get('loadExternalHistory')+'\n'+declarations.get('publicState')+'\n'+declarations.get('handle')+'\n'+ipc).runInContext(context);
  return {task,hub,publicTransport,win,companion,handler,get effects(){return effects;},invoke(action,args={},target=win){return handler({sender:target.webContents,senderFrame:target.webContents.mainFrame},action,args);}};
 }
 test('actual main read routes return bounded protocol state and unchanged read sequence',async()=>{

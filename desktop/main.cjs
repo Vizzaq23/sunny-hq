@@ -10,7 +10,7 @@ if(fixture&&process.env.SUNNY_DATA_DIR&&path.resolve(process.env.SUNNY_DATA_DIR)
 if(fixture?.scenario==='ordered-control'){
  void require('./packaged-control.cjs').runPackagedControl(fixture).catch(error=>{console.error(error);app.exit(1);});
 }else if(fixture?.scenario==='stopped-profile-copy'){
- void require('./copied-profile-acceptance.cjs').runCopiedProfile(fixture).then(()=>app.exit(0),error=>{console.error(error);app.exit(1);});
+ void require('./copied-window.cjs').runCopiedWindow(fixture,{app,BrowserWindow,ipcMain}).then(()=>app.exit(0),error=>{console.error(error);app.exit(1);});
 }else{
 const {guardedPath,readText,writeText,hash}=require('./core.cjs');const catalog=fixture?packagedFixture.fixtureCatalog():require('./catalog.cjs');
 const {scanMorgansInbox}=require('./morgans-inbox.cjs');
@@ -189,7 +189,7 @@ async function showCompanion(){
 }
 async function createWindow(){fixtureStage('window-enter');win=new BrowserWindow({title:'Sunny HQ',width:1520,height:980,minWidth:1000,minHeight:700,show:!smoke&&!fixture,backgroundColor:'#f7f5ef',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),offscreen:['run-ui','playable'].includes(fixture?.scenario),backgroundThrottling:!smoke&&!fixture,contextIsolation:true,nodeIntegration:false,sandbox:true}});win.webContents.setWindowOpenHandler(({url})=>{if(fixture)return {action:'deny'};openUrl(url).catch(()=>{});return {action:'deny'};});win.webContents.on('will-navigate',event=>event.preventDefault());win.webContents.session.setPermissionRequestHandler((_w,_p,cb)=>cb(false));
  fixtureStage('window-created');watchSurface(win,'hub');
- ipcMain.handle('sunny:invoke',async(event,action,args)=>{const sender=[win,companion].find(surface=>surface&&!surface.isDestroyed()&&event.sender===surface.webContents&&event.senderFrame===surface.webContents.mainFrame);if(!sender)throw Error('Untrusted window');if(action==='companion:mouse'&&sender!==companion)throw Error('Companion only');return handle(action,args,sender===companion?'companion':'hub');});
+ require('./trusted-ipc.cjs').registerTrustedIpc({ipcMain,surfaces:()=>[win,companion],companion:()=>companion,dispatch:handle});
  hub.on('event',event=>{if(event.type==='diagnostic'){diagnostic(event.data.event,{surface:'backend'});return;}if(event.type==='snapshot')emit('snapshot');else emit(event.type,event.data);if(event.type==='completed'&&hub.state.settings.notifications&&!win.isFocused()&&Notification.isSupported())new Notification({title:event.data.status==='finished'?'Work ready to review':'Your crew needs attention',body:event.data.title}).show();});
  win.on('minimize',()=>{if(!quitting&&!smoke)void showCompanion().catch(e=>emit('error',{message:e.message}));});win.on('restore',()=>companion?.hide());
  win.on('close',event=>{if(!quitting&&!smoke){event.preventDefault();win.hide();void showCompanion().catch(e=>emit('error',{message:e.message}));}});

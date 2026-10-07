@@ -1,6 +1,7 @@
 'use strict';
 const failure=()=>Object.assign(Error('RECOVERY_READ_ONLY'),{code:'RECOVERY_READ_ONLY'});
 function registerRecoveryIpc({ipcMain,window,documentUrl,reader,onFailure=()=>{}}){
+ const webContents=window.webContents;
  let bootstrapped=false,disposed=false;
  const trusted=event=>!disposed&&!window.isDestroyed()&&event.sender===window.webContents&&event.senderFrame===window.webContents.mainFrame&&event.senderFrame.url===documentUrl;
  const bootstrap={version:1,mode:'recovery-reader',epoch:reader.metadata.epoch,buildIdentity:reader.metadata.buildIdentity,capabilities:{editing:false,dispatch:false,providers:false,sourceWrites:false}};
@@ -11,7 +12,7 @@ function registerRecoveryIpc({ipcMain,window,documentUrl,reader,onFailure=()=>{}
   if(!trusted(event)||!bootstrapped||args.length!==2)throw failure();
   try{return await reader.query(args[0],args[1]);}catch(error){onFailure();if(['RECOVERY_READ_ONLY','RECOVERY_CLOSED','RECOVERY_QUERY_INVALID'].includes(error?.code))throw Error(error.code);throw Error('RECOVERY_QUERY_INVALID');}
  });
- window.webContents.on('did-start-navigation',navigation);
- return ()=>{disposed=true;bootstrapped=false;ipcMain.removeListener('sunny:recovery:bootstrap',handshake);ipcMain.removeHandler('sunny:recovery:query');window.webContents.removeListener('did-start-navigation',navigation);};
+ webContents.on('did-start-navigation',navigation);
+ return ()=>{if(disposed)return;disposed=true;bootstrapped=false;ipcMain.removeListener('sunny:recovery:bootstrap',handshake);ipcMain.removeHandler('sunny:recovery:query');webContents.removeListener('did-start-navigation',navigation);};
 }
 module.exports={registerRecoveryIpc};

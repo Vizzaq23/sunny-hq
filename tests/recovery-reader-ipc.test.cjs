@@ -34,6 +34,19 @@ test('main independently denies foreign frames, pre-bootstrap requests, extra ar
  ipcMain.emit('sunny:recovery:bootstrap',event);assert.equal(event.returnValue.mode,'recovery-reader');assert.deepEqual(await query(event,'snapshot',{}),{value:'inert'});
  await assert.rejects(query({...event,senderFrame:{}},'snapshot',{}));await assert.rejects(query(event,'snapshot',{},'extra'));webContents.emit('did-start-navigation',{},webContents.mainFrame.url,false,true);await assert.rejects(query(event,'snapshot',{}));assert.equal(queries,1);dispose();assert.equal(handlers.size,0);
 });
+test('recovery IPC disposal survives a destroyed window and repeated disposal preserves later handlers',async()=>{
+ const ipcMain=new EventEmitter(),handlers=new Map();ipcMain.handle=(name,handler)=>handlers.set(name,handler);ipcMain.removeHandler=name=>handlers.delete(name);
+ const webContents=new EventEmitter();webContents.mainFrame={url:'file:///fixed/recovery-reader.html'};let destroyed=false,queries=0;
+ const window={isDestroyed:()=>destroyed,get webContents(){if(destroyed)throw TypeError('Object has been destroyed');return webContents;}};
+ const dispose=require('../desktop/recovery-reader-ipc.cjs').registerRecoveryIpc({ipcMain,window,documentUrl:webContents.mainFrame.url,reader:{metadata:{epoch:'e',buildIdentity:'a'.repeat(64)},query(){queries++;return {saved:true};}}});
+ const query=handlers.get('sunny:recovery:query'),handshake=ipcMain.listeners('sunny:recovery:bootstrap')[0],event={sender:webContents,senderFrame:webContents.mainFrame};
+ ipcMain.emit('sunny:recovery:bootstrap',event);assert.deepEqual(await query(event,'snapshot',{}),{saved:true});
+ destroyed=true;await assert.rejects(query(event,'snapshot',{}),{code:'RECOVERY_READ_ONLY'});
+ assert.doesNotThrow(dispose);assert.equal(ipcMain.listenerCount('sunny:recovery:bootstrap'),0);assert.equal(webContents.listenerCount('did-start-navigation'),0);assert.equal(handlers.size,0);
+ event.returnValue=undefined;handshake(event);assert.equal(event.returnValue,null);await assert.rejects(query(event,'snapshot',{}),{code:'RECOVERY_READ_ONLY'});assert.equal(queries,1);
+ const laterQuery=()=>{},laterHandshake=()=>{},laterNavigation=()=>{};ipcMain.handle('sunny:recovery:query',laterQuery);ipcMain.on('sunny:recovery:bootstrap',laterHandshake);webContents.on('did-start-navigation',laterNavigation);
+ assert.doesNotThrow(dispose);assert.equal(handlers.get('sunny:recovery:query'),laterQuery);assert.deepEqual(ipcMain.listeners('sunny:recovery:bootstrap'),[laterHandshake]);assert.deepEqual(webContents.listeners('did-start-navigation'),[laterNavigation]);
+});
 test('earliest recovery entry denies forged direct launch before fixture, storage and ordinary imports',()=>{
  const source=fs.readFileSync(require.resolve('../desktop/main.cjs'),'utf8'),imports=[],process={argv:['Sunny HQ.exe','--recovery-reader','--packaged-fixture=forged']};
  vm.runInNewContext(source,{process,require(name){imports.push(name);assert.equal(name,'./recovery-reader-guard.cjs');return {start(){}};}});assert.deepEqual(imports,['./recovery-reader-guard.cjs']);

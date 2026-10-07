@@ -61,7 +61,9 @@
     },
     "npmRebuild": false,
     "asarUnpack": [
+      "desktop/native/recovery-admission.node",
       "node_modules/node-pty/**/*"
-    ]
+    ],
+    "extraFiles": [{"from":"desktop/native/Sunny Recovery.exe","to":"Sunny Recovery.exe"}]
   }
 }

@@ -1,0 +1,66 @@
+#include "recovery-native.h"
+static Held release_files[5];static Descriptor descriptor;static Admission admission;static Hello hello;static Completion completion;
+static HANDLE input,output,error,completion_file,pipe_handle,job;static PROCESS_INFORMATION child;
+static WCHAR runtime[R_PATH],pipe_name[128],environment[12000];static DWORD environment_used;static BOOL child_started;
+static BOOL env(const WCHAR *key,const WCHAR *value){DWORD n=(DWORD)(lstrlenW(key)+lstrlenW(value)+2);if(environment_used+n+1>=12000)return FALSE;WCHAR *to=environment+environment_used;lstrcpyW(to,key);lstrcatW(to,L"=");lstrcatW(to,value);environment_used+=n;environment[environment_used]=0;return TRUE;}
+static __attribute__((noinline)) BOOL invocation(void){static WCHAR own[R_PATH],quoted[R_PATH];DWORD n=GetModuleFileNameW(NULL,own,R_PATH);if(!n||n>=R_PATH||lstrcmpiW(own,RECOVERY_BOOTSTRAP))return FALSE;lstrcpyW(quoted,L"\"");lstrcatW(quoted,RECOVERY_BOOTSTRAP);lstrcatW(quoted,L"\"");return lstrcmpW(GetCommandLineW(),quoted)==0||lstrcmpW(GetCommandLineW(),RECOVERY_BOOTSTRAP)==0;}
+static HANDLE create_private(const WCHAR *name,DWORD access,DWORD share,BOOL inherit){WCHAR path[R_PATH];if(!r_path(path,runtime,name))return INVALID_HANDLE_VALUE;SECURITY_ATTRIBUTES sa;r_zero(&sa,sizeof(sa));sa.nLength=sizeof(sa);sa.lpSecurityDescriptor=private_sd;sa.bInheritHandle=inherit;return CreateFileW(path,access|READ_CONTROL,share,&sa,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,NULL);}
+static __attribute__((noinline)) BOOL private_runtime(void){
+ if(!r_user()||!r_ancestors(RECOVERY_BASE,TRUE))return FALSE;
+ if(BCryptGenRandom(NULL,admission.generation,16,BCRYPT_USE_SYSTEM_PREFERRED_RNG)<0)return FALSE;WCHAR name[35]=L"g-";const WCHAR *hex=L"0123456789abcdef";for(DWORD i=0;i<16;i++){name[2+2*i]=hex[admission.generation[i]>>4];name[3+2*i]=hex[admission.generation[i]&15];}name[34]=0;if(!r_path(runtime,RECOVERY_BASE,name))return FALSE;
+ SECURITY_ATTRIBUTES sa;r_zero(&sa,sizeof(sa));sa.nLength=sizeof(sa);sa.lpSecurityDescriptor=private_sd;if(!CreateDirectoryW(runtime,&sa)||!r_ancestors(runtime,TRUE))return FALSE;
+ const WCHAR *directories[5]={L"userData",L"cache",L"temp",L"logs",L"crash"};for(DWORD i=0;i<5;i++){WCHAR path[R_PATH];if(!r_path(path,runtime,directories[i])||!CreateDirectoryW(path,&sa)||!r_ancestors(path,TRUE))return FALSE;}
+ input=create_private(L"stdin.empty",GENERIC_READ,FILE_SHARE_READ,TRUE);output=create_private(L"stdout.private.log",GENERIC_WRITE,FILE_SHARE_READ,TRUE);error=create_private(L"stderr.private.log",GENERIC_WRITE,FILE_SHARE_READ,TRUE);
+ if(input==INVALID_HANDLE_VALUE||output==INVALID_HANDLE_VALUE||error==INVALID_HANDLE_VALUE||!r_security(input,TRUE)||!r_security(output,TRUE)||!r_security(error,TRUE))return FALSE;
+ if(!SetStdHandle(STD_INPUT_HANDLE,input)||!SetStdHandle(STD_OUTPUT_HANDLE,output)||!SetStdHandle(STD_ERROR_HANDLE,error))return FALSE;
+ completion_file=create_private(L"completion.private.bin",GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,FALSE);
+ return completion_file!=INVALID_HANDLE_VALUE&&r_security(completion_file,TRUE)&&GetFileInformationByHandle(completion_file,&admission.completion);
+}
+static BOOL pin_release(void){
+ if(!r_ancestors(RECOVERY_PACKAGE,FALSE)||!r_ancestors(RECOVERY_HANDOFF,TRUE))return FALSE;
+ const WCHAR *names[5]={RECOVERY_BOOTSTRAP,RECOVERY_EXE,RECOVERY_ASAR,RECOVERY_BRIDGE,RECOVERY_DESCRIPTOR};for(DWORD i=0;i<5;i++)if(!r_hold(&release_files[i],names[i],FALSE,i==4))return FALSE;
+ if(!r_read(&release_files[4],admission.descriptor,R_DESCRIPTOR,&admission.descriptor_length)||!r_descriptor(admission.descriptor,admission.descriptor_length,&descriptor))return FALSE;
+ const BYTE *hashes[4]={descriptor.bootstrap,descriptor.exe,descriptor.asar,descriptor.bridge};for(DWORD i=0;i<4;i++)if(!r_equal(release_files[i].hash,hashes[i],32))return FALSE;r_copy(admission.descriptor_hash,release_files[4].hash,32);return TRUE;
+}
+static BOOL make_pipe(void){const WCHAR *hex=L"0123456789abcdef";lstrcpyW(pipe_name,L"\\\\.\\pipe\\SunnyRecovery-");DWORD n=(DWORD)lstrlenW(pipe_name);for(DWORD i=0;i<16;i++){pipe_name[n+2*i]=hex[admission.generation[i]>>4];pipe_name[n+2*i+1]=hex[admission.generation[i]&15];}pipe_name[n+32]=0;SECURITY_ATTRIBUTES sa;r_zero(&sa,sizeof(sa));sa.nLength=sizeof(sa);sa.lpSecurityDescriptor=private_sd;pipe_handle=CreateNamedPipeW(pipe_name,PIPE_ACCESS_DUPLEX|FILE_FLAG_FIRST_PIPE_INSTANCE|FILE_FLAG_OVERLAPPED,PIPE_TYPE_MESSAGE|PIPE_READMODE_MESSAGE|PIPE_WAIT|PIPE_REJECT_REMOTE_CLIENTS,1,sizeof(Admission),sizeof(Admission),1000,&sa);return pipe_handle!=INVALID_HANDLE_VALUE;}
+static BOOL child_environment(void){static WCHAR windows[R_PATH],system[R_PATH],temp[R_PATH],logs[R_PATH];UINT n=GetWindowsDirectoryW(windows,R_PATH);if(!n||n>=R_PATH||!GetSystemDirectoryW(system,R_PATH)||!r_path(temp,runtime,L"temp")||!r_path(logs,runtime,L"logs\\native.log"))return FALSE;
+ return env(L"SystemRoot",windows)&&env(L"WINDIR",windows)&&env(L"PATH",system)&&env(L"USERPROFILE",runtime)&&env(L"LOCALAPPDATA",runtime)&&env(L"APPDATA",runtime)&&env(L"TEMP",temp)&&env(L"TMP",temp)&&env(L"ELECTRON_LOG_FILE",logs)&&env(L"SUNNY_RECOVERY_PIPE",pipe_name);
+}
+static BOOL create_child(void){static STARTUPINFOEXW startup;static WCHAR command[R_PATH+64];SIZE_T size=0;BOOL initialized=FALSE,ok=FALSE;r_zero(&startup,sizeof(startup));startup.StartupInfo.cb=sizeof(startup);startup.StartupInfo.dwFlags=STARTF_USESTDHANDLES|STARTF_USESHOWWINDOW;startup.StartupInfo.wShowWindow=SW_HIDE;startup.StartupInfo.hStdInput=input;startup.StartupInfo.hStdOutput=output;startup.StartupInfo.hStdError=error;
+ job=CreateJobObjectW(NULL,NULL);if(!job)return FALSE;JOBOBJECT_EXTENDED_LIMIT_INFORMATION limits;r_zero(&limits,sizeof(limits));limits.BasicLimitInformation.LimitFlags=JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;if(!SetInformationJobObject(job,JobObjectExtendedLimitInformation,&limits,sizeof(limits)))return FALSE;
+ InitializeProcThreadAttributeList(NULL,2,0,&size);if(!size)return FALSE;startup.lpAttributeList=HeapAlloc(GetProcessHeap(),0,size);if(!startup.lpAttributeList)return FALSE;initialized=InitializeProcThreadAttributeList(startup.lpAttributeList,2,0,&size);HANDLE handles[3]={input,output,error};
+ if(!initialized||!UpdateProcThreadAttribute(startup.lpAttributeList,0,PROC_THREAD_ATTRIBUTE_HANDLE_LIST,handles,sizeof(handles),NULL,NULL)||!UpdateProcThreadAttribute(startup.lpAttributeList,0,PROC_THREAD_ATTRIBUTE_JOB_LIST,&job,sizeof(job),NULL,NULL))goto done;
+ lstrcpyW(command,L"\"");lstrcatW(command,RECOVERY_EXE);lstrcatW(command,L"\" --recovery-reader");
+ if(!CreateProcessW(RECOVERY_EXE,command,NULL,NULL,TRUE,CREATE_SUSPENDED|CREATE_UNICODE_ENVIRONMENT|EXTENDED_STARTUPINFO_PRESENT,environment,RECOVERY_PACKAGE,&startup.StartupInfo,&child))goto done;child_started=TRUE;
+ BOOL in_job=FALSE;if(!IsProcessInJob(child.hProcess,job,&in_job)||!in_job||!r_process(child.hProcess,RECOVERY_EXE,&admission.child_created)||!r_time(GetCurrentProcess(),&admission.parent_created))goto done;
+ admission.parent=GetCurrentProcessId();admission.child=child.dwProcessId;admission.magic=0x52444131;admission.version=1;lstrcpyW(admission.runtime,runtime);
+ if(ResumeThread(child.hThread)==(DWORD)-1)goto done;ok=TRUE;
+done:if(initialized)DeleteProcThreadAttributeList(startup.lpAttributeList);HeapFree(GetProcessHeap(),0,startup.lpAttributeList);return ok;}
+static BOOL connect_pipe(ULONGLONG deadline){OVERLAPPED *overlapped=HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,sizeof(OVERLAPPED));if(!overlapped)return FALSE;overlapped->hEvent=CreateEventW(NULL,TRUE,FALSE,NULL);if(!overlapped->hEvent){HeapFree(GetProcessHeap(),0,overlapped);return FALSE;}BOOL ok=ConnectNamedPipe(pipe_handle,overlapped);DWORD error_code=ok?0:GetLastError(),count=0;if(!ok&&error_code==ERROR_PIPE_CONNECTED)ok=TRUE;else if(!ok&&error_code==ERROR_IO_PENDING){DWORD remaining=r_remaining(deadline);ok=remaining&&WaitForSingleObject(overlapped->hEvent,remaining)==WAIT_OBJECT_0&&GetOverlappedResult(pipe_handle,overlapped,&count,FALSE);}
+ if(!ok&&error_code==ERROR_IO_PENDING){CancelIoEx(pipe_handle,overlapped);return FALSE;}CloseHandle(overlapped->hEvent);HeapFree(GetProcessHeap(),0,overlapped);return ok;}
+static BOOL authentic(ULONGLONG deadline){DWORD peer=0;FILETIME created;
+ if(!connect_pipe(deadline)||!GetNamedPipeClientProcessId(pipe_handle,&peer)||peer!=child.dwProcessId||!r_process(child.hProcess,RECOVERY_EXE,&created)||!r_equal(&created,&admission.child_created,sizeof(created))||!r_io(pipe_handle,FALSE,&hello,sizeof(hello),deadline))return FALSE;
+ if(hello.magic!=0x52444831||hello.version!=1||hello.pid!=peer||!r_equal(&hello.created,&created,sizeof(created)))return FALSE;
+ typedef BOOL(WINAPI *Compare)(HANDLE,HANDLE);HMODULE module=LoadLibraryExW(L"kernelbase.dll",NULL,LOAD_LIBRARY_SEARCH_SYSTEM32);if(!module)return FALSE;static WCHAR actual[R_PATH],expected[R_PATH];UINT n=GetSystemDirectoryW(expected,R_PATH);if(!n||n+16>=R_PATH){FreeLibrary(module);return FALSE;}lstrcatW(expected,L"\\kernelbase.dll");DWORD length=GetModuleFileNameW(module,actual,R_PATH);Compare compare=(Compare)GetProcAddress(module,"CompareObjectHandles");BOOL ok=length&&length<R_PATH&&lstrcmpiW(actual,expected)==0&&compare;
+ const UINT64 numbers[3]={hello.input,hello.output,hello.error};HANDLE sinks[3]={input,output,error};for(DWORD i=0;i<3&&ok;i++){HANDLE duplicate=NULL;ok=DuplicateHandle(child.hProcess,(HANDLE)(UINT_PTR)numbers[i],GetCurrentProcess(),&duplicate,0,FALSE,DUPLICATE_SAME_ACCESS)&&compare(duplicate,sinks[i]);if(duplicate)CloseHandle(duplicate);}FreeLibrary(module);if(!ok)return FALSE;
+ for(DWORD i=0;i<5;i++)if(r_changed(&release_files[i],FALSE))return FALSE;for(DWORD i=0;i<chain_count;i++)if(r_changed(&chain[i],TRUE))return FALSE;
+ if(!GetNamedPipeClientProcessId(pipe_handle,&peer)||peer!=child.dwProcessId||!r_remaining(deadline))return FALSE;
+ // Terminal issuance: there is one connection and exactly one reply. No retry.
+ return r_io(pipe_handle,TRUE,&admission,sizeof(admission),deadline);
+}
+static BOOL final_result(void){DWORD status=0;if(WaitForSingleObject(child.hProcess,INFINITE)!=WAIT_OBJECT_0||!GetExitCodeProcess(child.hProcess,&status)||status!=0)return FALSE;
+ for(DWORD i=0;i<5;i++)if(r_changed(&release_files[i],FALSE))return FALSE;for(DWORD i=0;i<chain_count;i++)if(r_changed(&chain[i],TRUE))return FALSE;
+ JOBOBJECT_BASIC_ACCOUNTING_INFORMATION accounting;ULONGLONG deadline=GetTickCount64()+5000;for(;;){if(!QueryInformationJobObject(job,JobObjectBasicAccountingInformation,&accounting,sizeof(accounting),NULL))return FALSE;if(!accounting.ActiveProcesses)break;if(!r_remaining(deadline))return FALSE;Sleep(10);}
+ BY_HANDLE_FILE_INFORMATION info;WCHAR path[R_PATH];if(!r_path(path,runtime,L"completion.private.bin")||!r_ordinary(completion_file,path,FALSE,&info)||!r_identity(&info,&admission.completion)||info.nFileSizeLow!=sizeof(completion))return FALSE;DWORD got=0;LARGE_INTEGER zero;zero.QuadPart=0;if(!SetFilePointerEx(completion_file,zero,NULL,FILE_BEGIN)||!ReadFile(completion_file,&completion,sizeof(completion),&got,NULL)||got!=sizeof(completion))return FALSE;
+ return completion.magic==0x52444331&&completion.version==1&&completion.parent==admission.parent&&completion.child==admission.child&&r_equal(&completion.parent_created,&admission.parent_created,sizeof(FILETIME))&&r_equal(&completion.child_created,&admission.child_created,sizeof(FILETIME))&&r_equal(completion.generation,admission.generation,16)&&r_equal(completion.descriptor_hash,admission.descriptor_hash,32)&&completion.format==(descriptor.json?1u:2u)&&completion.compared==1&&completion.complete==1&&completion.count>0&&completion.count<=4&&!completion.reserved[0]&&!completion.reserved[1]&&!completion.reserved[2]&&!completion.reserved[3];
+}
+void WINAPI recovery_entry(void){ULONGLONG deadline=GetTickCount64()+10000;DWORD code=74;BOOL private_ready=FALSE;
+ if(!invocation())goto done;private_ready=private_runtime();if(!private_ready)goto done;
+ if(!pin_release()||!make_pipe()||!child_environment()||!create_child()||!authentic(deadline))goto done;
+ CloseHandle(pipe_handle);pipe_handle=NULL;code=final_result()?0:75;
+done:
+ if(!private_ready){const char message[]="RECOVERY_PRIVATE_SINK_UNAVAILABLE\n";DWORD wrote;HANDLE out=GetStdHandle(STD_ERROR_HANDLE);if(out&&out!=INVALID_HANDLE_VALUE)WriteFile(out,message,sizeof(message)-1,&wrote,NULL);}
+ if(code&&child_started)TerminateJobObject(job,code);
+ if(job){JOBOBJECT_BASIC_ACCOUNTING_INFORMATION accounting;ULONGLONG end=GetTickCount64()+5000;for(;;){if(!QueryInformationJobObject(job,JobObjectBasicAccountingInformation,&accounting,sizeof(accounting),NULL)){code=75;break;}if(!accounting.ActiveProcesses)break;if(!r_remaining(end)){code=75;break;}Sleep(10);}}
+ if(pipe_handle&&pipe_handle!=INVALID_HANDLE_VALUE)CloseHandle(pipe_handle);if(child.hThread)CloseHandle(child.hThread);if(child.hProcess)CloseHandle(child.hProcess);if(job)CloseHandle(job);for(DWORD i=0;i<5;i++)r_close(&release_files[i]);if(completion_file&&completion_file!=INVALID_HANDLE_VALUE)CloseHandle(completion_file);if(input&&input!=INVALID_HANDLE_VALUE)CloseHandle(input);if(output&&output!=INVALID_HANDLE_VALUE)CloseHandle(output);if(error&&error!=INVALID_HANDLE_VALUE)CloseHandle(error);r_close_chain();ExitProcess(code);
+}

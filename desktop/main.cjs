@@ -1,3 +1,4 @@
+if(process.argv.some(value=>value.startsWith('--recovery'))){require('./recovery-reader-guard.cjs').start();}else{
 if(process.argv.some(value=>value.startsWith('--packaged-fixture=')))require('./packaged-acceptance.cjs').validateFixtureArguments(process.argv);
 if(process.argv.includes('--review-preview')){require('./preview.cjs');}else{
 const {app,BrowserWindow,session,ipcMain,dialog,shell,Tray,Menu,nativeImage,Notification,screen}=require('electron');
@@ -218,5 +219,6 @@ app.on('window-all-closed',()=>{if(quitting)app.quit();});app.on('activate',()=>
 
 
 
+}
 }
 }

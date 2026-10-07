@@ -3,7 +3,7 @@ const {createHash,timingSafeEqual}=require('node:crypto');const {EventEmitter}=r
 const JOURNEY_SCENARIOS=Object.freeze(['journey-cue','journey-motion-user','journey-motion-system','journey-audio']);
 const admittedCapabilities=new WeakSet();
 function assertFixtureCapability(value){if(!value||!admittedCapabilities.has(value))throw Error('Private admitted capability required before fixture imports or Hub construction.');return value;}
-const SCENARIOS=Object.freeze([...JOURNEY_SCENARIOS,'ordered-control','playable','run-ui','startup','renderer-crash','main-restart','worker-loss','write-failure','lost-ack','pending-approval','pending-check','normal-quit']);
+const SCENARIOS=Object.freeze([...JOURNEY_SCENARIOS,'stopped-profile-copy','ordered-control','playable','run-ui','startup','renderer-crash','main-restart','worker-loss','write-failure','lost-ack','pending-approval','pending-check','normal-quit']);
 const FROZEN_SHA='219f75242146fb32b8ed8452a0b792b1c76207311b67f74b947b267cc8581590';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 function validateFixtureArguments(argv){
@@ -28,19 +28,23 @@ function admitFixture({manifestPath,nonce,defaultProfile,env=process.env}){
  const keys=['version','nonce','profileDir','outputDir','scenario','phase','mib'];
  if(!value||Object.keys(value).length!==keys.length||Object.keys(value).some(key=>!keys.includes(key))||value.version!==1||!SCENARIOS.includes(value.scenario)||![1,2].includes(value.phase)||![1,10,30].includes(value.mib)||typeof value.nonce!=='string'||value.nonce.length!==nonce.length||!timingSafeEqual(Buffer.from(value.nonce),Buffer.from(nonce)))throw Error('Invalid fixture manifest or nonce.');
  if(JOURNEY_SCENARIOS.includes(value.scenario)&&(value.mib!==1||value.scenario!=='journey-cue'&&value.phase!==1))throw Error('Invalid fixed journey phase or size');
+ if(value.scenario==='stopped-profile-copy'&&(value.phase!==1||value.mib!==1))throw Error('COPIED_CAPTURE_INVALID');
  if(value.scenario==='ordered-control'&&value.phase!==1)throw Error('Ordered control requires phase one');
  if(env.ELECTRON_RUN_AS_NODE||env.SUNNY_DEV_URL||env.SUNNY_PROVIDER_MISSION||env.SUNNY_LIVE_MISSION)throw Error('Fixture runtime rejects provider/dev/runtime opt-ins.');
  const profileDir=canonical(value.profileDir),outputDir=canonical(value.outputDir),live=canonicalTarget(defaultProfile).toLowerCase();
  if(overlaps(live,profileDir.toLowerCase())||overlaps(profileDir.toLowerCase(),live)||overlaps(profileDir,outputDir)||overlaps(outputDir,profileDir)||overlaps(profileDir,manifestPath)||overlaps(outputDir,manifestPath))throw Error('Fixture profile must be isolated from default/live profile and evidence.');
+ const copyBinding=value.scenario==='stopped-profile-copy'?require('./copied-capture.cjs').validateCopiedInput({profileDir,outputDir,manifestPath,nonce}):null;
  const outputMarker=path.join(outputDir,'.sunny-packaged-output.json'),nonceSha256=sha(nonce);
  if(!fs.existsSync(outputMarker)){if(fs.readdirSync(outputDir).length)throw Error('Evidence directory must be empty or fixture-manifested.');fs.writeFileSync(outputMarker,JSON.stringify({version:1,nonceSha256}),{flag:'wx',mode:0o600});}
  const outputOwner=JSON.parse(fs.readFileSync(outputMarker,'utf8'));if(outputOwner.version!==1||outputOwner.nonceSha256!==nonceSha256)throw Error('Evidence directory is not owned by this fixture.');
  const marker=path.join(profileDir,'.sunny-packaged-fixture.json');
- if(value.phase===1){if(fs.readdirSync(profileDir).length)throw Error('Fixture profile must be empty and manifested.');fs.writeFileSync(marker,JSON.stringify({version:1,nonceSha256,scenario:value.scenario}),{flag:'wx',mode:0o600});}
+ if(copyBinding){require('./copied-capture.cjs').consumeCopiedInput(copyBinding);fs.writeFileSync(marker,JSON.stringify({version:1,nonceSha256,scenario:value.scenario}),{flag:'wx',mode:0o600});}
+ else if(value.phase===1){if(fs.readdirSync(profileDir).length)throw Error('Fixture profile must be empty and manifested.');fs.writeFileSync(marker,JSON.stringify({version:1,nonceSha256,scenario:value.scenario}),{flag:'wx',mode:0o600});}
  else{assertOwnedTree(profileDir,JOURNEY_SCENARIOS.includes(value.scenario)?4096:256);const owned=JSON.parse(fs.readFileSync(marker,'utf8'));if(owned.nonceSha256!==nonceSha256||owned.scenario!==value.scenario||owned.version!==1)throw Error('Profile is not owned by this fixture manifest.');}
  if(value.scenario==='journey-cue'&&value.phase===2){const priorFile=path.join(outputDir,'phase-1.json');if(fs.lstatSync(priorFile).isSymbolicLink()||fs.statSync(priorFile).size>2*1024*1024)throw Error('Invalid completed journey receipt');require('./journey-receipts.cjs').validatePhase(JSON.parse(fs.readFileSync(priorFile,'utf8')),{scenario:value.scenario,phase:1,nonceSha256});}
- const capability=Object.freeze({...value,profileDir,outputDir});admittedCapabilities.add(capability);return capability;
+ const capability=Object.freeze({...value,profileDir,outputDir});admittedCapabilities.add(capability);if(copyBinding)require('./copied-capture.cjs').bindCopiedFixture(capability,copyBinding);return capability;
 }
+function assertCopiedFixtureCapability(value){assertFixtureCapability(value);require('./copied-capture.cjs').copiedBinding(value);return value;}
 function createOfflineClient(){const client=new EventEmitter();client.connected=false;let blocked=0;Object.defineProperty(client,'fixtureEffects',{get:()=>Object.freeze({blockedAttempts:blocked,providerEffects:0})});const deny=()=>{blocked++;throw Error('Offline fixture forbids provider effects.');};for(const method of ['connect','request','respond','start','turn','rejectRequest'])client[method]=deny;client.close=()=>{};return client;}
 function loadFrozenFixture(mib){
  const file=path.join(__dirname,'fixtures/frozen-control-fixture.cjs'),bytes=fs.readFileSync(file);assert.equal(sha(bytes),FROZEN_SHA,'Packaged frozen control bytes changed');
@@ -71,6 +75,7 @@ function seedState(manifest){
 }
 async function bootFixtureHub(manifest,stage=()=>{}){
  assertFixtureCapability(manifest);
+ if(manifest.scenario==='stopped-profile-copy')return require('./copied-profile-acceptance.cjs').bootCopiedProfile(manifest);
  if(manifest.scenario==='ordered-control')throw Error('Ordered control owns its exclusive bootstrap');
  if(JOURNEY_SCENARIOS.includes(manifest.scenario))return require('./journey-bootstrap.cjs').boot(manifest,stage);
  const {openOrderedStore}=require('./ordered-store.cjs'),{Hub}=require('./hub.cjs');
@@ -158,4 +163,4 @@ async function runPackagedAcceptance({app,profileDir,outputDir,scenario,fixtureT
  await hub.persist('workspace');evidence.identity=durableIdentity(hub);Object.assign(evidence,hub.client.fixtureEffects);fs.writeFileSync(path.join(outputDir,`phase-${manifest.phase}.json`),JSON.stringify(evidence,null,2),{flag:'wx',mode:0o600});
  return evidence;
 }
-module.exports={assertFixtureCapability,JOURNEY_SCENARIOS,SCENARIOS,FROZEN_SHA,validateFixtureArguments,admitFixture,createOfflineClient,fixtureCatalog,fixtureDependencies,assertFixtureAction,loadFrozenFixture,seedState,bootFixtureHub,hashPackageFiles,durableIdentity,verifyLockedWriteFailure,faultStore,rendererReady,runPackagedAcceptance};
+module.exports={assertFixtureCapability,assertCopiedFixtureCapability,JOURNEY_SCENARIOS,SCENARIOS,FROZEN_SHA,validateFixtureArguments,admitFixture,createOfflineClient,fixtureCatalog,fixtureDependencies,assertFixtureAction,loadFrozenFixture,seedState,bootFixtureHub,hashPackageFiles,durableIdentity,verifyLockedWriteFailure,faultStore,rendererReady,runPackagedAcceptance};

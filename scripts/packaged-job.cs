@@ -58,12 +58,17 @@ public static class SunnyFixtureJob {
    Need(!Expired(deadline));native.Resume(info.thread);
    while(!native.Exited(info.process)){if(Expired(deadline)){result.timedOut=true;throw new TimeoutException();}Thread.Sleep(25);}
    result.exitCode=native.ExitCode(info.process);result.activeProcesses=native.Active(job);result.cleanupObserved=result.activeProcesses==0;
+   // Primary exit can precede descendant exit or the Job accounting update.
+   // Observe the first count, then require an actual empty sample within
+   // this fixed natural drain and the original absolute cleanup ceiling.
+   var naturalEnd=Math.Min(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()+2000,deadline+3000);
+   while(!result.cleanupObserved&&!Expired(naturalEnd)){Thread.Sleep(25);result.activeProcesses=native.Active(job);result.cleanupObserved=result.activeProcesses==0;}
   }catch{result.exitCode=1;result.timedOut=result.timedOut||Expired(deadline);}
   finally{
    // Capture this before any zero-active sample. A later completion cannot turn
    // that earlier sample (or job closure) into observed process termination.
    bool unresolvedCreation=launch!=null&&!creationCollected;
-   if(job!=IntPtr.Zero){try{if(!result.cleanupObserved){result.forcedStop=true;result.exitCode=1;try{native.Terminate(job);}catch{}var end=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()+2000;do{try{result.activeProcesses=native.Active(job);result.cleanupObserved=result.activeProcesses==0;}catch{}if(result.cleanupObserved)break;Thread.Sleep(25);}while(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()<end);}}finally{native.Close(job);}}
+   if(job!=IntPtr.Zero){try{if(!result.cleanupObserved){result.forcedStop=true;result.exitCode=1;try{native.Terminate(job);}catch{}var end=Math.Min(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()+2000,deadline+5000);do{try{result.activeProcesses=native.Active(job);result.cleanupObserved=result.activeProcesses==0;}catch{}if(result.cleanupObserved)break;Thread.Sleep(25);}while(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()<end);}}finally{native.Close(job);}}
    // A pending CreateProcess still owns its attribute buffers. The launcher
    // exits after reporting; do not free memory underneath that native call.
    if(launch==null||launch.IsCompleted){if(launch!=null&&!creationCollected){try{info=launch.GetAwaiter().GetResult();creationCollected=true;}catch{}}if(info.thread!=IntPtr.Zero)native.Close(info.thread);if(info.process!=IntPtr.Zero)native.Close(info.process);native.Free(attributes);}

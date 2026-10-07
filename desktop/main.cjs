@@ -9,6 +9,8 @@ const fixtureStage=fixture?require('./fixture-stages.cjs').createStages(fixture)
 if(fixture&&process.env.SUNNY_DATA_DIR&&path.resolve(process.env.SUNNY_DATA_DIR).toLowerCase()!==fixture.profileDir.toLowerCase())throw Error('Fixture cannot use a live profile override.');
 if(fixture?.scenario==='ordered-control'){
  void require('./packaged-control.cjs').runPackagedControl(fixture).catch(error=>{console.error(error);app.exit(1);});
+}else if(fixture?.scenario==='stopped-profile-copy'){
+ void require('./copied-profile-acceptance.cjs').runCopiedProfile(fixture).then(()=>app.exit(0),error=>{console.error(error);app.exit(1);});
 }else{
 const {guardedPath,readText,writeText,hash}=require('./core.cjs');const catalog=fixture?packagedFixture.fixtureCatalog():require('./catalog.cjs');
 const {scanMorgansInbox}=require('./morgans-inbox.cjs');
@@ -44,7 +46,7 @@ function importedHistory(){try{return JSON.parse(fs.readFileSync(path.join(dataD
 const externalHistoryPager=require('./external-history-pages.cjs').createExternalHistoryPager();
 async function loadExternalHistory(threadId){
  textArg(threadId,'task ID',200);
- if(threadId.startsWith('chatgpt:')){const item=importedHistory().find(c=>c.id===threadId);if(!item)throw Error('Imported conversation not found');return {messages:item.messages};}
+ if(threadId.startsWith('chatgpt:'))return require('./local-history-archive.cjs').localHistoryItem(importedHistory(),threadId);
  await hub.ensure();return hub.client.request('thread/read',{threadId,includeTurns:true});
 }
 function publicState(){return publicTransport.snapshot();}
@@ -134,7 +136,7 @@ async function handle(action,args={},surface='hub'){
  case 'task:checkStatus':return publicTransport.taskReply(await hub.checkStatus(args.taskId));
  case 'task:resolveMissingThread':return publicTransport.taskReply(await hub.resolveMissingThread(args));
  case 'task:handoff':return publicTransport.taskReply(await hub.handoff(args));
- case 'task:history':{const imported=importedHistory().map(({messages,...summary})=>summary);try{await hub.ensure();const r=await hub.client.request('thread/list',{limit:100,useStateDbOnly:true,sourceKinds:['cli','vscode','appServer','exec']});return [...imported,...(r.data||[]).filter(t=>!hub.state.tasks.some(own=>own.threadId===t.id)).map(t=>({id:t.id,title:t.name||t.preview||'Codex task',cwd:t.cwd,status:'externally managed',external:true}))];}catch{return imported;}}
+ case 'task:history':{const imported=require('./local-history-archive.cjs').localHistoryIndex(importedHistory());try{await hub.ensure();const r=await hub.client.request('thread/list',{limit:100,useStateDbOnly:true,sourceKinds:['cli','vscode','appServer','exec']});return [...imported,...(r.data||[]).filter(t=>!hub.state.tasks.some(own=>own.threadId===t.id)).map(t=>({id:t.id,title:t.name||t.preview||'Codex task',cwd:t.cwd,status:'externally managed',external:true}))];}catch{return imported;}}
  case 'task:readExternal':case 'task:readExternalPage':return externalHistoryPager.readExternalPage(args,{loadHistory:loadExternalHistory});
  case 'approval:respond':return hub.respond(args);
  case 'files:list':return fileList(args,args.path);

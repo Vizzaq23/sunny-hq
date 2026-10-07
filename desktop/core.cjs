@@ -22,12 +22,13 @@ function writeText(root,input,text,expectedHash){
  try{fs.writeFileSync(file,text,'utf8');}catch(e){if(['EPERM','EACCES'].includes(e.code))throw Error('Windows blocked this save. Check the folder permissions and your security app history for Sunny HQ, then try again.');throw e;}return readText(root,file);
 }
 function deriveStatus(status){if(!status)return 'unknown';const type=typeof status==='string'?status:status.type;if(type==='active')return status.activeFlags?.length?'waiting':'working';if(type==='idle')return 'idle';if(type==='systemError')return 'failed';return 'unknown';}
+const copiedGates=new WeakSet();
 class TaskGate{
- constructor(limit=3,fixtureScopeEnforcement){this.limit=limit;this.active=new Map();this.logical=new Map();this.fixtureScopeEnforcement=fixtureScopeEnforcement;}
- root(root){return path.resolve(fs.existsSync(root)?fs.realpathSync(root):root).toLowerCase();}
+ constructor(limit=3,fixtureScopeEnforcement,copiedRecovery){if(copiedRecovery!==undefined){require('./copied-recovery.cjs').assertCopiedToken(copiedRecovery);copiedGates.add(this);}this.limit=limit;this.active=new Map();this.logical=new Map();this.fixtureScopeEnforcement=fixtureScopeEnforcement;}
+ root(root){if(copiedGates.has(this))return require('./copied-recovery.cjs').reservationKey(root);return path.resolve(fs.existsSync(root)?fs.realpathSync(root):root).toLowerCase();}
  reserve(id,root,scope={}){this.active.set(id,this.root(root));this.logical.set(id,{...scope});}
- blocked(root,scope={}){const normalized=this.root(root);return [...this.active.values()].some(other=>inside(other,normalized)||inside(normalized,other))||[...this.logical.entries()].some(([id,other])=>scope.projectId&&other.projectId===scope.projectId&&this.conflictResolution?.({id,root:normalized,scope,other})!==true&&!(!scope.integrating&&!other.integrating&&scope.runId&&scope.runId===other.runId&&this.fixtureScopeEnforcement?.({root:normalized,otherRoot:this.active.get(id),scope,other})===true));}
- acquire(id,root,scope={}){const normalized=this.root(root);if(this.active.has(id))throw Error('This task is already running');if(this.blocked(root,scope))throw Error('A task is already writing in this checkout. Finish or interrupt it first.');if(this.active.size>=this.limit)throw Error('The active-run limit is reached. Finish or interrupt a task first.');this.reserve(id,normalized,scope);}
+ blocked(root,scope={}){if(copiedGates.has(this))return true;const normalized=this.root(root);return [...this.active.values()].some(other=>inside(other,normalized)||inside(normalized,other))||[...this.logical.entries()].some(([id,other])=>scope.projectId&&other.projectId===scope.projectId&&this.conflictResolution?.({id,root:normalized,scope,other})!==true&&!(!scope.integrating&&!other.integrating&&scope.runId&&scope.runId===other.runId&&this.fixtureScopeEnforcement?.({root:normalized,otherRoot:this.active.get(id),scope,other})===true));}
+ acquire(id,root,scope={}){if(copiedGates.has(this))throw Object.assign(Error('COPIED_EXTERNAL_ACCESS_DENIED'),{code:'COPIED_EXTERNAL_ACCESS_DENIED'});const normalized=this.root(root);if(this.active.has(id))throw Error('This task is already running');if(this.blocked(root,scope))throw Error('A task is already writing in this checkout. Finish or interrupt it first.');if(this.active.size>=this.limit)throw Error('The active-run limit is reached. Finish or interrupt a task first.');this.reserve(id,normalized,scope);}
  release(id){this.active.delete(id);this.logical.delete(id);}
 }
 class StateStore{

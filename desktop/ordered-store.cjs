@@ -13,7 +13,7 @@ async function openOrderedStore(options){
  const epoch=randomUUID(),ready=deferred(),idleWaiters=[];
  // A factory may throw before the await below is reached.
  ready.promise.catch(()=>{});
- let worker,current=null,waiting=null,sequence=0,lastReceipt=null,initial,recovery,terminal=null,closing=false,closed=false,closeResult=null,closeAck=null,timer=null,termination=null;
+ let worker,current=null,waiting=null,sequence=0,lastReceipt=null,initial,recovery,durability,terminal=null,closing=false,closed=false,closeResult=null,closeAck=null,timer=null,termination=null;
  function stopTimer(){clearTimeout(timer);timer=null;}
  function terminate(){if(!termination)termination=Promise.resolve().then(()=>worker?.terminate()).catch(()=>{});return termination;}
  function settleIdle(){if(current||waiting)return;for(const waiter of idleWaiters.splice(0))terminal?waiter.reject(terminal):waiter.resolve(lastReceipt);}
@@ -31,7 +31,7 @@ async function openOrderedStore(options){
   if(!message||message.epoch!==epoch)return fail(current?uncertain('invalid worker receipt epoch'):failure('WORKER_PROTOCOL','Invalid worker epoch'));
   if(message.type==='ready'){
    if(initial!==undefined||current||closing)return fail(failure('WORKER_PROTOCOL','Duplicate persistence initialization'));
-   initial=message.image;recovery=message.recovery;stopTimer();ready.resolve();return;
+   initial=message.image;recovery=message.recovery;durability=message.durability?Object.freeze({...message.durability}):undefined;stopTimer();ready.resolve();return;
   }
   if(observe&&(message.type==='committed'||message.type==='failed')&&message.probe&&message.sequence===current?.sequence){try{observe({sequence:message.sequence,...message.probe});}catch{/* Observer cannot alter settlement. */}}
   if(message.type==='failed')return fail(current?failure(message.uncertain?'COMMIT_UNCERTAIN':'STORE_FAILED',message.error||'Persistence worker failed',{epoch,sequence:current.sequence}):failure('STORE_FAILED',message.error||'Persistence worker initialization failed'));
@@ -73,6 +73,6 @@ async function openOrderedStore(options){
   if(closeResult)return closeResult;closing=true;
   closeResult=(async()=>{try{await flush();if(closed)return;closeAck=deferred();arm('close');send({type:'close',epoch});await closeAck.promise;}finally{stopTimer();await terminate();}})();return closeResult;
  }
- return {get recovery(){return recovery;},load:()=>structuredClone(initial),checkpoint:image=>submit(image,null),barrier:(image,reason)=>submit(image,reason),flush,close};
+ return {get recovery(){return recovery;},get durability(){return durability;},load:()=>structuredClone(initial),checkpoint:image=>submit(image,null),barrier:(image,reason)=>submit(image,reason),flush,close};
 }
 module.exports={openOrderedStore};

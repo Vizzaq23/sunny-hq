@@ -2,7 +2,17 @@ const {randomUUID}=require('node:crypto');
 const {digest}=require('./mission-context.cjs'),{sameSource}=require('./review-verdicts.cjs');
 const fail=code=>Object.assign(Error(code),{code});
 function epoch(run,id){return run.currentEpoch?.id===id?run.currentEpoch:run.epochs?.find(e=>e.id===id);}
-function current(run,a){return !run.ordinary||!!(a&&run.currentEpoch?.assignmentIds?.includes(a.id));}
+function current(run,a){
+ if(!run.ordinary)return true;
+ const ids=run.currentEpoch?.assignmentIds;if(!a||!ids)return false;
+ if(ids.includes(a.id))return true;
+ // Generated repairs retain their author's epoch without changing its sealed graph.
+ const actual=run.assignments.find(value=>value.id===a.id),policy=require('./conflict-resolution.cjs');
+ const op=actual&&policy.binding(run,actual);
+ if(!op||!ids.includes(op.assignmentId))return false;
+ try{policy.validate(run,op);return true;}catch{return false;}
+}
+
 function historicalIds(run,id=run.currentEpoch?.id){const history=run.epochs||[],index=history.findIndex(e=>e.id===id),ids=(index<0?history:history.slice(0,index)).flatMap(e=>e.assignmentIds);return [...ids,...(run.integrations||[]).filter(o=>ids.includes(o.assignmentId)).map(o=>o.resolution?.assignmentId).filter(Boolean)];}
 function active(run){const e=run.completionEntitlement,op=run.feedbackOperations?.find(o=>o.id===e?.operationId);return !!(e&&['awaiting-graph','graph','production','selected','validation','ready-for-captain'].includes(e.stage)&&op&&['dispatching','bound'].includes(op.state)&&op.newEpochId===e.epochId&&op.coordinatorTaskId===e.coordinatorTaskId&&op.debit?.ordinal===e.repairOrdinal&&op.requestDigest===e.requestDigest&&op.feedbackId===e.feedbackId&&op.priorEpochId===e.fromEpochId&&op.resultId===e.fromResultId&&op.resultSha256===e.fromResultSha256&&digest(op.checkpoint)===e.checkpointDigest&&run.currentEpoch?.id===e.epochId&&e.attemptId===e.epochId&&run.counters.repairs===e.repairOrdinal&&e.repairOrdinal<=Math.min(3,run.grant.maxRepairs)&&e.criteriaDigest===digest(run.criteria)&&e.checkPlanDigest===run.ordinary.checkPlan.digest&&e.deliveryContractDigest===digest(run.ordinary.deliverable||null)&&e.grantDigest===digest(run.grant)&&e.scopeDigest===digest(run.originalScope)&&run.grant.scope.activities.every(activity=>run.originalScope.activities.includes(activity))&&!run.assignments.some(a=>current(run,a)&&['unknown','failed','interrupted','cancelled'].includes(a.state))&&(!e.graphDigest||e.graphDigest===(run.currentEpoch.productionWaves?.digest||digest(run.currentEpoch.assignmentIds)))&&sameSource(e.assignmentIds,run.currentEpoch.assignmentIds)&&!run.stopIntent&&run.controlIntent?.state!=='pending'&&!run.blockers?.length&&!['paused','stopping','stopped','unknown','blocked'].includes(run.phase));}
 function allows(run,{taskId,assignmentId,deliveryId,operationId,purpose}={}){

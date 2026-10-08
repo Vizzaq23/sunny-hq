@@ -18,7 +18,7 @@ function hookFixture(){
  const source=fs.readFileSync(path.join(__dirname,'../src/useSunny.ts'),'utf8');
  const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
  const exports={};
- vm.runInNewContext(code,{exports,require(name){if(name==='react')return react;if(name==='./data')return {EMPTY_SNAPSHOT:{...snapshot(),tasks:[]}};if(name==='./transcriptState')return require('../src/transcriptState.ts');if(name==='./useMissionResultStatus')return {useMissionResultStatuses:()=>({})};throw Error('Unexpected hook dependency: '+name);},window:{sunny:{invoke:()=>new Promise(resolve=>reads.push(resolve)),subscribe:callback=>{subscriber=callback;return()=>{};}},setTimeout(){} }});
+ vm.runInNewContext(code,{exports,require(name){if(name==='react')return react;if(name==='./data')return {EMPTY_SNAPSHOT:{...snapshot(),tasks:[]}};if(name==='./transcriptState')return require('../src/transcriptState.ts');if(name==='./roomAudio')return require('../src/roomAudio.ts');if(name==='./useMissionResultStatus')return {useMissionResultStatuses:()=>({})};throw Error('Unexpected hook dependency: '+name);},window:{sunny:{invoke:()=>new Promise(resolve=>reads.push(resolve)),subscribe:callback=>{subscriber=callback;return()=>{};}},setTimeout(){} }});
  exports.useSunny();
  return {get current(){return states[0];},get readCount(){return reads.length;},emit:event=>subscriber(event),async deliverInitial(value){reads[0](value);await new Promise(resolve=>setImmediate(resolve));},async deliverLatest(value){reads.at(-1)(value);await new Promise(resolve=>setImmediate(resolve));}};
 }

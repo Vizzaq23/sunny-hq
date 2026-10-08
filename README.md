@@ -1,4 +1,30 @@
-# Sunny HQ
+<!-- README presentation: Vizzaq23 portfolio palette -->
+<p align="center">
+  <a href="https://github.com/Vizzaq23"><img src="https://img.shields.io/badge/Vizzaq23%20%C2%B7%20WINDOWS%20AI%20WORKSPACE-101722?style=flat-square&amp;labelColor=101722&amp;color=D7B877" alt="Vizzaq23 · WINDOWS AI WORKSPACE" /></a>
+</p>
+
+<h1 align="center">Sunny HQ</h1>
+
+<p align="center"><strong>Your projects. Your crew. A personal AI studio aboard the Thousand Sunny.</strong></p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Electron-101722?style=flat-square&amp;labelColor=101722&amp;color=85CFE8" alt="Electron" />
+  <img src="https://img.shields.io/badge/React-101722?style=flat-square&amp;labelColor=101722&amp;color=D7B877" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-101722?style=flat-square&amp;labelColor=101722&amp;color=B8A1E3" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Codex-101722?style=flat-square&amp;labelColor=101722&amp;color=9FC9A2" alt="Codex" />
+</p>
+
+<p align="center">
+  <a href="https://quintinvizza.dev">Portfolio</a> · <a href="https://github.com/Vizzaq23">GitHub profile</a>
+</p>
+
+<p align="center">
+  <a href="#overview">Overview</a> · <a href="#open-it">Open Sunny</a> · <a href="#included">Features</a> · <a href="#development">Development</a> · <a href="docs/SUNNY-AI-PIPELINE.md">Mission guide</a>
+</p>
+
+<img src="https://raw.githubusercontent.com/Vizzaq23/Vizzaq23/main/assets/divider.svg" width="100%" alt="" />
+
+## Overview
 
 A personal Windows AI studio aboard the Thousand Sunny. Click a Straw Hat station to start a real Codex mission, then work with its conversation, files, Git changes, terminal and local preview.
 
@@ -122,3 +148,7 @@ Click the floating blimp above the island, or **Morgans’ blimp** in the sideba
 For a fresh personal briefing, use **Copy Chrome briefing request**, paste it into Codex, then **Import Chrome capture** to select its JSON output. X and LinkedIn buttons open the installed Chrome browser. These are imported, bounded snapshots, not continuously connected feeds. Set target roles, location and topics before requesting career-focused captures. No background collection, automatic applications or outreach is enabled.
 
 Imports accept 1–50 items (512 KB maximum JSON file); the archive holds 500. Required story fields: `title`, HTTPS `url`, `summary`, `why`, `nextStep`, `category` (`projects`, `careers`, `learning`). Optional fields: `source`, registered `projectId`, actual `publishedAt`. Wrap stories in `{ "origin": "Chrome — partial capture", "items": [...] }`. Imports validate the whole batch before changing saved data and merge duplicate URLs while preserving saved/read status. News is included in local backups.
+
+<img src="https://raw.githubusercontent.com/Vizzaq23/Vizzaq23/main/assets/divider.svg" width="100%" alt="" />
+
+<p align="center"><sub>Built by <a href="https://github.com/Vizzaq23">Quintin Vizza</a> · <a href="https://quintinvizza.dev">Explore my work</a></sub></p>

@@ -14,13 +14,13 @@ function codexLaunchEnv(environment){
  return env;
 }
 class CodexClient extends EventEmitter {
- constructor(){super();this.seq=0;this.pending=new Map();this.buffer='';this.child=null;this.connected=false;this.connecting=null;this.diagnostic='';}
+ constructor(){super();this.seq=0;this.pending=new Map();this.child=null;this.connected=false;this.connecting=null;this.diagnostic='';}
  attach(child){
-  this.child=child;this.buffer='';this.connected=true;
-  child.stdout.setEncoding('utf8');child.stdout.on('data',data=>{this.buffer+=data;let newline;while((newline=this.buffer.indexOf('\n'))!==-1){const line=this.buffer.slice(0,newline);this.buffer=this.buffer.slice(newline+1);try{this.receive(JSON.parse(line));}catch(e){this.emit('diagnostic','Unreadable protocol message: '+e.message);}}});
-  child.stderr.setEncoding('utf8');child.stderr.on('data',s=>{this.diagnostic=(this.diagnostic+s).slice(-5000);this.emit('diagnostic',s);});
-  child.on('error',e=>{if(this.child===child)this.disconnect(e.message);});child.on('exit',code=>{if(this.child===child)this.disconnect('Codex disconnected (exit '+code+'). '+this.diagnostic.slice(-500));});
-  child.stdin.on('error',e=>{if(this.child===child)this.disconnect(e.message);});
+  this.child=child;this.connected=true;let buffer='';const current=()=>this.child===child&&this.connected;
+  child.stdout.setEncoding('utf8');child.stdout.on('data',data=>{if(!current())return;buffer+=data;let newline;while(current()&&(newline=buffer.indexOf('\n'))!==-1){const line=buffer.slice(0,newline);buffer=buffer.slice(newline+1);try{this.receive(JSON.parse(line));}catch(e){if(current())this.emit('diagnostic','Unreadable protocol message: '+e.message);}}});
+  child.stderr.setEncoding('utf8');child.stderr.on('data',s=>{if(!current())return;this.diagnostic=(this.diagnostic+s).slice(-5000);this.emit('diagnostic',s);});
+  child.on('error',e=>{if(current())this.disconnect(e.message);});child.on('exit',code=>{if(current())this.disconnect('Codex disconnected (exit '+code+'). '+this.diagnostic.slice(-500));});
+  child.stdin.on('error',e=>{if(current())this.disconnect(e.message);});
  }
  receive(message){
   if(message.method){this.emit(message.id!==undefined?'request':'notification',message);return;}

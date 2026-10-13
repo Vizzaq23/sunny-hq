@@ -32,6 +32,7 @@ async function handle(action,args={}){
  case 'mission:submitMerge':return hub.merger.act(args,'submit');
  case 'mission:recheckMerge':return hub.merger.act(args,'recheck');
  case 'mission:preparePr':return hub.publication.act(args,'prepare');
+ case 'mission:editPr':return hub.publication.act(args,'edit');
  case 'mission:publishPr':return hub.publication.act(args,'publish');
  case 'mission:reconcilePr':return hub.publication.act(args,'reconcile');
  case 'mission:signalSeen':return hub.markMissionSignalSeen(args);
@@ -41,6 +42,7 @@ async function handle(action,args={}){
  case 'skills:suggest':return hub.suggestSkills(args);
  case 'mission:accept':return hub.acceptMission(args);
  case 'mission:previewDeliverable':return hub.previewMissionDeliverable(args);
+ case 'mission:checks':return hub.missionCheckCapabilities(args);
  case 'mission:evidence':return hub.collectMissionEvidence(args);
  case 'mission:reconcileCheck':return hub.reconcileMissionCheck(args);
  case 'news:add':return hub.news.importCapture({origin:'Added in Sunny',items:[args]});

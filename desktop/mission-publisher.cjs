@@ -1,4 +1,8 @@
 const fs=require('node:fs'),os=require('node:os'),path=require('node:path');const {randomUUID}=require('node:crypto');const {execFile}=require('node:child_process');const {promisify}=require('node:util');const exec=promisify(execFile);
+function validatePrText(title,body){
+ if(typeof title!=='string'||!title.trim()||title.length>200||/[\r\n\0]/.test(title))throw Error('Invalid PR title. Use 1-200 characters on one line.');
+ if(typeof body!=='string'||!body.trim()||body.length>60000||body.includes('\0'))throw Error('Invalid PR body. Use 1-60000 characters without null bytes.');
+}
 class MissionPublisher{
  constructor({evidence,git='git',gh='gh',run}={}){this.evidence=evidence;this.git=git;this.gh=gh;this.run=run|| (async(exe,args,root)=>(await exec(exe,args,{cwd:root,windowsHide:true,timeout:60000,maxBuffer:2*1024*1024,encoding:'utf8',env:{...process.env,GH_PROMPT_DISABLED:'1',GIT_TERMINAL_PROMPT:'0'}})).stdout);}
  async repository(root){const raw=(await this.evidence.command(root,['remote','get-url','origin'])).trim();const match=/^(?:https:\/\/github\.com\/|git@github\.com:)([\w.-]+)\/([\w.-]+?)(?:\.git)?$/.exec(raw);if(!match)throw Error('A github.com origin repository is required.');return match[1]+'/'+match[2];}
@@ -56,8 +60,16 @@ Attempt: ${mission.activeAttemptId}
 Source commit: ${source.commit}`;
   return {id:randomUUID(),attemptId:mission.activeAttemptId,repository,branch:source.branch,base,title:mission.title,body,commit:source.commit,fingerprint:source.fingerprint,state:'prepared',createdAt:Date.now(),expiresAt:Date.now()+15*60*1000};
  }
+ async revise(root,preview,title,body){
+  validatePrText(title,body);
+  if(preview.state!=='prepared')throw Error('Only a prepared PR preview can be edited.');
+  await this.validate(root,preview);
+  const {authorizedAt,...previous}=preview;
+  return {...previous,id:randomUUID(),title,body,state:'prepared',createdAt:Date.now(),expiresAt:Date.now()+15*60*1000};
+ }
  async validate(root,preview){const source=await this.evidence.gitState(root),repository=await this.repository(root);if(source.dirty||source.commit!==preview.commit||source.branch!==preview.branch||source.fingerprint!==preview.fingerprint||repository!==preview.repository)throw Error('Source or repository changed. Prepare and review a new PR preview.');}
  async publish(root,preview){
+  validatePrText(preview.title,preview.body);
   await this.validate(root,preview);
   const folder=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-pr-')),bodyFile=path.join(folder,'body.md');
   try{
@@ -71,7 +83,7 @@ Source commit: ${source.commit}`;
 class MissionPublication{
  constructor(hub){this.hub=hub;}
  async act(input,mode){
-  const hub=this.hub;hub.validateMissionAction(input,mode==='prepare'?['missionId','revision','base']:mode==='publish'?['missionId','revision','previewId','confirmed']:['missionId','revision','prNumber']);
+  const hub=this.hub;hub.validateMissionAction(input,mode==='prepare'?['missionId','revision','base']:mode==='edit'?['missionId','revision','previewId','title','body']:mode==='publish'?['missionId','revision','previewId','confirmed']:['missionId','revision','prNumber']);
   const mission=hub.missionBook.get(input.missionId);hub.missionBook.check(mission,input.revision);if(mission.status!=='WAITING_FOR_REVIEW')throw Error('Finish the attempt before preparing a pull request.');
   if(hub.missionActions.has(mission.id))throw Error('Wait for the current mission action.');
   const project=hub.project(mission.projectId),lock='mission-publication:'+mission.id;
@@ -84,8 +96,14 @@ class MissionPublication{
    }
    const preview=mission.prPublication;
    if(!preview||preview.attemptId!==mission.activeAttemptId)throw Error('Prepare a PR preview for this attempt first.');
+   if(mode==='edit'){
+    if(input.previewId!==preview.id||preview.state!=='prepared')throw Error('Edit the current prepared PR preview. Reconcile publication before changing text.');
+    const revised=await hub.publisher.revise(project.path,preview,input.title,input.body);if(hub.closed)throw Error('Sunny closed before the edited preview could be saved.');
+    return hub.missionMutation(()=>{hub.missionBook.check(mission,input.revision);mission.prPublication=revised;hub.missionBook.record(mission,'PR_PREPARED',{previewId:revised.id,actor:'captain',reason:'edited-preview'});return revised;});
+   }
    if(mode==='publish'){
     if(input.confirmed!==true||input.previewId!==preview.id||preview.state!=='prepared'||Date.now()>preview.expiresAt)throw Error('Review and confirm the current unexpired PR preview.');
+    validatePrText(preview.title,preview.body);
     await hub.publisher.validate(project.path,preview);if(hub.closed)throw Error('Sunny closed before publication.');
     hub.missionMutation(()=>{hub.missionBook.check(mission,input.revision);preview.state='publishing';preview.authorizedAt=Date.now();hub.missionBook.record(mission,'PR_PUBLISH_AUTHORIZED',{previewId:preview.id,actor:'captain'});});
     try{const result=await hub.publisher.publish(project.path,preview);return hub.missionMutation(()=>{preview.state='published';Object.assign(preview,result);hub.missionBook.record(mission,'PR_CREATED',{previewId:preview.id,url:result.url});return preview;});}
@@ -98,4 +116,4 @@ class MissionPublication{
   }finally{hub.gate.release(lock);hub.missionActions.delete(mission.id);}
  }
 }
-module.exports={MissionPublisher,MissionPublication};
+module.exports={MissionPublisher,MissionPublication,validatePrText};

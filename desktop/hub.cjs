@@ -3,6 +3,7 @@ const {CodexClient}=require('./codex.cjs');const {Growth}=require('./growth.cjs'
 const {selectExecution,routingContext}=require('./model-routing.cjs');
 const {createApproval,approvalResult}=require('./approvals.cjs');
 const {MissionBook}=require('./missions.cjs');
+const {CheckPreflightError}=require('./mission-evidence.cjs');
 const {ROLE_BINDINGS,resolveMissionRole,missionContext}=require('./mission-roles.cjs');
 const {createWorkReport}=require('./work-report.cjs');
 const {discussionConfig}=require('./crew-chat.cjs');
@@ -95,6 +96,11 @@ class Hub extends EventEmitter {
    });
   }finally{this.gate.release(lock);this.missionActions.delete(mission.id);}
  }
+ missionCheckCapabilities(input){
+  if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(key=>key!=='missionId')||typeof input.missionId!=='string'||!input.missionId.trim()||input.missionId.length>200)throw Error('Invalid mission command.');
+  const mission=this.missionBook.get(input.missionId);
+  return require('./mission-evidence.cjs').availableChecks(this.project(mission.projectId).path);
+ }
  async collectMissionEvidence(input){
   this.validateMissionAction(input,['missionId','revision','script','prNumber','filePath','deployment','imagePath','provenance']);
   if(['script','prNumber','filePath','deployment','imagePath'].filter(key=>input[key]!==undefined).length>1)throw Error('Choose one evidence action.');
@@ -108,6 +114,7 @@ class Hub extends EventEmitter {
   const mission=this.missionBook.get(input.missionId);this.missionBook.check(mission,input.revision);
   if(mission.status!=='WAITING_FOR_REVIEW'&&!(input.deployment===true&&mission.status==='COMPLETE'))throw Error('Finish the crew attempt before collecting review evidence.');
   const project=this.project(mission.projectId),lock='mission-evidence:'+mission.id,attemptId=mission.activeAttemptId;
+  if(input.script)require('./mission-evidence.cjs').assertCheckAvailable(project.path,input.script);
   this.gate.acquire(lock,project.path);this.missionActions.add(mission.id);if(input.script)this.checkRuns.add(mission.id);
   try{
    this.missionMutation(()=>{if(input.script)mission.checkExecution={id:randomUUID(),attemptId,script:input.script,startedAt:Date.now()};this.missionBook.record(mission,input.script?'TEST_STARTED':'EVIDENCE_STARTED',{script:input.script||null});});
@@ -121,7 +128,7 @@ class Hub extends EventEmitter {
     if(input.script)current.checkExecution=undefined;
     this.missionBook.record(current,evidence.kind==='check'?(evidence.status==='passed'?'TEST_PASSED':'TEST_FAILED'):evidence.kind==='pull-request'?'PR_UPDATED':['deliverable','image'].includes(evidence.kind)?'DELIVERABLE_ATTACHED':evidence.kind==='deployment'?'DEPLOYMENT_INSPECTED':'GIT_INSPECTED',{artifactId:artifact.id});return artifact;
    });
-  }catch(error){if(!this.closed)this.missionMutation(()=>{const current=this.missionBook.get(mission.id);if(input.script&&!error.uncertain&&current.checkExecution){current.artifacts.push({id:randomUUID(),kind:'check',attemptId,projectId:project.id,producer:'sunny-local-verifier',script:input.script,command:'npm run '+input.script,status:'failed',exitCode:null,recordedAt:Date.now()});current.checkExecution=undefined;}this.missionBook.record(current,'EVIDENCE_FAILED',{message:String(error.message).slice(0,1000)});});throw error;}
+  }catch(error){const notStarted=error instanceof CheckPreflightError;if(!this.closed)this.missionMutation(()=>{const current=this.missionBook.get(mission.id);if(input.script&&!error.uncertain&&current.checkExecution){if(!notStarted)current.artifacts.push({id:randomUUID(),kind:'check',attemptId,projectId:project.id,producer:'sunny-local-verifier',script:input.script,command:'npm run '+input.script,status:'failed',exitCode:null,recordedAt:Date.now()});current.checkExecution=undefined;}this.missionBook.record(current,notStarted?'CHECK_NOT_STARTED':'EVIDENCE_FAILED',{script:input.script||null,message:String(error.message).slice(0,1000)});});throw error;}
   finally{this.checkRuns.delete(mission.id);if(!this.missionBook.get(mission.id).checkExecution){this.gate.release(lock);this.missionActions.delete(mission.id);}}
  }
  reconcileMissionCheck(input){
@@ -296,7 +303,7 @@ class Hub extends EventEmitter {
   finally{this.discussionRun=null;this.changed();}
  }
  cancelDiscussion(){this.discussionRun?.cancel();}
- async handoff({taskId,crewId,prompt}){const task=this.task(taskId);if(['working','starting','waiting'].includes(task.status))throw Error('Finish or interrupt this task before handing it off.');const latest=[...task.messages].reverse().find(m=>m.role==='assistant')?.text||'';return this.start({projectId:task.projectId,crewId,title:'Handoff: '+task.title,prompt:`Handoff from ${task.crewId}: ${task.title}\n\nPrevious result (verify against current files):\n${latest.slice(-14000)}\n\nYour objective:\n${prompt||'Review the previous work and report the next useful step.'}`});}
+ async handoff({taskId,crewId,prompt}){this.assertMissionSendAllowed(taskId);const task=this.task(taskId);if(['working','starting','waiting'].includes(task.status))throw Error('Finish or interrupt this task before handing it off.');const latest=[...task.messages].reverse().find(m=>m.role==='assistant')?.text||'';return this.start({projectId:task.projectId,crewId,title:'Handoff: '+task.title,prompt:`Handoff from ${task.crewId}: ${task.title}\n\nPrevious result (verify against current files):\n${latest.slice(-14000)}\n\nYour objective:\n${prompt||'Review the previous work and report the next useful step.'}`});}
  notification({method,params:p={}}){
  if(method==='account/updated'){this.state.codex.account=p.planType||p.authMode;this.state.codex.status=p.authMode?'connected':'sign-in required';this.changed();return;}
  if(method==='account/rateLimits/updated'){this.state.usage=p;this.changed();return;}

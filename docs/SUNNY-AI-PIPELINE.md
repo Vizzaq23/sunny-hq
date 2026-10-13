@@ -151,3 +151,13 @@ Keep the pre-update backup and previous package. Do not let an older binary over
 The current implementation has recorded live Codex coding, coordination and creative runs, real GitHub PRs/merges and hosted checks, plus isolated native workflow tests. Those separate records do not automatically prove one continuous live journey through every screen. The chart mission reached a real PR and merge, but its mission ID was absent from the observed daily profile, so its captain acceptance was not recorded there. As of 2026-09-23, Morgans reporting and optional Jev advice are reviewed source changes awaiting merge and daily-app activation. Sunny's GitHub CLI is installed but not signed in at this checkpoint, so a new live Sunny-published PR still requires that sign-in and a chosen test project.
 
 Project charts and its filtering follow-up are source increments after the previously activated package. Do not assume a feature is installed until the update record says so. See the [current requirement audit](master-goal-audit.md) and [implementation report](SUNNY-HQ-IMPLEMENTATION-REPORT.md) for exact evidence and remaining work.
+
+### Review controls (2026-09-30 source update)
+
+Finished mission conversations and coordinated stage results require **Start a new attempt** on the Mission Board before additional work or a crewmate handoff. Ordinary conversation handoffs remain available. This preserves the reviewed attempt's history.
+
+The board discovers the registered project's available npm checks and disables absent scripts with an explanation. A rejected unavailable script adds no failed check evidence; a check that actually executes and fails still blocks acceptance. Existing saved failed checks are retained. If package scripts change after discovery, execution validates availability again.
+
+Unsent Mission Board briefs are saved per project for the current window, including title, objective, criteria, and completion boundary. They survive navigation and reload. Closing the window ends these drafts; save a mission brief to retain it in Sunny's mission records. A failed save preserves the draft, and saving one project's brief does not clear another project's draft.
+
+Before publishing a draft PR, complete its title and description in the preview. **Save revised PR preview** saves exact text against the inspected commit and target, then requires a fresh confirmation. Unsaved edits disable publication. Saving text does not push, create a PR, or accept a mission. If the source changed, discard unsaved edits as needed and prepare a fresh source preview.

@@ -1,5 +1,11 @@
 // Private compiled scenario, never a provider selected by settings or manifest code.
 // No Hub state is available here: inputs are actual outbound protocol and roots.
+// Hub appends this boundary after recalled episodes. History must never select a worker.
+function currentAssignment(text){
+ const boundary='Current captain message:\n\n',start=text.lastIndexOf(boundary);
+ if(start<0)return undefined;
+ return /^Bounded Sunny assignment (journey-[12]-(?:alpha|beta|author))\./.exec(text.slice(start+boundary.length))?.[1];
+}
 function create(manifest,{managedRoot}){
  require('./packaged-acceptance.cjs').assertFixtureCapability(manifest);
  const {EventEmitter}=require('node:events'),fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
@@ -30,7 +36,7 @@ function create(manifest,{managedRoot}){
    assert.ok(c.criteria.every(v=>['test','build'].every(kind=>c.checkReceipts.some(r=>r.criterionId===v.id&&r.kind===kind&&r.status==='passed'))));
    await mutate(t,'sunny_review',c=>({...bind(c),verdict:{id:a.id+'-verdict',source:c.source,decision:'approve',findings:[],criteriaIds:c.criteria.map(v=>v.id)}}));await done(t,'Independently inspected the actual counter implementation and suite receipts.');return;
   }
-  const match=t.text.match(/Bounded Sunny assignment (journey-[12]-(?:alpha|beta|author))\./),a=assignments.get(match?.[1]);if(!a||a.capability!=='implementation'||++counts.authors>(cue?4:1))deny('unplanned author');
+  const match=currentAssignment(t.text),a=assignments.get(match);if(!a||a.capability!=='implementation'||++counts.authors>(cue?4:1))deny('unplanned author');
   const files=a.id.endsWith('alpha')?['alpha.cjs']:a.id.endsWith('beta')?['beta.cjs']:['alpha.cjs','beta.cjs'];for(const file of files){const target=path.join(t.cwd,'src',file);if(fs.lstatSync(target).isSymbolicLink())deny('source alias');fs.writeFileSync(target,file==='alpha.cjs'?assets.alpha(a.epoch):assets.beta(a.epoch));}await git(t.cwd,['add','--',...files.map(f=>'src/'+f)]);await git(t.cwd,['-c','user.name=Finite journey','-c','user.email=fixture@example.invalid','commit','-m','Useful fixed journey '+a.id]);await done(t,'Committed useful counter behavior for '+a.id);
  }
  client.request=async(method,p={})=>{live();if(method==='skills/list')return {data:[]};if(method==='config/read')return {config:{}};

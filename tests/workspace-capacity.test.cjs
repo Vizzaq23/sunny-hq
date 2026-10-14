@@ -20,4 +20,3 @@ test('workspace preparation waits for a writer and resumes once without an admis
  assert.deepEqual(f.turns,['first','second']);assert.deepEqual(admission,[]);assert.deepEqual(f.errors,[]);
  await f.complete('second');
 });
-

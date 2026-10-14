@@ -6,12 +6,14 @@ const {Hub}=require('./hub.cjs');const {StateStore}=require('./core.cjs');
 const output=path.join(__dirname,'../.sunny-dev/mission-check',String(Date.now()));fs.mkdirSync(output,{recursive:true});const runtime=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-mission-'));app.setPath('userData',path.join(runtime,'profile'));
 app.whenReady().then(async()=>{
  const projectRoot=path.join(runtime,'project');fs.mkdirSync(projectRoot);const git=(...args)=>execFileSync('git',args,{cwd:projectRoot,windowsHide:true,stdio:'pipe'});
+ const skillFile=path.join(projectRoot,'.agents','skills','ecc-frontend-a11y','SKILL.md');fs.mkdirSync(path.dirname(skillFile),{recursive:true});fs.writeFileSync(skillFile,'---\nname: ecc-frontend-a11y\ndescription: Fixture UI accessibility review.\n---\nReview the fixture form.\n');
  git('init');git('config','user.email','fixture@example.invalid');git('config','user.name','Sunny fixture');
  const fixturePng=process.env.SUNNY_SMOKE_IMAGE?fs.readFileSync(process.env.SUNNY_SMOKE_IMAGE):require('electron').nativeImage.createFromBitmap(Buffer.alloc(128*96*4,220),{width:128,height:96}).toPNG();fs.writeFileSync(path.join(projectRoot,'concept.png'),fixturePng);const imageWidth=require('electron').nativeImage.createFromBuffer(fixturePng).getSize().width;
  fs.writeFileSync(path.join(projectRoot,'welcome.md'),'# Welcome aboard\nFixture creative note.\n<script>window.sunnyDeliverableExecuted=true</script>');
  fs.writeFileSync(path.join(projectRoot,'package.json'),JSON.stringify({scripts:{test:'node -e "process.exit(0)"'}}));git('add','.');git('commit','-m','Fixture check');git('remote','add','origin','https://github.com/fixture/sunny.git');
+ const vault=path.join(runtime,'vault');fs.mkdirSync(vault);
  const store=new StateStore(path.join(runtime,'state.json'));
- const hub=new Hub({home:runtime,store,catalog:{discoverProjects:()=>[{id:'fixture',name:'Fixture project',path:projectRoot,category:'development'}],discoverTools:()=>[],discoverAutomations:()=>[]}});
+ const hub=new Hub({home:runtime,store,catalog:{discoverProjects:()=>[{id:'fixture',name:'Fixture project',path:projectRoot,category:'development'}],discoverTools:()=>[],discoverAutomations:()=>[],vaultPath:()=>vault}});
  const win=new BrowserWindow({width:1280,height:900,show:false,webPreferences:{offscreen:true,backgroundThrottling:false,preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
  // All publishing transport is intercepted here: this fixture never pushes or creates a remote PR.
  const mergeViaUi=process.env.SUNNY_SMOKE_MERGE_UI==='1';let fixtureMerged=process.env.SUNNY_SMOKE_MERGE==='1'&&!mergeViaUi;const publicationCalls=[];hub.publisher.run=async(exe,args)=>{publicationCalls.push({exe,args});assert.notEqual(args[0],'api','No remote merge submission is allowed');return args[0]==='pr'?'https://github.com/fixture/sunny/pull/1\n':'';};
@@ -20,12 +22,15 @@ app.whenReady().then(async()=>{
  hub.pullRequests.read=async()=>({number:1,url:'https://github.com/fixture/sunny/pull/1',state:fixtureMerged?'MERGED':'OPEN',mergedAt:fixtureMerged?'2026-09-21T12:00:00Z':null,headRefOid:git('rev-parse','HEAD').toString().trim(),headRefName:git('branch','--show-current').toString().trim(),baseRefName:'main',isDraft:false,reviewDecision:'APPROVED',statusCheckRollup:mergeBound?[{__typename:'CheckRun',status:'COMPLETED',conclusion:'SUCCESS'}]:[]});
  const deploymentCalls=[];hub.deployments.read=async args=>{deploymentCalls.push(args);assert.equal(args[args.indexOf('--method')+1],'GET');const base='https://api.github.com/repos/fixture/sunny',url=base+'/deployments/42';return args.at(-1).includes('/statuses?')?[{id:43,url:url+'/statuses/43',deployment_url:url,state:'success',created_at:'2026-09-21T12:00:00Z'}]:[{id:42,url,repository_url:base,statuses_url:url+'/statuses',environment:'fixture-preview',sha:git('rev-parse','HEAD').toString().trim(),created_at:'2026-09-21T11:00:00Z'}];};
  hub.client.connected=true;hub.state.codex.status='connected';hub.state.settings.reducedMotion=true;
- hub.client.request=async method=>{if(method==='config/read')return {config:{}};if(method==='thread/start')return {thread:{id:'fixture-thread-'+(++threadSequence)}};if(method==='turn/start')return {turn:{id:'fixture-turn-'+threadSequence}};throw Error('Unexpected fixture call '+method);};
+ const skillTurnInputs=[];
+ hub.client.request=async(method,args)=>{if(method==='skills/list')return {data:[{cwd:projectRoot,skills:[{name:'ecc-frontend-a11y',path:skillFile,enabled:true}]}]};if(method==='config/read')return {config:{}};if(method==='thread/start')return {thread:{id:'fixture-thread-'+(++threadSequence)}};if(method==='turn/start'){skillTurnInputs.push(args.input);return {turn:{id:'fixture-turn-'+threadSequence}};}throw Error('Unexpected fixture call '+method);};
  const appErrors=[];hub.on('event',event=>{if(event.type==='error')appErrors.push(event.data);win.webContents.send('sunny:event',event);});
  win.webContents.on('console-message',event=>{if(event.level==='error'){appErrors.push({message:event.message});console.error('Renderer:',event.message);}});
  ipcMain.handle('sunny:invoke',async(_e,action,args)=>{
-  if(action==='skills:suggest')return {available:[],suggested:[]};
+  if(action==='skills:suggest')return hub.suggestSkills(args);
   if(action==='snapshot')return hub.state;
+  if(action==='result:save')return hub.resultSaves.save(args);
+  if(action==='result:recover')return hub.resultSaves.recover(args);
   if(action==='task:resolveMissingThread')return hub.resolveMissingThread(args);
   if(action==='files:list')return [];
   if(action==='asset:crewTexture'||action==='app:diagnostic')return null;
@@ -39,6 +44,7 @@ app.whenReady().then(async()=>{
   if(action==='mission:prepareBranch')return hub.prepareMissionBranch(args);
   if(action==='mission:start')return hub.startMission(args);
   if(action==='mission:accept')return hub.acceptMission(args);
+  if(action==='mission:requestChanges')return hub.requestMissionChanges(args);
   if(action==='mission:previewDeliverable')return hub.previewMissionDeliverable(args);
   if(action==='mission:evidence')return hub.collectMissionEvidence(args);
   if(action==='mission:reconcileCheck')return hub.reconcileMissionCheck(args);
@@ -90,7 +96,10 @@ app.whenReady().then(async()=>{
   await fill('[aria-label="Mission title"]','Keep this unfinished brief');await js('document.querySelector(".room-health-mission").click()');await delay(100);assert.equal(await js(`document.querySelector('[aria-label="Mission title"]').value`),'Keep this unfinished brief');
   await js('document.querySelector(".mission-prepare-branch").click()');await wait('document.querySelector(".mission-detail").textContent.includes("ready")');assert.match(hub.state.missions[0].branch.name,/^codex\/sunny-/);
   await js(`(()=>{const e=document.querySelector(".mission-launch-controls select");e.value=${JSON.stringify(coordinated?'coordinator':'builder')};e.dispatchEvent(new Event("change",{bubbles:true}));})()`);await delay(50);
+  await wait('Boolean(document.querySelector(".mission-launch-controls .skill-options input"))');await js('document.querySelector(".mission-launch-controls .skill-options input").click()');
   await wait('!document.querySelector(".mission-launch").disabled');await js('document.querySelector(".mission-launch").click()');await wait('document.querySelector(".mission-board").textContent.includes("Running")');
+  assert.equal(hub.state.missions[0].attempts[0].selectedSkills[0].id,'ecc-frontend-a11y');
+  if(!coordinated)assert.ok(skillTurnInputs[0].some(input=>input.type==='skill'&&input.path===skillFile));
   assert.equal(hub.state.missions[0].status,'RUNNING');
   const rootTask=hub.state.tasks[0];
   const completeTask=task=>{hub.notification({method:'item/completed',params:{threadId:task.threadId,item:{id:'result-'+task.id,type:'agentMessage',text:'Labelled fixture stage result'}}});hub.notification({method:'turn/completed',params:{threadId:task.threadId,turn:{id:task.turnId,status:'completed'}}});};
@@ -113,6 +122,20 @@ app.whenReady().then(async()=>{
   }}
   completeTask(rootTask);
   await wait('Boolean(document.querySelector(".mission-accept"))');if(coordinated){assert.equal(await js('document.querySelectorAll(".mission-attempt ol li").length'),4);}
+  // Separate review fixture: rejection stays durable and never launches a replacement by itself.
+  const reviewedMission=hub.state.missions[0],reviewedAttempt=reviewedMission.activeAttemptId;
+  await fill('[aria-label="Requested changes"]','Include the verified source and remaining blocker.');await js('document.querySelector(".mission-request-changes").click()');
+  await wait('document.querySelector(".mission-current")?.textContent.includes("Changes requested")');
+  assert.equal(reviewedMission.status,'BLOCKED');assert.equal(reviewedMission.activeAttemptId,reviewedAttempt);assert.equal(reviewedMission.reviewDecisions[0].decision,'changes-requested');
+  const reviewReload=new Hub({home:runtime,store:{load:()=>store.load(),save(){},close(){}},catalog:{discoverProjects:()=>[],discoverTools:()=>[],discoverAutomations:()=>[]}});
+  try{assert.equal(reviewReload.state.missions[0].reviewDecisions[0].note,'Include the verified source and remaining blocker.');}finally{reviewReload.close();}
+  await wait('!document.querySelector(".mission-launch").disabled');await js('document.querySelector(".mission-launch").click()');await wait('document.querySelector(".mission-current")?.textContent.includes("Running")');
+  const revisionTask=hub.state.tasks.find(task=>task.id===reviewedMission.attempts.at(-1).taskId);assert.notEqual(reviewedMission.activeAttemptId,reviewedAttempt);
+  if(coordinated){hub.client.respond=()=>{};for(const [index,crewId] of ['nami','franky','usopp','zoro'].entries()){
+   const pending=hub.request({id:200+index,method:'item/tool/call',params:{threadId:revisionTask.threadId,turnId:revisionTask.turnId,callId:'revision-stage-'+index,tool:'sunny_delegate',arguments:{crewId,title:'Fixture revision '+crewId,objective:'Provide the bounded revised stage result'}}});
+   await delay(50);const child=hub.state.tasks.find(task=>task.parentTaskId===revisionTask.id&&task.status==='working');assert.ok(child);completeTask(child);assert.equal((await pending).success,true);
+  }}
+  completeTask(revisionTask);await wait('Boolean(document.querySelector(".mission-accept"))');
   const originalCheck=hub.evidence.runCheck.bind(hub.evidence);hub.evidence.runCheck=async()=>{throw Object.assign(Error('Fixture uncertain cleanup'),{uncertain:true});};
   await js('document.querySelector(".mission-run-test").click()');await wait('Boolean(document.querySelector(".mission-check-recovery"))');await wait('document.querySelector(".mission-error")?.textContent.includes("Fixture uncertain cleanup")');
   assert.equal(hub.gate.blocked(projectRoot),true);assert.equal(await js('document.querySelector(".mission-check-recovery button").disabled'),true);
@@ -155,6 +178,10 @@ app.whenReady().then(async()=>{
   assert.equal(await js('document.querySelector(".mission-accept").disabled'),true);
   await js('document.querySelector(".mission-criteria input").click()');
   await js('document.querySelector(".mission-accept").click()');await wait('document.querySelector(".mission-board").textContent.includes("Complete")');
+  await wait('!document.querySelector(".mission-preview-deliverable").disabled');await js('document.querySelector(".mission-preview-deliverable").click()');await wait('Boolean(document.querySelector(".save-reviewed-result"))');
+  await js('document.querySelector(".save-reviewed-result").click()');await wait('document.querySelector(".save-reviewed-result")?.textContent==="Saved to Obsidian"');
+  assert.equal(hub.state.resultSaves.length,1);assert.equal(hub.state.resultSaves[0].missionId,hub.state.missions[0].id);assert.equal(hub.state.resultSaves[0].attemptId,hub.state.missions[0].activeAttemptId);assert.equal(fs.readdirSync(path.join(vault,'00 Inbox')).length,1);
+  await js('document.querySelector(".save-reviewed-result").scrollIntoView({block:"center"})');await delay(300);fs.writeFileSync(path.join(output,'accepted-report-saved.png'),(await win.webContents.capturePage()).toPNG());
   assert.equal(JSON.parse(fs.readFileSync(store.file,'utf8')).missionBook.missions[0].status,'COMPLETE');
   await wait('document.querySelector(".room-crew-roster").textContent.includes("Mission complete")');
   await js('document.querySelector(".room-crew-roster").scrollIntoView({block:"start"})');await delay(300);fs.writeFileSync(path.join(output,'crew-stations.png'),(await win.webContents.capturePage()).toPNG());

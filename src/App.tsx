@@ -7,6 +7,7 @@ import {Sidebar,Toasts,Topbar,type ViewId} from './components/Chrome';
 import {HomeView} from './views/HomeView';
 import {ProjectRoom} from './views/ProjectRoom';
 import {MissionBoard} from './views/MissionBoard';
+import {resolveReportTask} from './reportTask';
 
 const Workbench=lazy(()=>import('./views/Workbench').then(module=>({default:module.Workbench})));
 const MorgansView=lazy(()=>import('./views/MorgansView').then(module=>({default:module.MorgansView})));
@@ -20,7 +21,7 @@ const LibraryView=lazy(()=>import('./views/OpsViews').then(module=>({default:mod
 const ToolsView=lazy(()=>import('./views/OpsViews').then(module=>({default:module.ToolsView})));
 const SettingsView=lazy(()=>import('./views/OpsViews').then(module=>({default:module.SettingsView})));
 type WorkspaceInit={taskId?:string;projectId?:string;crewId?:CrewId;prompt?:string;draftKey?:string};
-export type ReportViewState={result:WorkReportResult|null;draft:string;dirty:boolean;saved:boolean;title:string};
+export type ReportViewState={result:WorkReportResult|null;draft:string;dirty:boolean;title:string};
 function appendReportSources(answer:string,packet:WorkReportPacket){
   const items=packet.projects.flatMap(project=>[...project.tasks,...project.missions,...project.observations]);
   const sources=items.map(item=>`- ${item.kind} ${item.sourceId} · ${new Date(item.sourceTime).toISOString()} · project ${item.projectId}`).join('\n');
@@ -37,12 +38,13 @@ export default function App(){
   const [launchPending,setLaunchPending]=useState(false);
   const [workspace,setWorkspace]=useState<WorkspaceInit|null>(null);
   const [activeProjectId,setActiveProjectId]=useState<string>();
-  const [reportView,setReportView]=useState<ReportViewState>({result:null,draft:'',dirty:false,saved:false,title:'Morgans work report'});
+  const [reportView,setReportView]=useState<ReportViewState>({result:null,draft:'',dirty:false,title:'Morgans work report'});
   const [focusMission,setFocusMission]=useState<{id:string;sequence:number}>();
-  const reporterTask=snapshot.tasks.find(task=>task.id===reportView.result?.task?.id);
-  useEffect(()=>{if(!reportView.dirty||reportView.saved)return;const warn=(event:BeforeUnloadEvent)=>{event.preventDefault();event.returnValue='';};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[reportView.dirty,reportView.saved]);
+  const reporterTask=resolveReportTask(snapshot.tasks,reportView.result?.task);
+  const reportSaved=snapshot.resultSaves?.some(record=>record.taskId===reporterTask?.id&&record.title===reportView.title.trim()&&record.text===reportView.draft&&record.status==='saved');
+  useEffect(()=>{if(!reportView.dirty||reportSaved)return;const warn=(event:BeforeUnloadEvent)=>{event.preventDefault();event.returnValue='';};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[reportView.dirty,reportSaved]);
   useEffect(()=>{if(reporterTask?.status!=='finished')return;setReportView(current=>{
-    if(!current.result||current.dirty||current.draft||current.result.task?.id!==reporterTask.id)return current;
+    if(!current.result||current.dirty||current.draft||resolveReportTask(snapshot.tasks,current.result.task)?.id!==reporterTask.id)return current;
     const answer=[...reporterTask.messages].reverse().find(message=>message.role==='assistant')?.text;
     return answer?{...current,draft:appendReportSources(answer,current.result.packet)}:current;
   });},[reporterTask?.status,reporterTask?.messages]);

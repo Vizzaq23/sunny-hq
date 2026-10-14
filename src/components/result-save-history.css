@@ -1,0 +1,10 @@
+.result-save-history{margin-top:24px;border-top:1px solid var(--line,#d9cfbd);padding-top:16px}
+.result-save-history article{padding:16px 0;border-bottom:1px solid var(--line,#d9cfbd)}
+.result-save-history h5{font-size:16px;margin:0}
+.result-save-path,.result-save-history dd{overflow-wrap:anywhere}
+.result-save-history pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:320px;overflow:auto;padding:12px;background:#fff8eb;color:#29251e}
+.result-save-history button{margin:10px 10px 0 0}
+.result-save-history summary{cursor:pointer}
+.result-save-history dt{font-weight:600}
+.result-save-history dd{margin:0 0 8px}
+.save-reviewed-path{overflow-wrap:anywhere}

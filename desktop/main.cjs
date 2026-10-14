@@ -28,6 +28,9 @@ async function handle(action,args={}){
  require('./task-commands.cjs').validateTaskCommand(action,args);
  switch(action){
  case 'snapshot':return publicState();
+ case 'result:save':return hub.resultSaves.save(args);
+ case 'result:recover':return hub.resultSaves.recover(args);
+ case 'task:retryLaunch':return hub.retryFailedLaunch(args);
  case 'mission:prepareMerge':return hub.merger.act(args,'prepare');
  case 'mission:submitMerge':return hub.merger.act(args,'submit');
  case 'mission:recheckMerge':return hub.merger.act(args,'recheck');
@@ -40,6 +43,7 @@ async function handle(action,args={}){
  case 'mission:start':return hub.startMission(args);
  case 'skills:suggest':return hub.suggestSkills(args);
  case 'mission:accept':return hub.acceptMission(args);
+ case 'mission:requestChanges':return hub.requestMissionChanges(args);
  case 'mission:previewDeliverable':return hub.previewMissionDeliverable(args);
  case 'mission:evidence':return hub.collectMissionEvidence(args);
  case 'mission:reconcileCheck':return hub.reconcileMissionCheck(args);
@@ -112,7 +116,7 @@ async function handle(action,args={}){
  case 'dialog:openExternal':return openUrl(args.url);
  case 'preview:open':{const url=allowedUrl(args.url,{localOnly:true});const preview=new BrowserWindow({title:'Sunny · Local preview',width:1100,height:780,parent:win,webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true}});preview.webContents.setWindowOpenHandler(()=>({action:'deny'}));preview.webContents.on('will-navigate',(event,target)=>{try{allowedUrl(target,{localOnly:true});}catch{event.preventDefault();}});preview.webContents.session.setPermissionRequestHandler((_wc,_permission,callback)=>callback(false));await preview.loadURL(url);return;}
  case 'app:importChatGPT':{const result=await dialog.showOpenDialog(win,{title:'Import ChatGPT conversations.json',filters:[{name:'ChatGPT export',extensions:['json']}],properties:['openFile']});if(result.canceled)return null;const file=result.filePaths[0];if(fs.statSync(file).size>150*1024*1024)throw Error('Export exceeds the 150 MB import limit.');const imported=require('./import.cjs').importConversations(JSON.parse(fs.readFileSync(file,'utf8')));const merged=new Map(importedHistory().map(c=>[c.id,c]));for(const item of imported)merged.set(item.id,item);const target=path.join(dataDir,'chatgpt-history.json');fs.writeFileSync(target+'.tmp',JSON.stringify([...merged.values()]),'utf8');fs.renameSync(target+'.tmp',target);return {count:imported.length};}
- case 'app:export':{const result=await dialog.showSaveDialog(win,{defaultPath:'sunny-hq-backup.json',filters:[{name:'Sunny backup',extensions:['json']}]});if(result.canceled)return {};const backup={version:1,missionBook:hub.missionBook.data,news:hub.state.news,world:hub.state.world,exportedAt:new Date().toISOString(),projects:hub.state.projects,tasks:hub.state.tasks,settings:hub.state.settings,growth:hub.growth.data,discussions:hub.state.discussions};fs.writeFileSync(result.filePath,JSON.stringify(backup,null,2),'utf8');return {path:result.filePath};}
+ case 'app:export':{const result=await dialog.showSaveDialog(win,{defaultPath:'sunny-hq-backup.json',filters:[{name:'Sunny backup',extensions:['json']}]});if(result.canceled)return {};const backup=require('./backup.cjs').createBackup(hub);fs.writeFileSync(result.filePath,JSON.stringify(backup,null,2),'utf8');return {path:result.filePath};}
  case 'docker:list':{const raw=await command(catalog.getExecutable('docker',home),['ps','-a','--format','{{json .}}'],home);return raw.trim()?raw.trim().split('\n').map(s=>JSON.parse(s)):[];}
  case 'docker:action':{if(!/^[a-zA-Z0-9_.-]+$/.test(args.id||'')||!['start','stop','logs'].includes(args.action))throw Error('Invalid container action');return command(catalog.getExecutable('docker',home),args.action==='logs'?['logs','--tail','100',args.id]:[args.action,args.id],home);}
  case 'github:prs':return JSON.parse(await command(catalog.getExecutable('gh',home),['pr','list','--json','number,title,state,url,headRefName,statusCheckRollup'],registered(args.projectId).path));

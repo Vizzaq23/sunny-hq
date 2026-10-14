@@ -16,7 +16,20 @@ const state={projects:[{id:'studio',name:'Sunny Studio',path:output,category:'de
 ],settings:{reducedMotion:true,notifications:false},codex:{status:'connected'},approvals:[{id:'permission',taskId:'design',method:'item/commandExecution/requestApproval',params:{command:'npm test',reason:'Verify the updated dashboard.'}}],models:[],tools:[],automations:[],usage:null,world:{paused:true,residents:[],jobs:[],ledger:[]}};
  let win,failStart=true,starts=0,answers=0,failSnapshot=false,raceSnapshot=true,startDelay=150,stops=0,failCheck=true,taskRace=false,reportRequests=0,captures=0,failCapture=true;
 const emit=()=>win.webContents.send('sunny:event',{type:'snapshot',data:structuredClone(state)});
+const saveVault=fs.mkdtempSync(path.join(output,'result-vault-'));
+const saveStateFile=path.join(saveVault,'sunny-state.json');
+state.resultSaves=[];
+const resultSaves=new (require('./result-saves.cjs').ResultSaves)({state,home:saveVault,catalog:{vaultPath:()=>saveVault},task:id=>{const value=state.tasks.find(task=>task.id===id);if(!value)throw Error('Task missing');return value;},project:id=>{const value=state.projects.find(project=>project.id===id);if(!value)throw Error('Project missing');return value;},persist:()=>fs.writeFileSync(saveStateFile,JSON.stringify(state)),changed:emit});
+const readVault=resultSaves.vault.bind(resultSaves);resultSaves.vault=()=>{if(failCapture)throw Error('Fixture: Obsidian vault unavailable');return readVault();};
+let launchRetries=0;
 ipcMain.handle('sunny:invoke',async(_event,action,args)=>{
+ if(action==='task:retryLaunch'){
+  const source=state.tasks.find(task=>task.id===args.taskId);assert.equal(source.launchNotSubmitted,true);assert.equal(args.expectedUpdatedAt,source.updatedAt);
+  if(source.retryTaskId)return state.tasks.find(task=>task.id===source.retryTaskId);
+  launchRetries++;await delay(150);const next=task('launch-recovery','Recovered launch','finished','franky',{recoveryOfTaskId:source.id,messages:source.messages});source.retryTaskId=next.id;state.tasks.unshift(next);emit();return next;
+ }
+ if(action==='result:save'){captures++;return resultSaves.save(args);}
+ if(action==='result:recover')return resultSaves.recover(args);
  if(action==='skills:suggest')return args.brief.includes('dashboard')?{available:[skillOption],suggested:[skillOption]}:{available:[],suggested:[]};
  if(action==='snapshot'){
   if(failSnapshot)throw Error('Fixture: connection unavailable');
@@ -95,6 +108,9 @@ app.whenReady().then(async()=>{
   assert.equal(await js('document.querySelector(".morgans-report-draft textarea").value'),'Captain-edited report with saved evidence.','failed save keeps draft');
   failCapture=false;await click('.morgans-report-draft>button');await wait('document.querySelector(".morgans-report-draft>button").disabled');assert.equal(captures,2);
   await click('.morgans-report-draft>button');assert.equal(captures,2,'saved draft cannot be duplicated by another click');
+  assert.equal(state.resultSaves.length,1,'reviewed report has a durable task-linked save');
+  assert.equal(state.resultSaves[0].taskId,'morgans-report');
+  assert.equal(fs.existsSync(state.resultSaves[0].receipt.path),true);
   await screenshot('morgans-report-saved.png');
   await click('.morgans-report-task button');await wait('document.querySelector(".workbench")?.dataset.crewId==="morgans"');
   assert.ok(await js('document.querySelector(".conversation-room-art").src.endsWith("/assets/morgans-blimp.png")'),'reporter task uses packaged blimp art');
@@ -117,6 +133,17 @@ app.whenReady().then(async()=>{
   assert.ok(await js('document.querySelector(".morgans-report-evidence").textContent.includes("No saved task")'));
   assert.equal(await js('getComputedStyle(document.querySelector(".morgans-report")).animationName'),'none','report remains usable with reduced motion');
   await screenshot('morgans-report-uncertain.png');
+  const failedReporter=state.tasks.find(task=>task.id==='morgans-unknown');
+  failedReporter.status='failed';failedReporter.launchNotSubmitted=true;failedReporter.retryTaskId='morgans-recovered';
+  const recoveredReporter=task('morgans-recovered','Recovered work report','finished','morgans',{recoveryOfTaskId:failedReporter.id,messages:[{id:'recovered-reply',role:'assistant',text:'Recovered report keeps its original source packet.',time:Date.now()}]});
+  state.tasks.unshift(recoveredReporter);emit();
+  await wait('document.querySelector(".morgans-report-draft textarea").value.includes("Recovered report keeps")');
+  assert.equal(await js('document.querySelector(".morgans-report-draft>button").disabled'),false,'recovered reporter can save against its replacement task');
+  await fill('[aria-label="Report draft"]','Captain edited the recovered report.');emit();await delay(100);
+  assert.equal(await js('document.querySelector(".morgans-report-draft textarea").value'),'Captain edited the recovered report.','recovery updates preserve captain edits');
+  await click('.morgans-report-task button');await wait('document.querySelector(".workbench")?.dataset.crewId==="morgans"');
+  assert.ok(await js('document.body.textContent.includes("Recovered work report")'),'report source opens the replacement');
+  await click('[aria-label="Back to workspace"]');
   await nav('Crew');await wait('Boolean(document.querySelector(".crew-grid"))');assert.equal(await js('document.querySelectorAll(".crew-card").length'),10,'Morgans reporter stays separate from the ten Straw Hats');
   await nav('Home');
   assert.equal(await js('document.querySelectorAll("button button").length'),0,'no nested buttons');
@@ -228,7 +255,31 @@ app.whenReady().then(async()=>{
    assert.ok(await js(`document.querySelector(".conversation-room-art").src.endsWith("/assets/${asset}")`),`${crewId} opens its own packaged room art`);assert.equal(await js('document.querySelector(".conversation-room-art").getAttribute("aria-hidden")'),'true',`${crewId} art remains decorative`);assert.equal(await js('getComputedStyle(document.querySelector(".conversation-room-art")).opacity'),'0.19',`${crewId} scene stays subdued below chat content`);assert.ok(await js('Boolean(document.querySelector(".composer textarea")&&Array.from(document.querySelectorAll("button")).some(button=>button.getAttribute("aria-label")==="Back to workspace"))'),`${crewId} keeps direct work controls available`);
    if(crewId==='zoro')await screenshot('zoro-dojo-room-working.png');if(crewId==='chopper'){assert.ok(await js('document.querySelector(".workbench").classList.contains("reduce-motion")'),'reduced motion keeps Chopper room static and usable');await screenshot('chopper-infirmary-reduced-motion.png');}await click('[aria-label="Back to workspace"]');await wait('!document.querySelector(".workbench")');
   }
-  fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({passed:true}));console.log('SUNNY_WORKFLOW '+JSON.stringify({passed:true,checks:['snapshot-race','family-search','specialist-approval','duplicate-approval','draft-per-task','home-draft-navigation','failed-start-draft','duplicate-start','lazy-tools','folder-parent','editor-load','draft-reload','reconcile','inbox','compact-layout','island-navigation','captain-controlled-map-zoom-keyboard-touch','startup-retry','pending-launch-navigation','dirty-project-switch','dirty-file-task-start','template-cleared-after-start','character-room-theme','room-audio-toggle','room-audio-settings','robin-obsidian-library-route','note-context-unsent-robin-review','robin-note-revision-decision-context','morgans-saved-work-report','morgans-source-navigation','morgans-explicit-obsidian-save','morgans-uncertain-truncated-state','oversized-note-boundary','all-ten-illustrated-crew-rooms','reduced-motion-illustrated-room'],screenshots:output}));
+  state.resultSaves=JSON.parse(fs.readFileSync(saveStateFile,'utf8')).resultSaves;
+  await win.reload();await wait('Boolean(document.querySelector(".home-page"))');await nav('Morgans’ blimp');
+  await wait('document.querySelector(".result-save-history")?.textContent.includes("Saved")');
+  const receipt=state.resultSaves[0],note=fs.readFileSync(receipt.path,'utf8');
+  assert.ok(await js(`document.querySelector('.result-save-history').textContent.includes(${JSON.stringify(receipt.path)})`),'reloaded UI retains exact note path');
+  assert.equal(await js('Boolean(document.querySelector(".morgans-report-draft"))'),false,'receipt is visible even with empty renderer report state');
+  fs.writeFileSync(receipt.path,'An external edit.');await click('.result-save-history article>button');
+  await wait('document.querySelector(".result-save-history")?.textContent.includes("Needs recovery")');
+  assert.equal(fs.readFileSync(receipt.path,'utf8'),'An external edit.','checking does not overwrite a changed note');
+  await screenshot('morgans-report-needs-recovery.png');
+  fs.writeFileSync(receipt.path,note);await click('.result-save-history article>button');
+  await wait('document.querySelector(".result-save-history article strong")?.textContent==="Saved"');
+  assert.equal(fs.readdirSync(path.join(saveVault,'00 Inbox')).length,1);
+  await js('document.querySelector(".result-save-history summary").click();document.querySelector(".result-save-history").scrollIntoView({block:"start"})');await delay(3700);await screenshot('morgans-receipt-after-reload.png');
+  state.tasks.unshift(task('failed-launch','Never-submitted launch','failed','franky',{launchNotSubmitted:true,error:'Fixture: transport rejected before submission',messages:[{id:'goal',role:'user',text:'Keep the exact failed-launch goal.',time:now}]}));emit();
+  await nav('Home');await wait('Boolean(document.querySelector(".home-page"))');await fill('[aria-label="Search tasks"]','Never-submitted launch');await click('.home-task-open');await wait('Boolean(document.querySelector(".failed-launch-recovery"))');
+  assert.equal(await js('document.querySelector(".composer-foot button").disabled'),true,'failed launch cannot accidentally submit a follow-up');
+  await js('document.querySelector(".failed-launch-recovery button").focus()');assert.equal(await js('document.activeElement.textContent'),'Retry failed launch');
+  await js('document.querySelector(".failed-launch-recovery button").click();document.querySelector(".failed-launch-recovery button").click()');
+  await wait('document.querySelector(".workbench h2")?.textContent==="Recovered launch"');assert.equal(launchRetries,1,'double click submits only one replacement');
+  assert.ok(await js('document.body.innerText.includes("Keep the exact failed-launch goal.")'));
+  await js('Array.from(document.querySelectorAll(".chat-pane button")).find(button=>button.textContent==="Inspect original failure").click()');await wait('Boolean(document.querySelector(".failed-launch-recovery"))');
+  assert.equal(await js('document.querySelector(".failed-launch-recovery button").textContent'),'Open recovery task');
+  await screenshot('failed-launch-recovery.png');await click('.failed-launch-recovery button');await wait('document.querySelector(".workbench h2")?.textContent==="Recovered launch"');assert.equal(launchRetries,1);
+  fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({passed:true}));console.log('SUNNY_WORKFLOW '+JSON.stringify({passed:true,checks:['snapshot-race','family-search','specialist-approval','duplicate-approval','draft-per-task','home-draft-navigation','failed-start-draft','duplicate-start','lazy-tools','folder-parent','editor-load','draft-reload','reconcile','inbox','compact-layout','island-navigation','captain-controlled-map-zoom-keyboard-touch','startup-retry','pending-launch-navigation','dirty-project-switch','dirty-file-task-start','template-cleared-after-start','character-room-theme','room-audio-toggle','room-audio-settings','robin-obsidian-library-route','note-context-unsent-robin-review','robin-note-revision-decision-context','morgans-saved-work-report','morgans-source-navigation','morgans-explicit-obsidian-save','morgans-durable-receipt-reload','morgans-conflict-recovery-no-duplicate','morgans-uncertain-truncated-state','oversized-note-boundary','all-ten-illustrated-crew-rooms','reduced-motion-illustrated-room'],screenshots:output}));
  }catch(error){await screenshot('failure.png').catch(()=>{});fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({passed:false,error:error.stack}));console.error(error);process.exitCode=1;}
  finally{win.destroy();app.exit(process.exitCode||0);}
 }).catch(error=>{console.error(error);app.exit(1);});

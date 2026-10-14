@@ -27,7 +27,7 @@ class CodexClient extends EventEmitter {
   const entry=this.pending.get(message.id);if(!entry)return;clearTimeout(entry.timer);this.pending.delete(message.id);
   if(message.error)entry.reject(Error(message.error.message||JSON.stringify(message.error)));else entry.resolve(message.result);
  }
- send(message){if(!this.child||!this.connected)throw Error('Codex is disconnected. Reconnect from Settings.');this.child.stdin.write(JSON.stringify(message)+'\n');}
+ send(message){if(!this.child||!this.connected)throw Object.assign(Error('Codex is disconnected. Reconnect from Settings.'),{notSubmitted:true});this.child.stdin.write(JSON.stringify(message)+'\n');}
  request(method,params={},timeout=30000){return new Promise((resolve,reject)=>{const id=++this.seq;const timer=setTimeout(()=>{this.pending.delete(id);const error=Error(method+' timed out. Check the connection before retrying.');error.code='RPC_TIMEOUT';error.uncertain=true;reject(error);},timeout);this.pending.set(id,{resolve,reject,timer});try{this.send({id,method,params});}catch(e){clearTimeout(timer);this.pending.delete(id);reject(e);}});}
  respond(id,result){this.send({id,result});}
  rejectRequest(id,message){this.send({id,error:{code:-32601,message}});}

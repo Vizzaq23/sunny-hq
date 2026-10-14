@@ -3,6 +3,8 @@ import {ArrowLeft,ExternalLink,Bookmark,Newspaper,Plus,Download,Search} from 'lu
 import type {Snapshot,WorkReportItem,WorkReportResult} from '../shared';
 import type {ReportViewState} from '../App';
 import './morgans.css';
+import {ResultSaveHistory} from '../components/ResultSaveHistory';
+import {resolveReportTask} from '../reportTask';
 import {useCrewTexture} from '../crewTexture';
 type Invoke=<T=unknown>(action:string,args?:unknown)=>Promise<T>;
 const empty={title:'',url:'',summary:'',why:'',nextStep:'',source:'Web',category:'projects',projectId:''};
@@ -31,23 +33,27 @@ function ReportDesk({snapshot,invoke,reportView,setReportView,onReportSource}:{s
  const [projectId,setProjectId]=useState('all'),[days,setDays]=useState(7),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const saving=useRef(false);
  const packet=reportView.result?.packet;
- const task=snapshot.tasks.find(item=>item.id===reportView.result?.task?.id)??reportView.result?.task;
+ const task=resolveReportTask(snapshot.tasks,reportView.result?.task);
  const items=packet?.projects.flatMap(project=>[...project.tasks,...project.missions,...project.observations])??[];
+ const savedRecord=snapshot.resultSaves?.find(record=>record.taskId===task?.id&&record.title===reportView.title.trim()&&record.text===reportView.draft);
+ const saved=savedRecord?.status==='saved';
+ const resultMessage=task?.messages.filter(message=>message.role==='assistant'&&message.text.trim()).at(-1);
+ const canSave=task?.status==='finished'&&Boolean(resultMessage);
  const generate=async()=>{
   if(busy)return;
-  if(reportView.dirty&&!reportView.saved&&!window.confirm('Replace your unsaved Morgans draft with a new report?'))return;
+  if(reportView.dirty&&!saved&&!window.confirm('Replace your unsaved Morgans draft with a new report?'))return;
   setBusy(true);setError('');
   try{
    const scope={...(projectId==='all'?{}:{projectIds:[projectId]}),since:Date.now()-days*86400000};
    const result=await invoke<WorkReportResult>('report:create',scope);
-   setReportView({result,draft:'',dirty:false,saved:false,title:'Morgans work report'});
+   setReportView({result,draft:'',dirty:false,title:'Morgans work report'});
   }catch(reason){setError(reason instanceof Error?reason.message:String(reason));}
   finally{setBusy(false);}
  };
  const save=async()=>{
-  if(saving.current||!packet||!reportView.draft.trim()||!reportView.title.trim()||reportView.saved)return;
+  if(saving.current||!packet||!reportView.draft.trim()||!reportView.title.trim()||saved||!canSave||!task||!resultMessage)return;
   saving.current=true;setBusy(true);setError('');
-  try{await invoke('library:capture',{title:reportView.title.trim(),text:reportView.draft});setReportView(current=>({...current,saved:true,dirty:false}));}
+  try{await invoke('result:save',{taskId:task.id,messageId:resultMessage.id,title:reportView.title.trim(),text:reportView.draft,reviewed:true});setReportView(current=>({...current,dirty:false}));}
   catch(reason){setError(reason instanceof Error?reason.message:String(reason));}
   finally{saving.current=false;setBusy(false);}
  };
@@ -56,10 +62,11 @@ function ReportDesk({snapshot,invoke,reportView,setReportView,onReportSource}:{s
   {!snapshot.projects.length?<p className="morgans-report-empty">Add a project to Sunny before generating a work report.</p>:null}
   {error?<p role="alert" className="morgans-report-error">{error} Your draft remains here.</p>:null}
   {packet?<><div className="morgans-report-coverage"><strong>Saved Sunny records</strong><span>{packet.projects.length} {packet.projects.length===1?'project':'projects'} · {new Date(packet.scope.since).toLocaleDateString()}–{new Date(packet.scope.until).toLocaleDateString()} · captured {new Date(packet.createdAt).toLocaleString()}</span>{packet.coverage.truncated?<b>Large history: this report is truncated. Choose a narrower period or project.</b>:null}</div>
-   {reportView.result?.error?<p className="morgans-report-error" role="status">Morgans could not write the summary: {reportView.result.error} The saved evidence is still available.</p>:null}
+   {reportView.result?.error&&(!task||task.id===reportView.result.task?.id)?<p className="morgans-report-error" role="status">Morgans could not write the summary: {reportView.result.error} The saved evidence is still available.</p>:null}
    {task?<p className="morgans-report-task" role="status">Morgans’ draft: <strong>{task.status}</strong>{task.status==='unknown'?' · Provider state is uncertain; check the saved task before relying on its wording.':null}{task.error?` · ${task.error}`:null}<button onClick={()=>onReportSource({projectId:task.projectId,kind:'task',id:task.id,title:task.title,status:task.status,observedAt:task.updatedAt,target:{view:'task',id:task.id},sourceId:task.id,sourceTime:task.updatedAt})}>Open reporter task</button></p>:null}
    <div className="morgans-report-layout"><div className="morgans-report-evidence"><h4>Source records</h4>{items.length?packet.projects.map(project=><section key={project.id}><h5>{project.name}</h5>{[...project.tasks,...project.missions,...project.observations].map(item=><button className="morgans-source" key={`${item.kind}:${item.id}`} onClick={()=>onReportSource(item)}><span><b>{item.title}</b><small>{item.kind} · {item.sourceId} · {new Date(item.sourceTime).toLocaleString()}</small></span><em className={`report-status report-status-${item.status}`}>{item.status.replaceAll('-',' ')}</em></button>)}</section>):<p>No saved task, mission, or observation in this period. Older unresolved work would appear here.</p>}</div>
-   <div className="morgans-report-draft"><h4>Reviewable Obsidian draft</h4><p>Read and edit Morgans’ wording before you save. Saving creates one new note in Obsidian <b>00 Inbox</b>.</p><label>Note title<input aria-label="Report note title" maxLength={120} value={reportView.title} onChange={event=>setReportView(current=>({...current,title:event.target.value,dirty:true,saved:false}))}/></label><label>Report text<textarea aria-label="Report draft" rows={13} value={reportView.draft} onChange={event=>setReportView(current=>({...current,draft:event.target.value,dirty:true,saved:false}))} placeholder={task?.status==='working'||task?.status==='starting'?'Morgans is writing. You can start your own draft here.':'Write a draft from the source records, or wait for Morgans’ wording.'}/></label><button disabled={busy||reportView.saved||!reportView.draft.trim()||!reportView.title.trim()} onClick={()=>void save()}>{reportView.saved?'Saved to Obsidian Inbox':'Save draft to Obsidian Inbox'}</button>{reportView.saved?<p role="status">Saved one note. Edit the draft to prepare another version.</p>:null}</div></div>
+   <div className="morgans-report-draft"><h4>Reviewable Obsidian draft</h4><p>Review Morgans’ wording before saving. Your click approves this exact text for one note in Obsidian <b>00 Inbox</b>.</p><label>Note title<input aria-label="Report note title" disabled={busy} maxLength={120} value={reportView.title} onChange={event=>setReportView(current=>({...current,title:event.target.value,dirty:true}))}/></label><label>Report text<textarea aria-label="Report draft" disabled={busy} maxLength={200000} rows={13} value={reportView.draft} onChange={event=>setReportView(current=>({...current,draft:event.target.value,dirty:true}))} placeholder={task?.status==='working'||task?.status==='starting'?'Morgans is writing. You can start your own draft here.':'Write a draft from the source records, or wait for Morgans’ wording.'}/></label><button disabled={busy||saved||!canSave||!reportView.draft.trim()||!reportView.title.trim()} onClick={()=>void save()}>{saved?'Saved to Obsidian Inbox':'Save reviewed result to Obsidian Inbox'}</button>{saved?<p role="status">Saved at {savedRecord.path}. Edit the draft to prepare another version.</p>:!canSave?<p role="status">Wait for a finished report before approving a save.</p>:null}</div></div>
   </>:null}
+  <ResultSaveHistory records={snapshot.resultSaves??[]} invoke={invoke} onSource={onReportSource}/>
  </section>;
 }

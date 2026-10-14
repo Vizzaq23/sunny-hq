@@ -13,6 +13,7 @@ class MissionBook {
    if(!mission.id||!Array.isArray(mission.attempts)||!Array.isArray(mission.events)||!Array.isArray(mission.acceptanceCriteria)||!Number.isInteger(mission.revision))throw Error('Invalid saved mission data. Restore a verified backup.');
    const check=mission.checkExecution;if(check&&(typeof check.id!=='string'||!check.id||!['test','build','typecheck','lint'].includes(check.script)||!Number.isFinite(check.startedAt)||!mission.attempts.some(a=>a.id===check.attemptId)))throw Error('Invalid saved check reservation. Preserve the profile for recovery.');
    if(mission.seenEventIds!==undefined&&(!Array.isArray(mission.seenEventIds)||mission.seenEventIds.length>500||mission.seenEventIds.some(id=>typeof id!=='string'||!mission.events.some(event=>event.id===id))))throw Error('Invalid saved signal receipts.');
+   if(mission.reviewDecisions!==undefined&&(!Array.isArray(mission.reviewDecisions)||mission.reviewDecisions.some(review=>!review||typeof review.id!=='string'||!mission.attempts.some(attempt=>attempt.id===review.attemptId)||!['accepted','changes-requested'].includes(review.decision)||review.actor!=='captain'||!Number.isFinite(review.time)||!Number.isSafeInteger(review.reviewedRevision)||review.reviewedRevision<1||review.reviewedRevision>mission.revision||review.decision==='changes-requested'&&(typeof review.note!=='string'||!review.note.trim()||review.note.length>4000)||review.decision==='accepted'&&(!Array.isArray(review.criteria)||review.criteria.length!==mission.acceptanceCriteria.length||!review.criteria.every(value=>value===true)))))throw Error('Invalid saved mission review decisions. Preserve the profile for recovery.');
   }
  }
  get(id){const mission=this.data.missions.find(m=>m.id===id);if(!mission)throw Error('Mission not found.');return mission;}
@@ -111,7 +112,16 @@ class MissionBook {
   // Proof is supplied only by Hub after a fresh read, never by the renderer command.
   if(mission.completionBoundary==='merge'&&(!mergedProof||!mission.artifacts.includes(mergedProof)||mergedProof.attemptId!==mission.activeAttemptId||mergedProof.state!=='MERGED'||mergedProof.checkStatus!=='passed'))throw Error('Verify the merged pull request before completing this mission.');
   mission.status='COMPLETE';mission.acceptedAt=Date.now();mission.acceptance={attemptId:mission.activeAttemptId,criteria:[...criteria],reviewedRevision:revision,actor:'captain',...(mergedProof?{prArtifactId:mergedProof.id}:{})};
+  (mission.reviewDecisions??=[]).push({id:randomUUID(),attemptId:mission.activeAttemptId,decision:'accepted',criteria:[...criteria],reviewedRevision:revision,time:mission.acceptedAt,actor:'captain'});
   this.record(mission,'MISSION_COMPLETE');return mission;
+ }
+ requestChanges(id,revision,note){
+  const mission=this.get(id);this.check(mission,revision);const feedback=text(note,'requested changes note',4000);
+  if(mission.status!=='WAITING_FOR_REVIEW')throw Error('Mission is not ready for review.');
+  if(mission.checkExecution)throw Error('Resolve the pending check before requesting changes.');
+  if(['publishing','uncertain'].includes(mission.prPublication?.state)||['submitting','uncertain'].includes(mission.mergeRequest?.state))throw Error('Reconcile the pending publication or merge before requesting changes.');
+  (mission.reviewDecisions??=[]).push({id:randomUUID(),attemptId:mission.activeAttemptId,decision:'changes-requested',note:feedback,reviewedRevision:revision,time:Date.now(),actor:'captain'});
+  mission.status='BLOCKED';this.record(mission,'CHANGES_REQUESTED',{note:feedback,actor:'captain'});return mission;
  }
 }
 module.exports={MissionBook};

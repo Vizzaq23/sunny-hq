@@ -238,3 +238,16 @@ test('global uncertain storage withholds current acceptance while retaining audi
   s.persistence={state:'pending',failures:0};assert.equal(project(s,context({missionId:'m'})).acceptanceCueEligible,true);
  }
 });
+
+test('selected coordinator preserves verified acceptance without a worker assignment',async()=>{
+ const s=accepted(),m=s.missions[0];s.tasks[0].crewId='luffy';s.tasks[0].runId='r';m.runId='r';
+ s.runs=[{id:'r',projectId:'p',phase:'ready',missionIds:['m'],assignments:[],counters:{},grant:{}}];
+ s.liveAcceptanceIds=['receipt'];const selected=context({runId:'r',missionId:'m',attemptId:'a'});s.workspace.context=selected;
+ const scene=require('../src/roomActivity.ts').crewSceneProjection;
+ assert.equal(scene(s,'luffy',selected).state,'accepted');assert.equal(scene(s,'luffy',selected).acceptanceCueEligible,true);assert.equal(scene(s,'luffy',selected).working,false);
+ assert.equal(scene(s,'franky',selected).state,'idle');
+ const status=s.resultStatuses.m;delete s.resultStatuses.m;const pending=scene(s,'luffy',selected);s.resultStatuses.m=status;let claims=0;assert.equal(await require('../src/frankyFrames.ts').claimLiveAcceptanceCue(pending,scene(s,'luffy',selected),async()=>{claims++;return true;}),true);assert.equal(claims,1);
+ s.runs[0].assignments=[{id:'uncertain',crewId:'franky',state:'unknown',dependencies:[]}];assert.notEqual(scene(s,'luffy',selected).state,'accepted');s.runs[0].assignments=[];
+ delete s.resultStatuses.m;assert.notEqual(scene(s,'luffy',selected).state,'accepted');
+ s.runs[0].phase='unknown';assert.equal(scene(s,'luffy',selected).state,'unknown');
+});

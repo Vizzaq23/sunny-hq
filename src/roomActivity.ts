@@ -34,7 +34,15 @@ export function crewSceneProjection(snapshot:Snapshot,crewId:string,context:Work
   }
   if(context.taskId){if(exact?.crewId!==crewId)return idle();if(context.taskId!==member?.taskId)return {...exact!,working:false};}
   if(member?.label==='Assignments ambiguous')return {...idle(),state:'unknown',label:member.label};
-  if(!member?.taskId)return idle(member?.label??view.label);
+  // Coordinators need no worker assignment. Keep exact verified acceptance
+  // only when the run projection also confirms it, without inventing activity.
+  if(!member?.taskId){
+   if(exact?.crewId!==crewId)return idle(member?.label??view.label);
+   if(exact.state==='accepted'&&view.label==='Accepted by captain')return exact;
+   // Retain selection while proof loads so live acceptance is a transition
+   // within this mission, never a cue borrowed from a newly selected mission.
+   return {...idle(member?.label??view.label),missionId:exact.missionId,attemptId:exact.attemptId,taskId:exact.taskId};
+  }
   if(!task||task.projectId!==run.projectId||task.crewId!==crewId||task.runId!==run.id||task.external)return {...idle(),state:'unknown',label:'Assignment task unavailable'};
   const projection=projectMission(snapshot,{...context,missionId:undefined,attemptId:undefined,taskId:task.id});
   if(!member.working&&projection.working){const state=view.label.includes('unknown')||view.label.includes('recovery')?'unknown':run.phase==='stopped'?'stopped':run.phase==='ready'?'review':'waiting';return {...projection,state,label:view.working?member.label:view.label,working:false};}

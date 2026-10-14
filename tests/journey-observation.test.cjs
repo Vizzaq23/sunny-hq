@@ -10,3 +10,13 @@ test('journey observation waits for the feedback attempt rather than replaying i
  assert.equal(currentReviewedDelivery(run,{activeAttemptId:'a2',selectedResult:{id:'result1'}}),undefined,'a different selected result is not this delivery');
  assert.equal(currentReviewedDelivery(run,{activeAttemptId:'a2',selectedResult:{id:'result2'}}),second);
 });
+
+test('restart task identity matches persisted JSON without losing assigned worker identity',()=>{
+ const {journeyTaskIdentity}=require('../desktop/journey-fixture.cjs');
+ for(const task of [{id:'coordinator',status:'finished',threadId:'thread',turnId:'turn'},{id:'worker',status:'finished',threadId:'thread',turnId:'turn',assignmentId:'assignment'}]){
+  const saved=JSON.parse(JSON.stringify(journeyTaskIdentity(task)));
+  assert.deepEqual(journeyTaskIdentity(JSON.parse(JSON.stringify(task))),saved);
+  assert.notDeepEqual(journeyTaskIdentity({...task,assignmentId:'other'}),saved);
+  assert.notDeepEqual(journeyTaskIdentity({...task,status:'unknown'}),saved);
+ }
+});

@@ -1,3 +1,8 @@
+function journeyTaskIdentity(t){
+ const identity={id:t.id,status:t.status};
+ for(const key of ['threadId','turnId','assignmentId'])if(t[key]!==undefined)identity[key]=t[key];
+ return identity;
+}
 function currentReviewedDelivery(run,mission){const delivery=run?.deliveries?.at(-1);return delivery?.stage==='completed'&&delivery.attemptId===mission?.activeAttemptId&&mission?.selectedResult?.id&&delivery.selectedResult?.id===mission.selectedResult.id?delivery:undefined;}
 // Four compiled private cases. No caller program, seeded mission or provider authority.
 async function run(options){
@@ -16,7 +21,7 @@ async function run(options){
  const entries=require('./journey-receipts.cjs').ENTRIES;
  const entryHashes=Object.fromEntries(entries.map(file=>[file,sha(fs.readFileSync(path.join(__dirname,'..',file)))]));
  const packageIdentity=hashPackageFiles({exeFile:process.execPath,asarFile:path.join(process.resourcesPath,'app.asar')});
- const identity=()=>({runId:r().id,grant:r().grant,selectedResult:m().selectedResult,acceptance:m().acceptance,deliveries:r().deliveries,epochs:r().epochs||[],feedbackOperations:r().feedbackOperations||[],assignments:r().assignments,reviews:r().reviews,checks:r().combinedChecks||[],tasks:hub.state.tasks.map(t=>({id:t.id,status:t.status,threadId:t.threadId,turnId:t.turnId,assignmentId:t.assignmentId})),launches:r().playableLaunches||[],seen:hub.state.workspace.seenAcceptanceIds,counters:{launches:r().counters.launches,repairs:r().counters.repairs,tokens:r().counters.tokens}});
+ const identity=()=>({runId:r().id,grant:r().grant,selectedResult:m().selectedResult,acceptance:m().acceptance,deliveries:r().deliveries,epochs:r().epochs||[],feedbackOperations:r().feedbackOperations||[],assignments:r().assignments,reviews:r().reviews,checks:r().combinedChecks||[],tasks:hub.state.tasks.map(journeyTaskIdentity),launches:r().playableLaunches||[],seen:hub.state.workspace.seenAcceptanceIds,counters:{launches:r().counters.launches,repairs:r().counters.repairs,tokens:r().counters.tokens}});
  await install();win.showInactive();progress('renderer-ready');const evidence={version:1,scenario:manifest.scenario,phase:manifest.phase,pid:process.pid,admissionSha256:sha(manifest.nonce),...packageIdentity,entryHashes,providerMode:'finite-offline',realProviderEffects:0,providerEffects:0,liveSupervisionAdmitted:false};
  if(manifest.phase===2){
   const previous=JSON.parse(fs.readFileSync(path.join(manifest.outputDir,'phase-1.json'),'utf8'));assert.equal(previous.journey.complete,true);assert.deepEqual(identity(),previous.journey.identity);assert.ok(r().counters.activeMs>=previous.journey.activeMs);assert.equal(hub.client.fixtureEffects.localRequests,0);assert.equal(hub.client.fixtureEffects.localGit,0);await pause(1600);assert.equal((await probe()).onsets,0);evidence.journey={version:1,complete:true,reopened:true,identity:identity(),activeMs:r().counters.activeMs,zeroReplay:true};
@@ -40,4 +45,4 @@ async function run(options){
  }
  Object.assign(evidence,hub.client.fixtureEffects);assert.equal(evidence.realProviderEffects,0);assert.deepEqual(hashPackageFiles({exeFile:process.execPath,asarFile:path.join(process.resourcesPath,'app.asar')}),packageIdentity);assert.deepEqual(Object.fromEntries(entries.map(file=>[file,sha(fs.readFileSync(path.join(__dirname,'..',file)))])),entryHashes);require('./journey-receipts.cjs').validatePhase(evidence,{scenario:manifest.scenario,phase:manifest.phase,nonceSha256:sha(manifest.nonce)});progress('complete');fs.writeFileSync(path.join(manifest.outputDir,'phase-'+manifest.phase+'.json'),JSON.stringify(evidence,null,2),{flag:'wx',mode:0o600});return evidence;
 }
-module.exports={run,currentReviewedDelivery};
+module.exports={run,currentReviewedDelivery,journeyTaskIdentity};

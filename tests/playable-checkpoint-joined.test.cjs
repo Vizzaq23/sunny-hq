@@ -1,7 +1,7 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process');
 const {setup}=require('./helpers/checkpoint-journey.cjs'),{digest}=require('../desktop/mission-context.cjs');
 test('real installed checkpoint schedules and starts overlapping successor with seeded prior epoch handoff',{timeout:240000},async t=>{
- const startedAt=Date.now(),evidence=path.resolve(__dirname,'../../evidence'),log=path.join(evidence,'task-18-playable-fix1-joined-'+process.pid+'.jsonl'),phase=(name,data={})=>fs.appendFileSync(log,JSON.stringify({name,elapsedMs:Date.now()-startedAt,...data})+'\n');
+ const startedAt=Date.now(),evidence=require('node:os').tmpdir(),log=path.join(evidence,'task-18-playable-fix1-joined-'+process.pid+'.jsonl'),phase=(name,data={})=>fs.appendFileSync(log,JSON.stringify({name,elapsedMs:Date.now()-startedAt,...data})+'\n');
  const f=await setup(t),wake=f.hub.wakeCrewScheduler.bind(f.hub);let installed,pending;
  f.hub.wakeCrewScheduler=id=>{const r=f.hub.state.runs[0];if(r.deliveries?.[0]?.productionWave?.checkpoints.length){installed=structuredClone(r);return;}return wake(id);};
  try{

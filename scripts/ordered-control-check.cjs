@@ -115,6 +115,7 @@ function makeDispatch({getHub,getTransport,getWindow,records,onControl,onControl
   case 'snapshot':return transport.snapshot();
   case 'transcript:page':return transport.page(args);
   case 'mission:resultStatus':return transport.resultStatus(args);
+  case 'asset:crewTexture':return null; // Decorative texture; no provider or filesystem effect in the control fixture.
   case 'workspace:get':
    if(!args||typeof args!=='object'||Array.isArray(args)||Object.keys(args).length)throw Error('Invalid workspace query.');
    return hub.state.workspace;
@@ -189,7 +190,7 @@ async function run(admission){
  if(host)probeOptions.workerFactory=(file,settings)=>{const worker=new Worker(file,settings);worker.once('message',message=>{if(message.type==='ready')evidence.persistenceWorkers.push({entry:file,epoch:message.epoch,runtime:message.runtime});});return worker;};
  const write=()=>fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(evidence,null,2));
  const log=(kind,details)=>{fs.appendFileSync(path.join(output,'events.jsonl'),JSON.stringify({kind,...details})+'\n');};
- function check(name,condition,details){const item={name,status:condition?'pass':'fail',details};evidence.assertions.push(item);log('assertion',item);write();return condition;}
+ function check(name,condition,details){const item={name,status:condition?'pass':'fail',...(details===undefined?{}:{details})};evidence.assertions.push(item);log('assertion',item);write();return condition;}
  const oneMs=(list,label)=>{const start=performance.now();let timer;const promise=new Promise(resolve=>{timer=setTimeout(()=>{timers.delete(timer);const excessMs=Math.max(0,performance.now()-start-1);list.push({label,excessMs});resolve(excessMs);},1);timers.add(timer);});return promise;};
  async function cleanup(){
   if(cleanupPromise)return cleanupPromise;

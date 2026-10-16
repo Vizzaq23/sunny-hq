@@ -50,3 +50,46 @@ Acceptable variation: room props, role-specific tools, controlled district accen
 Conversation workspaces use ten original character-specific 1536×1024 room illustrations, recorded with generated source paths, SHA256 hashes and prompt summaries in `public/assets/ARTWORK.md`. Zoro's dojo, Robin's library, Nami's chart room and the other seven rooms each use distinct props and palette. Keep the fixed scene subdued at 19% opacity beneath all text and controls; the image is decorative and aria-hidden. Rooms remain static for reduced motion. Native fixture captures in `.sunny-dev/workflow-check/` are implementation evidence, not distributable art.
 
 Audio identity can reinforce those same station materials without becoming a soundtrack: use brief, low-volume, original synthesized arrival cues with distinct intervals and timbres for each crew room. Keep audio off until the captain enables it, provide a saved volume control and an immediate mute, and never attach sounds to mission progress. Current implementation uses small Web Audio note sequences and no recorded or third-party samples.
+
+## Full roster source extension — 2026-10-05
+
+The shared scene catalog exposes fifteen distinct destinations: ten core crew,
+four residents, and Morgans' read-only news blimp. Each configuration records
+station, atlas reference, state cues and direct navigation. Only the specialist
+Franky scene has admitted rest/work feet and a route. All other specialist and
+resident configurations explicitly retain null anchors and empty routes; their
+decorative room art is not an actor floor. Existing quarters lanes and deck
+geometry remain unchanged. Residents keep their saved districts and a static
+idle atlas cell; no unmeasured work-prop cell or new room travel is admitted.
+
+Scene work follows the authoritative selected run and current assignment, with
+retained historical attempts kept distinct. Review, uncertainty, failed work and
+run stop/pause/block gates stop purposeful work. Visual pause freezes travel and
+frame animation while status still updates; an obsolete Franky work frame clears
+even while paused. System/user reduced motion and the existing opt-in arrival
+audio and durable acceptance-cue contracts remain in force. No bitmap, atlas
+geometry, sound sample, dependency or provenance changed.
+
+The ten core conversation rooms retain their original illustrated backdrops.
+Law, Ace, Vivi and Perona have no measured room illustration, so an existing-task
+resident conversation leaves that decorative image absent. The prior constructed
+`assets/undefined` URL is removed; the resident's name and direct work controls
+remain. The rendered source regression covers all fourteen task-capable rooms.
+
+Task17 source and tests are separate from native art admission. Exact-package
+captures for the state matrix, all destinations, keyboard routing and 200% text
+remain pending while native crash/hang diagnosis is open. The existing performance
+protocol and failed Stage A promotion gate remain binding.
+
+Established 2026-09-21 from inspected `island-world.png`, `crew-pet-states.png`, existing rendering code and [artwork provenance](../public/assets/ARTWORK.md). A separately named supplied pixel-art sheet was not located; the existing Chopper atlas is the documented user-selected anchor. Do not claim an unseen sheet was reviewed.
+
+
+## Franky one-room source pilot — 2026-10-01
+
+The root visually reviewed the raw contact overlay and corrected diagnostic contact sheet before admitting the measured Franky room geometry. Existing `franky-shipwright-room.png` remains byte-identical: SHA256 `E29915E79F9A279AF61EF490E51527190A87BBE7AF941F962D6702419D051A8C`, full1536×1024 (3:2), uncropped and proportionally letterboxed beside the opaque captain log. Rest feet are(650,680), bench feet(1150,590); the clear-floor route is(650,680)→(820,640)→(1040,550)→(1150,590), normalized to that full canvas in `FRANKY_ROOM_GEOMETRY`.
+
+The original1586×992 crew-pet-states atlas is unchanged. Its nominal Franky row3 columns4–7 contain adjacent-row feet/prop fragments and clip soles/wrenches. The admitted in-memory extraction keeps the existing edge-connected neutral-white key, examines padded216×216 windows at x784/982/1180/1378,y595, and independently retains each largest4-connected alpha component. Column7 pads its208px source width to216. Measured sole bottoms are203/203/203/206; each frame grounds against its own bottom, keeping the shadow attached. Retained extents and source hashes are tested against the actual decoded PNG. No new bitmap, generated art or borrowed signature-action row is introduced.
+
+Franky uses the existing viewer-facing wrench poses while working beside the bench; this does not depict or prove a literal tabletop strike. Authoritatively selected Franky build work permits travel and work frames; attention, review, acceptance and other specialist stages keep him still. Visual Pause affects only presentation. System/Sunny reduced motion suppresses travel, frame stepping and acceptance glow. A brief restrained glow requires the backend's durable first claim of a live modern result-bound acceptance; historical mounts/reloads and finished provider turns never earn it. Ambient deck entertainment remains separately labelled.
+
+Evidence: session contact overlays/measurements in `../../sunny-session-20261001/franky-geometry-review.md`; actual-PNG and scene/state tests in `tests/franky-frames.test.cjs`, `tests/franky-workshop.test.cjs` and `tests/mission-projection.test.cjs`. Source pilot admission does not assert installed cutover, packaged rollout or passing pending native scene/accessibility captures. Strict timing/large-profile promotion gates remain independent.

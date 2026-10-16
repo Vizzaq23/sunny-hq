@@ -13,6 +13,8 @@ tmp/
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm
+desktop/native/*.node
+desktop/native/*.exe
 
 release-workflow-0.10.0/
 release-workflow-0.11.0/

@@ -152,3 +152,7 @@ Imports accept 1–50 items (512 KB maximum JSON file); the archive holds 500. R
 <img src="https://raw.githubusercontent.com/Vizzaq23/Vizzaq23/main/assets/divider.svg" width="100%" alt="" />
 
 <p align="center"><sub>Built by <a href="https://github.com/Vizzaq23">Quintin Vizza</a> · <a href="https://quintinvizza.dev">Explore my work</a></sub></p>
+
+### Integration candidate (2026-10-16)
+
+The `codex/integrate-local-sunny` branch integrates the committed local workshop/runtime history with current Morgans reporting and reviewed-result recovery. See [integration compatibility and evidence](docs/reviewed-result-saving.md#local-integration--2026-10-16). The private generated copied-profile Recovery companion is not included in normal clean packages. Installed activation is recorded separately only after the final package passes its gates.

@@ -1,7 +1,7 @@
 import {useRef,useState} from 'react';
-import type {ResultSave,Task} from '../shared';
+import type {ResultSave,Task,TaskSummary} from '../shared';
 
-export function SaveReviewedResult({task,title,text,records,disabled,invoke}:{task?:Task;title:string;text:string;records:ResultSave[];disabled:boolean;invoke:<T=unknown>(action:string,args?:unknown)=>Promise<T>}){
+export function SaveReviewedResult({task,title,text,records,disabled,invoke}:{task?:(Task|TaskSummary)&{messages:Task['messages']};title:string;text:string;records:ResultSave[];disabled:boolean;invoke:<T=unknown>(action:string,args?:unknown)=>Promise<T>}){
  const [busy,setBusy]=useState(false),[error,setError]=useState('');const pending=useRef(false);
  const message=task?.messages.filter(item=>item.role==='assistant'&&item.text.trim()).at(-1);
  const saved=records.find(record=>record.taskId===task?.id&&record.messageId===message?.id&&record.title===title.trim()&&record.text===text&&record.status==='saved');

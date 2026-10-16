@@ -23,6 +23,7 @@ type AudioContextLike={state:string;currentTime:number;destination:AudioNode;res
 export function createRoomCuePlayer(createContext:()=>AudioContextLike){
   let context:AudioContextLike|undefined;
   let lastPlayedAt=-Infinity;
+  let generation=0;
   const active=new Set<OscillatorNode>();
   const getContext=()=>context??(context=createContext());
 
@@ -32,11 +33,12 @@ export function createRoomCuePlayer(createContext:()=>AudioContextLike){
   }
 
   async function play(crewId:CrewId,volume=ROOM_SOUND_DEFAULT_VOLUME){
+    const requestedGeneration=generation;
     const cue=ROOM_CUES[crewId];
     if(!cue||!Number.isFinite(volume)||volume<=0||volume>ROOM_SOUND_MAX_VOLUME)return false;
     let audio:AudioContextLike;
     try{audio=getContext();if(audio.state!=='running')await audio.resume();}catch{return false;}
-    if(audio.state!=='running')return false;
+    if(audio.state!=='running'||requestedGeneration!==generation)return false;
     const now=audio.currentTime;
     if(now-lastPlayedAt<.18)return false;
     lastPlayedAt=now;
@@ -49,7 +51,7 @@ export function createRoomCuePlayer(createContext:()=>AudioContextLike){
       envelope.gain.linearRampToValueAtTime(volume*cue.tone,start+.012);
       envelope.gain.exponentialRampToValueAtTime(.0001,start+duration);
       oscillator.connect(envelope);envelope.connect(audio.destination);
-      active.add(oscillator);oscillator.onended=()=>active.delete(oscillator);
+      active.add(oscillator);oscillator.onended=()=>{active.delete(oscillator);oscillator.disconnect?.();envelope.disconnect?.();};
       oscillator.start(start);oscillator.stop(start+duration+.015);
       offset+=duration+.035;
     });
@@ -57,9 +59,9 @@ export function createRoomCuePlayer(createContext:()=>AudioContextLike){
   }
 
   function stop(){
+    generation++;
     if(!context)return;
     for(const oscillator of active){try{oscillator.stop(context.currentTime+.008);}catch{/* already ended */}}
-    active.clear();
   }
 
   return{unlock,play,stop};

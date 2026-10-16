@@ -14,16 +14,20 @@ function codexLaunchEnv(environment){
  return env;
 }
 class CodexClient extends EventEmitter {
- constructor(){super();this.seq=0;this.pending=new Map();this.buffer='';this.child=null;this.connected=false;this.connecting=null;this.diagnostic='';}
+ constructor(){super();this.seq=0;this.pending=new Map();this.child=null;this.connected=false;this.connecting=null;this.diagnostic='';}
  attach(child){
-  this.child=child;this.buffer='';this.connected=true;
-  child.stdout.setEncoding('utf8');child.stdout.on('data',data=>{this.buffer+=data;let newline;while((newline=this.buffer.indexOf('\n'))!==-1){const line=this.buffer.slice(0,newline);this.buffer=this.buffer.slice(newline+1);try{this.receive(JSON.parse(line));}catch(e){this.emit('diagnostic','Unreadable protocol message: '+e.message);}}});
-  child.stderr.setEncoding('utf8');child.stderr.on('data',s=>{this.diagnostic=(this.diagnostic+s).slice(-5000);this.emit('diagnostic',s);});
-  child.on('error',e=>{if(this.child===child)this.disconnect(e.message);});child.on('exit',code=>{if(this.child===child)this.disconnect('Codex disconnected (exit '+code+'). '+this.diagnostic.slice(-500));});
-  child.stdin.on('error',e=>{if(this.child===child)this.disconnect(e.message);});
+  this.child=child;this.connected=true;let buffer='';const current=()=>this.child===child&&this.connected;
+  child.stdout.setEncoding('utf8');child.stdout.on('data',data=>{if(!current())return;buffer+=data;let newline;while(current()&&(newline=buffer.indexOf('\n'))!==-1){const line=buffer.slice(0,newline);buffer=buffer.slice(newline+1);this.receiveLine(line,child);}});
+  child.stderr.setEncoding('utf8');child.stderr.on('data',s=>{if(!current())return;this.diagnostic=(this.diagnostic+s).slice(-5000);this.safeEmit('diagnostic',s);});
+  child.on('error',e=>{if(current())this.disconnect(e.message);});child.on('exit',code=>{if(current())this.disconnect('Codex disconnected (exit '+code+'). '+this.diagnostic.slice(-500));});
+  child.stdin.on('error',e=>{if(current())this.disconnect(e.message);});
  }
+ receiveLine(line,child=this.child){let message;try{message=JSON.parse(line);if(!message||typeof message!=='object'||Array.isArray(message))throw Error('Invalid protocol object');}catch{this.safeEmit('diagnostic','Codex sent an unreadable protocol message. Check the connection before continuing.',{event:'provider-decode-failed'});return;}try{this.receive(message);}catch{this.handlerFailed(child);}}
+ safeEmit(event,...args){for(const listener of this.rawListeners(event)){try{Promise.resolve(listener.apply(this,args)).catch(()=>{});}catch{/* Diagnostic observers cannot prevent transport cleanup. */}}}
+ deliver(event,message){const child=this.child;for(const listener of this.rawListeners(event)){const result=listener.call(this,message);if(result&&typeof result.then==='function')Promise.resolve(result).catch(()=>this.handlerFailed(child));}}
+ handlerFailed(child=this.child){if(this.child!==child||!this.connected)return;try{this.safeEmit('diagnostic','Sunny event handling failed. Reconnect and check task status before continuing.',{event:'provider-handler-failed'});}finally{if(this.child===child)this.disconnect('Codex disconnected after Sunny event handling failed. Check task status before continuing.');}}
  receive(message){
-  if(message.method){this.emit(message.id!==undefined?'request':'notification',message);return;}
+  if(message.method){this.deliver(message.id!==undefined?'request':'notification',message);return;}
   const entry=this.pending.get(message.id);if(!entry)return;clearTimeout(entry.timer);this.pending.delete(message.id);
   if(message.error)entry.reject(Error(message.error.message||JSON.stringify(message.error)));else entry.resolve(message.result);
  }
@@ -31,7 +35,7 @@ class CodexClient extends EventEmitter {
  request(method,params={},timeout=30000){return new Promise((resolve,reject)=>{const id=++this.seq;const timer=setTimeout(()=>{this.pending.delete(id);const error=Error(method+' timed out. Check the connection before retrying.');error.code='RPC_TIMEOUT';error.uncertain=true;reject(error);},timeout);this.pending.set(id,{resolve,reject,timer});try{this.send({id,method,params});}catch(e){clearTimeout(timer);this.pending.delete(id);reject(e);}});}
  respond(id,result){this.send({id,result});}
  rejectRequest(id,message){this.send({id,error:{code:-32601,message}});}
- disconnect(reason){const child=this.child;const wasConnected=this.connected;if(!wasConnected&&!child)return;this.connected=false;this.child=null;for(const entry of this.pending.values()){clearTimeout(entry.timer);const error=Error(reason.includes('disconnect')?reason:'Codex disconnected: '+reason);error.code='RPC_DISCONNECTED';error.uncertain=true;entry.reject(error);}this.pending.clear();if(child)try{child.kill();}catch{}if(wasConnected)this.emit('disconnected',reason);}
+ disconnect(reason){const child=this.child;const wasConnected=this.connected;if(!wasConnected&&!child)return;this.connected=false;this.child=null;for(const entry of this.pending.values()){clearTimeout(entry.timer);const error=Error(reason.includes('disconnect')?reason:'Codex disconnected: '+reason);error.code='RPC_DISCONNECTED';error.uncertain=true;entry.reject(error);}this.pending.clear();if(child)try{child.kill();}catch{}if(wasConnected)this.safeEmit('disconnected',reason);}
  async connect(home){if(this.connecting)return this.connecting;if(this.connected)return;
   this.connecting=(async()=>{const exe=findCodex(home);const child=spawn(exe,['app-server','--stdio'],{cwd:home,windowsHide:true,env:codexLaunchEnv({...process.env,USERPROFILE:home}),stdio:['pipe','pipe','pipe']});this.attach(child);
    try{const info=await this.request('initialize',{clientInfo:{name:'sunny_hq',title:'Sunny HQ',version:'0.9.0'},capabilities:{experimentalApi:true}},45000);this.send({method:'initialized',params:{}});return info;}catch(e){this.close();throw e;}

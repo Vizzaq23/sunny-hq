@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "fixtureDirectory": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-hang-diagnostic-uqpEWP",
+  "electronVersion": "44.4.3",
+  "nodeVersion": "24.21.0",
+  "syntheticBusyLoopMs": 9000,
+  "platformHangEventObserved": false,
+  "platformRecoveryEventObserved": false,
+  "records": [
+    {
+      "event": "window-loaded",
+      "details": {
+        "surface": "hub"
+      }
+    }
+  ],
+  "providerRequests": 0
+}

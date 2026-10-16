@@ -1,0 +1,14 @@
+const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),crypto=require('node:crypto');
+const packaged=require('../../desktop/packaged-acceptance.cjs');const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+function capture(t,{version=3,state:input}={}){
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-copied-admission-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));for(const dir of ['control','baseline','working','consumer-output'])fs.mkdirSync(path.join(root,dir));
+ const state=input?structuredClone(input):packaged.loadFrozenFixture(1);state.opaque={complete:['kept',null]};if(version<3){state.missionBook.version=version;delete state.missionBook.runs;}if(version===1){delete state.missionBook.workspace;for(const mission of state.missionBook.missions){delete mission.selectedResult;if(mission.acceptance)delete mission.acceptance.legacy;}};const db=new(require('node:sqlite').DatabaseSync)(path.join(root,'baseline','sunny.sqlite'));db.exec('CREATE TABLE state (id INTEGER PRIMARY KEY CHECK(id=1), value TEXT NOT NULL)');db.prepare('INSERT INTO state VALUES(1,?)').run(JSON.stringify(state));db.close();const archive=Buffer.from(' [ '+JSON.stringify({id:'chatgpt:archive-only',title:'Saved',projectName:'Imported',external:true,status:'read only',messages:[{id:'stored',role:'user',text:'Archive only'}],unknown:{keep:true}})+' ]\n');fs.writeFileSync(path.join(root,'baseline','chatgpt-history.json'),archive);
+ const record=name=>{const bytes=fs.readFileSync(path.join(root,'baseline',name));fs.copyFileSync(path.join(root,'baseline',name),path.join(root,'working',name));return {bytes:bytes.length,sha256:sha(bytes)};};const nonce=crypto.randomBytes(32).toString('hex'),receipt={version:1,stage:'logical-verified',nonceSha256:sha(nonce),fidelity:'sqlite-database',fullTree:false,archiveStatus:'present-verified',database:record('sunny.sqlite'),archive:record('chatgpt-history.json'),runtime:{electron:'44.4.3',node:'24.21.0',sqlite:'3.53.4'}};
+ const receiptBytes=Buffer.from(JSON.stringify(receipt));fs.writeFileSync(path.join(root,'control','capture-receipt.json'),receiptBytes);
+ // Synthetic stand-in for native completion only. This earns protocol tests,
+ // not Windows ACL/lock/provenance evidence, which requires the native scenario.
+ fs.writeFileSync(path.join(root,'control','native-complete.bin'),Buffer.concat([Buffer.from('SUNCPY1\0'),Buffer.from(sha(nonce),'hex'),Buffer.from(sha(receiptBytes),'hex')]));
+ const manifest={version:1,nonce,profileDir:path.join(root,'working'),outputDir:path.join(root,'consumer-output'),scenario:'stopped-profile-copy',phase:1,mib:1},manifestPath=path.join(root,'control','fixture.json');fs.writeFileSync(manifestPath,JSON.stringify(manifest));return {root,state,archive,manifest,manifestPath,nonce,args:{manifestPath,nonce,defaultProfile:path.join(root,'unrelated-live')},receipt};
+}
+
+module.exports={capture};

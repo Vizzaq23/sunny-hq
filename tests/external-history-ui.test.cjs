@@ -1,0 +1,10 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),Module=require('node:module'),ts=require('typescript');
+test('external modal displays one bounded page with older/newer/reload and visible errors',()=>{
+ const original=Module._load,extensions={...Module._extensions},React=require('react'),{renderToStaticMarkup}=require('react-dom/server');let stateIndex=0;
+ const external={summary:{title:'Read only'},page:{segments:[{messageId:'m',role:'assistant',offset:3,text:'bounded excerpt',totalLength:100}],previousCursor:{},nextCursor:{}},loading:false,error:'History unavailable'};
+ Module._load=function(request,...args){if(request==='react')return {...React,useState:()=>[ [[],external,false,''][stateIndex++],()=>{} ],useEffect:()=>{},useMemo:fn=>fn()};return original.call(this,request,...args);};
+ const compile=(mod,file)=>mod._compile(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText.replaceAll('import.meta.env.BASE_URL',"''"),file);
+ Module._extensions['.ts']=compile;Module._extensions['.tsx']=compile;
+ try{const file=path.resolve(__dirname,'../src/views/DashboardViews.tsx');delete require.cache[file];const {InboxView}=require(file);const html=renderToStaticMarkup(React.createElement(InboxView,{tasks:[],onOpen(){},automations:[],desktop:false,invoke:async()=>{}}));assert.match(html,/bounded excerpt/);assert.match(html,/Load older history/);assert.match(html,/Load newer history/);assert.match(html,/Reload history/);assert.match(html,/role="alert"/);assert.match(html,/Continued message/);assert.doesNotMatch(html,/undefined/);
+ }finally{Module._load=original;for(const key of ['.ts','.tsx']){if(extensions[key])Module._extensions[key]=extensions[key];else delete Module._extensions[key];}}
+});

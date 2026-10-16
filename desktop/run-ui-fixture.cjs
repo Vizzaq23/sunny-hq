@@ -1,0 +1,103 @@
+// Private packaged display proof. No renderer-supplied state or provider admission.
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+const {createHash}=require('node:crypto');const sha=v=>createHash('sha256').update(v).digest('hex');
+const STATES=['normal','pending-call','unknown','stopped','ready','accepted'];
+const WORLD_IDS=['luffy','zoro','nami','usopp','sanji','chopper','robin','franky','brook','jinbe','law','ace','vivi','perona','morgans'];
+const WORLD_CASES=['idle','working','waiting','unknown','failed','ready','accepted','reduced-motion'];
+const WORLD_NEGATIVES=['stopped','pending-call','blocked'];
+function seed(state,kind='normal'){
+ assert.ok(STATES.includes(kind));const m=state.missionBook.missions[0],p=state.projects[0],t=state.tasks[0],reviewer=state.tasks[1],source={baseCommit:'a'.repeat(40),headCommit:'b'.repeat(40),fingerprint:'fixture-source',artifactHashes:[]};
+ const grant={id:'display-grant',createdBy:'captain',scope:{projectId:p.id,objective:'SYNTHETIC DISPLAY PROOF — crew work and captain review',activities:['read','write','test','build','review']},maxWorkers:3,maxInitialAssignments:16,maxLaunches:32,maxRepairs:3,workerMs:900000,activeMs:3600000,tokenLimit:100000,improvementMs:0,improvementTokens:0};
+ const run=require('./supervised-runs.cjs').createSupervisedRun({runId:'display-run',projectId:p.id,expectedRevision:0,objective:grant.scope.objective,criteria:[{id:'c',text:'Review exact history'}],grant,missionIds:[m.id]},{now:1});run.revision=7;run.phase=kind==='normal'?'executing':kind==='pending-call'?'waiting':kind==='accepted'?'ready':kind;run.counters={launches:2,repairs:0,activeMs:120000,tokens:2300,improvementMs:0,improvementTokens:0};
+ const assignment=(id,crewId,assignmentState,taskId)=>{const b=require('./crew-registry.cjs').crewBinding(crewId,state.world);return {id,crewId,roleId:b.roleId,capability:b.capabilities[0],objective:'SYNTHETIC display evidence',ownedPaths:[],dependencies:[],criteriaIds:['c'],baseCommit:source.baseCommit,state:assignmentState,taskId};};
+ const taskState=kind==='normal'?'working':kind==='pending-call'?'waiting':kind==='unknown'?'unknown':kind==='stopped'?'interrupted':'finished';
+ run.assignments=[assignment('display-author','franky',taskState==='interrupted'?'cancelled':taskState,t.id),assignment('display-review','zoro','finished',reviewer.id)];
+ Object.assign(t,{status:taskState,runId:run.id,assignmentId:'display-author',turnId:'display-turn',executionId:'display-execution',title:'SYNTHETIC DISPLAY PROOF — retained work'});Object.assign(reviewer,{crewId:'zoro',status:'finished',runId:run.id,assignmentId:'display-review'});
+ run.reviews=[{id:'display-review-receipt',runId:run.id,assignmentId:'display-review',reviewerTaskId:reviewer.id,source,decision:'approve',findings:[],time:1}];
+ m.runId=run.id;m.connection='connected';m.title='SYNTHETIC DISPLAY PROOF';m.objective=grant.scope.objective;m.revision=8;m.status=kind==='normal'?'RUNNING':kind==='pending-call'?'NEEDS_USER':kind==='unknown'?'RUNNING':kind==='stopped'?'CANCELLED':kind==='accepted'?'COMPLETE':'WAITING_FOR_REVIEW';delete m.acceptance;delete m.acceptedAt;
+ const attempt=m.attempts.find(a=>a.id===m.activeAttemptId);attempt.workflowVersion=2;attempt.status=taskState;delete attempt.workflow;
+ if(['ready','accepted'].includes(kind)){
+  const result=m.selectedResult,checks=['test','build'].map(k=>({id:'display-'+k,criterionId:'c',kind:k,status:'passed',evidenceRef:'SYNTHETIC display fixture only',source}));
+  run.verification={source,resultId:result.id,resultSha256:result.ref.sha256,workspaceVerified:true,integrationVerified:true,authors:[t.id],authorSessions:[{taskId:t.id,provider:'offline-display',threadId:t.threadId}],authorshipComplete:true,checks,artifacts:[]};
+  run.readiness={version:2,source,resultId:result.id,resultSha256:result.ref.sha256,checkIds:checks.map(c=>c.id),reviewIds:['display-review-receipt'],criteriaIds:['c'],time:1};
+  if(kind==='accepted'){m.acceptance={id:'display-acceptance',actor:'captain',attemptId:attempt.id,reviewedRevision:7,resultId:result.id,resultSha256:result.ref.sha256,criteria:[true],acceptedAt:1};m.acceptedAt=1;}
+ }
+ state.missionBook.runs=[run];state.missionBook.workspace.context={projectId:p.id,runId:run.id,missionId:m.id,attemptId:attempt.id,surface:'deck',returnTo:{view:'ship',projectId:p.id,runId:run.id,missionId:m.id,attemptId:attempt.id}};
+ assert.equal(require('./mission-profile.cjs').inspectMissionProfile(state).mode,'v3');return state;
+}
+function seedWorldCase(state,kind){
+ assert.ok(WORLD_CASES.includes(kind)||WORLD_NEGATIVES.includes(kind));
+ const residents=require('./island-residents.json');
+ state.world.residents=residents.map(resident=>{const saved=state.world.residents?.find(value=>value.id===resident.id);return {...resident,...saved,district:saved?.district??resident.district,recruited:true};});
+ state.settings={...state.settings,reducedMotion:kind==='reduced-motion',roomSoundEnabled:false,roomSoundVolume:.32};
+ seed(state,kind==='working'||kind==='idle'||kind==='failed'||kind==='blocked'||kind==='reduced-motion'?'normal':kind==='waiting'?'pending-call':kind);
+ const run=state.missionBook.runs[0],mission=state.missionBook.missions[0],attempt=mission.attempts.find(a=>a.id===mission.activeAttemptId),task=state.tasks[0];
+ if(kind==='idle'){const binding=require('./crew-registry.cjs').crewBinding('robin',state.world);Object.assign(run.assignments[0],{crewId:'robin',roleId:binding.roleId,capability:binding.capabilities[0],state:'finished'});task.crewId='robin';task.status='finished';attempt.status='finished';delete state.missionBook.workspace.context.missionId;delete state.missionBook.workspace.context.attemptId;}
+ if(kind==='waiting'){mission.status='RUNNING';attempt.status='waiting';}
+ if(kind==='failed'){run.phase='blocked';run.assignments[0].state='failed';task.status='failed';attempt.status='failed';mission.status='FAILED';}
+ if(kind==='blocked'){run.phase='blocked';run.assignments[0].state='waiting';task.status='waiting';attempt.status='waiting';mission.status='BLOCKED';}
+ assert.equal(require('./mission-profile.cjs').inspectMissionProfile(state).mode,'v3');
+ return state;
+}
+function seedWorldRole(state,crewId,capability){
+ assert.ok(WORLD_IDS.slice(0,-1).includes(crewId));seedWorldCase(state,'working');
+ const binding=require('./crew-registry.cjs').crewBinding(crewId,state.world);
+ const selected=capability??binding.capabilities[0];assert.ok(binding.capabilities.includes(selected));
+ const task=state.tasks[0],assignment=state.missionBook.runs[0].assignments[0];
+ task.crewId=crewId;task.title='SYNTHETIC DISPLAY PROOF — '+crewId+' current work';
+ // Luffy is the coordinator, never a specialist assignment. A selected
+ // standalone Luffy task exercises his real Inspect route without forging
+ // supervised worker authority.
+ if(crewId==='luffy'){
+  assert.equal(binding.access,'coordinator');assert.equal(capability,undefined);
+  delete task.runId;delete task.assignmentId;delete state.tasks[1].runId;delete state.tasks[1].assignmentId;
+  delete state.missionBook.missions[0].runId;state.missionBook.runs=[];
+  state.missionBook.workspace.context={projectId:task.projectId,taskId:task.id,surface:'deck',returnTo:{view:'ship'}};
+  assert.equal(require('./mission-profile.cjs').inspectMissionProfile(state).mode,'v3');return state;
+ }
+ Object.assign(assignment,{crewId,roleId:binding.roleId,capability:selected});
+ assert.equal(require('./mission-profile.cjs').inspectMissionProfile(state).mode,'v3');
+ return state;
+}
+function seedWorldHistory(state){
+ seedWorldRole(state,'franky');const run=state.missionBook.runs[0],older=state.tasks[2];
+ Object.assign(older,{crewId:'franky',status:'finished',runId:run.id,assignmentId:'display-history',title:'SYNTHETIC retained historical task'});
+ run.assignments.push({...run.assignments[0],id:'display-history',state:'finished',taskId:older.id});run.counters.launches=3;
+ assert.equal(require('./mission-profile.cjs').inspectMissionProfile(state).mode,'v3');return state;
+}
+async function run({win,hub,manifest,trustedInvoke,waitForRenderer}){
+ const output=path.join(manifest.outputDir,'run-ui');fs.mkdirSync(output,{recursive:true});const js=code=>win.webContents.executeJavaScript(code),pause=ms=>new Promise(r=>setTimeout(r,ms));
+ const wait=async code=>{for(let i=0;i<100;i++){if(await js(code))return;await pause(100);}throw Error('Run UI did not settle: '+code);};
+ const screenshots=[],geometry=[],keyboard=[];const progress=phase=>fs.writeFileSync(path.join(output,'phase-'+manifest.phase+'-progress.json'),JSON.stringify({phase,time:new Date().toISOString(),screenshots,geometry,keyboard},null,2));progress('started');
+ const capture=async name=>{const file=path.join(output,name+'.png'),d=win.webContents.debugger;d.attach('1.3');try{progress('capture:'+name);let timer;const result=await Promise.race([d.sendCommand('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,fromSurface:true}),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Bounded capture timed out: '+name)),10000);})]).finally(()=>clearTimeout(timer));await fs.promises.writeFile(file,Buffer.from(result.data,'base64'));}finally{d.detach();}screenshots.push(file);};
+ const key=async(key,code)=>{const d=win.webContents.debugger;d.attach('1.3');try{await d.sendCommand('Input.dispatchKeyEvent',{type:'keyDown',key,code,windowsVirtualKeyCode:key==='Tab'?9:13,...(key==='Enter'?{text:'\r',unmodifiedText:'\r'}:{})});await d.sendCommand('Input.dispatchKeyEvent',{type:'keyUp',key,code,windowsVirtualKeyCode:key==='Tab'?9:13});}finally{d.detach();}};
+ const reachable=async selector=>js(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e)throw Error('Missing '+${JSON.stringify(selector)});e.scrollIntoView({block:'center',behavior:'instant'});const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);if(r.width<=0||r.height<=0||r.top<0||r.bottom>innerHeight||r.left<0||r.right>innerWidth||!(hit===e||e.contains(hit)))throw Error('Unreachable '+${JSON.stringify(selector)});return {selector:${JSON.stringify(selector)},x:r.x,y:r.y,width:r.width,height:r.height};})()`);
+ const drafts=sha(JSON.stringify(hub.state.workspace.drafts)),selection=JSON.stringify(hub.state.workspace.context);
+ if(manifest.phase===2){await wait(`document.querySelector('.den-den-calls')?.textContent.includes('Unresolved saved call')`);const receipt=hub.state.runs[0].presentation.calls.at(-1);assert.equal(receipt.state,'snoozed');assert.equal(hub.state.approvals.length,0);assert.equal(hub.client.fixtureEffects.providerEffects,0);await capture('restart-unresolved-snoozed');return {screenshots,geometry,keyboard,restartDedup:true,requestId:receipt.requestId,displayProofOnly:true};}
+ const base=hub.persistedImage();
+ for(const kind of STATES){
+  progress('seed:'+kind);await hub.awaitMissionSync();const next=seed(structuredClone(base),kind);hub.state.tasks=next.tasks;hub.state.missions.splice(0,hub.state.missions.length,...next.missionBook.missions);hub.state.runs.splice(0,hub.state.runs.length,...next.missionBook.runs);hub.state.approvals=[];
+  if(kind==='pending-call'){const t=hub.state.tasks[0];hub.request({id:'run-ui-rpc',method:'item/tool/requestUserInput',params:{threadId:t.threadId,turnId:t.turnId,questions:[{id:'direction',question:'Choose the fixture direction',options:[{label:'Keep scope'},{label:'Review scope'}]}]}});}
+  await hub.persist('mission');hub.publishSnapshot();win.reload();await waitForRenderer(win,hub.state.workspace.context);
+  progress('render:'+kind);const label={normal:'Crew working','pending-call':'Crew needs your input',unknown:'Work outcome unknown',stopped:'Stopped',ready:'Luffy: ready for your review',accepted:'Accepted by captain'}[kind];await wait(`document.querySelector('.run-status')?.textContent.includes(${JSON.stringify(label)})`);assert.equal(await js(`document.querySelector('.captain-log-status')?.textContent`),label);
+  for(const [size,width,height]of [['full',1424,961],['compact',1000,700]]){
+   win.setSize(width,height);await pause(150);await js(`document.querySelector('.crew-run-panel').scrollIntoView({block:'start',behavior:'instant'})`);await capture(kind+'-'+size);
+   const g=await js(`(()=>{const selectors=['.crew-run-panel','.den-den-calls','.run-status'];return {width:innerWidth,height:innerHeight,working:document.querySelector('.crew-run-panel').dataset.working,overflow:selectors.map(selector=>{const e=document.querySelector(selector);return {selector,scroll:e.scrollWidth,client:e.clientWidth};}),documentOverflow:document.documentElement.scrollWidth>innerWidth,crew:document.querySelectorAll('.crew-run-panel [data-crew-id]').length};})()`);assert.equal(g.working,String(kind==='normal'));assert.equal(g.crew,15);assert.equal(g.documentOverflow,false);assert.ok(g.overflow.every(x=>x.scroll<=x.client+1));geometry.push({kind,size,...g});
+  }
+  await js(`(()=>{const all=[...document.querySelectorAll('*')],sizes=all.map(e=>parseFloat(getComputedStyle(e).fontSize));all.forEach((e,i)=>e.style.fontSize=sizes[i]*2+'px');})()`);await pause(100);
+  for(const selector of ['.run-stop','.run-open-task','.run-open-result',...(kind==='pending-call'?['.call-open','.call-seen','.call-snooze']:[])])geometry.push({kind,size:'compact-200-text',...await reachable(selector)});
+  const over=await js(`['.crew-run-panel','.den-den-calls','.run-status'].map(s=>{const e=document.querySelector(s);return {s,scroll:e.scrollWidth,client:e.clientWidth}})`);assert.ok(over.every(x=>x.scroll<=x.client+1));await js(`document.querySelector('.crew-run-panel').scrollIntoView({block:'start',behavior:'instant'})`);await capture(kind+'-compact-200-text');
+  assert.equal(JSON.stringify(hub.state.workspace.context),selection);assert.equal(sha(JSON.stringify(hub.state.workspace.drafts)),drafts);assert.equal(hub.client.fixtureEffects.providerEffects,0);
+ }
+  const world=await require('./run-ui-world-fixture.cjs').run({win,hub,manifest,trustedInvoke,waitForRenderer,base,js,wait,pause,capture,key,reachable,progress,sha,seedWorldCase,seedWorldRole,seedWorldHistory,WORLD_IDS,WORLD_CASES,WORLD_NEGATIVES});
+  // Actual keyboard activation and presentation persistence are separate from display seeds.
+ const next=seed(structuredClone(base),'pending-call');hub.state.tasks=next.tasks;hub.state.missions.splice(0,hub.state.missions.length,...next.missionBook.missions);hub.state.runs.splice(0,hub.state.runs.length,...next.missionBook.runs);const t=hub.state.tasks[0];hub.request({id:'run-ui-final-rpc',method:'item/tool/requestUserInput',params:{threadId:t.threadId,turnId:t.turnId,questions:[{id:'q',question:'Offline fixture input'}]}});await hub.persist('mission');hub.publishSnapshot();win.reload();await waitForRenderer(win,hub.state.workspace.context);await wait(`Boolean(document.querySelector('.call-open'))`);
+ const a=(await trustedInvoke(win,'snapshot')).approvals[0],phase=hub.state.runs[0].phase;
+ await js(`document.querySelector('.call-open').focus()`);await key('Tab','Tab');assert.equal(await js(`document.activeElement.className`),'call-seen');keyboard.push({key:'Tab',focus:'call-seen'});await key('Enter','Enter');await wait(`document.querySelector('.den-den-calls')?.textContent.includes('· seen')`);keyboard.push({key:'Enter',effect:'durable seen only'});
+ await trustedInvoke(win,'run:ackCall',{requestId:a.id,projectId:a.binding.projectId,runId:a.binding.runId,attemptId:a.binding.attemptId,expectedRevision:a.binding.revision,state:'snoozed'});assert.equal(hub.state.approvals.length,1);assert.equal(hub.state.runs[0].phase,phase);assert.equal(t.approvalResponseIntent,undefined);
+ await js(`document.querySelector('.call-open').focus()`);await key('Enter','Enter');await wait(`Boolean(document.querySelector('.embedded-workbench'))`);assert.equal(hub.state.workspace.context.runId,'display-run');assert.equal(hub.state.workspace.context.attemptId,'attempt-0');geometry.push({kind:'keyboard-open',...await reachable('[aria-label="Back to workspace"]')});await js(`document.querySelector('[aria-label="Back to workspace"]').focus()`);await key('Enter','Enter');await wait(`Boolean(document.querySelector('.crew-run-panel'))`);keyboard.push({key:'Enter',effect:'open input and return',focus:await js(`document.activeElement.className`)});
+ await assert.rejects(trustedInvoke(win,'run:control',{runId:'display-run',projectId:t.projectId,expectedRevision:hub.state.runs[0].revision,action:'stop'}),/offline/i);assert.equal(hub.client.fixtureEffects.providerEffects,0);assert.equal(sha(JSON.stringify(hub.state.workspace.drafts)),drafts);
+ await js(`document.querySelector('.call-snooze').focus()`);await key('Enter','Enter');await wait(`document.querySelector('.den-den-calls')?.textContent.includes('· snoozed')`);assert.equal(hub.state.runs[0].presentation.calls.at(-1).state,'snoozed');keyboard.push({key:'Enter',effect:'final durable snooze after returning'});
+  await capture('keyboard-return');return {screenshots,geometry,keyboard,world,requestId:a.id,displayProofOnly:true,actualPresentationNoResponse:true,draftsRetained:true};
+}
+module.exports={seed,seedWorldCase,seedWorldRole,seedWorldHistory,run,STATES,WORLD_IDS,WORLD_CASES,WORLD_NEGATIVES};

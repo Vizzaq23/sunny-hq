@@ -1,5 +1,25 @@
 # Sunny HQ artwork
 
+## Full roster reuse — 2026-10-05
+
+Task17 changes renderer labels, direct destinations and state projection only.
+All original image bytes, source/prompt records, atlas layouts and measured
+Franky/quarters/deck geometry remain unchanged. Ten core crew retain their
+existing rooms and atlases; four residents use their existing idle cell at their
+saved districts; Morgans keeps the blimp and sanitized-report-only navigation.
+An existing-task resident conversation now omits the room illustration element;
+there is no resident room bitmap to load. The ten core conversation images keep
+their original filenames. This closes an `assets/undefined` URL exposed by the
+full-roster route without assigning an unmeasured room to residents.
+No new source, sample, crop, exported frame or license is added. Other specialist
+and resident scene entries explicitly have null rest/work anchors and no route.
+
+Hash/container-dimension regressions preserve Chopper, Sunny and Franky source
+contracts; the actual-PNG Franky extraction regression retains its independent
+sole offsets. Native roster/state/reduced-motion, keyboard and 200% text visual
+inspection remains pending during host crash/hang diagnosis. This record is
+source reuse documentation, not fresh visual or performance admission.
+
 Generated on 2026-09-11 with the built-in Codex `image_gen` tool. The files in this directory are project copies; the original generated outputs remain in the Codex generated-images directory.
 
 ## `thousand-sunny.png`
@@ -98,3 +118,13 @@ Ten original generated room illustrations now give each core crewmate a distinct
 | `jinbe-helm-room.png` | `exec-b4d989a7-44ce-4e93-8e43-fda33df7ba06.png` | `8AA7B6658264FA9FC2E9B39A964E2C3491E453F90590F018B4599023F1B8EB1F` | Helm and lookout room, ship wheel, sea charts, teal wood and brass |
 
 The exact prompt outputs are retained in the generated-images directory shown above (same directory as the Zoro source). All ten were decoded and checked in fixture conversations; the Electron workflow captured Zoro and Chopper rooms. Runtime art is aria-hidden, static, and rendered at 19% opacity under direct chat content. It contains no mission status or actionable controls. Reduced motion is verified with Chopper. These are stylized fan-room illustrations, not a commercial license.
+
+## Franky one-room measured runtime admission — 2026-10-01
+
+No artwork bytes or generated source records changed. The root reviewed both the raw nominal-atlas overlay and the clean padded-silhouette overlay in `sunny-session-20261001` before admitting source geometry. Room `franky-shipwright-room.png`:1536×1024, SHA256 `E29915E79F9A279AF61EF490E51527190A87BBE7AF941F962D6702419D051A8C`. Existing `crew-pet-states.png`:1586×992, SHA256 `4B5E1BAF34F3CBF29AB16BCD94F70A94221356513E276DC7CFB889DA5FF6782C`. Original generated source/provenance above remain authoritative.
+
+Full-canvas rest feet(650,680), bench feet(1150,590), route(650,680)→(820,640)→(1040,550)→(1150,590); logical actor240×240 source-room pixels. Green floor/table/furniture bounds and all source-pixel/normalized coordinates are preserved in the session geometry review. No quarter-room coordinates, art crop or literal tabletop strike is admitted.
+
+Nominal row3 cols4/5 idle and6/7 work contain neighboring sprites and clip extremities. Runtime-only extraction uses the existing neutral-white key, padded216×216 windows x784/982/1180/1378,y595 (last source width208 padded to216), then each largest4-connected alpha component. Local retained bounds (exclusive right/bottom): idle4(6,14)–(192,203), idle5(17,14)–(195,203), work6(20,15)–(189,203), work7(3,14)–(202,206). Independent frame sole offsets203/203/203/206 preserve ground contact. The detached decorative sparkle is omitted. Original PNGs remain unchanged; no new exported sprite asset exists.
+
+Admission evidence: raw overlay SHA256 `E7F9DF750D2876A6F9350BEE82184A9A94D198037266A73F031EE9284B2FBB44`, final geometry overlay SHA256 `8D29E2886E0DD726A8D3665F80386ACA0A03605CFDBCDF1122E290582C6186F4`; actual decoded-PNG bounds/hashes tested in `tests/franky-frames.test.cjs`. This is measured source-pilot admission; native scene captures and performance rollout gates are separate evidence, not inferred from the contact sheet.

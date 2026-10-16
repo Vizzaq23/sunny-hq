@@ -1,0 +1,176 @@
+{
+  "generatedAt": "2026-09-30T19:01:21.708Z",
+  "node": "v24.18.0",
+  "platform": "win32",
+  "fixtureOnly": true,
+  "method": "Nine warm filesystem trials; timerDelay measures zero-delay timer blocked by synchronous operation, not monitorEventLoopDelay distribution.",
+  "results": [
+    {
+      "name": "flat-4000-4KiB",
+      "trials": 9,
+      "elapsedMs": {
+        "p50": 264.903,
+        "p95": 284.81949999999983
+      },
+      "timerDelayMs": {
+        "p50": 264.96000000000004,
+        "p95": 284.87680000000023
+      },
+      "counts": {
+        "readdirSync": 1,
+        "enumeratedEntries": 4000,
+        "statSync": 4000,
+        "readFileSync": 4000,
+        "bytesRead": 16384000,
+        "resultCount": 0
+      },
+      "countsStable": true
+    },
+    {
+      "name": "flat-5000-4KiB",
+      "trials": 9,
+      "elapsedMs": {
+        "p50": 314.8249999999998,
+        "p95": 318.03089999999975
+      },
+      "timerDelayMs": {
+        "p50": 314.85319999999956,
+        "p95": 318.0585000000001
+      },
+      "counts": {
+        "readdirSync": 1,
+        "enumeratedEntries": 5000,
+        "statSync": 5000,
+        "readFileSync": 5000,
+        "bytesRead": 20480000,
+        "resultCount": 0
+      },
+      "countsStable": true
+    },
+    {
+      "name": "nested-5000-4KiB",
+      "trials": 9,
+      "elapsedMs": {
+        "p50": 268.53990000000067,
+        "p95": 275.15289999999914
+      },
+      "timerDelayMs": {
+        "p50": 268.58010000000013,
+        "p95": 275.1977000000006
+      },
+      "counts": {
+        "readdirSync": 42,
+        "enumeratedEntries": 4150,
+        "statSync": 4100,
+        "readFileSync": 4100,
+        "bytesRead": 16793600,
+        "resultCount": 0
+      },
+      "countsStable": true
+    },
+    {
+      "name": "flat-100-256000bytes",
+      "trials": 9,
+      "elapsedMs": {
+        "p50": 44.745600000000195,
+        "p95": 46.4315000000006
+      },
+      "timerDelayMs": {
+        "p50": 44.77180000000044,
+        "p95": 46.45800000000054
+      },
+      "counts": {
+        "readdirSync": 1,
+        "enumeratedEntries": 100,
+        "statSync": 100,
+        "readFileSync": 100,
+        "bytesRead": 25600000,
+        "resultCount": 0
+      },
+      "countsStable": true
+    },
+    {
+      "name": "empty-directories-5000",
+      "trials": 9,
+      "elapsedMs": {
+        "p50": 237.34850000000006,
+        "p95": 240.6280000000006
+      },
+      "timerDelayMs": {
+        "p50": 237.4393,
+        "p95": 240.65200000000004
+      },
+      "counts": {
+        "readdirSync": 5001,
+        "enumeratedEntries": 5000,
+        "resultCount": 0
+      },
+      "countsStable": true
+    },
+    {
+      "name": "import-50-near512KiB",
+      "trials": 9,
+      "elapsedMs": {
+        "p50": 0.5588999999999942,
+        "p95": 0.9734000000007654
+      },
+      "timerDelayMs": {
+        "p50": 3.7132000000001426,
+        "p95": 15.538400000001275
+      },
+      "counts": {
+        "resultCount": {
+          "added": 50,
+          "total": 50
+        }
+      },
+      "countsStable": true,
+      "inputBytes": 524288
+    },
+    {
+      "name": "inbox-5000-irrelevant-100-briefings",
+      "trials": 9,
+      "elapsedMs": {
+        "p50": 11.924199999999473,
+        "p95": 20.474700000000666
+      },
+      "timerDelayMs": {
+        "p50": 11.945599999999104,
+        "p95": 20.495100000000093
+      },
+      "counts": {
+        "readdirSync": 1,
+        "enumeratedEntries": 5100,
+        "lstatSync": 200,
+        "openSync": 100,
+        "readSync": 200,
+        "bytesRead": 618900,
+        "resultCount": {
+          "added": 1,
+          "imported": 1,
+          "errors": []
+        }
+      },
+      "countsStable": true
+    },
+    {
+      "name": "import-50-at500-capacity-rejected",
+      "trials": 9,
+      "elapsedMs": {
+        "p50": 0.23179999999956635,
+        "p95": 0.29980000000068685
+      },
+      "timerDelayMs": {
+        "p50": 15.492099999999482,
+        "p95": 15.788000000000466
+      },
+      "counts": {
+        "resultCount": {
+          "error": "The briefing archive is full (500 stories). Remove older items before importing.",
+          "retainedItems": 500
+        }
+      },
+      "countsStable": true
+    }
+  ]
+}

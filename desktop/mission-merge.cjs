@@ -11,13 +11,13 @@ class MissionMerge{
   const mission=hub.missionBook.get(input.missionId);hub.missionBook.check(mission,input.revision);
   if(mission.status!=='WAITING_FOR_REVIEW')throw Error('Finish and review the mission attempt first.');
   if(hub.missionActions.has(mission.id)||['publishing','uncertain'].includes(mission.prPublication?.state))throw Error('Finish or reconcile the current mission action first.');
-  const project=hub.project(mission.projectId),lock='mission-merge:'+mission.id;hub.gate.acquire(lock,project.path);hub.missionActions.add(mission.id);
+  const project=hub.missionProject(mission),lock='mission-merge:'+mission.id;if(project.executionWorkspace)await hub.assertExecutionProject(project);hub.gate.acquire(lock,project.path,{projectId:project.id,runId:mission.runId,integrating:true});hub.missionActions.add(mission.id);
   try{
    if(mode==='prepare'){
     if(['submitting','uncertain'].includes(mission.mergeRequest?.state))throw Error('Reconcile the existing merge request first.');
     const prior=mission.artifacts.findLast(a=>a.kind==='pull-request'&&a.attemptId===mission.activeAttemptId);if(!prior)throw Error('Inspect the pull request before preparing merge review.');
     const fresh=await hub.pullRequests.inspect(project.path,prior.number);sameHead(fresh,prior);mergeable(fresh);
-    return hub.missionMutation(()=>{hub.missionBook.check(mission,input.revision);mission.mergeRequest={...fresh,id:randomUUID(),attemptId:mission.activeAttemptId,state:'prepared',method:'approve in GitHub',expiresAt:Date.now()+5*60*1000};hub.missionBook.record(mission,'MERGE_REVIEW_PREPARED',{requestId:mission.mergeRequest.id});return mission.mergeRequest;});
+    return await hub.missionMutation(book=>{const current=book.get(mission.id);book.check(current,input.revision);current.mergeRequest={...fresh,id:randomUUID(),attemptId:current.activeAttemptId,state:'prepared',method:'approve in GitHub',expiresAt:Date.now()+5*60*1000};book.record(current,'MERGE_REVIEW_PREPARED',{requestId:current.mergeRequest.id});return current.mergeRequest;});
    }
    const request=mission.mergeRequest;if(!request||request.attemptId!==mission.activeAttemptId)throw Error('Prepare merge review for this attempt first.');
    const fresh=await hub.pullRequests.inspect(project.path,request.number);
@@ -25,8 +25,8 @@ class MissionMerge{
    if(!['OPEN','CLOSED','MERGED'].includes(fresh.state))throw Error('GitHub did not report a known PR state.');
    if(fresh.state==='MERGED')sameHead(fresh,request);
    if(fresh.state==='MERGED'&&!Number.isFinite(Date.parse(fresh.mergedAt)))throw Error('Merge timestamp could not be verified.');
-   return hub.missionMutation(()=>{hub.missionBook.check(mission,input.revision);request.state=fresh.state==='MERGED'?'merged':fresh.state==='CLOSED'?'closed':'open';request.verifiedAt=Date.now();const artifact={...fresh,id:randomUUID(),attemptId:mission.activeAttemptId,projectId:project.id,producer:'sunny-local-verifier'};mission.artifacts.push(artifact);hub.missionBook.record(mission,fresh.state==='MERGED'?'MERGE_VERIFIED':'MERGE_NOT_OBSERVED',{requestId:request.id,artifactId:artifact.id});return request;});
-  }finally{hub.gate.release(lock);hub.missionActions.delete(mission.id);}
+   return await hub.missionMutation(book=>{const current=book.get(mission.id);book.check(current,input.revision);current.mergeRequest.state=fresh.state==='MERGED'?'merged':fresh.state==='CLOSED'?'closed':'open';current.mergeRequest.verifiedAt=Date.now();const artifact={...fresh,id:randomUUID(),attemptId:current.activeAttemptId,projectId:project.id,producer:'sunny-local-verifier'};current.artifacts.push(artifact);book.record(current,fresh.state==='MERGED'?'MERGE_VERIFIED':'MERGE_NOT_OBSERVED',{requestId:request.id,artifactId:artifact.id});return current.mergeRequest;},'reservation-release');
+  }finally{if(!hub.authorityQueue.uncertain){hub.gate.release(lock);hub.missionActions.delete(mission.id);}}
  }
 }
 module.exports={MissionMerge};

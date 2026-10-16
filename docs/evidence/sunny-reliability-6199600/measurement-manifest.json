@@ -1,0 +1,405 @@
+{
+  "version": 1,
+  "sourceCommit": "619960007870bd2e1c2a2020dd449d55eebffef9",
+  "status": "BLOCKED",
+  "spontaneousCrashCauseVerified": false,
+  "exactPackageA4RawProofComplete": false,
+  "stoppedProfileCopyProofComplete": false,
+  "measurements": [
+    {
+      "sizeMiB": 1,
+      "rawPath": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\sunny-hq-upgrade\\.sunny-dev\\ordered-control-check\\2026-10-03T21-49-03-609Z-1MiB\\result.json",
+      "rawSha256": "7ab01d2b8d49dfcc9d506fffa13c61661993e4b9bda7192091623634fecc6c75",
+      "scope": "source-runtime A4",
+      "sourceCommit": "619960007870bd2e1c2a2020dd449d55eebffef9",
+      "sourceDirty": false,
+      "sourceDigest": "92352345bffd19aeaa9ca70a38193f9cc9c8e98d57f3340877b70db12f8862a4",
+      "builtDigest": "9e9d0d5221348cba5689c0843e585fab0880d1139e76c5c2c361578b62f76761",
+      "runtime": {
+        "electron": "44.4.3",
+        "node": "24.21.0",
+        "chrome": "152.0.7977.130",
+        "executable": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\sunny-hq-upgrade\\node_modules\\electron\\dist\\electron.exe",
+        "executableSha256": "bf0fe749904ca9f713ccfb2427c519fa39d0bbd0337ba411ba08785802e8d548",
+        "platform": "win32",
+        "arch": "x64",
+        "cpu": "AMD Ryzen 9 9950X3D 16-Core Processor          "
+      },
+      "initialCompactBytes": 1090529,
+      "stopSamples": 20,
+      "approvalSamples": 20,
+      "stopFailures": 0,
+      "approvalFailures": 0,
+      "stopP95Ms": 64.5,
+      "approvalP95Ms": 83.40000000037253,
+      "mainTimerExcessMaxMs": 16.20220000000063,
+      "queueWaitStopP95Ms": 32.92000000000007,
+      "queueWaitApprovalP95Ms": 39.633600000000115,
+      "handlerAwaitedStopP95Ms": 64.30420000000004,
+      "handlerAwaitedApprovalP95Ms": 83.05500000000029,
+      "warmups": 6,
+      "sampleWholeStateProofs": 40,
+      "closeReopenWholeState": true,
+      "closeReopenReceiptMatches": true,
+      "closeReopenStateSha256": "d4ff5afdf2510bc1eb3d8b44d2e7290366ef4c78cbe5393110777528eda6cb2a",
+      "closeReopenExpectedSha256": "d4ff5afdf2510bc1eb3d8b44d2e7290366ef4c78cbe5393110777528eda6cb2a",
+      "fullTranscriptsSha256": "6069298390c442f701bbd8049a263bf8e1840d98a439f310911b8f557d97c7f2",
+      "workspaceSha256": "df83cf8df75a1c4a8883c07ffa7422783ac03fbb97d48a437a1e2c1d0dd78784",
+      "failedAssertions": [],
+      "passed": true,
+      "runtimeErrors": [],
+      "cleanup": {
+        "runtimeRetainedPath": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-ordered-control-27bdyh",
+        "userDataRetainedPath": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-ordered-control-27bdyh\\electron-profile",
+        "runtimeRetained": true,
+        "windowsDestroyed": true,
+        "orderedStoreClosed": true,
+        "readonlyWorkersTerminated": 0,
+        "readonlyWorkersRemaining": 0
+      }
+    },
+    {
+      "sizeMiB": 10,
+      "rawPath": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\sunny-hq-upgrade\\.sunny-dev\\ordered-control-check\\2026-10-03T21-49-11-979Z-10MiB\\result.json",
+      "rawSha256": "7ab37fdbf0856a20124ba6adf61aa2f902b6e4c77b1c038270933ef4c92b722a",
+      "scope": "source-runtime A4",
+      "sourceCommit": "619960007870bd2e1c2a2020dd449d55eebffef9",
+      "sourceDirty": false,
+      "sourceDigest": "92352345bffd19aeaa9ca70a38193f9cc9c8e98d57f3340877b70db12f8862a4",
+      "builtDigest": "9e9d0d5221348cba5689c0843e585fab0880d1139e76c5c2c361578b62f76761",
+      "runtime": {
+        "electron": "44.4.3",
+        "node": "24.21.0",
+        "chrome": "152.0.7977.130",
+        "executable": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\sunny-hq-upgrade\\node_modules\\electron\\dist\\electron.exe",
+        "executableSha256": "bf0fe749904ca9f713ccfb2427c519fa39d0bbd0337ba411ba08785802e8d548",
+        "platform": "win32",
+        "arch": "x64",
+        "cpu": "AMD Ryzen 9 9950X3D 16-Core Processor          "
+      },
+      "initialCompactBytes": 10521521,
+      "stopSamples": 20,
+      "approvalSamples": 20,
+      "stopFailures": 0,
+      "approvalFailures": 0,
+      "stopP95Ms": 394.30000000074506,
+      "approvalP95Ms": 569.6999999992549,
+      "mainTimerExcessMaxMs": 44.484800000002,
+      "queueWaitStopP95Ms": 187.5552000000007,
+      "queueWaitApprovalP95Ms": 178.35969999999725,
+      "handlerAwaitedStopP95Ms": 390.1033000000007,
+      "handlerAwaitedApprovalP95Ms": 569.3467999999993,
+      "warmups": 6,
+      "sampleWholeStateProofs": 40,
+      "closeReopenWholeState": true,
+      "closeReopenReceiptMatches": true,
+      "closeReopenStateSha256": "eaefb2ca11b38d84f1584f000ea264e7c06753872880d1a37b767c65953af396",
+      "closeReopenExpectedSha256": "eaefb2ca11b38d84f1584f000ea264e7c06753872880d1a37b767c65953af396",
+      "fullTranscriptsSha256": "2b3bbdf7c0df438163d08ea91fdfa10119696eecfbe35dc5b9277e7b39c39954",
+      "workspaceSha256": "df83cf8df75a1c4a8883c07ffa7422783ac03fbb97d48a437a1e2c1d0dd78784",
+      "failedAssertions": [
+        {
+          "name": "task:interrupt unchanged p95 RTT <200ms",
+          "status": "fail"
+        },
+        {
+          "name": "approval:respond unchanged p95 RTT <200ms",
+          "status": "fail"
+        }
+      ],
+      "passed": false,
+      "runtimeErrors": [],
+      "cleanup": {
+        "runtimeRetainedPath": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-ordered-control-bO6G2g",
+        "userDataRetainedPath": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-ordered-control-bO6G2g\\electron-profile",
+        "runtimeRetained": true,
+        "windowsDestroyed": true,
+        "orderedStoreClosed": true,
+        "readonlyWorkersTerminated": 0,
+        "readonlyWorkersRemaining": 0
+      }
+    },
+    {
+      "sizeMiB": 30,
+      "rawPath": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\sunny-hq-upgrade\\.sunny-dev\\ordered-control-check\\2026-10-03T21-49-57-723Z-30MiB\\result.json",
+      "rawSha256": "6ea2b6536b0afb3aceda4b5384be5def270223a869e3d69f570f03f8106db7b3",
+      "scope": "source-runtime A4",
+      "sourceCommit": "619960007870bd2e1c2a2020dd449d55eebffef9",
+      "sourceDirty": false,
+      "sourceDigest": "92352345bffd19aeaa9ca70a38193f9cc9c8e98d57f3340877b70db12f8862a4",
+      "builtDigest": "9e9d0d5221348cba5689c0843e585fab0880d1139e76c5c2c361578b62f76761",
+      "runtime": {
+        "electron": "44.4.3",
+        "node": "24.21.0",
+        "chrome": "152.0.7977.130",
+        "executable": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\sunny-hq-upgrade\\node_modules\\electron\\dist\\electron.exe",
+        "executableSha256": "bf0fe749904ca9f713ccfb2427c519fa39d0bbd0337ba411ba08785802e8d548",
+        "platform": "win32",
+        "arch": "x64",
+        "cpu": "AMD Ryzen 9 9950X3D 16-Core Processor          "
+      },
+      "initialCompactBytes": 31466481,
+      "stopSamples": 20,
+      "approvalSamples": 20,
+      "stopFailures": 0,
+      "approvalFailures": 0,
+      "stopP95Ms": 1157.5999999996275,
+      "approvalP95Ms": 1721.9000000003725,
+      "mainTimerExcessMaxMs": 101.10480000000098,
+      "queueWaitStopP95Ms": 554.4762000000046,
+      "queueWaitApprovalP95Ms": 558.092599999989,
+      "handlerAwaitedStopP95Ms": 1149.5781999999963,
+      "handlerAwaitedApprovalP95Ms": 1719.8629999999976,
+      "warmups": 6,
+      "sampleWholeStateProofs": 40,
+      "closeReopenWholeState": true,
+      "closeReopenReceiptMatches": true,
+      "closeReopenStateSha256": "1c6ce1e9b9f749a525bd1886ec7643867b01764360c7c5177651d5da6f50bfea",
+      "closeReopenExpectedSha256": "1c6ce1e9b9f749a525bd1886ec7643867b01764360c7c5177651d5da6f50bfea",
+      "fullTranscriptsSha256": "2b3304b3edfd386a80026930b12746cac10c07786d206e2232c04d817b5fd3a0",
+      "workspaceSha256": "df83cf8df75a1c4a8883c07ffa7422783ac03fbb97d48a437a1e2c1d0dd78784",
+      "failedAssertions": [
+        {
+          "name": "task:interrupt unchanged p95 RTT <200ms",
+          "status": "fail"
+        },
+        {
+          "name": "approval:respond unchanged p95 RTT <200ms",
+          "status": "fail"
+        },
+        {
+          "name": "approval:respond unchanged main 1ms timer excess <=100ms",
+          "status": "fail"
+        }
+      ],
+      "passed": false,
+      "runtimeErrors": [],
+      "cleanup": {
+        "runtimeRetainedPath": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-ordered-control-P2pNEX",
+        "userDataRetainedPath": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-ordered-control-P2pNEX\\electron-profile",
+        "runtimeRetained": true,
+        "windowsDestroyed": true,
+        "orderedStoreClosed": true,
+        "readonlyWorkersTerminated": 0,
+        "readonlyWorkersRemaining": 0
+      }
+    }
+  ],
+  "native": [
+    {
+      "scenario": "lost-ack",
+      "rawPath": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\native-6199600\\lost-ack-evidence\\evidence.json",
+      "rawSha256": "92f3d364dfa0836bd2ad80f31ab1daf4eff9a47945f2b8a107fdca159c10e369",
+      "phases": 1,
+      "mainProcessRestart": false,
+      "providerEffects": [
+        0
+      ],
+      "ownedProcessesExited": true,
+      "executableSha256": "d4aa6029e89f6052c6eefeecc517fa6b6898c6bb66f1a1bcd75ed1f9bb184fbb",
+      "asarSha256": "8ec5842ec661c70bd0b89b4aff6a53aaec7a5ea1f00537a5e99b6d5cd38a8556",
+      "scope": "exact-package individual invoke and injected recovery, not frozen A4"
+    },
+    {
+      "scenario": "main-restart",
+      "rawPath": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\native-6199600\\main-restart-evidence\\evidence.json",
+      "rawSha256": "7f3c144e4e649296158824b472fff0f18bd108f19bdfed6b80c535d0b891760c",
+      "phases": 2,
+      "mainProcessRestart": true,
+      "providerEffects": [
+        0,
+        0
+      ],
+      "ownedProcessesExited": true,
+      "executableSha256": "d4aa6029e89f6052c6eefeecc517fa6b6898c6bb66f1a1bcd75ed1f9bb184fbb",
+      "asarSha256": "8ec5842ec661c70bd0b89b4aff6a53aaec7a5ea1f00537a5e99b6d5cd38a8556",
+      "scope": "exact-package individual invoke and injected recovery, not frozen A4"
+    },
+    {
+      "scenario": "normal-quit",
+      "rawPath": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\native-6199600\\normal-quit-evidence\\evidence.json",
+      "rawSha256": "5c88f4269b8b634a0cc28a316176f7c8cfb6578e631969ca3d2a6a51095bb07e",
+      "phases": 1,
+      "mainProcessRestart": false,
+      "providerEffects": [
+        0
+      ],
+      "ownedProcessesExited": true,
+      "executableSha256": "d4aa6029e89f6052c6eefeecc517fa6b6898c6bb66f1a1bcd75ed1f9bb184fbb",
+      "asarSha256": "8ec5842ec661c70bd0b89b4aff6a53aaec7a5ea1f00537a5e99b6d5cd38a8556",
+      "scope": "exact-package individual invoke and injected recovery, not frozen A4"
+    },
+    {
+      "scenario": "pending-approval",
+      "rawPath": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\native-6199600\\pending-approval-evidence\\evidence.json",
+      "rawSha256": "f0ae5a989560c212e5c6dc9ba6eef7a7445448d1f3f97e2e67e9f24ee1370053",
+      "phases": 1,
+      "mainProcessRestart": false,
+      "providerEffects": [
+        0
+      ],
+      "ownedProcessesExited": true,
+      "executableSha256": "d4aa6029e89f6052c6eefeecc517fa6b6898c6bb66f1a1bcd75ed1f9bb184fbb",
+      "asarSha256": "8ec5842ec661c70bd0b89b4aff6a53aaec7a5ea1f00537a5e99b6d5cd38a8556",
+      "scope": "exact-package individual invoke and injected recovery, not frozen A4"
+    },
+    {
+      "scenario": "pending-check",
+      "rawPath": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\native-6199600\\pending-check-evidence\\evidence.json",
+      "rawSha256": "7f1b90141a9259b20654b344acb9dda698e095c80ef4c488471d08806c82c9a8",
+      "phases": 1,
+      "mainProcessRestart": false,
+      "providerEffects": [
+        0
+      ],
+      "ownedProcessesExited": true,
+      "executableSha256": "d4aa6029e89f6052c6eefeecc517fa6b6898c6bb66f1a1bcd75ed1f9bb184fbb",
+      "asarSha256": "8ec5842ec661c70bd0b89b4aff6a53aaec7a5ea1f00537a5e99b6d5cd38a8556",
+      "scope": "exact-package individual invoke and injected recovery, not frozen A4"
+    },
+    {
+      "scenario": "renderer-crash",
+      "rawPath": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\native-6199600\\renderer-crash-evidence\\evidence.json",
+      "rawSha256": "ac257e94c70dfdd494cae0f68343bae333c47c1353e67f4980954fd8dce5c75a",
+      "phases": 1,
+      "mainProcessRestart": false,
+      "providerEffects": [
+        0
+      ],
+      "ownedProcessesExited": true,
+      "executableSha256": "d4aa6029e89f6052c6eefeecc517fa6b6898c6bb66f1a1bcd75ed1f9bb184fbb",
+      "asarSha256": "8ec5842ec661c70bd0b89b4aff6a53aaec7a5ea1f00537a5e99b6d5cd38a8556",
+      "scope": "exact-package individual invoke and injected recovery, not frozen A4"
+    },
+    {
+      "scenario": "startup",
+      "rawPath": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\native-6199600\\startup-evidence\\evidence.json",
+      "rawSha256": "9bd63167f1f94c6e263ec2b592df024ddcae53d9eece6c577a19d2251d4131fe",
+      "phases": 1,
+      "mainProcessRestart": false,
+      "providerEffects": [
+        0
+      ],
+      "ownedProcessesExited": true,
+      "executableSha256": "d4aa6029e89f6052c6eefeecc517fa6b6898c6bb66f1a1bcd75ed1f9bb184fbb",
+      "asarSha256": "8ec5842ec661c70bd0b89b4aff6a53aaec7a5ea1f00537a5e99b6d5cd38a8556",
+      "scope": "exact-package individual invoke and injected recovery, not frozen A4"
+    },
+    {
+      "scenario": "worker-loss",
+      "rawPath": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\native-6199600\\worker-loss-evidence\\evidence.json",
+      "rawSha256": "7e005a97b06699ea3ad6ada1f589bad846a6e97f7d8d767003e69f727eab785c",
+      "phases": 1,
+      "mainProcessRestart": false,
+      "providerEffects": [
+        0
+      ],
+      "ownedProcessesExited": true,
+      "executableSha256": "d4aa6029e89f6052c6eefeecc517fa6b6898c6bb66f1a1bcd75ed1f9bb184fbb",
+      "asarSha256": "8ec5842ec661c70bd0b89b4aff6a53aaec7a5ea1f00537a5e99b6d5cd38a8556",
+      "scope": "exact-package individual invoke and injected recovery, not frozen A4"
+    },
+    {
+      "scenario": "write-failure",
+      "rawPath": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\native-6199600\\write-failure-evidence\\evidence.json",
+      "rawSha256": "461e1194d8cf64224b8626b77741bc68967d81ddc59c83a2b87506875a677612",
+      "phases": 1,
+      "mainProcessRestart": false,
+      "providerEffects": [
+        0
+      ],
+      "ownedProcessesExited": true,
+      "executableSha256": "d4aa6029e89f6052c6eefeecc517fa6b6898c6bb66f1a1bcd75ed1f9bb184fbb",
+      "asarSha256": "8ec5842ec661c70bd0b89b4aff6a53aaec7a5ea1f00537a5e99b6d5cd38a8556",
+      "scope": "exact-package individual invoke and injected recovery, not frozen A4"
+    }
+  ],
+  "historicalSummary": "historical-measurements.json",
+  "retainedPriorNativeFailures": [
+    "../native-ba82be7",
+    "../native-e27fbaa",
+    "../native-8bacf79"
+  ],
+  "protection": {
+    "rawPath": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\evidence\\final-protection.json",
+    "rawSha256": "6ac0e267310364f7fa7c54f674bceb1008654a31838a0245123743d45291a5a0",
+    "facts": {
+      "protected": [
+        {
+          "path": "C:\\Users\\Quintin\\Documents\\GitHub\\sunny-hq",
+          "head": "d1779c29086003cd1f390aae27ad04cfa6900cc8",
+          "status": [],
+          "indexSha256": "43931D85C3ACCA77096635646550E5E74EE3068EDE8739E433F8D106CB39EFB5"
+        },
+        {
+          "path": "C:\\Users\\Quintin\\OneDrive\\Documents\\ChatGPT\\aI WORKFLOW",
+          "head": "5c8c6cb99943d0be58873c353dacd7937fc504e7",
+          "status": [],
+          "indexSha256": "32758F7B38F37AF10EA3894A39A94E43DA280D75083BA4FEBB506B6AF9068857"
+        },
+        {
+          "path": "C:\\Users\\Quintin\\Documents\\Codex\\2026-09-29\\task\\sunny-responsive-20261001",
+          "head": "02c9634c0c77c2d5aeea5972b0099bac3995cb8b",
+          "status": [],
+          "indexSha256": "66C8C619349248BB58618FE3D2E027BEC7B8792512F5CD51752B3F777C220875"
+        }
+      ],
+      "installedAsarSha256": "E70B60892095E41E03AE851D893F7BE8A84BDE7725E004E68CC63C4083866819",
+      "candidateProcessesRemaining": [],
+      "liveProfileReadOrCopied": false,
+      "diagnosticsOnlyRead": true,
+      "installedAppReplaced": false
+    }
+  },
+  "sourceRuntimeJourney": {
+    "rawPath": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\sunny-hq-upgrade\\.sunny-dev\\mission-deck-check\\2026-10-03T21-52-24-564Z\\result.json",
+    "rawSha256": "fed171a52753e585eb28a50448d5f500585fc6eda102162a314020ae143429ca",
+    "assertions": 33,
+    "errors": 0,
+    "passed": true,
+    "coverageComplete": true,
+    "scope": "source-runtime journey, not exact-package A4"
+  },
+  "validationLogs": [
+    {
+      "name": "task-3-red.log",
+      "rawPath": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\evidence\\task-3-red.log",
+      "rawSha256": "de56fd72a894d81bb781e9cb315481839c2e2e728bcbd23f703ba709a1c8fac3"
+    },
+    {
+      "name": "task-3-red-desktop.log",
+      "rawPath": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\evidence\\task-3-red-desktop.log",
+      "rawSha256": "b998c6db5fd113a94b2512db76fdd8a5493eb526196290a6c17895eed7f706f7"
+    },
+    {
+      "name": "task-3-red-desktop-final.log",
+      "rawPath": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\evidence\\task-3-red-desktop-final.log",
+      "rawSha256": "3ce40af53e5db4d9501e8a75e7fba728b208d684a26a1468e48918078cd26fcf"
+    },
+    {
+      "name": "task-3-green.log",
+      "rawPath": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\evidence\\task-3-green.log",
+      "rawSha256": "be9ba8c48e66bd80570d601c37c19b07b7ed2c088f1f962be13bc6fe0e3e49e8"
+    },
+    {
+      "name": "task-3-full-green.log",
+      "rawPath": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\evidence\\task-3-full-green.log",
+      "rawSha256": "031ba1ab152e9bb15750b8aeabca3fa240633998e7a70d68a713ba0df2e5cf72"
+    },
+    {
+      "name": "6199600-full-tests.log",
+      "rawPath": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\evidence\\6199600-full-tests.log",
+      "rawSha256": "3705e0f326117764424a40834ca1df3f8d947bdcf8fd8be55d494be6a28e39b2"
+    },
+    {
+      "name": "6199600-build.log",
+      "rawPath": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\evidence\\6199600-build.log",
+      "rawSha256": "05628ef0b3241b5aa680eff0cbb88413af5cfa4f729cc16e69450cb133df1021"
+    },
+    {
+      "name": "6199600-package.log",
+      "rawPath": "C:\\Users\\Quintin\\Documents\\Codex\\2026-10-03\\im\\work\\evidence\\6199600-package.log",
+      "rawSha256": "66478da7edd75a188dab248de1bfb918d09a92a8fd0919e98fa7251d3964c44b"
+    }
+  ]
+}

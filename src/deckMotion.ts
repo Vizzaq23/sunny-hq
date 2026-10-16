@@ -26,8 +26,8 @@ function target(w:Walker,end:string){if(w.target===end)return;w.target=end;const
 export function stepWalkers(current:Walker[],elapsed:number,{statuses={},meeting=[],held=[],paused=false}:Options):Walker[]{
  const dt=Math.min(.1,Math.max(0,elapsed));
  return current.map((old,index)=>{const w={...old,path:[...old.path]};const status=statuses[w.id]??'idle';w.moving=false;
-  if(paused)return w;
   if(status==='waiting'||status==='attention'){w.mode=status;return w;}
+  if(paused){w.mode=status==='working'?'working':'idle';return w;}
   if(held.includes(w.id)){w.mode=status==='working'?'working':'idle';return w;}
   if(status==='working'){target(w,HOMES[w.id]);w.mode='working';}
   else if(meeting.includes(w.id)){target(w,meeting.indexOf(w.id)%2?'meetRight':'meetLeft');w.mode='meeting';}

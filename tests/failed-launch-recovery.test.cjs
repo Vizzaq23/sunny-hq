@@ -1,27 +1,28 @@
+const {receiptStore}=require('./helpers/receipt-store.cjs');
 const {test}=require('node:test');const assert=require('node:assert/strict');
 const {Hub}=require('../desktop/hub.cjs');const {CodexClient}=require('../desktop/codex.cjs');
 function setup(t){
  let saved={projects:[{id:'p',path:process.cwd(),name:'Fixture'}]};
  const store={load:()=>structuredClone(saved),save:value=>{saved=structuredClone(value);},close(){}};
  const catalog={discoverProjects:()=>[],discoverTools:()=>[],discoverAutomations:()=>[]};
- let hub=new Hub({home:process.cwd(),store,catalog}),calls=[];
+ let hub=new Hub({home:process.cwd(),store:receiptStore(store),catalog}),calls=[];
  function transport(){hub.client.connected=true;hub.state.codex.status='connected';hub.client.request=async(method,args)=>{calls.push({method,args});if(method==='thread/start')return {thread:{id:'thread-'+calls.length}};if(method==='turn/start')return {turn:{id:'turn-'+calls.length}};return {};};}
  transport();t.after(()=>hub.close());
  return {get hub(){return hub;},store,calls,async fail(error=Object.assign(Error('Not submitted'),{notSubmitted:true})){
   const request=hub.client.request;hub.client.request=async(method,args)=>{if(method==='turn/start')throw error;return request(method,args);};
-  await assert.rejects(hub.start({projectId:'p',crewId:'franky',prompt:'Keep this exact goal'}),/Not submitted/);hub.client.request=request;hub.persist();return hub.state.tasks[0];
- },restart(){hub.close();hub=new Hub({home:process.cwd(),store,catalog});transport();}};
+  await assert.rejects(hub.start({projectId:'p',crewId:'franky',prompt:'Keep this exact goal'}),/Not submitted/);hub.client.request=request;await hub.persist();return hub.state.tasks[0];
+ },async restart(){await hub.close();hub=new Hub({home:process.cwd(),store:receiptStore(store),catalog});transport();}};
 }
 test('disconnected transport proves rejection before any submission',async()=>{
  const client=new CodexClient();await assert.rejects(client.request('turn/start',{}),error=>error.notSubmitted===true&&!error.uncertain);
 });
 test('explicit failed-launch retry survives restart and deduplicates a lost reply',async t=>{
- const f=setup(t),source=await f.fail();assert.equal(source.launchNotSubmitted,true);f.restart();
+ const f=setup(t),source=await f.fail();assert.equal(source.launchNotSubmitted,true);await f.restart();
  const command={taskId:source.id,expectedUpdatedAt:source.updatedAt};
  const retried=await f.hub.retryFailedLaunch(command);
  assert.notEqual(retried.id,source.id);assert.equal(retried.recoveryOfTaskId,source.id);assert.equal(retried.messages[0].text,'Keep this exact goal');
  assert.equal(f.hub.task(source.id).retryTaskId,retried.id);assert.equal(f.hub.task(source.id).status,'failed');
- f.restart();assert.equal((await f.hub.retryFailedLaunch(command)).id,retried.id);
+ await f.restart();assert.equal((await f.hub.retryFailedLaunch(command)).id,retried.id);
  assert.equal(f.calls.filter(call=>call.method==='turn/start').length,1);assert.equal(f.hub.state.tasks.length,2);
 });
 test('uncertain and generic failures never gain safe retry evidence',async t=>{
@@ -46,7 +47,7 @@ test('replacement checkpoint failure retains proof that explicit recovery is saf
  const replacement=await f.hub.retryFailedLaunch(command);
  assert.equal(replacement.launchNotSubmitted,true);assert.equal(replacement.threadId,undefined);
  assert.equal(f.calls.filter(call=>call.method==='turn/start').length,0);
- f.store.save=save;f.hub.persist();f.restart();
+ f.store.save=save;await f.hub.persist();await f.restart();
  const recovered=await f.hub.retryFailedLaunch({taskId:replacement.id,expectedUpdatedAt:replacement.updatedAt});
  assert.equal(recovered.messages[0].text,'Keep this exact goal');
  assert.equal(f.calls.filter(call=>call.method==='turn/start').length,1);
@@ -56,7 +57,7 @@ test('a rejection before thread creation retains the entire goal across restart'
  const f=setup(t);f.hub.client.request=async()=>{throw Object.assign(Error('Transport unavailable before send'),{notSubmitted:true});};
  const prompt='Keep the complete objective beyond the title. '.repeat(20);
  await assert.rejects(f.hub.start({projectId:'p',crewId:'franky',prompt}),/Transport unavailable/);
- const source=f.hub.state.tasks[0];assert.equal(source.launchPrompt,prompt);assert.equal(source.messages.length,0);f.restart();
+ const source=f.hub.state.tasks[0];assert.equal(source.launchPrompt,prompt);assert.equal(source.messages.length,0);await f.restart();
  const next=await f.hub.retryFailedLaunch({taskId:source.id,expectedUpdatedAt:source.updatedAt});assert.equal(next.messages[0].text,prompt);assert.equal(next.launchPrompt,undefined);
 });
 

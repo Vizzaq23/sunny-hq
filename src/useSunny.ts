@@ -1,6 +1,10 @@
 import {useCallback,useEffect,useRef,useState} from 'react';
-import type {Snapshot,Task} from './shared';
+import type {PublicSnapshot,Snapshot} from './shared';
 import {EMPTY_SNAPSHOT} from './data';
+import {publicStateReducer} from './transcriptState';
+import type {PublicState} from './transcriptState';
+import {useMissionResultStatuses} from './useMissionResultStatus';
+import {stopRoomAudio} from './roomAudio';
 
 export type Toast={id:number;message:string;tone?:'default'|'success'|'error'};
 
@@ -19,6 +23,8 @@ export function useSunny(){
   },[]);
 
   const invoke=useCallback(async<T=unknown>(action:string,args?:unknown):Promise<T>=>{
+    const control=args&&typeof args==='object'?args as Record<string,unknown>:undefined;
+    if(action==='run:control'&&(control?.action==='stop'||control?.control==='stop')||action==='settings:update'&&(control?.roomSoundEnabled===false||control?.roomSoundVolume!==undefined))stopRoomAudio();
     if(!window.sunny){
       toast('This action is available in the Sunny HQ desktop app.');
       throw new Error('Desktop app required');
@@ -30,21 +36,36 @@ export function useSunny(){
   useEffect(()=>{
     let alive=true;
     if(!window.sunny){setReady(true);return;}
-    let receivedUpdate=false;
-    const earlyTasks=new Map<string,Task>();let initialPending=true;
-    void window.sunny.invoke('snapshot').then((next:Snapshot)=>{if(alive&&!receivedUpdate){for(const task of earlyTasks.values())next={...next,tasks:upsertTask(next.tasks,task)};setSnapshot(next);}}).catch((error)=>{if(alive&&!receivedUpdate)setLoadError(error instanceof Error?error.message:String(error));}).finally(()=>{initialPending=false;earlyTasks.clear();if(alive)setReady(true);});
+    let state:PublicState|null=null,reading=false,resyncBudget=1;
+    let baselineEpoch:string|undefined,knownAcceptanceIds=new Set<string>(),liveAcceptanceIds:string[]=[];
+    const publish=(live=false)=>{
+      if(!state)return;
+      const {taskSummaries,...rest}=state.snapshot;
+      if(Array.isArray(rest.missions)&&!state.earlyEvents){
+        const ids=new Set<string>(rest.missions.map(m=>m.acceptance?.legacy===false||m.acceptance?.legacy===undefined?m.acceptance?.id:undefined).filter((id):id is string=>typeof id==='string'));
+        if(baselineEpoch!==rest.epoch){baselineEpoch=rest.epoch;knownAcceptanceIds=ids;liveAcceptanceIds=[];}
+        else{const health=rest.persistence as Snapshot['persistence'];if(health?.uncertain||health?.state==='uncertain')liveAcceptanceIds=[];else if(live&&!state.needsSnapshot)liveAcceptanceIds=[...liveAcceptanceIds,...[...ids].filter(id=>!knownAcceptanceIds.has(id))].slice(-100);knownAcceptanceIds=ids;}
+      }
+      setSnapshot({...EMPTY_SNAPSHOT,...rest,tasks:taskSummaries,liveAcceptanceIds} as Snapshot);
+    };
+    const refresh=async()=>{if(reading||!alive)return;reading=true;let retry=false;try{const next=await window.sunny!.invoke('snapshot') as PublicSnapshot;if(!alive)return;if(next.protocolVersion!==2)throw Error('Sunny transcript protocol changed. Reload the desktop app.');state=publicStateReducer(state,{type:'snapshot',snapshot:next as unknown as PublicState['snapshot']});publish();setLoadError('');retry=Boolean(state?.needsSnapshot);if(retry&&resyncBudget===0)setLoadError('Sunny history changed during loading. Reload to recover its current state.');}catch(error){if(alive)setLoadError(error instanceof Error?error.message:String(error));}finally{reading=false;if(alive)setReady(true);if(alive&&retry&&resyncBudget>0){resyncBudget--;void refresh();}}};
+    const onRefresh=()=>{resyncBudget=1;void refresh();};
+    window.addEventListener?.('sunny:refresh-snapshot',onRefresh);
     const unsubscribe=window.sunny.subscribe(event=>{
       if(!alive)return;
-      if(event.type==='snapshot'){receivedUpdate=true;setLoadError('');setReady(true);setSnapshot(event.data as Snapshot);}
-      if(event.type==='task'){if(initialPending)earlyTasks.set(event.data.id,event.data as Task);setSnapshot(prev=>({...prev,tasks:upsertTask(prev.tasks,event.data as Task)}));}
-      if(event.type==='approval')setSnapshot(prev=>({...prev,approvals:[...prev.approvals.filter(a=>a.id!==event.data.id),event.data]}));
+      if(typeof event.epoch==='string'&&typeof event.sequence==='number'){
+        const consecutive=Boolean(state&&!state.earlyEvents&&!state.needsSnapshot&&state.snapshot.epoch===event.epoch&&event.sequence===state.snapshot.sequence+1);
+        state=publicStateReducer(state,{type:'event',event:{...event,epoch:event.epoch,sequence:event.sequence}});publish(event.type==='snapshot'&&consecutive);
+        if(event.type==='snapshot'){setLoadError('');setReady(true);}
+        if(state?.needsSnapshot){resyncBudget=1;void refresh();}
+      }
       if(event.type==='error')toast(event.data?.message??'Sunny HQ encountered an error.','error');
     });
-    return()=>{alive=false;unsubscribe?.();};
+    void refresh();
+    return()=>{alive=false;unsubscribe?.();window.removeEventListener?.('sunny:refresh-snapshot',onRefresh);};
   },[toast]);
 
   const mergeSnapshot=useCallback((partial:Partial<Snapshot>)=>setSnapshot(prev=>({...prev,...partial})),[]);
-  return{snapshot,setSnapshot,mergeSnapshot,ready,loadError,desktop,invoke,toast,toasts};
+  const resultStatuses=useMissionResultStatuses(snapshot,invoke);
+  return{snapshot:{...snapshot,resultStatuses},setSnapshot,mergeSnapshot,ready,loadError,desktop,invoke,toast,toasts};
 }
-
-function upsertTask(tasks:Task[],task:Task){const index=tasks.findIndex(item=>item.id===task.id);if(index<0)return[task,...tasks];const next=[...tasks];next[index]=task;return next;}

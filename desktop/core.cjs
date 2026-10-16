@@ -1,6 +1,7 @@
 const fs=require('node:fs');
 const path=require('node:path');
 const crypto=require('node:crypto');
+const {performance}=require('node:perf_hooks');
 function inside(root,target){const relative=path.relative(root,target);return relative===''||(!relative.startsWith('..'+path.sep)&&relative!=='..'&&!path.isAbsolute(relative));}
 function guardedPath(root,input=''){
  if(typeof input!=='string'||input.includes('\0'))throw Error('Invalid file path');
@@ -21,11 +22,14 @@ function writeText(root,input,text,expectedHash){
  try{fs.writeFileSync(file,text,'utf8');}catch(e){if(['EPERM','EACCES'].includes(e.code))throw Error('Windows blocked this save. Check the folder permissions and your security app history for Sunny HQ, then try again.');throw e;}return readText(root,file);
 }
 function deriveStatus(status){if(!status)return 'unknown';const type=typeof status==='string'?status:status.type;if(type==='active')return status.activeFlags?.length?'waiting':'working';if(type==='idle')return 'idle';if(type==='systemError')return 'failed';return 'unknown';}
+const copiedGates=new WeakSet();
 class TaskGate{
- constructor(limit=3){this.limit=limit;this.active=new Map();}
- blocked(root){const normalized=path.resolve(root).toLowerCase();return [...this.active.values()].some(other=>inside(other,normalized)||inside(normalized,other));}
- acquire(id,root){const normalized=path.resolve(root).toLowerCase();if(this.active.has(id))throw Error('This task is already running');if(this.blocked(root))throw Error('A task is already writing in this checkout. Finish or interrupt it first.');if(this.active.size>=this.limit)throw Error('The active-run limit is reached. Finish or interrupt a task first.');this.active.set(id,normalized);}
- release(id){this.active.delete(id);}
+ constructor(limit=3,fixtureScopeEnforcement,copiedRecovery){if(copiedRecovery!==undefined){require('./copied-recovery.cjs').assertCopiedToken(copiedRecovery);copiedGates.add(this);}this.limit=limit;this.active=new Map();this.logical=new Map();this.fixtureScopeEnforcement=fixtureScopeEnforcement;}
+ root(root){if(copiedGates.has(this))return require('./copied-recovery.cjs').reservationKey(root);return path.resolve(fs.existsSync(root)?fs.realpathSync(root):root).toLowerCase();}
+ reserve(id,root,scope={}){this.active.set(id,this.root(root));this.logical.set(id,{...scope});}
+ blocked(root,scope={}){if(copiedGates.has(this))return true;const normalized=this.root(root);return [...this.active.values()].some(other=>inside(other,normalized)||inside(normalized,other))||[...this.logical.entries()].some(([id,other])=>scope.projectId&&other.projectId===scope.projectId&&this.conflictResolution?.({id,root:normalized,scope,other})!==true&&!(!scope.integrating&&!other.integrating&&scope.runId&&scope.runId===other.runId&&this.fixtureScopeEnforcement?.({root:normalized,otherRoot:this.active.get(id),scope,other})===true));}
+ acquire(id,root,scope={}){if(copiedGates.has(this))throw Object.assign(Error('COPIED_EXTERNAL_ACCESS_DENIED'),{code:'COPIED_EXTERNAL_ACCESS_DENIED'});const normalized=this.root(root);if(this.active.has(id))throw Error('This task is already running');if(this.blocked(root,scope))throw Error('A task is already writing in this checkout. Finish or interrupt it first.');if(this.active.size>=this.limit)throw Error('The active-run limit is reached. Finish or interrupt a task first.');this.reserve(id,normalized,scope);}
+ release(id){this.active.delete(id);this.logical.delete(id);}
 }
 class StateStore{
  constructor(file){this.file=file;fs.mkdirSync(path.dirname(file),{recursive:true});}
@@ -36,7 +40,29 @@ class StateStore{
 class SqliteStore{
  constructor(file){const {DatabaseSync}=require('node:sqlite');fs.mkdirSync(path.dirname(file),{recursive:true});this.db=new DatabaseSync(file);this.db.exec('PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS state (id INTEGER PRIMARY KEY CHECK(id=1), value TEXT NOT NULL)');}
  load(){const row=this.db.prepare('SELECT value FROM state WHERE id=1').get();if(!row)return {};try{return JSON.parse(row.value);}catch{this.db.exec('CREATE TABLE IF NOT EXISTS recovery (saved_at TEXT, value TEXT)');this.db.prepare('INSERT INTO recovery VALUES(?,?)').run(new Date().toISOString(),row.value);this.recovery='Preserved in the SQLite recovery table';return {};}}
- save(value){this.db.prepare('INSERT INTO state(id,value) VALUES(1,?) ON CONFLICT(id) DO UPDATE SET value=excluded.value').run(JSON.stringify(value));}
+ save(value,probe){
+  if(!probe){this.db.prepare('INSERT INTO state(id,value) VALUES(1,?) ON CONFLICT(id) DO UPDATE SET value=excluded.value').run(JSON.stringify(value));return;}
+  const started=performance.now();let tick=started;
+  try{
+   // The original expression looks up run before evaluating its argument.
+   const statement=this.db.prepare('INSERT INTO state(id,value) VALUES(1,?) ON CONFLICT(id) DO UPDATE SET value=excluded.value'),run=statement.run;
+   let now=performance.now();probe.sqlPrepare=now-tick;tick=now;probe.sqlStage=1;
+   const serialized=JSON.stringify(value);
+   now=performance.now();probe.sqlStringify=now-tick;tick=now;probe.sqlStage=2;
+   Reflect.apply(run,statement,[serialized]);
+   now=performance.now();probe.sqlRun=now-tick;probe.sqlStage=3;
+  }catch(error){probe.sqlFailed=1;throw error;}finally{probe.sqlTotal=performance.now()-started;}
+ }
  close(){this.db.close();}
 }
 module.exports={guardedPath,readText,writeText,deriveStatus,TaskGate,StateStore,SqliteStore,hash,inside};
+
+// Trusted worker construction only; public object save retains its original order.
+function prepareWorkerSqliteStore(file){
+ const raw=new SqliteStore(file);
+ return {raw,writeCompact(compact){
+  if(typeof compact!=='string')throw TypeError('Compact profile must be a string');
+  raw.db.prepare('INSERT INTO state(id,value) VALUES(1,?) ON CONFLICT(id) DO UPDATE SET value=excluded.value').run(compact);
+ }};
+}
+module.exports.prepareWorkerSqliteStore=prepareWorkerSqliteStore;

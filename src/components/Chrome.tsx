@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
 import {Anchor,BookOpen,Box,Compass,Inbox,LayoutDashboard,Newspaper,Menu,Settings,ShipWheel,Sparkles,Users,X} from 'lucide-react';
-import type {Crew,Project,Task} from '../shared';
+import type {Crew,Project,TaskSummary as Task} from '../shared';
 import {formatRelative} from '../data';
 import {useCrewTexture} from '../crewTexture';
 import {taskLabel,taskNeedsAttention} from '../taskFlow';
@@ -28,7 +28,7 @@ export function Sidebar({view,onView,projects,tasks,activeProjectId,onProject,op
     </nav>
     <div className="sidebar-projects">
       <div className="nav-section-title"><span>Recent projects</span><button onClick={()=>onView('projects')}>View all</button></div>
-      {projects.slice(0,4).map(project=><button key={project.id} className={`project-nav ${activeProjectId===project.id?'active':''}`} onClick={()=>onProject(project.id)}><span className="project-gem">{project.name.charAt(0).toUpperCase()}</span><span><b>{project.name}</b><small>{tasks.filter(t=>t.projectId===project.id).length} missions</small></span></button>)}
+      {projects.slice(0,4).map(project=><button key={project.id} className={`project-nav ${activeProjectId===project.id?'active':''}`} onClick={()=>onProject(project.id)}><span className="project-gem">{project.name.charAt(0).toUpperCase()}</span><span><b>{project.name}</b><small>{tasks.filter(t=>t.projectId===project.id).length} conversations</small></span></button>)}
       {projects.length===0?<p className="nav-empty">Your imported projects will live here.</p>:null}
     </div>
     <div className="sidebar-foot">
@@ -57,9 +57,8 @@ export function CrewBadge({crew,size='normal',onClick}:{crew:Crew;size?:'small'|
   const spriteUrl=new URL(`${import.meta.env.BASE_URL}assets/crew-pet-states.png`,window.location.href).href;
   const chopperUrl=new URL(`${import.meta.env.BASE_URL}assets/chopper-pet.webp`,window.location.href).href;
   const texture=useCrewTexture(spriteUrl,'states');
-  const chopper=crew.id==='chopper',morgans=crew.id==='morgans',pixel=chopper||Boolean(resident?residentTexture:texture);
-  const morgansUrl=new URL(`${import.meta.env.BASE_URL}assets/morgans-blimp-key.png`,window.location.href).href;
-  return <Tag className={`crew-badge ${size} ${pixel?'pixel':'portrait'} ${chopper?'chopper':''}`} style={{'--crew':crew.color,'--crew-x':`${x}%`,'--crew-y':`${y}%`,backgroundImage:`url("${morgans?morgansUrl:resident?residentTexture??residentUrl:chopper?chopperUrl:texture??crewSheetUrl}")`,backgroundSize:morgans?'contain':resident?'400% 400%':chopper?'800% 1100%':texture?'800% 500%':undefined,backgroundPosition:morgans?'center':undefined,backgroundRepeat:morgans?'no-repeat':undefined} as React.CSSProperties} onClick={onClick} title={`${crew.name} · ${crew.role}`} aria-label={`${crew.name}, ${crew.role}`}><span>{crew.name}</span></Tag>;
+  const chopper=crew.id==='chopper',pixel=chopper||Boolean(resident?residentTexture:texture);
+  return <Tag className={`crew-badge ${size} ${pixel?'pixel':'portrait'} ${chopper?'chopper':''}`} style={{'--crew':crew.color,'--crew-x':`${x}%`,'--crew-y':`${y}%`,backgroundImage:`url("${resident?residentTexture??residentUrl:chopper?chopperUrl:texture??crewSheetUrl}")`,backgroundSize:resident?'400% 400%':chopper?'800% 1100%':texture?'800% 500%':undefined} as React.CSSProperties} onClick={onClick} title={`${crew.name} · ${crew.role}`} aria-label={`${crew.name}, ${crew.role}`}><span>{crew.name}</span></Tag>;
 }
 
 export function TaskRow({task,crew,onClick}:{task:Task;crew?:Crew;onClick:()=>void}){

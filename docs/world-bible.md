@@ -81,3 +81,41 @@ Robin remains the librarian. The captain selects an existing Obsidian note and p
 ## Project document shelf (2026-09-22)
 
 Project quarters contain collapsible Project charts below the health log. The captain explicitly browses root/docs Markdown files and selects a read-only source preview. File content is never treated as mission evidence or an instruction to act. This adds useful project information without changing the immediate stop/approval controls.
+
+## Fifteen direct scene destinations — 2026-10-05
+
+Island and project quarters expose a keyboard-focusable roster of ten core crew,
+four residents and Morgans. Crew buttons open the existing conversation path;
+Morgans opens the news blimp's read-only briefings. Inspect controls open the exact
+selected crew task without waiting for travel. Reporter access remains excluded
+from task-capable crew. Resident districts remain saved choices.
+
+The read-only scene projection now follows the selected supervised run's current
+assignment, retains historical selections, suppresses ambiguous assignments and
+checks worker ancestry against an explicit mission attempt. Run stop, recovery,
+waiting, block and ready states cannot borrow a working task's animation. A
+review stage or exact selected review-capability assignment uses a still pose,
+including ordinary run children without a workflow stage. A creative-reviewer
+using creative/design capability remains authored work; review phase alone never
+relabels an author as a reviewer. Scene pause changes presentation only; task and
+run authority continue updating. Decorative room illustrations remain static;
+only existing measured Franky/quarters/deck geometry is reused. No new world,
+game, provider, persistence schema, dependency or artwork is introduced.
+Existing-task resident conversations intentionally omit room art because only
+the ten core crew have admitted room illustrations; resident identity and work
+controls remain available without an invalid `assets/undefined` image request.
+
+Native state/reduced-motion captures, keyboard journeys, 200% text and exact
+package proof are pending while host crash/hang diagnosis is open. Source checks
+do not admit installed rollout or waive the Stage A performance gate.
+
+The captain leads a living digital crew from Sunny HQ. Projects are destinations, meaningful objectives are missions, and durable evidence belongs in the logbook. The One Piece-inspired premise is permanent; real work and clear controls determine what happens underneath it.
+
+
+## Franky's honest one-room pilot — 2026-10-01
+
+The selected persisted work context can open Franky's shipwright workshop while keeping the captain log opaque and directly accessible. The shared mission projection follows the exact selected mission/attempt/task and structured stage owner. A newer unrelated assignment cannot replace it; approval and unknown state stop purposeful work. Nami planning, Usopp validation and Zoro review remain their own stages with Franky still. Missing/conflicting selections stay unavailable. A finished provider turn remains ready for captain review; only a modern captain receipt bound to the selected result represents accepted work.
+
+The one room reuses the existing uncropped3:2 illustration and existing Franky atlas; root-reviewed measured floor anchors/route and in-memory padded silhouette extraction are recorded in the art bible and ARTWORK.md. Franky holds a wrench beside the bench without a fabricated tabletop strike. Inspect work, input/approval and Stop work remain direct controls. Pause visuals calls no interrupt. System/Sunny reduced motion removes travel, frame loops and the acceptance glow. The room and companion compete through one backend durable first-claim command for a brief live-acceptance cue; mount/reload/history never manufactures a reward. The captain log displays the receipt without consuming its cue.
+
+Automatic crew victory on a finished provider turn has been removed. Captain-requested/timed deck scenes remain explicitly labelled ambient entertainment and cannot alter mission state. This isolated source pilot remains subject to native visual/truth review and the independent performance promotion gates; it does not replace the installed app or claim packaged rollout.

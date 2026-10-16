@@ -1,5 +1,5 @@
 import {useRef,useState} from 'react';
-import type {Task} from '../shared';
+import type {TaskSummary as Task} from '../shared';
 import './missing-thread-recovery.css';
 
 export function FailedLaunchRecovery({task,owned,disabled,invoke,onOpen}:{task:Task;owned:boolean;disabled:boolean;invoke:<T=unknown>(action:string,args?:unknown)=>Promise<T>;onOpen:(id:string)=>void}){

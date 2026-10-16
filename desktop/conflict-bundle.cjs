@@ -1,0 +1,33 @@
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const {execFile}=require('node:child_process'),{promisify}=require('node:util');
+const exec=promisify(execFile),MAX_FILE=1024*1024,MAX_TOTAL=8*MAX_FILE,MAX_JSON=16*MAX_FILE;
+const digest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+function noAlias(file){let next=path.resolve(file);for(;;){if(fs.existsSync(next)&&fs.lstatSync(next).isSymbolicLink())throw Error('Conflict bundle alias rejected');const parent=path.dirname(next);if(parent===next)break;next=parent;}return file;}
+function read(file){noAlias(file);if(!fs.existsSync(file))return null;const s=fs.lstatSync(file);if(!s.isFile()||s.nlink!==1||s.size>MAX_FILE)throw Error('Conflict file type, alias or byte bound exceeded');const bytes=fs.readFileSync(file),after=fs.lstatSync(file);if(bytes.length>MAX_FILE||after.ino!==s.ino||after.dev!==s.dev||after.size!==s.size)throw Error('Conflict file changed during bounded read');return bytes;}
+async function capture(service,run,record){
+ const h=service.hub,w=h.runSourceProject(run.id).executionWorkspace,root=w.canonicalRoot,project=h.runSourceProject(run.id),owner=run.assignments.find(a=>a.id===record.assignmentId);
+ await h.assertExecutionProject(project);const before=await service.source(w);if(!require('./review-verdicts.cjs').sameSource(before.source,record.after)||!before.dirty)throw Error('Retained conflict source changed');
+ const command=args=>h.evidence.command(root,args),cherryPickHead=(await command(['rev-parse','--verify','CHERRY_PICK_HEAD'])).trim();if(!record.commits.includes(cherryPickHead))throw Error('Conflict sequencer candidate changed');
+ const changed=[...new Set((await command(['diff','--name-only','-z'])).split('\0').concat((await command(['diff','--cached','--name-only','-z'])).split('\0'),(await command(['ls-files','--others','--exclude-standard','-z'])).split('\0')).filter(Boolean))];
+ if(!changed.length||changed.length>5000)throw Error('Conflict path bound exceeded');require('./mission-integration.cjs').scopePaths(changed,owner.ownedPaths);
+ let total=0;const encode=bytes=>{if(bytes===null)return null;if(bytes.length>MAX_FILE||(total+=bytes.length)>MAX_TOTAL)throw Error('Conflict bundle byte bound exceeded');return bytes.toString('base64');};
+ async function blob(oid){if(!/^[a-f0-9]{40,64}$/.test(oid))throw Error('Invalid conflict blob');const result=await exec(h.evidence.git,['cat-file','blob',oid],{cwd:root,windowsHide:true,encoding:'buffer',timeout:10000,maxBuffer:MAX_FILE+1});return encode(result.stdout);}
+ const index=[];for(const row of (await command(['ls-files','--stage','-z'])).split('\0').filter(Boolean)){const match=/^(\d+) ([a-f0-9]+) ([0-3])\t([\s\S]+)$/.exec(row);if(!match)throw Error('Conflict index format changed');const [,mode,oid,stage,name]=match;if(!changed.includes(name))continue;if(!['100644','100755'].includes(mode))throw Error('Conflict links or gitlinks rejected');index.push({path:name,mode,oid,stage:Number(stage),bytes:await blob(oid)});}
+ if(!index.some(e=>e.stage>0))throw Error('Retained conflict index missing');
+ const current=changed.sort().map(name=>({path:name,bytes:encode(read(path.join(root,...name.split('/'))))}));
+ const gitDir=path.resolve(root,(await command(['rev-parse','--git-dir'])).trim());noAlias(gitDir);
+ const sequencer={};for(const name of ['head','todo','abort-safety','opts'])sequencer[name]=encode(read(path.join(gitDir,'sequencer',name)));
+ if(sequencer.head&&Buffer.from(sequencer.head,'base64').toString('utf8').trim()!==record.before.headCommit)throw Error('Conflict sequencer start head changed');
+ if(sequencer['abort-safety']&&Buffer.from(sequencer['abort-safety'],'base64').toString('utf8').trim()!==record.after.headCommit)throw Error('Conflict sequencer abort safety changed');
+ if(sequencer.todo){const seen=new Set();for(const row of Buffer.from(sequencer.todo,'base64').toString('utf8').trim().split(/\r?\n/)){const match=/^pick ([a-f0-9]{7,64})(?: |$)/.exec(row);if(!match)throw Error('Unsupported conflict sequencer command');const matches=record.commits.filter(c=>c.startsWith(match[1]));if(matches.length!==1||seen.has(matches[0]))throw Error('Conflict sequencer range changed');seen.add(matches[0]);}if(!seen.has(cherryPickHead))throw Error('Conflict sequencer missing current candidate');}
+ // Full original range/diff is retained, including aborted successful prefix and
+ // not-yet-attempted suffix. No conflict-stage-only approximation is accepted.
+ const diff=await command(['diff','--no-ext-diff','--no-textconv','--binary',record.workerBase,record.workerHead]);encode(Buffer.from(diff));
+ const bundle={version:1,runId:run.id,projectId:run.projectId,operationId:record.id,before:record.before,conflict:record.after,worker:{base:record.workerBase,head:record.workerHead,fingerprint:record.workerFingerprint,commits:record.commits,changedPaths:record.changedPaths,diff},successfulPrefix:record.resultingCommits,cherryPickHead,sequencer,index,current};
+ const after=await service.source(w);await h.assertExecutionProject(project);if(!require('./review-verdicts.cjs').sameSource(before,after))throw Error('Conflict changed during capture');const bytes=Buffer.from(JSON.stringify(bundle));if(bytes.length>MAX_JSON)throw Error('Conflict serialized bundle bound exceeded');return {bundle,bytes,sha256:digest(bytes)};
+}
+function location(hub,id){if(!/^[a-f0-9-]{36}$/.test(id))throw Error('Invalid private bundle identity');const root=path.join(hub.home,'conflict-bundles');noAlias(root);return {root,file:path.join(root,id+'.json')};}
+function write(hub,id,captured){const {root,file}=location(hub,id);fs.mkdirSync(root,{recursive:true});noAlias(root);const fd=fs.openSync(file,'wx',0o600);try{fs.writeFileSync(fd,captured.bytes);fs.fsyncSync(fd);}finally{fs.closeSync(fd);}noAlias(file);const bytes=fs.readFileSync(file);if(!bytes.equals(captured.bytes))throw Error('Conflict bundle durable readback mismatch');return {id,sha256:captured.sha256,bytes:bytes.length};}
+function load(hub,receipt){const {file}=location(hub,receipt.id);noAlias(file);const s=fs.lstatSync(file);if(!s.isFile()||s.size!==receipt.bytes||s.size>MAX_JSON)throw Error('Conflict bundle size changed');const bytes=fs.readFileSync(file);if(digest(bytes)!==receipt.sha256)throw Error('Conflict bundle bytes changed');return JSON.parse(bytes);}
+async function verify(service,run,record){load(service.hub,record.resolution.bundle);const current=await capture(service,run,record);if(current.sha256!==record.resolution.bundle.sha256)throw Error('Conflict bundle or sequencer changed');return current;}
+module.exports={capture,write,load,verify};

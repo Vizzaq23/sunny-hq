@@ -46,3 +46,4 @@ test('selected skill becomes an explicit Codex skill input',async t=>{
  const [skill]=await catalogForProject(client,root,root);
  assert.deepEqual(skillInputs([skill]),[{type:'skill',name:'ecc-article-writing',path:skill.path}]);
 });
+test('resident skills follow canonical capabilities while reporter accepts none',async t=>{const {root,client}=fixture(t,['ecc-market-research','sunny-world-art-review','review-security','imagegen','deploy-with-vercel']);const catalog=await catalogForProject(client,root,root),{skillsForRole}=require('../desktop/skill-catalog.cjs');assert.deepEqual(skillsForRole(catalog,'vivi').map(s=>s.id),['ecc-market-research']);assert.deepEqual(skillsForRole(catalog,'perona').map(s=>s.id),['sunny-world-art-review','review-security','imagegen']);assert.deepEqual(skillsForRole(catalog,'morgans'),[]);assert.deepEqual(skillsForRole(catalog,'All tools'),[]);});

@@ -95,3 +95,9 @@ test('consistent smaller workload flags cannot replace the actual frozen size',(
  for(const sample of [...v.raw.warmups,...v.raw.samples]){sample.proof.fixtureTasks=1;sample.proof.compactBytes=1024;}v.raw.afterCloseProof.fixtureTasks=1;v.raw.afterCloseProof.compactBytes=1024;
  reseal(v);assert.throws(()=>receipts.validatePhase(v.summary,v.expected));
 });
+test('packaged summary validates exact written JSON despite optional undefined memory fields',()=>{
+ const v=valid();v.raw.samples[0].receipts[0].failure=undefined;
+ assert.doesNotThrow(()=>receipts.validateWrittenResult(v.raw,v.expected.resultBytes,v.expected));
+ const changed=JSON.parse(v.expected.resultBytes);changed.samples[0].success=false;
+ assert.throws(()=>receipts.validateWrittenResult(v.raw,Buffer.from(JSON.stringify(changed)),v.expected));
+});

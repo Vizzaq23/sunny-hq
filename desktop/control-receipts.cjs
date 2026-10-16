@@ -112,6 +112,11 @@ function validatePhase(summary,{mib,packageProof,resultBytes,eventBytes,ownedRoo
  assert.deepEqual(events.filter(e=>e.kind==='assertion').map(({kind,...a})=>a),raw.assertions);
  assert.deepEqual(summary.completed,{warmups:6,stop:20,approval:20,idle:20,correctness:true,timing:true,cleanup:true});return true;
 }
+function validateWrittenResult(raw,resultBytes,expected){
+ const written=JSON.parse(resultBytes);
+ assert.deepEqual(written,JSON.parse(JSON.stringify(raw)),'Written control evidence differs from the completed run');
+ return validateResult(written,expected);
+}
 function packagedHost(admission){
  require('./packaged-acceptance.cjs').assertFixtureCapability(admission);
  assert.equal(admission.scenario,'ordered-control');assert.equal(admission.phase,1);
@@ -119,11 +124,12 @@ function packagedHost(admission){
  assert.equal(app.isPackaged,true);assert.equal(root.toLowerCase(),asarFile.toLowerCase());assert.equal(app.getAppPath().toLowerCase(),root.toLowerCase());
  const proof=()=>{const assets=assetProof(root),identity=require('./packaged-acceptance.cjs').hashPackageFiles({exeFile:process.execPath,asarFile});return {kind:'exact-package',...assets,...identity,sourceDigest:sha(JSON.stringify({entries:assets.entries,...identity}))};};
  return {proof,summary:raw=>{
-  const after=proof();assert.deepEqual(after,raw.source);validateResult(raw,{mib:admission.mib,packageProof:after});
+  const after=proof();assert.deepEqual(after,raw.source);
   const resultBytes=fs.readFileSync(path.join(admission.outputDir,'result.json')),eventBytes=fs.readFileSync(path.join(admission.outputDir,'events.jsonl'));
+  validateWrittenResult(raw,resultBytes,{mib:admission.mib,packageProof:after});
   const rootGeneration=JSON.parse(fs.readFileSync(path.join(admission.outputDir,'root-registration-1.json'),'utf8'));assert.equal(rootGeneration.pid,process.pid);assert.equal(rootGeneration.executable.toLowerCase(),process.execPath.toLowerCase());
   const summary={version:1,scenario:'ordered-control',phase:1,sizeMiB:admission.mib,pid:process.pid,rootGeneration,admissionSha256:sha(admission.nonce),...{executableSha256:after.executableSha256,asarSha256:after.asarSha256},packageProof:after,frozenFixtureSha256:FIXTURE,protocolSha256:PROTOCOL,rawResultSha256:sha(resultBytes),rawEventsSha256:sha(eventBytes),providerMode:'finite-offline',providerEffects:0,realProviderEffects:0,passed:true,completed:{warmups:6,stop:20,approval:20,idle:20,correctness:true,timing:true,cleanup:true}};
   validatePhase(summary,{mib:admission.mib,packageProof:after,resultBytes,eventBytes,ownedRoot:rootGeneration});fs.writeFileSync(path.join(admission.outputDir,'phase-1.json'),JSON.stringify(summary,null,2),{flag:'wx',mode:0o600});
  }};
 }
-module.exports={ENTRIES,FIXTURE,PROTOCOL,sha,assetProof,validateResult,validatePhase,packagedHost};
+module.exports={ENTRIES,FIXTURE,PROTOCOL,sha,assetProof,validateResult,validateWrittenResult,validatePhase,packagedHost};

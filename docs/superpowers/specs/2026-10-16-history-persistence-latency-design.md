@@ -1,6 +1,6 @@
 # History persistence latency repair — design, 2026-10-16
 
-Status: proposed; implementation has not started. Scope: fix the measured control latency blocker on `codex/integrate-local-sunny`, then complete the already-authorized installed update after validation and a closed-profile backup. This is an architectural storage change, not a relaxation of acceptance limits.
+Status: approved by the captain on 2026-10-16; implementation has not started. The implementation plan is awaiting review. Scope: fix the measured control latency blocker on `codex/integrate-local-sunny`, then complete the already-authorized installed update after validation and a closed-profile backup. This is an architectural storage change, not a relaxation of acceptance limits.
 
 ## Requirement and evidence
 

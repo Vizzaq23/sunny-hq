@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-16",
+  "branch": "codex/immersive-sunny-ui",
+  "baseCommit": "e865f82cb7c687ff2b32dae6f972d36b3e8e8693",
+  "scope": "Immersive presentation across existing screens; no IPC or persistence changes",
+  "browser": "Isolated hidden Codex browser; no native mouse or keyboard input",
+  "desktopViewport": [1280,720],
+  "narrowViewport": [390,844],
+  "screensChecked": ["Home","Projects","Crew","Missions","Inbox","The Island","The Sunny","Morgans’ blimp","Library","Tools","Settings"],
+  "horizontalOverflow": {"desktop":false,"narrow":false,"mainWidthDesktop":1035,"mainWidthNarrow":375},
+  "keyboard": {"mobileMenuInitialFocus":"Close menu","escapeReturnsFocus":"Open menu","logbookEnterOpenAndClose":true},
+  "additionalChecks": ["Empty Luffy workbench renders without starting a task","Hidden mobile navigation excluded from accessibility tree","TypeScript and Vite build passed","93 existing UI/state regressions passed"],
+  "sourceTestLog": ".sunny-dev/ui-revamp/focused-tests.log",
+  "nativeFixtureWorkflow": "Pending; user requested no desktop interaction while gaming",
+  "nativeStateVisuals": "Working, blocked and reduced-motion visual checks pending; associated projection/motion source tests passed",
+  "fullSuite": "Separate base integration suite remains incomplete with a checkpoint failure; not a UI branch pass",
+  "installed": false,
+  "liveProviderProof": false
+}

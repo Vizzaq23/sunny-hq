@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import {lazy,Suspense} from 'react';
 import './styles.css';
+import './voyage-ui.css';
 import {RecoveryBoundary} from './RecoveryBoundary';
 
 const isCompanion=new URLSearchParams(window.location.search).has('companion');

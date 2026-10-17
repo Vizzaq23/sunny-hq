@@ -1,4 +1,4 @@
-import type {ReactNode} from 'react';
+import {Fragment,useEffect,useRef,type KeyboardEvent,type ReactNode} from 'react';
 import {Anchor,BookOpen,Box,Compass,Inbox,LayoutDashboard,Newspaper,Menu,Settings,ShipWheel,Sparkles,Users,X} from 'lucide-react';
 import type {Crew,Project,TaskSummary as Task} from '../shared';
 import {formatRelative} from '../data';
@@ -20,14 +20,30 @@ const nav=[
 ] as const;
 
 export function Sidebar({view,onView,projects,tasks,activeProjectId,onProject,open,onToggle}:{view:ViewId;onView:(view:ViewId)=>void;projects:Project[];tasks:Task[];activeProjectId?:string;onProject:(id:string)=>void;open:boolean;onToggle:()=>void}){
-  return <aside className={`sidebar ${open?'is-open':''}`}>
-    <div className="brand"><span className="brand-mark"><ShipWheel size={22}/></span><span><strong>Sunny HQ</strong><small>Personal AI Studio</small></span><button className="mobile-close" onClick={onToggle} aria-label="Close menu"><X/></button></div>
+  const sidebarRef=useRef<HTMLElement>(null);
+  useEffect(()=>{
+    if(!open)return;
+    const previous=document.activeElement;
+    sidebarRef.current?.querySelector<HTMLButtonElement>('.mobile-close')?.focus();
+    return()=>{if(previous instanceof HTMLElement&&previous.isConnected)previous.focus();};
+  },[open]);
+  function handleNavigationKey(event:KeyboardEvent<HTMLElement>){
+    if(!open)return;
+    if(event.key==='Escape'){event.preventDefault();onToggle();return;}
+    if(event.key!=='Tab')return;
+    const controls=Array.from(sidebarRef.current?.querySelectorAll<HTMLElement>('button,a[href],select,input,[tabindex="0"]')??[]).filter(element=>element.getClientRects().length>0);
+    const first=controls[0],last=controls.at(-1);
+    if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}
+    else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
+  }
+  return <aside id="sunny-navigation" ref={sidebarRef} onKeyDown={handleNavigationKey} className={`sidebar ${open?'is-open':''}`}>
+    <div className="brand"><span className="brand-mark"><ShipWheel size={22}/></span><span><strong>Sunny HQ</strong><small>Your pirate headquarters</small></span><button className="mobile-close" onClick={onToggle} aria-label="Close menu"><X/></button></div>
     <nav className="main-nav" aria-label="Main navigation">
-      <p className="nav-label">Workspace</p>
-      {nav.map(item=><button key={item.id} className={view===item.id?'active':''} aria-current={view===item.id?'page':undefined} onClick={()=>onView(item.id)}><item.icon size={18}/><span>{item.label}</span>{item.id==='inbox'&&tasks.some(taskNeedsAttention)?<em>{tasks.filter(taskNeedsAttention).length}</em>:null}</button>)}
+      <p className="nav-label">Captain’s command</p>
+      {nav.map(item=><Fragment key={item.id}>{item.id==='island'?<p className="nav-label voyage-nav-group">Explore the Grand Line</p>:item.id==='library'?<p className="nav-label voyage-nav-group">Ship’s resources</p>:null}<button className={view===item.id?'active':''} aria-current={view===item.id?'page':undefined} onClick={()=>onView(item.id)}><item.icon size={18} aria-hidden="true"/><span>{item.label}</span>{item.id==='inbox'&&tasks.some(taskNeedsAttention)?<em>{tasks.filter(taskNeedsAttention).length}</em>:null}</button></Fragment>)}
     </nav>
     <div className="sidebar-projects">
-      <div className="nav-section-title"><span>Recent projects</span><button onClick={()=>onView('projects')}>View all</button></div>
+      <div className="nav-section-title"><span>Project ports</span><button onClick={()=>onView('projects')}>View all</button></div>
       {projects.slice(0,4).map(project=><button key={project.id} className={`project-nav ${activeProjectId===project.id?'active':''}`} onClick={()=>onProject(project.id)}><span className="project-gem">{project.name.charAt(0).toUpperCase()}</span><span><b>{project.name}</b><small>{tasks.filter(t=>t.projectId===project.id).length} conversations</small></span></button>)}
       {projects.length===0?<p className="nav-empty">Your imported projects will live here.</p>:null}
     </div>
@@ -38,8 +54,8 @@ export function Sidebar({view,onView,projects,tasks,activeProjectId,onProject,op
   </aside>;
 }
 
-export function Topbar({title,subtitle,desktop,codexStatus,onMenu,actions}:{title:string;subtitle?:string;desktop:boolean;codexStatus:string;onMenu:()=>void;actions?:ReactNode}){
-  return <header className="topbar"><button className="menu-button" onClick={onMenu} aria-label="Open menu"><Menu/></button><div className="topbar-title"><span className="topbar-kicker">{subtitle}</span><h1>{title}</h1></div><div className="topbar-actions">{actions}<span className={`status-pill ${desktop&&codexStatus==='connected'?'online':'offline'}`}><span/>{desktop?(codexStatus==='connected'?'Codex ready':codexStatus):'Browser preview'}</span></div></header>;
+export function Topbar({title,subtitle,desktop,codexStatus,onMenu,actions,menuOpen=false}:{title:string;subtitle?:string;desktop:boolean;codexStatus:string;onMenu:()=>void;actions?:ReactNode;menuOpen?:boolean}){
+  return <header className="topbar"><button className="menu-button" onClick={onMenu} aria-label="Open menu" aria-expanded={menuOpen} aria-controls="sunny-navigation"><Menu/></button><div className="topbar-title"><span className="topbar-kicker">{subtitle}</span><h1>{title}</h1></div><div className="topbar-actions">{actions}<span className={`status-pill ${desktop&&codexStatus==='connected'?'online':'offline'}`}><span/>{desktop?(codexStatus==='connected'?'Codex ready':codexStatus):'Browser preview'}</span></div></header>;
 }
 
 export function EmptyState({icon='anchor',title,body,action}:{icon?:'anchor'|'compass'|'book';title:string;body:string;action?:ReactNode}){

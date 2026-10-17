@@ -1,0 +1,6 @@
+const {DatabaseSync}=require('node:sqlite');const fs=require('node:fs');
+const [file,backupDir,stage]=process.argv.slice(2),{openFragmentStore}=require('../../desktop/fragment-store.cjs'),{captureProfile,sealProfileSnapshot}=require('../../desktop/profile-snapshot.cjs');
+let armed=false;const exit=()=>process.exit(86),oldExec=DatabaseSync.prototype.exec,oldPrepare=DatabaseSync.prototype.prepare;
+DatabaseSync.prototype.exec=function(sql){if(armed&&stage.endsWith('before-commit')&&sql==='COMMIT')exit();const value=oldExec.call(this,sql);if(armed&&stage.endsWith('after-commit')&&sql==='COMMIT')exit();return value;};
+DatabaseSync.prototype.prepare=function(sql){const statement=oldPrepare.call(this,sql),run=statement.run;statement.run=function(...args){const result=run.apply(this,args);if(armed&&((stage==='insert'&&sql.startsWith('INSERT INTO profile_fragments'))||(stage==='layout'&&sql.startsWith('INSERT INTO profile_meta'))||(stage==='cleanup'&&sql.startsWith('DELETE FROM profile_fragments'))))exit();return result;};return statement;};
+(async()=>{armed=stage.startsWith('migration-');const s=await openFragmentStore({file,backupDir});const next=s.load();next.opaque.text='new '+ 'y'.repeat(80000);armed=true;s.prepare(sealProfileSnapshot(captureProfile(next))).commit();await s.close();process.exit(2);})().catch(e=>{console.error(e.message);process.exit(1);});

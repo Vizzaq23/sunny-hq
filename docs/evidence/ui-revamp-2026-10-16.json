@@ -9,7 +9,7 @@
   "screensChecked": ["Home","Projects","Crew","Missions","Inbox","The Island","The Sunny","Morgans’ blimp","Library","Tools","Settings"],
   "horizontalOverflow": {"desktop":false,"narrow":false,"mainWidthDesktop":1035,"mainWidthNarrow":375},
   "keyboard": {"mobileMenuInitialFocus":"Close menu","escapeReturnsFocus":"Open menu","logbookEnterOpenAndClose":true},
-  "additionalChecks": ["Empty Luffy workbench renders without starting a task","Hidden mobile navigation excluded from accessibility tree","TypeScript and Vite build passed","93 existing UI/state regressions passed"],
+  "additionalChecks": ["Empty Luffy workbench renders without starting a task","Hidden mobile navigation excluded from accessibility tree","TypeScript and Vite build passed","99 existing UI/state and attention-projection regressions passed"],
   "sourceTestLog": ".sunny-dev/ui-revamp/focused-tests.log",
   "nativeFixtureWorkflow": "Pending; user requested no desktop interaction while gaming",
   "nativeStateVisuals": "Working, blocked and reduced-motion visual checks pending; associated projection/motion source tests passed",

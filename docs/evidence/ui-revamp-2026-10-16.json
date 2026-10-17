@@ -91,7 +91,7 @@
       "interrupted": true
     }
   },
-  "installed": false,
+  "installed": true,
   "liveProviderProof": false,
   "readabilityRefinement": {
     "date": "2026-10-16",
@@ -363,7 +363,7 @@
   },
   "updatedAt": "2026-10-17T05:42:22.220Z",
   "releaseBlocker": {
-    "installed": false,
+    "installed": true,
     "code": "CONTROL_LATENCY_EXCEEDS_RELEASE_GATE",
     "requiredP95Ms": 200,
     "controls": [
@@ -449,7 +449,8 @@
       "lastStage": "scan-exit",
       "elapsedMs": 300057,
       "unfinished": "Second feedback delivery awaiting independent review when fixed 300-second supervisor expired"
-    }
+    },
+    "disposition": "Explicit user-approved installation exception; all failed checks remain failed"
   },
   "shortcutRestoration": {
     "at": "2026-10-17T05:40:52.7383851Z",
@@ -625,5 +626,32 @@
         "scenario": "normal-quit"
       }
     ]
+  },
+  "installation": {
+    "installedAt": "2026-10-17T05:45:55.3662834Z",
+    "sourceCommit": "8b1096e1f5854029c893f4fc2c1e3eea9a11f90e",
+    "path": "C:\\Users\\Quintin\\AppData\\Local\\Programs\\Sunny HQ\\versions\\0.11.0-helm-8b1096e",
+    "exeSha256": "2ff9465e73764326bc9b6a821ba5c6e383751125dbf5ea1b91919fbc03947df3",
+    "asarSha256": "0f7b9632deb442b14e51fdf852ce45ebf7a8faaf390223d7f2257f4a58c49008",
+    "verifiedFiles": 251,
+    "shortcut": "C:\\Users\\Quintin\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Sunny HQ.lnk",
+    "previousTarget": "C:\\Users\\Quintin\\.codex\\worktrees\\sunny-donor-recovery\\sunny-hq\\.sunny-dev\\timeout-verification-hZxOoK\\win-unpacked\\Sunny HQ.exe",
+    "backup": "C:\\Users\\Quintin\\AppData\\Local\\Sunny HQ Backups\\before-helm-2026-10-17",
+    "newAppLaunched": false,
+    "releaseException": "User explicitly requested Install update commit everything after disclosure of 12/15 package checks and interrupted full suite",
+    "knownFailures": [
+      "10 MiB control latency",
+      "30 MiB control latency",
+      "two-build cue journey timeout"
+    ],
+    "fullSuite": "Interrupted, not passed",
+    "activation": "Open Sunny HQ from Start Menu; no app launched to avoid disrupting gaming",
+    "backupMigration": {
+      "passed": true,
+      "source": "C:\\Users\\Quintin\\AppData\\Local\\Sunny HQ Backups\\before-helm-2026-10-17\\sunny.sqlite",
+      "fixture": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-install-migration-4bwJtc",
+      "exactState": true,
+      "providerStarted": false
+    }
   }
 }

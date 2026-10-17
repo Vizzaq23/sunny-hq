@@ -1,6 +1,6 @@
 # History persistence latency repair — design, 2026-10-16
 
-Status: approved by the captain on 2026-10-16; implementation has not started. The implementation plan is awaiting review. Scope: fix the measured control latency blocker on `codex/integrate-local-sunny`, then complete the already-authorized installed update after validation and a closed-profile backup. This is an architectural storage change, not a relaxation of acceptance limits.
+Status: approved by the captain on 2026-10-16; implementation and its plan were subsequently approved and Tasks 1–4 are implemented. Final validation remains in progress. Scope: fix the measured control latency blocker on `codex/integrate-local-sunny`, then complete the already-authorized installed update after validation and a closed-profile backup. This is an architectural storage change, not a relaxation of acceptance limits.
 
 ## Requirement and evidence
 
@@ -49,3 +49,7 @@ Old binaries may read the compatibility view, but their INSERT/UPDATE into `stat
 Moving the existing full rewrite to a worker already prevents some main-thread blocking but leaves control completion too slow. Removing durable barriers, acknowledging early, truncating history or changing WAL/FULL would violate authority or durability and is rejected. A delta journal over a stale `state` row would mislead independent readers and older apps and is rejected. A general new database/framework adds unnecessary dependencies and migration surface.
 
 The selected representation adds encoder, patch and fragment-integrity complexity. The compatibility view can be slower to read because it reconstructs the document; full reads are startup/export/proof operations, not control writes. Initial migration and full imports remain proportional to total history. Repeated small commits must not grow storage without bound; transactional reachability cleanup is required. The measured full SHA-256 cost remains a lower bound and must be included in final performance evidence.
+
+## Implementation refinement — 2026-10-16
+
+The encoder now retains private SHA-256 contexts at immutable fragment boundaries and resumes from the longest identical ordered prefix. This supersedes the decision above to stream every unchanged fragment again on every commit, and the assumption that a complete rehash is a lower bound for each control write. The digest is still exactly SHA-256 of the complete compact state: unchanged prefix state is copied, then every remaining byte is hashed in order. Cache entries and copied hash contexts remain private to the encoder and are never accepted from IPC. Startup and independent acceptance readback still hash complete bytes. Early edits and full replacements can still require full hashing. This avoids redundant computation without changing bytes, receipts, durability, workload, or thresholds. Tests verify exact hashes across tail edits, early edits, deletions and reordered layouts, and verify reduced hashing only for a proven unchanged prefix. Failed earlier full-rehash packaged runs remain evidence; passing final measurements are still required.

@@ -1,6 +1,6 @@
 const {createHash}=require('node:crypto');
 const {isSealedProfile}=require('./profile-snapshot.cjs');
-const MAX=64*1024,PACK=64*1024;
+const MAX=64*1024,PACK=64*1024,digestPrefixes=new WeakMap();
 function encodeProfile(value,previous){
  if(value===undefined||['function','symbol','bigint'].includes(typeof value))throw Error('Unsupported JSON root');
  if(!isSealedProfile(value))throw Error('Profile must be sealed before encoding');
@@ -19,6 +19,10 @@ function encodeProfile(value,previous){
   }
   result=cache.get(value);
  }
- const hash=createHash('sha256'),unique=new Map();let byteLength=0;for(const f of result){hash.update(f.bytes);byteLength+=f.bytes.length;unique.set(f.id,f);}return {fragments:[...unique.values()],layout:result.map(f=>f.id),stateSha256:hash.digest('hex'),byteLength,cache,packCache};
+ // Only private states from an earlier encoding can authorize prefix reuse.
+ const prior=digestPrefixes.get(previous);let prefix=0;while(prior&&prefix<result.length&&prefix<prior.ids.length&&result[prefix].id===prior.ids[prefix])prefix++;
+ const hash=prefix?prior.states[prefix-1].copy():createHash('sha256'),unique=new Map(),states=prior?prior.states.slice(0,prefix):[];let byteLength=0;
+ for(let i=0;i<result.length;i++){const f=result[i];if(i>=prefix){hash.update(f.bytes);states.push(hash.copy());}byteLength+=f.bytes.length;unique.set(f.id,f);}
+ const encoding={fragments:[...unique.values()],layout:result.map(f=>f.id),stateSha256:hash.digest('hex'),byteLength,cache,packCache};digestPrefixes.set(encoding,{ids:[...encoding.layout],states});return encoding;
 }
 module.exports={encodeProfile};

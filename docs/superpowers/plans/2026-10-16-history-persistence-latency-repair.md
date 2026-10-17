@@ -44,7 +44,7 @@ One implementer owns the new persistence modules and their integration; reviews 
 
 **Files:** Create `desktop/profile-snapshot.cjs`, `tests/profile-snapshot.test.cjs`; read existing ordered capture tests before implementation.
 
-- [ ] Write failing tests named `captures in-place edits without task revisions`, `queued image survives caller mutation`, `patch rejects stale generation without changing base`, `preserves property order and literal prototype keys`, and `large patch falls back to full replacement`. Include task insertion/reordering, array holes, deleted properties, shared references, cycles and unsupported executable values.
+- [x] Write failing tests named `captures in-place edits without task revisions`, `queued image survives caller mutation`, `patch rejects stale generation without changing base`, `preserves property order and literal prototype keys`, and `large patch falls back to full replacement`. Include task insertion/reordering, array holes, deleted properties, shared references, cycles and unsupported executable values.
 
 ```js
 const submitted=captureProfile(source);
@@ -58,44 +58,44 @@ assert.throws(()=>applyProfileUpdate(submitted,update,{generation:6}));
 assert.equal(JSON.stringify(submitted),before);
 ```
 
-- [ ] Run `node --test tests/profile-snapshot.test.cjs`; confirm failures identify the missing behavior.
-- [ ] Implement iterative value capture retaining immutable strings, bounded patch construction and copy-on-write application. Reject cyclic/executable values before any storage effect. Keep JSON-compatible undefined/non-finite handling consistent with Task 2. Capture must not freeze or mutate caller objects.
-- [ ] Run the new tests; require all pass. Commit explicit module/test paths with `Add isolated profile capture and generation-bound updates`.
+- [x] Run `node --test tests/profile-snapshot.test.cjs`; confirm failures identify the missing behavior.
+- [x] Implement iterative value capture retaining immutable strings, bounded patch construction and copy-on-write application. Reject cyclic/executable values before any storage effect. Keep JSON-compatible undefined/non-finite handling consistent with Task 2. Capture must not freeze or mutate caller objects.
+- [x] Run the new tests; require all pass. Commit explicit module/test paths with `Add isolated profile capture and generation-bound updates`.
 
 ### Task 2: Exact incremental JSON encoding
 
 **Files:** Create `desktop/profile-json.cjs`, `tests/profile-json.test.cjs`; consume Task 1 immutable candidates.
 
-- [ ] Write failing exact-byte tests comparing concatenated fragments with `Buffer.from(JSON.stringify(input))`. Cover nested arrays/objects, integer-like keys, omitted object undefined, array undefined/holes, non-finite numbers, negative zero, escaping, emoji, lone surrogates, empty strings and shared references. Reject cycles/functions/symbols/BigInt rather than silently emitting unsupported data.
-- [ ] Add `small edit reuses unaffected fragment bytes`, `append to long string retains complete prefix fragments`, and `changed early array element preserves later subtree fragments`. Assert every fragment is at most `64*1024` bytes, independently decodes as valid UTF-8, and the full digest equals crypto SHA-256 of native compact JSON. Verify cached subtrees cannot be reused after an in-place mutation of a non-captured input: encoder accepts only internally owned immutable candidates, enforced by its interface tests.
-- [ ] Run `node --test tests/profile-json.test.cjs`; record the expected failures.
-- [ ] Implement subtree serialization caches and fragment reuse. Cache by immutable owned subtree identity, not arbitrary caller references. Native scalar JSON serialization supplies escaping and numeric semantics. Stream digest in layout order; do not parse/stringify the whole profile for each changed field.
-- [ ] Run both Task 1 and Task 2 tests. Commit with `Encode exact profile JSON using reusable immutable fragments`.
+- [x] Write failing exact-byte tests comparing concatenated fragments with `Buffer.from(JSON.stringify(input))`. Cover nested arrays/objects, integer-like keys, omitted object undefined, array undefined/holes, non-finite numbers, negative zero, escaping, emoji, lone surrogates, empty strings and shared references. Reject cycles/functions/symbols/BigInt rather than silently emitting unsupported data.
+- [x] Add `small edit reuses unaffected fragment bytes`, `append to long string retains complete prefix fragments`, and `changed early array element preserves later subtree fragments`. Assert every fragment is at most `64*1024` bytes, independently decodes as valid UTF-8, and the full digest equals crypto SHA-256 of native compact JSON. Verify cached subtrees cannot be reused after an in-place mutation of a non-captured input: encoder accepts only internally owned immutable candidates, enforced by its interface tests.
+- [x] Run `node --test tests/profile-json.test.cjs`; record the expected failures.
+- [x] Implement subtree serialization caches and fragment reuse. Cache by immutable owned subtree identity, not arbitrary caller references. Native scalar JSON serialization supplies escaping and numeric semantics. Stream digest in layout order; do not parse/stringify the whole profile for each changed field.
+- [x] Run both Task 1 and Task 2 tests. Commit with `Encode exact profile JSON using reusable immutable fragments`.
 
 ### Task 3: Durable fragment database and verified migration
 
 **Files:** Create `desktop/fragment-store.cjs`, `tests/fragment-store.test.cjs`, `tests/fragment-store-recovery.test.cjs`, `tests/helpers/fragment-store-crash.cjs`; modify the persistence contract in `docs/reviewed-result-saving.md` before product code.
 
-- [ ] Document format version 1, legacy SQLite/mission-version transitions, backup receipts, independent `state` view, failure handling and separate-profile downgrade. Record this architecture decision with alternatives in that authoritative document, linking the approved spec.
-- [ ] Write failing tests for legacy migration including committed WAL contents, empty/new database, mission versions 1–3, repeat open, verified backup failure, unknown versions, corrupt layout, missing/altered fragment bytes, incompatible view SQL and old-writer refusal. Use isolated fixture files only.
-- [ ] Pin physical schema: `profile_meta(id INTEGER PRIMARY KEY CHECK(id=1),format_version INTEGER,generation INTEGER,state_sha256 TEXT,layout TEXT)` and `profile_fragments(id TEXT PRIMARY KEY,value TEXT NOT NULL)`. Define a read-only `state` view that concatenates fragment TEXT by numeric index from `json_each(layout)`, retaining duplicate references and exact byte order. Validate expected schema/view definitions before reads or writes. Do not add compatibility write triggers.
-- [ ] Run `node --test tests/fragment-store.test.cjs`; confirm expected failures.
-- [ ] Implement read-only preflight and SQLite's online backup API to a unique backup file. Hash and independently compare the backup's complete logical state before migration. Atomically create the new representation and replace the legacy table with the compatibility view; verify exact bytes before committing migration. Reuse mission-profile backup/upgrade validation rather than dropping its verified backups.
-- [ ] Implement candidate validation, encoding, insertion of missing fragments, layout/generation/digest update and deletion of only unreachable fragments in one `BEGIN IMMEDIATE` transaction. Preserve WAL/FULL, single-writer ownership and prepared/committed receipt ordering. On initialization validate all referenced bytes and the whole-state digest; fail closed on corruption.
-- [ ] Add fault-injection tests at fragment insertion, layout update, before commit, after commit/before acknowledgement and cleanup. Kill only fixture children, reopen independently and assert exact old-or-new JSON/digest. Repeat each crash window three times. Assert partial migrations leave either intact legacy schema or complete new schema and preserve the verified backup.
-- [ ] Run `node --test tests/fragment-store.test.cjs tests/fragment-store-recovery.test.cjs`; require all pass. Commit with `Persist profile fragments atomically with verified legacy migration`.
+- [x] Document format version 1, legacy SQLite/mission-version transitions, backup receipts, independent `state` view, failure handling and separate-profile downgrade. Record this architecture decision with alternatives in that authoritative document, linking the approved spec.
+- [x] Write failing tests for legacy migration including committed WAL contents, empty/new database, mission versions 1–3, repeat open, verified backup failure, unknown versions, corrupt layout, missing/altered fragment bytes, incompatible view SQL and old-writer refusal. Use isolated fixture files only.
+- [x] Pin physical schema: `profile_meta(id INTEGER PRIMARY KEY CHECK(id=1),format_version INTEGER,generation INTEGER,state_sha256 TEXT,layout TEXT)` and `profile_fragments(id TEXT PRIMARY KEY,value TEXT NOT NULL)`. Define a read-only `state` view that concatenates fragment TEXT by numeric index from `json_each(layout)`, retaining duplicate references and exact byte order. Validate expected schema/view definitions before reads or writes. Do not add compatibility write triggers.
+- [x] Run `node --test tests/fragment-store.test.cjs`; confirm expected failures.
+- [x] Implement read-only preflight and SQLite's online backup API to a unique backup file. Hash and independently compare the backup's complete logical state before migration. Atomically create the new representation and replace the legacy table with the compatibility view; verify exact bytes before committing migration. Reuse mission-profile backup/upgrade validation rather than dropping its verified backups.
+- [x] Implement candidate validation, encoding, insertion of missing fragments, layout/generation/digest update and deletion of only unreachable fragments in one `BEGIN IMMEDIATE` transaction. Preserve WAL/FULL, single-writer ownership and prepared/committed receipt ordering. On initialization validate all referenced bytes and the whole-state digest; fail closed on corruption.
+- [x] Add fault-injection tests at fragment insertion, layout update, before commit, after commit/before acknowledgement and cleanup. Kill only fixture children, reopen independently and assert exact old-or-new JSON/digest. Repeat each crash window three times. Assert partial migrations leave either intact legacy schema or complete new schema and preserve the verified backup.
+- [x] Run `node --test tests/fragment-store.test.cjs tests/fragment-store-recovery.test.cjs`; require all pass. Commit with `Persist profile fragments atomically with verified legacy migration`.
 
 ### Task 4: Integrate worker transport and Hub capture
 
 **Files:** Modify `desktop/ordered-store.cjs`, `desktop/persistence-worker.cjs`, `desktop/hub.cjs`, `desktop/mission-profile.cjs`; extend `tests/ordered-store.test.cjs`, `tests/ordered-store-capture.test.cjs`, `tests/persistence-recovery.test.cjs`, `tests/persistence-barriers.test.cjs`.
 
-- [ ] Add failing tests for native idle/queued capture, patch dispatch against the correct preceding generation, superseded background snapshots, a saturated required barrier, duplicate/stale acknowledgements, worker loss, and postMessage failure before/after forwarding. Verify a later update cannot clear a prior uncertain commit or release a reservation.
-- [ ] Add a sequence with an unversioned in-place transcript edit, a task inserted at the front, a changed approval intent and a deleted optional field. Independently read `SELECT value FROM state WHERE id=1`; assert exact JSON bytes/digest and full data retention after every receipt.
-- [ ] Run the focused tests and record failures. Existing tests asserting a particular `structuredClone` call count should be replaced only with stronger ownership/transport-volume assertions; preserve all original caller-mutation and queue isolation cases.
-- [ ] Use `captureProfile` for Hub whole-profile images and store queue ownership. Build full/patch updates at actual dispatch. Keep first/full replacement and JSON fallback valid. Initialize transport generation from the worker's verified ready message; require matching base on every candidate.
-- [ ] Use fragment storage only for SQLite. Seal each worker-owned candidate before encoding. Validate complete candidate mission authority and task bindings before the fragment commit. Replace the worker's committed image only after success; retain exact epoch/sequence/hash receipts and uncertain-state fencing. Do not change stop/approval semantics or remove their durability barriers.
-- [ ] Run snapshot/encoder/fragment tests plus ordered-store, persistence, result-save, failed-launch, mission-review and copied-profile regressions. Search callers of `SqliteStore`, `SELECT value FROM state`, and `prepareOwned` to verify compatible reads and explicitly refused legacy writes; add tests for discovered consumers.
-- [ ] Commit with `Integrate incremental durable profiles without weakening authority barriers`.
+- [x] Add failing tests for native idle/queued capture, patch dispatch against the correct preceding generation, superseded background snapshots, a saturated required barrier, duplicate/stale acknowledgements, worker loss, and postMessage failure before/after forwarding. Verify a later update cannot clear a prior uncertain commit or release a reservation.
+- [x] Add a sequence with an unversioned in-place transcript edit, a task inserted at the front, a changed approval intent and a deleted optional field. Independently read `SELECT value FROM state WHERE id=1`; assert exact JSON bytes/digest and full data retention after every receipt.
+- [x] Run the focused tests and record failures. Existing tests asserting a particular `structuredClone` call count should be replaced only with stronger ownership/transport-volume assertions; preserve all original caller-mutation and queue isolation cases.
+- [x] Use `captureProfile` for Hub whole-profile images and store queue ownership. Build full/patch updates at actual dispatch. Keep first/full replacement and JSON fallback valid. Initialize transport generation from the worker's verified ready message; require matching base on every candidate.
+- [x] Use fragment storage only for SQLite. Seal each worker-owned candidate before encoding. Validate complete candidate mission authority and task bindings before the fragment commit. Replace the worker's committed image only after success; retain exact epoch/sequence/hash receipts and uncertain-state fencing. Do not change stop/approval semantics or remove their durability barriers.
+- [x] Run snapshot/encoder/fragment tests plus ordered-store, persistence, result-save, failed-launch, mission-review and copied-profile regressions. Search callers of `SqliteStore`, `SELECT value FROM state`, and `prepareOwned` to verify compatible reads and explicitly refused legacy writes; add tests for discovered consumers.
+- [x] Commit with `Integrate incremental durable profiles without weakening authority barriers`.
 
 ### Task 5: Verification, review and installed update
 
@@ -112,4 +112,4 @@ assert.equal(JSON.stringify(submitted),before);
 
 ## Execution Handoff
 
-Recommended method: native execution in this chat, one writer throughout these tightly coupled persistence interfaces, followed by an independent whole-branch review. Subagent-driven execution is available if the captain prefers separate implementation/review gates per task. The written plan awaits the captain's review and method selection; product code remains unchanged.
+The captain approved this plan and native execution in this chat. One implementer completed Tasks 1–4; an independent read-only reviewer checked migration, encoding, patches and follow-up fixes. Task 5 remains in progress; the installed daily profile is unchanged until its gates pass.

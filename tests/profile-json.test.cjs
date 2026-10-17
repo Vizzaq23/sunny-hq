@@ -11,3 +11,12 @@ test('changed field reuses sealed history and appending a long string reuses pre
 });
 test('encoder refuses mutable objects and executable values',()=>{assert.throws(()=>encodeProfile({x:1}),/sealed/i);for(const value of [undefined,()=>{},Symbol('x'),1n])assert.throws(()=>encodeProfile(value));});
 test('an early array edit retains later encoded history bytes',()=>{const base=seal(Array.from({length:100},(_,i)=>({id:i,text:'z'.repeat(5000)}))),a=check(base),next=captureProfile(base);next[0].text+='change';const candidate=applyProfileUpdate(base,diffProfile(base,next,{baseGeneration:1}),{generation:1}),b=check(candidate,a),ids=new Set(a.layout);assert.ok(b.fragments.filter(f=>ids.has(f.id)).reduce((n,f)=>n+f.bytes.length,0)>400000);});
+test('tail edits reuse verified digest prefixes without rehashing unchanged history',()=>{
+ const fs=require('node:fs'),vm=require('node:vm'),filename=require.resolve('../desktop/profile-json.cjs');let hashed=0;
+ function wrap(hash){const api={update(bytes){hashed+=Buffer.byteLength(bytes);hash.update(bytes);return api;},copy(){return wrap(hash.copy());},digest(...args){return hash.digest(...args);}};return api;}
+ const module={exports:{}};vm.runInNewContext(fs.readFileSync(filename,'utf8'),{module,Buffer,require:name=>name==='node:crypto'?{createHash:algorithm=>wrap(createHash(algorithm))}:require('../desktop/'+name.slice(2))},{filename});
+ const base=seal({history:{text:'x'.repeat(2*1024*1024)},tail:0}),first=module.exports.encodeProfile(base),next=sealProfileSnapshot({...base,tail:1});hashed=0;const second=module.exports.encodeProfile(next,first);assert.equal(second.stateSha256,createHash('sha256').update(JSON.stringify(next)).digest('hex'));assert.ok(hashed<512*1024,'unchanged prefix should not be fed through SHA-256 again: '+hashed);
+});
+test('digest prefixes remain exact across early edits, deletions and reordered layouts',()=>{
+ let state=seal({first:{text:'a'.repeat(140000)},middle:{text:'b'.repeat(140000)},tail:0}),encoding=check(state);const versions=[{...state,tail:1},{...state,first:{text:'c'.repeat(140000)}},{middle:state.middle,tail:2},{tail:3,middle:state.middle},{...state,tail:4}];for(const value of versions){state=seal(value);encoding=check(state,encoding);}
+});

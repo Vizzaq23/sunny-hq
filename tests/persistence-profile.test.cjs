@@ -14,6 +14,6 @@ test('v2 worker upgrade retains exact backup and full profile on reopen',async t
   const {MissionBook}=require('../desktop/missions.cjs'),book=new MissionBook();book.data.version=2;delete book.data.runs;book.data.opaqueBook={retain:true};const original={opaque:{retain:'☀'},tasks:[{id:'legacy',messages:[{text:'full transcript\n'}]}],settings:{draft:'retain exact draft'},missionBook:book.data};
   if(kind==='json')fs.writeFileSync(file,JSON.stringify(original));else{const raw=new(require('../desktop/core.cjs').SqliteStore)(file);raw.save(original);raw.close();}
   const store=await openOrderedStore({kind,file,backupDir});stores.push(store);const loaded=store.load();assert.deepEqual(loaded,{...original,missionBook:{...original.missionBook,version:3,runs:[]}});assert.equal(fs.readFileSync(path.join(backupDir,fs.readdirSync(backupDir)[0]),'utf8'),JSON.stringify(original,null,2));
-  await store.barrier(loaded,'mission');await store.close();const reopened=await openOrderedStore({kind,file,backupDir});stores.push(reopened);assert.deepEqual(reopened.load(),loaded);assert.equal(fs.readdirSync(backupDir).length,1);
+  await store.barrier(loaded,'mission');await store.close();const reopened=await openOrderedStore({kind,file,backupDir});stores.push(reopened);assert.deepEqual(reopened.load(),loaded);assert.equal(fs.readdirSync(backupDir).filter(name=>name!=='storage-format').length,1);if(kind==='sqlite')assert.ok(fs.readdirSync(path.join(backupDir,'storage-format')).some(name=>name.endsWith('.receipt.json')));
  }
 });

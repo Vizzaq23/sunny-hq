@@ -153,3 +153,5 @@ function prepareWorkerMissionProfileStore(store,backupDir,writeCompact){
  },close(){closed=true;if(pending)pending();store.close();}};
 }
 module.exports.prepareWorkerMissionProfileStore=prepareWorkerMissionProfileStore;
+
+module.exports.initializeMissionProfileStore=initializeMissionProfileStore;

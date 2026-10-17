@@ -1,6 +1,7 @@
 const path=require('node:path');
 const {randomUUID}=require('node:crypto');
 const {Worker}=require('node:worker_threads');
+const {captureProfile,sealProfileSnapshot,diffProfile,applyProfileUpdate}=require('./profile-snapshot.cjs');
 const reasons=new Set(['workspace','dispatch','mission','check-intent','publication-intent','acceptance','reservation-release','cue','shutdown']);
 const sha=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
 function failure(code,message,identity={}){return Object.assign(new Error(message),{code,...identity});}
@@ -13,7 +14,7 @@ async function openOrderedStore(options){
  const epoch=randomUUID(),ready=deferred(),idleWaiters=[];
  // A factory may throw before the await below is reached.
  ready.promise.catch(()=>{});
- let worker,current=null,waiting=null,sequence=0,lastReceipt=null,initial,recovery,durability,terminal=null,closing=false,closed=false,closeResult=null,closeAck=null,timer=null,termination=null;
+ let lastSubmitted,worker,current=null,waiting=null,sequence=0,lastReceipt=null,initial,recovery,durability,terminal=null,closing=false,closed=false,closeResult=null,closeAck=null,timer=null,termination=null;
  function stopTimer(){clearTimeout(timer);timer=null;}
  function terminate(){if(!termination)termination=Promise.resolve().then(()=>worker?.terminate()).catch(()=>{});return termination;}
  function settleIdle(){if(current||waiting)return;for(const waiter of idleWaiters.splice(0))terminal?waiter.reject(terminal):waiter.resolve(lastReceipt);}
@@ -25,13 +26,13 @@ async function openOrderedStore(options){
  function uncertain(message){return failure('COMMIT_UNCERTAIN','Storage outcome is uncertain: '+message,{epoch,sequence:current?.sequence});}
  function arm(stage){stopTimer();timer=setTimeout(()=>fail(current?uncertain(stage+' timed out'):failure('WORKER_TIMEOUT','Persistence worker '+stage+' timed out')),timeoutMs);}
  function send(message){try{worker.postMessage(message);}catch(error){fail(current?uncertain(error.message):error);}}
- function dispatch(entry){current=entry;entry.sequence=++sequence;arm('commit');send({type:'commit',epoch,sequence:entry.sequence,image:entry.image,reason:entry.reason});entry.image=null;}
+ function dispatch(entry){current=entry;entry.sequence=++sequence;arm('commit');try{const image={...lastSubmitted,...entry.image},update=diffProfile(lastSubmitted,image,{baseGeneration:entry.sequence-1});lastSubmitted=applyProfileUpdate(lastSubmitted,update,{generation:entry.sequence-1});send({type:'commit',epoch,sequence:entry.sequence,update,reason:entry.reason});entry.image=null;}catch(error){fail(uncertain(error.message));}}
  function onMessage(message){
   if(terminal||closed)return;
   if(!message||message.epoch!==epoch)return fail(current?uncertain('invalid worker receipt epoch'):failure('WORKER_PROTOCOL','Invalid worker epoch'));
   if(message.type==='ready'){
    if(initial!==undefined||current||closing)return fail(failure('WORKER_PROTOCOL','Duplicate persistence initialization'));
-   initial=message.image;recovery=message.recovery;durability=message.durability?Object.freeze({...message.durability}):undefined;stopTimer();ready.resolve();return;
+   initial=message.image;lastSubmitted=sealProfileSnapshot(captureProfile(initial));recovery=message.recovery;durability=message.durability?Object.freeze({...message.durability}):undefined;stopTimer();ready.resolve();return;
   }
   if(observe&&(message.type==='committed'||message.type==='failed')&&message.probe&&message.sequence===current?.sequence){try{observe({sequence:message.sequence,...message.probe});}catch{/* Observer cannot alter settlement. */}}
   if(message.type==='failed')return fail(current?failure(message.uncertain?'COMMIT_UNCERTAIN':'STORE_FAILED',message.error||'Persistence worker failed',{epoch,sequence:current.sequence}):failure('STORE_FAILED',message.error||'Persistence worker initialization failed'));
@@ -61,9 +62,9 @@ async function openOrderedStore(options){
   if(terminal)return Promise.reject(terminal);if(closing||closed)return Promise.reject(failure('STORE_CLOSED','Ordered store is closing'));
   if(reason!==null&&!reasons.has(reason))return Promise.reject(failure('INVALID_BARRIER','Invalid storage barrier reason'));
   if(waiting&&waiting.reason!==null)return Promise.reject(failure('STORE_SATURATED','Ordered storage waiting image is occupied by a required barrier'));
-  // Idle dispatch captures synchronously in postMessage. Waiting images need
+  // Capture primitive strings without copying their bytes; all objects are owned. Waiting images need
   // their own snapshot now because the caller can mutate before later dispatch.
-  let captured;try{captured=current?structuredClone(image):image;}catch(error){return Promise.reject(error);}
+  let captured;try{if(image===null||typeof image!=='object'||Array.isArray(image))throw Error('Invalid profile image');captured=current?captureProfile(image):image;}catch(error){return Promise.reject(error);}
   const entry={...deferred(),image:captured,reason};
   if(waiting)waiting.reject(failure('CHECKPOINT_SUPERSEDED','Background checkpoint superseded before persistence'));
   if(current)waiting=entry;else dispatch(entry);return entry.promise;

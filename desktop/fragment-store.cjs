@@ -32,4 +32,4 @@ async function openFragmentStore({file,backupDir}){
   },close(){if(!closed){closed=true;db.close();}}};
  }catch(error){db.close();throw error;}
 }
-module.exports={openFragmentStore};
+module.exports={openFragmentStore,readProfile};

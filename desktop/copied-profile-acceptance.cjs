@@ -12,7 +12,7 @@ function proof(hub,binding){const trace=clockRecords.get(hub).trace;return {trac
 async function closeCopied(hub){const record=clockRecords.get(hub);if(record)record.stage='close';await hub.close();}
 function migratedImage(binding,profileDir){
  const source=binding.image.state,mode=require('./mission-profile.cjs').inspectMissionProfile(source).mode;if(mode==='v3')return source;
- const directory=path.join(profileDir,'mission-profile-backups'),files=fs.readdirSync(directory);if(files.length!==1)fail('COPIED_MIGRATION_BACKUP_INVALID');
+ const directory=path.join(profileDir,'mission-profile-backups'),files=fs.readdirSync(directory).filter(name=>name!=='storage-format');if(files.length!==1)fail('COPIED_MIGRATION_BACKUP_INVALID');
  const bytes=fs.readFileSync(path.join(directory,files[0]));assert.deepEqual(JSON.parse(bytes),source,'COPIED_MIGRATION_BACKUP_INVALID');
  return require('./mission-profile.cjs').upgradeMissionProfile(source,{path:path.join(directory,files[0]),sha256:require('node:crypto').createHash('sha256').update(bytes).digest('hex')});
 }
@@ -55,10 +55,10 @@ async function consumers(hub,invoke=(action,args)=>copiedQuery(hub,action,args))
 async function runCopiedProfile(fixture,{connect}={}){
  let hub=await bootCopiedProfile(fixture);const session=sessions.get(hub),changes=[];let first,second;
  let transport;try{transport=await connect?.(hub);await consumers(hub,transport?.invoke);changes.push(...assertPreserved(session.expected,hub.persistedImage(),proof(hub,session.binding)));await hub.persist('workspace');}finally{transport?.close();await closeCopied(hub);}
- first=require('./copied-database.cjs').readDatabaseImage(path.join(fixture.profileDir,'sunny.sqlite')).state;changes.push(...assertPreserved(session.expected,first,proof(hub,session.binding)));
+ first=require('./copied-database.cjs').readDatabaseImage(path.join(fixture.profileDir,'sunny.sqlite'),{allowFragments:true}).state;changes.push(...assertPreserved(session.expected,first,proof(hub,session.binding)));
  const token=require('./copied-recovery.cjs').renewCopiedRecovery(hub),store=await require('./persistence-lifecycle.cjs').openProfile({dataDir:fixture.profileDir});
  let reopenTrace;transport=undefined;try{assert.deepEqual(store.load(),first);hub=new(require('./hub.cjs').Hub)({home:fixture.profileDir,store,copiedRecovery:token});reopenTrace=recordClock(hub,session.binding,'reopen');await hub.initializeRecovery();sessions.set(hub,{...session,expected:first,trace:reopenTrace,local:require('./copied-capture.cjs').copiedLocalHistory(session.binding),transport:require('./public-transport.cjs').createPublicTransport(hub)});transport=await connect?.(hub);await consumers(hub,transport?.invoke);await hub.persist('workspace');}finally{transport?.close();if(hub?.store===store)await closeCopied(hub);else await store.close();}
- second=require('./copied-database.cjs').readDatabaseImage(path.join(fixture.profileDir,'sunny.sqlite')).state;changes.push(...assertPreserved(first,second,proof(hub,session.binding)));
+ second=require('./copied-database.cjs').readDatabaseImage(path.join(fixture.profileDir,'sunny.sqlite'),{allowFragments:true}).state;changes.push(...assertPreserved(first,second,proof(hub,session.binding)));
  const db=new(require('node:sqlite').DatabaseSync)(path.join(fixture.profileDir,'sunny.sqlite'),{readOnly:true,allowExtension:false,timeout:0});let journalMode;try{journalMode=db.prepare('PRAGMA journal_mode').get().journal_mode;}finally{db.close();}assert.equal(journalMode,'wal');
  // FULL is verified on the actual ordered worker's initialization receipt.
  if(hub.store.durability?.synchronous!==2)fail('COPIED_DURABILITY_UNVERIFIED');

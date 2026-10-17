@@ -39,7 +39,7 @@ for(const kind of ['sqlite','json'])test('native_idle_submission_captures_before
  const pending=store.barrier(submitted,'dispatch');submitted.tasks[0].messages[0].text='caller changed';submitted.opaque.nested.text='caller opaque change';submitted.missionBook.workspace.revision=9;
  assert.equal((await pending).stateSha256,digest(expected));await store.close();assert.deepEqual((await open(f)).load(),expected);
 });
-test('idle_native_capture_avoids_extra_main_clone_while_waiting_image_is_owned',{timeout:15000},async t=>{
+test('owned_capture_preserves_idle_and_waiting_images_without_cloning_string_bytes',{timeout:15000},async t=>{
  const f=fixture(t),held=gate(f),store=await open(f,{workerFactory:held.factory}),firstImage=image('first'),waitingImage=image('waiting'),firstExpected=structuredClone(firstImage),waitingExpected=structuredClone(waitingImage);
  const nativeClone=global.structuredClone;let clones=0,idleClones,totalClones,first,waiting;
  try{
@@ -50,7 +50,7 @@ test('idle_native_capture_avoids_extra_main_clone_while_waiting_image_is_owned',
  firstImage.tasks[0].messages[0].text='idle mutation';waitingImage.tasks[0].messages[0].text='waiting mutation';waitingImage.opaque.nested.text='waiting opaque mutation';
  await held.committed;held.release();const [firstReceipt,waitingReceipt]=await Promise.all([first,waiting]);
  assert.equal(firstReceipt.stateSha256,digest(firstExpected));assert.equal(waitingReceipt.stateSha256,digest(waitingExpected));await store.close();assert.deepEqual((await open(f)).load(),waitingExpected);
- assert.equal(idleClones,0,'real postMessage already captures an idle submission');assert.equal(totalClones,1,'only waiting images require an additional main-owned capture');
+ assert.equal(idleClones,0,'owned capture avoids duplicating primitive string bytes');assert.equal(totalClones,0,'waiting image ownership also retains immutable strings');
 });
 test('owned_waiting_images_coalesce_without_losing_required_barriers',{timeout:15000},async t=>{
  const f=fixture(t),held=gate(f),store=await open(f,{workerFactory:held.factory}),initial=image('initial'),initialExpected=structuredClone(initial),first=store.barrier(initial,'dispatch');initial.tasks[0].messages[0].text='initial mutation';await held.committed;
@@ -78,4 +78,7 @@ test('native_postMessage_forward_then_throw_never_claims_a_durable_receipt',{tim
  // Termination can race the already forwarded commit. Either exact outcome is
  // valid; neither can be acknowledged as durable without the missing receipt.
  const reopened=(await open(f)).load();assert.ok(Object.keys(reopened).length===0||digest(reopened)===digest(saved));
+});
+test('small native updates send patches and retain unversioned transcript edits',async t=>{
+ const f=fixture(t),sent=[];const store=await open(f,{workerFactory:(file,options)=>{const worker=new Worker(file,options);f.workers.push(worker);const bridge=new EventEmitter();bridge.postMessage=m=>{sent.push(structuredClone(m));worker.postMessage(m);};bridge.terminate=()=>worker.terminate();worker.on('message',m=>bridge.emit('message',m));worker.on('error',e=>bridge.emit('error',e));worker.on('exit',c=>bridge.emit('exit',c));return bridge;}});const state=image('x'.repeat(200000));await store.barrier(state,'mission');state.tasks[0].messages[0].text+='tail';await store.barrier(state,'mission');state.tasks[0].status='interrupted';const expected=structuredClone(state);await store.barrier(state,'reservation-release');const commits=sent.filter(m=>m.type==='commit');assert.equal(commits.at(-1).update.kind,'patch');assert.ok(Buffer.byteLength(JSON.stringify(commits.at(-1)))<1000);await store.close();assert.deepEqual((await open(f)).load(),expected);
 });

@@ -4,7 +4,7 @@ const {runCopiedProfile,bootCopiedProfile,copiedQuery,assertPreserved}=require('
 for(const version of [1,2,3])test('actual copied store v'+version+' initializes WAL/FULL, preserves complete local consumers and closes/reopens without seeds',async t=>{
  const f=capture(t,{version}),baseline=fs.readFileSync(path.join(f.root,'baseline','sunny.sqlite')),admitted=packaged.admitFixture(f.args);
  const result=await runCopiedProfile(admitted);assert.equal(result.consumerEqual,true);assert.equal(result.archiveEqual,true);assert.equal(result.reopened,true);assert.equal(result.journalMode,'wal');assert.equal(result.synchronous,2);assert.deepEqual(fs.readFileSync(path.join(f.root,'baseline','sunny.sqlite')),baseline);assert.deepEqual(fs.readFileSync(path.join(f.root,'working','chatgpt-history.json')),f.archive);
- if(version<3){const backups=fs.readdirSync(path.join(f.root,'working','mission-profile-backups'));assert.equal(backups.length,1);assert.deepEqual(JSON.parse(fs.readFileSync(path.join(f.root,'working','mission-profile-backups',backups[0]),'utf8')),f.state);}
+ if(version<3){const backups=fs.readdirSync(path.join(f.root,'working','mission-profile-backups')).filter(name=>name!=='storage-format');assert.equal(backups.length,1);assert.deepEqual(JSON.parse(fs.readFileSync(path.join(f.root,'working','mission-profile-backups',backups[0]),'utf8')),f.state);}
  await assert.rejects(runCopiedProfile(admitted),{code:'COPIED_CAPABILITY_REQUIRED'});
 });
 test('copied query uses admitted local membership before any provider and rejects all effect actions',async t=>{

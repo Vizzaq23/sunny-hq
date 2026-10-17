@@ -32,39 +32,34 @@ function durableJsonStore(file){
  };raw.save=value=>writeCompact(JSON.stringify(value));return {raw,writeCompact};
 }
 if(isMainThread||!parentPort)throw Error('Profile persistence must run in its worker');
-const {epoch}=workerData;let raw,store,durability,lastSequence=0,ended=false;
+const {captureProfile,sealProfileSnapshot,applyProfileUpdate}=require('./profile-snapshot.cjs');
+const {epoch}=workerData;let raw,store,durability,current,lastSequence=0,ended=false;
 function post(message){parentPort.postMessage({epoch,...message});}
 function finish(){if(ended)return;ended=true;try{store?store.close():raw?.close();}finally{parentPort.close();}}
-try{
- // Read before opening any writer: WAL setup and CREATE TABLE can change a
- // foreign/unsupported SQLite file even when subsequent authority checks fail.
- // Malformed JSON must not enter StateStore's historical defaults fallback.
- preflightExistingProfile(workerData.kind,workerData.file);
- const backend=workerData.kind==='sqlite'?prepareWorkerSqliteStore(workerData.file):workerData.kind==='json'?durableJsonStore(workerData.file):null;
- raw=backend?.raw;
- if(!raw)throw Error('Invalid persistence storage kind');
- if(workerData.kind==='sqlite'){
-  raw.db.exec('PRAGMA synchronous=FULL');
-  durability={journalMode:raw.db.prepare('PRAGMA journal_mode').get().journal_mode,synchronous:raw.db.prepare('PRAGMA synchronous').get().synchronous};
-  if(durability.journalMode!=='wal'||durability.synchronous!==2)throw Error('SQLite WAL/FULL durability is required');
- }
- store=prepareWorkerMissionProfileStore(raw,workerData.backupDir,backend.writeCompact);
- post({type:'ready',image:store.load(),recovery:store.recovery,durability,runtime:{electron:process.versions.electron,node:process.versions.node,executable:process.execPath,threadId:require('node:worker_threads').threadId,entry:__filename}});
-}catch(error){post({type:'failed',error:error.message,uncertain:false});finish();}
+async function boot(){
+ try{
+  preflightExistingProfile(workerData.kind,workerData.file);
+  if(workerData.kind==='sqlite'){
+   raw=await require('./fragment-store.cjs').openFragmentStore({file:workerData.file,backupDir:path.join(workerData.backupDir,'storage-format')});durability=raw.durability;
+   const initialized=require('./mission-profile.cjs').initializeMissionProfileStore(raw,workerData.backupDir);let receipt=initialized.receipt;
+   store={load:()=>captureProfile(initialized.current),prepareOwned(candidate){if(receipt)require('./mission-profile.cjs').upgradeMissionProfile(initialized.saved,receipt);const prepared=raw.prepare(candidate);return {stateSha256:prepared.stateSha256,commit(){prepared.commit();receipt=null;}};},close:()=>raw.close()};
+  }else if(workerData.kind==='json'){const backend=durableJsonStore(workerData.file);raw=backend.raw;store=prepareWorkerMissionProfileStore(raw,workerData.backupDir,backend.writeCompact);}else throw Error('Invalid persistence storage kind');
+  current=sealProfileSnapshot(captureProfile(store.load()));
+  post({type:'ready',image:current,recovery:store.recovery,durability,runtime:{electron:process.versions.electron,node:process.versions.node,executable:process.execPath,threadId:require('node:worker_threads').threadId,entry:__filename}});
+ }catch(error){post({type:'failed',error:error.message,uncertain:false});finish();}
+}
 parentPort.on('message',message=>{
  if(ended)return;let writeStarted=false;
- // Diagnostic stage schema v1 described the retired duplicate object chain.
- // This path deliberately emits no v1 phase payload, even when requested.
  try{
   if(!message||message.epoch!==epoch)throw Error('Invalid private persistence epoch');
   if(message.type==='close'){store.close();store=null;raw=null;post({type:'closed'});finish();return;}
   if(message.type!=='commit'||!Number.isSafeInteger(message.sequence)||message.sequence!==lastSequence+1)throw Error('Invalid private persistence sequence');
-  if(message.image===null||typeof message.image!=='object'||Array.isArray(message.image))throw Error('Invalid submitted profile image');
-  const prepared=store.prepareOwned(message.image);
-  const stateSha256=createHash('sha256').update(prepared.compact).digest('hex');
-  post({type:'prepared',sequence:message.sequence,stateSha256});writeStarted=true;
-  prepared.commit();lastSequence=message.sequence;
+  const candidate=applyProfileUpdate(current,message.update,{generation:lastSequence});
+  if(candidate===null||typeof candidate!=='object'||Array.isArray(candidate))throw Error('Invalid submitted profile image');
+  if(inspectMissionProfile(candidate).mode!=='v3')throw Error('Unsupported submitted profile');
+  const prepared=store.prepareOwned(candidate),stateSha256=prepared.stateSha256||createHash('sha256').update(prepared.compact).digest('hex');
+  post({type:'prepared',sequence:message.sequence,stateSha256});writeStarted=true;prepared.commit();current=candidate;lastSequence=message.sequence;
   post({type:'committed',sequence:lastSequence,receipt:{epoch,sequence:lastSequence,stateSha256,durableAt:Date.now()}});
  }catch(error){post({type:'failed',sequence:message?.sequence,error:error.message,uncertain:writeStarted});finish();}
 });
-
+void boot();

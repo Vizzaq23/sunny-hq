@@ -19,3 +19,4 @@ test('malformed and inherited patch paths fail without mutating base',()=>{
 test('cycles, accessors and executable values are rejected without invoking getters',()=>{
  const cycle={};cycle.self=cycle;for(const value of [cycle,{x:()=>{}},{x:Symbol('x')},{x:1n},{x:new Date()}])assert.throws(()=>captureProfile(value));let read=false;assert.throws(()=>captureProfile({get x(){read=true;return 1;}}));assert.equal(read,false);
 });
+test('adding control metadata does not resend unchanged transcript text',()=>{const base=sealProfileSnapshot(captureProfile({task:{messages:[{text:'x'.repeat(200000)}]}})),next=captureProfile(base);next.task.intent={state:'prepared'};const update=diffProfile(base,next,{baseGeneration:0});assert.ok(Buffer.byteLength(JSON.stringify(update))<500);assert.deepEqual(applyProfileUpdate(base,update,{generation:0}),next);});

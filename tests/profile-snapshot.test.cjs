@@ -17,7 +17,7 @@ test('malformed and inherited patch paths fail without mutating base',()=>{
  for(const ops of [[{op:'set',path:['constructor','prototype','polluted'],value:true}],[{op:'set',path:['a',-1],value:3}],[{op:'delete',path:['a',0]}],[{op:'oops',path:[]}],[{op:'set',path:['b','x'],value:2,extra:1}]])assert.throws(()=>applyProfileUpdate(base,{kind:'patch',baseGeneration:0,ops},{generation:0}));assert.equal(JSON.stringify(base),before);assert.equal({}.polluted,undefined);
 });
 test('cycles, accessors and executable values are rejected without invoking getters',()=>{
- const cycle={};cycle.self=cycle;for(const value of [cycle,{x:()=>{}},{x:Symbol('x')},{x:1n},{x:new Date()}])assert.throws(()=>captureProfile(value));let read=false;assert.throws(()=>captureProfile({get x(){read=true;return 1;}}));assert.equal(read,false);
+ const cycle={};cycle.self=cycle;for(const value of [cycle,{x:()=>{}},{x:Symbol('x')},{x:1n}])assert.throws(()=>captureProfile(value));let read=false;assert.throws(()=>captureProfile({get x(){read=true;return 1;}}));assert.equal(read,false);
 });
 test('adding control metadata does not resend unchanged transcript text',()=>{const base=sealProfileSnapshot(captureProfile({task:{messages:[{text:'x'.repeat(200000)}]}})),next=captureProfile(base);next.task.intent={state:'prepared'};const update=diffProfile(base,next,{baseGeneration:0});assert.ok(Buffer.byteLength(JSON.stringify(update))<500);assert.deepEqual(applyProfileUpdate(base,update,{generation:0}),next);});
 test('many small operations include separators in the transport byte limit',()=>{
@@ -27,4 +27,8 @@ test('many small operations include separators in the transport byte limit',()=>
 test('delete-only updates also fall back when their envelope exceeds the limit',()=>{
  const base=sealProfileSnapshot(Object.fromEntries(Array.from({length:35000},(_,i)=>['key'+i,0]))),next={};
  const update=diffProfile(base,next,{baseGeneration:0});assert.equal(update.kind,'full');assert.deepEqual(applyProfileUpdate(base,update,{generation:0}),next);
+});
+
+test('captures supported native values with their existing JSON representation',()=>{
+ const source={date:new Date(0),invalid:new Date(NaN),typed:new Uint8Array([1,2])},copy=captureProfile(source);source.date.setTime(123);source.typed[0]=9;assert.equal(JSON.stringify(copy),'{"date":"1970-01-01T00:00:00.000Z","invalid":null,"typed":{"0":1,"1":2}}');const base=sealProfileSnapshot(copy),next={...source,date:new Date(1000)};assert.equal(JSON.stringify(applyProfileUpdate(base,diffProfile(base,next,{baseGeneration:0}),{generation:0})),JSON.stringify(next));
 });

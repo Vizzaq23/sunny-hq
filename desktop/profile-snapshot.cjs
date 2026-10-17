@@ -1,13 +1,15 @@
 const sealed=new WeakSet(),MAX_PATCH_BYTES=1024*1024;
 const object=value=>value!==null&&typeof value==='object';
 const own=(value,key)=>Object.hasOwn(value,key);
+function jsonDate(value){if(!(value instanceof Date))return value;const time=Date.prototype.getTime.call(value);return Number.isFinite(time)?Date.prototype.toISOString.call(value):null;}
 function scalar(value){if(['function','symbol','bigint'].includes(typeof value))throw Object.assign(Error('Unsupported profile value'),{name:'DataCloneError'});return value;}
-function keys(value){const proto=Object.getPrototypeOf(value);if(!Array.isArray(value)&&proto!==Object.prototype&&proto!==null)throw Error('Unsupported profile object');const result=Object.keys(value);for(const key of result){const d=Object.getOwnPropertyDescriptor(value,key);if(!d||!own(d,'value'))throw Error('Profile accessors are not supported');}return result;}
+function keys(value){const proto=Object.getPrototypeOf(value);if(!Array.isArray(value)&&!ArrayBuffer.isView(value)&&proto!==Object.prototype&&proto!==null)throw Error('Unsupported profile object');const result=Object.keys(value);for(const key of result){const d=Object.getOwnPropertyDescriptor(value,key);if(!d||!own(d,'value'))throw Error('Profile accessors are not supported');}return result;}
 function put(target,key,value){if(key==='__proto__')Object.defineProperty(target,key,{value,enumerable:true,writable:true,configurable:true});else target[key]=value;}
 function captureProfile(value){
+ value=jsonDate(value);
  if(!object(value))return scalar(value);
  const copies=new WeakMap(),active=new WeakSet(),root=Array.isArray(value)?new Array(value.length):{},stack=[{source:value,target:root,keys:keys(value),index:0}];copies.set(value,root);active.add(value);
- while(stack.length){const frame=stack.at(-1);if(frame.index===frame.keys.length){active.delete(frame.source);stack.pop();continue;}const key=frame.keys[frame.index++],child=frame.source[key];if(!object(child)){put(frame.target,key,scalar(child));continue;}if(active.has(child))throw Error('Cyclic profile');if(copies.has(child)){put(frame.target,key,copies.get(child));continue;}const childKeys=keys(child),target=Array.isArray(child)?new Array(child.length):{};put(frame.target,key,target);copies.set(child,target);active.add(child);stack.push({source:child,target,keys:childKeys,index:0});}
+ while(stack.length){const frame=stack.at(-1);if(frame.index===frame.keys.length){active.delete(frame.source);stack.pop();continue;}const key=frame.keys[frame.index++],child=jsonDate(frame.source[key]);if(!object(child)){put(frame.target,key,scalar(child));continue;}if(active.has(child))throw Error('Cyclic profile');if(copies.has(child)){put(frame.target,key,copies.get(child));continue;}const childKeys=keys(child),target=Array.isArray(child)?new Array(child.length):{};put(frame.target,key,target);copies.set(child,target);active.add(child);stack.push({source:child,target,keys:childKeys,index:0});}
  return root;
 }
 function sealProfileSnapshot(value){
@@ -22,7 +24,7 @@ function generation(value){if(!Number.isSafeInteger(value)||value<0)throw Error(
 function diffProfile(base,next,{baseGeneration}){
  generation(baseGeneration);const ops=[],stack=[{base,next,path:[]}];let bytes=Buffer.byteLength(JSON.stringify({kind:'patch',baseGeneration,ops:[]}));
  const append=op=>{bytes+=Buffer.byteLength(JSON.stringify(op))+(ops.length?1:0);ops.push(op);};
- while(stack.length){const item=stack.pop();if(item.remove){append({op:'delete',path:item.path});if(bytes>MAX_PATCH_BYTES)return {kind:'full',baseGeneration,image:captureProfile(next)};continue;}const a=item.base,b=item.next;if(Object.is(a,b)&&!item.add)continue;
+ while(stack.length){const item=stack.pop();if(item.remove){append({op:'delete',path:item.path});if(bytes>MAX_PATCH_BYTES)return {kind:'full',baseGeneration,image:captureProfile(next)};continue;}const a=jsonDate(item.base),b=jsonDate(item.next);if(Object.is(a,b)&&!item.add)continue;
  let replace=item.add||!object(a)||!object(b)||Array.isArray(a)!==Array.isArray(b),ak,bk;
  if(!replace){ak=sealed.has(a)?Object.keys(a):keys(a);bk=keys(b);if(Array.isArray(a))replace=a.length!==b.length||ak.length!==bk.length||ak.some((key,i)=>key!==bk[i]);else if(ak.length!==bk.length||ak.some((key,i)=>key!==bk[i])){const proposed=Object.fromEntries([...ak.filter(key=>own(b,key)),...bk.filter(key=>!own(a,key))].map(key=>[key,true]));replace=Object.keys(proposed).some((key,i)=>key!==bk[i]);}}
  if(replace)append({op:'set',path:item.path,value:captureProfile(b)});

@@ -1,20 +1,16 @@
 const {test}=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs');const path=require('node:path');const vm=require('node:vm');
 const {MissionBook}=require('../desktop/missions.cjs');
-test('actual worker reuses its sole full-profile encoding at raw binding and receipt hash',()=>{
- let listener,bound,encodings=0;const messages=[];const image={missionBook:new MissionBook().data,opaqueBoundaryMarker:'☀\\\"\n',tasks:[]};
- const encode=value=>{if(value?.opaqueBoundaryMarker)encodings++;return JSON.stringify(value);};
- class Raw{constructor(){this.db={exec(){},prepare(sql){return {get:()=>sql.includes('journal_mode')?{journal_mode:'wal'}:{synchronous:2}};}};}load(){return {};}save(value){bound=encode(value);}close(){}}
- const core={SqliteStore:Raw,prepareWorkerSqliteStore:()=>({raw:new Raw(),writeCompact:compact=>{bound=compact;}})};
+test('actual worker binds the exact prepared fragments and their receipt digest',async()=>{
+ let listener,bound,preparations=0;const messages=[],image={missionBook:new MissionBook().data,opaqueBoundaryMarker:'☀',tasks:[]};
+ const backend={durability:{journalMode:'wal',synchronous:2},load:()=>({}),close(){},prepare(candidate){preparations++;const encoded=require('../desktop/profile-json.cjs').encodeProfile(candidate),map=new Map(encoded.fragments.map(f=>[f.id,f.bytes]));return {stateSha256:encoded.stateSha256,commit(){bound=Buffer.concat(encoded.layout.map(id=>map.get(id))).toString('utf8');}};}};
  const port={postMessage:message=>messages.push(message),close(){},on:(type,fn)=>{listener=fn;}};
  const filename=path.join(__dirname,'../desktop/persistence-worker.cjs');
- const profileModule={exports:{}};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../desktop/mission-profile.cjs'),'utf8'),{require:name=>name.startsWith('./')?require('../desktop/'+name.slice(2)):require(name),module:profileModule,JSON:{stringify:encode,parse:JSON.parse},structuredClone,Buffer},{filename:path.join(__dirname,'../desktop/mission-profile.cjs')});
- const req=name=>name==='./core.cjs'?core:name==='node:worker_threads'?{isMainThread:false,parentPort:port,workerData:{kind:'sqlite',file:path.join(__dirname,'nonexistent-boundary.sqlite'),epoch:'test',backupDir:__dirname}}:name==='./mission-profile.cjs'?profileModule.exports:require(name);
- vm.runInNewContext(fs.readFileSync(filename,'utf8'),{require:req,JSON:{stringify:encode,parse:JSON.parse},structuredClone,Date,Buffer,process,__filename:filename},{filename});
- listener({type:'commit',epoch:'test',sequence:1,image:structuredClone(image)});
- assert.equal(messages.at(-1).type,'committed',JSON.stringify(messages));assert.equal(bound,JSON.stringify(image));assert.equal(messages.at(-1).receipt.stateSha256,require('node:crypto').createHash('sha256').update(bound).digest('hex'));
- assert.equal(encodings,1,'one full-profile encoding across worker and raw binding');
+ const req=name=>name==='node:worker_threads'?{isMainThread:false,parentPort:port,workerData:{kind:'sqlite',file:path.join(__dirname,'nonexistent-boundary.sqlite'),epoch:'test',backupDir:__dirname}}:name==='./fragment-store.cjs'?{openFragmentStore:async()=>backend}:name.startsWith('./')?require('../desktop/'+name.slice(2)):require(name);
+ vm.runInNewContext(fs.readFileSync(filename,'utf8'),{require:req,JSON,structuredClone,Date,Buffer,process,__filename:filename},{filename});
+ await new Promise(resolve=>setImmediate(resolve));assert.equal(messages.at(-1).type,'ready');
+ listener({type:'commit',epoch:'test',sequence:1,update:{kind:'full',baseGeneration:0,image:structuredClone(image)}});
+ assert.equal(messages.at(-1).type,'committed',JSON.stringify(messages));assert.equal(bound,JSON.stringify(image));assert.equal(messages.at(-1).receipt.stateSha256,require('node:crypto').createHash('sha256').update(bound).digest('hex'));assert.equal(preparations,1);
 });
-
 
 const {prepareWorkerMissionProfileStore}=require('../desktop/mission-profile.cjs');
 function privateFixture(saved={missionBook:new MissionBook().data,opaque:{old:true}}){let disk=saved,fail=false;const store=prepareWorkerMissionProfileStore({load:()=>saved,close(){}},__dirname,text=>{if(fail)throw Error('raw failure');disk=JSON.parse(text);});return {store,get disk(){return disk;},fail(){fail=true;}};}

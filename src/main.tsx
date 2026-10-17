@@ -4,6 +4,7 @@ import App from './App';
 import {lazy,Suspense} from 'react';
 import './styles.css';
 import './voyage-ui.css';
+import './command-deck.css';
 import {RecoveryBoundary} from './RecoveryBoundary';
 
 const isCompanion=new URLSearchParams(window.location.search).has('companion');

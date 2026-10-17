@@ -132,3 +132,6 @@ Admission evidence: raw overlay SHA256 `E7F9DF750D2876A6F9350BEE82184A9A94D19803
 ## Destination header reuse — 2026-10-16
 
 `src/voyage-ui.css` reuses the existing `thousand-sunny.png`, `ship-deck.png`, `project-quarters.png`, `nami-chart-room.png`, `robin-ship-library.png`, `usopp-inventors-workshop.png`, `jinbe-helm-room.png` and `luffy-captains-den.png` as decorative header backgrounds. Existing provenance above applies. No asset bytes or actor geometry changed. Header crops are decorative and are not walkable scene geometry. Morgans retains the existing keyed/alpha blimp texture path.
+
+### Command deck reuse — 2026-10-16
+The command deck reuses the existing ship-companion texture and crew assets at their established 3:2 geometry. Workbench rooms render their existing images in a dedicated panel rather than behind conversation text. Franky's room and frame/foot contracts are unchanged. No new images, copied reference assets or third-party shaders were added in this pass.

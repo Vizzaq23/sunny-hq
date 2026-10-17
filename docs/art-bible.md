@@ -100,3 +100,6 @@ The immersive UI refresh uses existing Sunny, ship-deck, project-quarters, Nami 
 
 ### 2026-10-16 readability refinement
 The nautical UI uses deep teal for primary actions, parchment for work surfaces, brass for selected navigation and section edges, and coral for caution. Primary and secondary controls have 44px minimum targets and 14px labels; disabled primary controls retain readable text. The Home brief spans its available width with paired fields on desktop and a single column on narrow screens. Crew journals use secondary buttons and work launch uses primary buttons. Existing art, sprite geometry, state and authority contracts are unchanged.
+
+### Command deck palette and room composition — 2026-10-16
+The current pass replaces the earlier parchment shell with ink blue (#101f33), sea glass (#d4eee8), sail white and orange (#c7512d). Keep the warm existing ship and room art as the visual focal point. Work surfaces use fewer, flatter boundaries; primary actions and attention cues retain readable text. The ship and Franky room keep their original aspect ratio, actor anchor and atlas contracts. Chat occupies an independent panel. Existing assets were reused without pixel edits or new provenance requirements.

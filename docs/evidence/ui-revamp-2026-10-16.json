@@ -88,5 +88,37 @@
     },
     "build": "TypeScript and Vite passed; existing large bundle warning remains",
     "nativeFixtureWorkflow": "Pending while user is gaming; installed app unchanged"
+  },
+  "commandDeckRedesign": {
+    "date": "2026-10-16",
+    "changes": [
+      "Ink blue shell, sea glass navigation and orange actions",
+      "Large living ship with authoritative task and mission activity feed",
+      "Crew state filters and attention queue",
+      "Separate room art and conversation; responsive Franky workshop",
+      "Navigation resets workspace scroll"
+    ],
+    "desktopDestinations": 11,
+    "narrowDestinations": 11,
+    "horizontalOverflow": false,
+    "desktopMainWidth": 1065,
+    "narrowMainWidth": 375,
+    "navigationScrollTop": 0,
+    "tests": {
+      "log": ".sunny-dev/ui-revamp/redesign-tests.log",
+      "failed": 0,
+      "passed": 120
+    },
+    "visualFixtures": [
+      "Working state and Working filter",
+      "Waiting state and Needs you filter",
+      "Franky approval state",
+      "Reduced motion stops working pulse and actor movement"
+    ],
+    "fixtureDisclaimer": "Synthetic isolated snapshots, no provider connected",
+    "buildLog": ".sunny-dev/ui-revamp/redesign-build.log",
+    "nativeFixtureWorkflow": "Pending while user is gaming",
+    "installed": false,
+    "liveProviderProof": false
   }
 }

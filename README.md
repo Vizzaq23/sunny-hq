@@ -156,3 +156,5 @@ Imports accept 1–50 items (512 KB maximum JSON file); the archive holds 500. R
 ### Integration candidate (2026-10-16)
 
 The `codex/integrate-local-sunny` branch integrates the committed local workshop/runtime history with current Morgans reporting and reviewed-result recovery. See [integration compatibility and evidence](docs/reviewed-result-saving.md#local-integration--2026-10-16). The private generated copied-profile Recovery companion is not included in normal clean packages. Installed activation is recorded separately only after the final package passes its gates.
+
+Candidate validation found a promotion blocker: 10/30 MiB stop and approval latency exceeds the frozen limits. The installed app has not been updated; see the [current validation evidence](docs/reliability-baseline.md#integrated-candidate-validation--2026-10-16).

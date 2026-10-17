@@ -1,0 +1,199 @@
+{
+  "date": "2026-10-17T00:05:33.749Z",
+  "source": {
+    "appVersion": "0.11.0",
+    "buildId": "5123e84ec8f7ac57d833a8c83dd01cf1e71875fcbab8d49e6e4f8cd726931a65",
+    "fingerprintKind": "source-inputs-sha256",
+    "sourceCommit": "5940758280f39d941939090f925a90a65d10ec27",
+    "sourceDirty": false
+  },
+  "package": {
+    "exeSha256": "6543d89a778353a558bb391454ce4b9756617663c461474543461173f4abfd21",
+    "asarSha256": "468182ade957bf3d1fe083b343a039c8191a6f63da03fa1e843622d3ea9c6516"
+  },
+  "recovery": [
+    {
+      "scenario": "startup",
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "platform-launch-requested",
+      "elapsedMs": 5315
+    },
+    {
+      "scenario": "renderer-crash",
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "acceptance-enter",
+      "elapsedMs": 6247
+    },
+    {
+      "scenario": "main-restart",
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "process-exit",
+      "elapsedMs": 7554
+    },
+    {
+      "scenario": "worker-loss",
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "platform-launch-requested",
+      "elapsedMs": 5331
+    },
+    {
+      "scenario": "write-failure",
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "platform-launch-requested",
+      "elapsedMs": 5334
+    },
+    {
+      "scenario": "lost-ack",
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "acceptance-enter",
+      "elapsedMs": 6916
+    },
+    {
+      "scenario": "pending-approval",
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "platform-launch-requested",
+      "elapsedMs": 5766
+    },
+    {
+      "scenario": "pending-check",
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "platform-launch-requested",
+      "elapsedMs": 5486
+    },
+    {
+      "scenario": "normal-quit",
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "platform-launch-requested",
+      "elapsedMs": 5401
+    }
+  ],
+  "controls": [
+    {
+      "mib": 1,
+      "receipt": {
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 14305,
+        "scenario": "ordered-control"
+      },
+      "completedSamples": 40,
+      "metrics": {
+        "task:interrupt": {
+          "failures": 0,
+          "p95ControlMs": 92.39999999850988,
+          "maxMainContinuousTimerMs": 16.063900000000103,
+          "maxOperationTimerMs": 3.725500000000011
+        },
+        "approval:respond": {
+          "failures": 0,
+          "p95ControlMs": 77.5,
+          "maxMainContinuousTimerMs": 16.274100000000544,
+          "maxOperationTimerMs": 6.095099999999547
+        }
+      },
+      "failedAssertions": []
+    },
+    {
+      "mib": 10,
+      "receipt": {
+        "version": 1,
+        "status": "failed",
+        "accepted": false,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 50122
+      },
+      "completedSamples": 40,
+      "metrics": {
+        "task:interrupt": {
+          "failures": 0,
+          "p95ControlMs": 421.30000000074506,
+          "maxMainContinuousTimerMs": 57.03059999999823,
+          "maxOperationTimerMs": 37.907899999998335
+        },
+        "approval:respond": {
+          "failures": 0,
+          "p95ControlMs": 728.4000000022352,
+          "maxMainContinuousTimerMs": 54.2586999999985,
+          "maxOperationTimerMs": 47.85369999999966
+        }
+      },
+      "failedAssertions": [
+        "task:interrupt unchanged p95 RTT <200ms",
+        "approval:respond unchanged p95 RTT <200ms"
+      ]
+    },
+    {
+      "mib": 30,
+      "receipt": {
+        "version": 1,
+        "status": "failed",
+        "accepted": false,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 119060
+      },
+      "completedSamples": 40,
+      "metrics": {
+        "task:interrupt": {
+          "failures": 0,
+          "p95ControlMs": 1040.2000000029802,
+          "maxMainContinuousTimerMs": 148.46329999999944,
+          "maxOperationTimerMs": 119.79630000000179
+        },
+        "approval:respond": {
+          "failures": 0,
+          "p95ControlMs": 1483.8999999985099,
+          "maxMainContinuousTimerMs": 122.6542000000045,
+          "maxOperationTimerMs": 121.82789999998931
+        }
+      },
+      "failedAssertions": [
+        "task:interrupt unchanged p95 RTT <200ms",
+        "task:interrupt unchanged main 1ms timer excess <=100ms",
+        "approval:respond unchanged p95 RTT <200ms",
+        "approval:respond unchanged main 1ms timer excess <=100ms"
+      ]
+    }
+  ],
+  "installed": false,
+  "journey": {
+    "version": 1,
+    "status": "completed",
+    "accepted": true,
+    "cleanup": "observed",
+    "lastStage": "acceptance-enter",
+    "elapsedMs": 264313,
+    "scenario": "journey-cue"
+  }
+}

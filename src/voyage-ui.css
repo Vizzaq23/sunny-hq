@@ -119,3 +119,49 @@
 .voyage-ui.continuous-shell .sidebar .main-nav{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#527278 transparent}
 .voyage-ui.continuous-shell .sidebar .sidebar-foot{flex:0 0 auto;margin-top:8px}
 .voyage-ui.continuous-shell .sidebar .sidebar-projects{max-height:160px;overflow:auto}
+/* Clear work surfaces: seawater actions, parchment fields, brass navigation. */
+.voyage-ui{--muted:#52645f}
+.voyage-ui .topbar{height:76px}
+.voyage-ui :is(.topbar-kicker,.nav-label,.eyebrow,.crew-station){font-size:11px;letter-spacing:.1em}
+.voyage-ui .brand small{font-size:10px;letter-spacing:.025em}
+.voyage-ui .nav-empty{font-size:12px;color:#c2cec7;line-height:1.5}
+.voyage-ui :is(.primary-button,.secondary-button,.small-button,.top-action,.launch-submit,.home-explore){min-height:44px;height:auto;padding:11px 16px;font-size:14px;line-height:1.4;font-weight:700;border-radius:8px;border:1px solid #245e66;white-space:normal}
+.voyage-ui :is(.primary-button,.small-button,.top-action,.launch-submit){background:#215760;color:#fff9ea;box-shadow:inset 0 1px #ffffff20,0 2px 0 #123c43}
+.voyage-ui :is(.secondary-button,.home-explore){background:#fffaf0;color:#234e55;border-color:#b5b6a0;box-shadow:0 2px 0 #d8ceb8}
+.voyage-ui :is(.primary-button,.small-button,.top-action,.launch-submit):hover:not(:disabled){background:#163f48;transform:none}
+.voyage-ui :is(.secondary-button,.home-explore):hover:not(:disabled){background:#eee5cf;border-color:#8b927c}
+.voyage-ui :is(.primary-button,.small-button,.top-action,.launch-submit):disabled{opacity:1;background:#dce3dc;color:#52655e;border-color:#b6c3ba;box-shadow:none}
+.voyage-ui :is(.text-button,.ghost-button){font-size:13px;min-height:36px;color:#8e432f;text-decoration:underline;text-underline-offset:3px}
+.voyage-ui :is(input:not([type=checkbox]):not([type=radio]),select,textarea){font-size:14px;line-height:1.5;background-color:#fffef9;border-color:#aebdb3}
+.voyage-ui :is(input,textarea)::placeholder{color:#65746d;opacity:1}
+.voyage-ui :is(input:not([type=checkbox]):not([type=radio]),select){min-height:44px}
+.voyage-ui .crew-run-panel{margin:16px 32px 0;padding:16px 20px;border-radius:10px;border-color:#b6c9bd;border-left:4px solid #467c75;background:#edf2e9;font-size:14px;line-height:1.5}
+.voyage-ui .crew-run-panel h2{font-size:18px}
+.voyage-ui .crew-run-unselected>p{margin:8px 0 0;color:#52645f;font-size:13px}
+.voyage-ui .crew-run-panel label{font-size:13px;font-weight:600}
+.voyage-ui .crew-run-panel button{min-height:44px;font-size:14px}
+.voyage-ui .crew-run-panel .run-stop{color:#8f3429;border-color:#c78f7d;background:#fff4eb}
+.voyage-ui .home-heading{min-height:190px;margin-bottom:24px;padding:26px 30px}
+.voyage-ui .home-heading h2{font-size:clamp(30px,3vw,40px)}
+.voyage-ui .mission-board-brief-only .mission-board-layout{grid-template-columns:minmax(0,1fr)}
+.voyage-ui .mission-board-brief-only .mission-brief{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 24px;border-top:4px solid #bc985b}
+.voyage-ui .mission-board-brief-only .mission-brief>h3,.voyage-ui .mission-board-brief-only .mission-brief>.brief-title,.voyage-ui .mission-board-brief-only .mission-brief>.brief-descriptor,.voyage-ui .mission-board-brief-only .mission-brief>p,.voyage-ui .mission-board-brief-only .mission-brief>.draft-status{grid-column:1/-1;margin:0}
+.voyage-ui .mission-board-brief-only .mission-brief>label{margin:0;align-content:start}
+.voyage-ui .mission-board-brief-only .mission-create{align-self:end;width:100%}
+.voyage-ui .mission-board label{font-size:14px;color:#2e504d}
+.voyage-ui .mission-board p{font-size:14px;color:#52645f}
+.voyage-ui .mission-board-brief-only .mission-brief>p{font-size:13px;max-width:78ch}
+.voyage-ui .mission-brief textarea{min-height:120px}
+.voyage-ui .home-page .mission-board>.page-intro{margin-bottom:16px}
+.voyage-ui .home-page .mission-board>.page-intro h2{font-size:25px}
+.voyage-ui .home-conversations{margin-top:24px;border-top:1px solid #cdbf9f;padding-top:16px}
+.voyage-ui .home-conversations>summary{font-size:14px;font-weight:600;color:#28555a;cursor:pointer;padding:12px 0}
+.voyage-ui .crew-card p{font-size:14px;color:#52645f}
+.voyage-ui .setting-row small{font-size:13px;color:#52645f}
+@media(max-width:1100px){.voyage-ui .crew-run-panel{margin-inline:22px}}
+@media(max-width:760px){.voyage-ui .crew-run-panel{margin:12px 16px 0;padding:14px}.voyage-ui .crew-run-panel label{display:grid;width:100%;margin-top:8px}.voyage-ui .crew-run-panel select{width:100%}.voyage-ui .home-heading{min-height:220px;padding:24px}.voyage-ui .mission-board-brief-only .mission-brief{grid-template-columns:minmax(0,1fr);padding:20px;gap:18px}.voyage-ui .top-action{font-size:13px}.voyage-ui .topbar{height:auto;min-height:76px}}
+.voyage-ui .crew-card>button{width:100%;justify-content:center;min-height:44px;padding:10px 14px;border:1px solid #215760;border-radius:8px;background:#215760;color:#fff9ea;font-size:14px;line-height:1.4}
+.voyage-ui .crew-card>.journal-open{background:#f1ead9;color:#3f5750;border-color:#c5c4ad;font-size:13px}
+.voyage-ui .crew-card>button:hover{background:#163f48;color:#fff9ea}
+.voyage-ui .crew-card .crew-station{font-size:11px;color:#80552e}
+.voyage-ui .crew-card h4{font-size:11px;color:#52645f;line-height:1.5}

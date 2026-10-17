@@ -97,3 +97,6 @@ Evidence: session contact overlays/measurements in `../../sunny-session-20261001
 ## Interface art reuse — 2026-10-16
 
 The immersive UI refresh uses existing Sunny, ship-deck, project-quarters, Nami chart-room, Robin library, Usopp workshop, Jinbe helm and Luffy den illustrations in decorative destination headers. Morgans' existing blimp is larger in the masthead. Gradient scrims protect text contrast; compact layouts use vertical scrims. No generated image, sprite frame, atlas coordinate, foot anchor, provenance or original bitmap changed. The browser preview was checked at desktop and narrow widths; native working/blocked/reduced-motion visual admission remains pending while desktop input is unavailable by user request. See the dated refresh in the world bible and its UI evidence.
+
+### 2026-10-16 readability refinement
+The nautical UI uses deep teal for primary actions, parchment for work surfaces, brass for selected navigation and section edges, and coral for caution. Primary and secondary controls have 44px minimum targets and 14px labels; disabled primary controls retain readable text. The Home brief spans its available width with paired fields on desktop and a single column on narrow screens. Crew journals use secondary buttons and work launch uses primary buttons. Existing art, sprite geometry, state and authority contracts are unchanged.

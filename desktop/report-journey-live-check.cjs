@@ -12,23 +12,27 @@ function verifyReport(text,facts,{revised=false,recommendation}={}){
 }
 async function main(){
  if(process.env.SUNNY_RUN_LIVE_REPORT!=='1')throw Error('Set SUNNY_RUN_LIVE_REPORT=1 to use existing account quota for three isolated report journeys.');
+ const npmCli=path.join(path.dirname(process.execPath),'node_modules','npm','bin','npm-cli.js');
+ assert.ok(fs.existsSync(npmCli),'The documented direct npm CLI must exist before starting the live fixture');
+ const psQuote=value=>"'"+value.replaceAll("'","''")+"'";
+ const testCommand=`& ${psQuote(process.execPath)} ${psQuote(npmCli)} test`;
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-live-report-'));
  const evidence={root,startedAt:new Date().toISOString(),provider:'installed Codex app-server',reviewActor:'test harness simulating captain decisions',trials:[],passed:false};
  const record=()=>fs.writeFileSync(path.join(root,'result.json'),JSON.stringify(evidence,null,2));record();console.log(JSON.stringify({stage:'created',root}));
  for(let trial=1;trial<=3;trial++){
   const runtime=path.join(root,'trial-'+trial),project=path.join(runtime,'project'),vault=path.join(runtime,'vault');fs.mkdirSync(project,{recursive:true});fs.mkdirSync(vault);
   const facts={project:'Fixture launch '+trial,completed:'Draft homepage approved',blocked:'Payment setup awaiting captain decision',next:'Verify mobile navigation',asOf:'2026-10-12'};
-  const source=JSON.stringify(facts,null,2),agents='This is a synthetic local report test. Only report.md may change. Do not edit facts.json, tests, package.json or AGENTS.md. No web, external services, commits, publication, credentials, purchases or background work. Use the provided local facts. Keep the report concise. Read-only planning/review steps must not edit files.\n';
+  const source=JSON.stringify(facts,null,2),agents='This is a synthetic local report test. Only report.md may change. Do not edit facts.json, tests, package.json or AGENTS.md. No web, external services, commits, publication, credentials, purchases or background work. Use the provided local facts. Keep the report concise. Read-only planning/review steps must not edit files.\n'+`The Windows npm shim is broken on this machine. Run the unchanged package.json test script in PowerShell with this verified direct CLI command: ${testCommand}\nDo not repair or replace the test or npm installation.\n`;
   const check="const fs=require('node:fs'),assert=require('node:assert/strict');const facts=JSON.parse(fs.readFileSync('facts.json','utf8')),report=fs.readFileSync('report.md','utf8');for(const value of Object.values(facts))assert.ok(report.toLowerCase().includes(value.toLowerCase()),'Missing fact: '+value);assert.match(report,/facts\\.json/);assert.match(report,/#/);console.log('Report facts verified');\n";
   fs.writeFileSync(path.join(project,'facts.json'),source);fs.writeFileSync(path.join(project,'AGENTS.md'),agents);fs.writeFileSync(path.join(project,'report.test.cjs'),check);const manifest=JSON.stringify({private:true,scripts:{test:'node report.test.cjs'}});fs.writeFileSync(path.join(project,'package.json'),manifest);
   const git=(...args)=>execFileSync('git',args,{cwd:project,windowsHide:true,stdio:'pipe'}).toString().trim();git('init');git('config','user.email','fixture@example.invalid');git('config','user.name','Sunny report fixture');git('add','.');git('commit','-m','Synthetic report facts');
   const catalog={discoverProjects:()=>[{id:'report',name:'Synthetic report',path:project,category:'development'}],discoverTools:()=>[],discoverAutomations:()=>[],vaultPath:()=>vault};
-  const stateFile=path.join(runtime,'state.json'),open=()=>new Hub({home:os.homedir(),store:new StateStore(stateFile),catalog});let hub=open(),mission,stage='connect';
+  const stateFile=path.join(runtime,'state.json'),open=()=>new Hub({home:os.homedir(),store:new StateStore(stateFile),catalog});let hub=open(),mission,activeTask,stage='connect';
   const result={trial,steps:[],passed:false};evidence.trials.push(result);
   const step=(name,detail={})=>{stage=name;result.lastSuccessfulStep=name;result.steps.push({name,time:new Date().toISOString(),...detail});record();console.log(JSON.stringify({trial,stage:name,...detail}));};
   const verifyInputs=()=>{assert.equal(fs.readFileSync(path.join(project,'facts.json'),'utf8'),source);assert.equal(fs.readFileSync(path.join(project,'AGENTS.md'),'utf8'),agents);assert.equal(fs.readFileSync(path.join(project,'report.test.cjs'),'utf8'),check);assert.equal(fs.readFileSync(path.join(project,'package.json'),'utf8'),manifest);assert.equal(git('diff','HEAD','--name-only'),'');assert.equal(git('ls-files','--others','--exclude-standard'),'report.md');};
   const runAttempt=async()=>{
-   const task=await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'coordinator'});step('coordinator-started',{taskId:task.id,attemptId:mission.activeAttemptId,model:task.model});
+   const task=await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'coordinator'});activeTask=task;step('coordinator-started',{taskId:task.id,attemptId:mission.activeAttemptId,model:task.model});
    const end=Date.now()+480000;let prior='';
    while(['RUNNING','NEEDS_USER'].includes(mission.status)){
     if(hub.state.approvals.length)throw Error('Provider requested human approval; this probe grants none.');
@@ -43,8 +47,9 @@ async function main(){
    await hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,script:'test'});assert.equal(mission.artifacts.at(-1).status,'passed');
    await hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,filePath:'report.md'});const artifact=mission.artifacts.at(-1);
    const preview=hub.previewMissionDeliverable({missionId:mission.id,revision:mission.revision,artifactId:artifact.id});assert.ok(preview.text.length>80);
+   step('report-inspected',{taskId:task.id,attemptId:mission.activeAttemptId,reportHash:preview.sha256,stages:mission.attempts.at(-1).workflow.stages,recommendation});stage='quality-check';
    verifyReport(preview.text,facts,{revised:Boolean(mission.reviewDecisions?.some(item=>item.decision==='changes-requested')),recommendation});
-   step('report-inspected',{taskId:task.id,attemptId:mission.activeAttemptId,reportHash:preview.sha256,stages:mission.attempts.at(-1).workflow.stages,recommendation});return {task,preview};
+   return {task,preview};
   };
   try{
    await hub.connect();mission=hub.createMission({projectId:'report',title:'Create a project-status report',objective:'Create report.md from facts.json. Include every exact source value and cite facts.json. Keep it under 500 words with Markdown headings Completed, Blocked and Next. Use Nami to plan, Robin to write the report, Usopp to verify with the existing npm test, and Zoro to review. All four stages are required. Only report.md may change. Return Luffy’s decision as the exact line Recommendation: accept or Recommendation: request changes, followed by exact task IDs and report path; do not claim human acceptance.',acceptanceCriteria:['Report contains every supplied project fact and cites facts.json','Only report.md changed and the original deterministic test passes','All four crew stages returned inspectable results'],completionBoundary:'review'});result.missionId=mission.id;
@@ -59,7 +64,7 @@ async function main(){
    hub.close();hub=open();mission=hub.missionBook.get(missionId);assert.equal(mission.status,'COMPLETE');assert.deepEqual(mission.reviewDecisions.map(item=>item.decision),['changes-requested','accepted']);assert.equal(hub.resultSaves.recover({saveId:saved.id}).status,'saved');
    assert.equal(hash(fs.readFileSync(saved.path)),saved.receipt.sha256);assert.equal(fs.readdirSync(path.join(vault,'00 Inbox')).length,1);assert.equal(hub.state.approvals.length,0);
    step('accepted-and-saved-after-restart',{acceptedAttemptId:mission.activeAttemptId,saveId:saved.id,notePath:saved.path});result.passed=true;record();
-  }catch(error){result.failure={stage,missionId:mission?.id,error:error.message};record();throw error;}
+  }catch(error){result.failure={stage,missionId:mission?.id,taskId:activeTask?.id,error:error.message};record();throw error;}
   finally{for(const task of hub.state.tasks.filter(item=>item.captain&&['starting','working','waiting','unknown'].includes(item.status)))await hub.captain.stop(task).catch(error=>{result.cleanupError=error.message;record();});for(const task of hub.state.tasks.filter(item=>['starting','working','waiting','unknown'].includes(item.status)))await hub.interrupt(task.id).catch(error=>{result.cleanupError=error.message;record();});hub.close();}
  }
  evidence.passed=true;evidence.finishedAt=new Date().toISOString();record();console.log('SUNNY_LIVE_REPORT '+JSON.stringify({passed:true,root,trials:evidence.trials.map(trial=>({trial:trial.trial,missionId:trial.missionId,passed:trial.passed})),reviewActor:evidence.reviewActor}));return evidence;

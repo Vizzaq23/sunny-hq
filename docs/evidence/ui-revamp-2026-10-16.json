@@ -51,7 +51,46 @@
     "liveProviderProof": false
   },
   "nativeStateVisuals": "Working, blocked and reduced-motion visual checks pending; associated projection/motion source tests passed",
-  "fullSuite": "In progress: full-suite-diagnostic.log. Earlier failed/incomplete runs remain retained; isolated passes are not a complete-suite result.",
+  "fullSuite": {
+    "log": ".sunny-dev/ui-revamp/full-suite-diagnostic.log",
+    "passed": false,
+    "tests": 1567,
+    "pass": 1564,
+    "fail": 3,
+    "cancelled": 0,
+    "skipped": 0,
+    "durationMs": 5823988.6771,
+    "extraDiagnosticHarnessEntry": 1,
+    "failures": [
+      {
+        "test": "ordinary held delivery honors cumulative activeMs exhaustion",
+        "cause": "Transient permission denial writing fixture Git object before Hub creation"
+      },
+      {
+        "test": "delivery audit durability fence stop",
+        "cause": "Same fixture seed Git object permission denial"
+      },
+      {
+        "test": "every task-capable crew room resolves only its admitted illustration",
+        "cause": "Obsolete assertion expected art inside Conversation instead of separate room panel"
+      }
+    ],
+    "followup": {
+      "roomPanelRegression": {
+        "passed": true,
+        "tests": 5,
+        "log": ".sunny-dev/ui-revamp/room-panel-regression.log"
+      },
+      "gitSetupRegressions": {
+        "passed": true,
+        "tests": 2,
+        "log": ".sunny-dev/ui-revamp/git-setup-fixed.log"
+      },
+      "fullRerun": ".sunny-dev/ui-revamp/full-suite-verified.log",
+      "status": "Targeted regressions passed; complete rerun interrupted after 576 passes with no final receipt",
+      "interrupted": true
+    }
+  },
   "installed": false,
   "liveProviderProof": false,
   "readabilityRefinement": {
@@ -278,6 +317,313 @@
     "nativeStreamedUpdateCheck": true,
     "nativeWorkflow": ".sunny-dev/ui-revamp/workflow-helm-live-1/result.json",
     "build": ".sunny-dev/ui-revamp/live-signal-build.log",
-    "package": "Rebuild and exact-package acceptance pending; earlier staged files do not contain this follow-through"
+    "package": "Superseded by acceptanceCandidate, which also keeps cue and motion fixtures offscreen"
+  },
+  "acceptanceCandidate": {
+    "sourceCommit": "8b1096e1f5854029c893f4fc2c1e3eea9a11f90e",
+    "path": "C:\\Users\\Quintin\\.codex\\worktrees\\sunny-ui-revamp\\sunny-hq\\.sunny-dev\\ui-revamp\\package-admission\\win-unpacked",
+    "exeSha256": "2ff9465e73764326bc9b6a821ba5c6e383751125dbf5ea1b91919fbc03947df3",
+    "asarSha256": "0f7b9632deb442b14e51fdf852ce45ebf7a8faaf390223d7f2257f4a58c49008",
+    "build": {
+      "appVersion": "0.11.0",
+      "buildId": "1531c28fe0d55cf42affe7c95e15433524720988da0f8258dc99086ea67ab1fe",
+      "fingerprintKind": "source-inputs-sha256",
+      "sourceCommit": "8b1096e1f5854029c893f4fc2c1e3eea9a11f90e",
+      "sourceDirty": true
+    }
+  },
+  "cleanCheckoutVerification": {
+    "sourceCommit": "eff59e7220486b95ddc77d63df9b2bddeca034ba",
+    "path": ".sunny-dev/ui-revamp/clean-eff59e7",
+    "npmCi": {
+      "passed": true,
+      "log": ".sunny-dev/ui-revamp/clean-npm-ci.log",
+      "audit": {
+        "moderate": 9,
+        "high": 3
+      },
+      "pendingInstallScripts": [
+        "electron-winstaller",
+        "esbuild",
+        "node-pty"
+      ]
+    },
+    "build": {
+      "passed": true,
+      "log": ".sunny-dev/ui-revamp/clean-build.log",
+      "sourceDirty": false,
+      "buildId": "aee6d5c9f84a5a920f1118e9da0c1933c89e5fb2ddbed504ad07c7af3154a17f"
+    },
+    "candidateComparison": {
+      "differingInputFiles": 11,
+      "allDifferences": "CRLF/LF line endings",
+      "contentDifferences": 0,
+      "packageUnchanged": true
+    }
+  },
+  "updatedAt": "2026-10-17T05:42:22.220Z",
+  "releaseBlocker": {
+    "installed": false,
+    "code": "CONTROL_LATENCY_EXCEEDS_RELEASE_GATE",
+    "requiredP95Ms": 200,
+    "controls": [
+      {
+        "mib": 1,
+        "path": ".sunny-dev/ui-revamp/admission-control-1",
+        "accepted": true,
+        "cleanup": "observed",
+        "metrics": [
+          {
+            "control": "task:interrupt",
+            "count": 20,
+            "failures": 0,
+            "p95Ms": 13.899999998509884,
+            "mainTimerMaxMs": 14.933100000000195
+          },
+          {
+            "control": "approval:respond",
+            "count": 20,
+            "failures": 0,
+            "p95Ms": 14.699999995529652,
+            "mainTimerMaxMs": 7.86830000000009
+          }
+        ]
+      },
+      {
+        "mib": 10,
+        "path": ".sunny-dev/ui-revamp/admission-control-10",
+        "accepted": false,
+        "cleanup": "observed",
+        "metrics": [
+          {
+            "control": "task:interrupt",
+            "count": 20,
+            "failures": 0,
+            "p95Ms": 358.1000000014901,
+            "mainTimerMaxMs": 29.33480000000054
+          },
+          {
+            "control": "approval:respond",
+            "count": 20,
+            "failures": 0,
+            "p95Ms": 507.70000000298023,
+            "mainTimerMaxMs": 23.97700000000259
+          }
+        ]
+      },
+      {
+        "mib": 30,
+        "path": ".sunny-dev/ui-revamp/admission-control-30",
+        "accepted": false,
+        "cleanup": "observed",
+        "metrics": [
+          {
+            "control": "task:interrupt",
+            "count": 20,
+            "failures": 0,
+            "p95Ms": 350.8999999985099,
+            "mainTimerMaxMs": 44.275400000002264
+          },
+          {
+            "control": "approval:respond",
+            "count": 20,
+            "failures": 0,
+            "p95Ms": 435.3999999985099,
+            "mainTimerMaxMs": 63.13810000000376
+          }
+        ]
+      }
+    ],
+    "diagnostics": {
+      "sql": ".sunny-dev/ui-revamp/native-storage-sql-probe-10",
+      "finding": "SQLite COMMIT spikes; insert/delete statements remain below 1ms. Disabling automatic checkpoints in diagnostic did not remove delay; no product durability settings changed.",
+      "standaloneFlush": ".sunny-dev/ui-revamp/flush-probe/interleaved-result.json",
+      "standaloneFinding": "Alternating file-only fsync test reproduced 146.99ms and 138.84ms maxima in repository and Temp paths. Specific OS/device cause remains unverified."
+    },
+    "cue": {
+      "path": ".sunny-dev/ui-revamp/admission-journey-cue",
+      "version": 1,
+      "status": "timeout",
+      "accepted": false,
+      "cleanup": "observed",
+      "lastStage": "scan-exit",
+      "elapsedMs": 300057,
+      "unfinished": "Second feedback delivery awaiting independent review when fixed 300-second supervisor expired"
+    }
+  },
+  "shortcutRestoration": {
+    "at": "2026-10-17T05:40:52.7383851Z",
+    "restored": "C:\\Users\\Quintin\\.codex\\worktrees\\sunny-donor-recovery\\sunny-hq\\.sunny-dev\\timeout-verification-hZxOoK\\win-unpacked\\Sunny HQ.exe",
+    "reason": "Candidate not accepted; prior launch target restored",
+    "appLaunched": false
+  },
+  "finalPackageChecks": {
+    "candidateCommit": "8b1096e1f5854029c893f4fc2c1e3eea9a11f90e",
+    "passed": 12,
+    "failed": 3,
+    "results": [
+      {
+        "name": "control-1",
+        "path": ".sunny-dev/ui-revamp/admission-control-1",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 13027,
+        "scenario": "ordered-control"
+      },
+      {
+        "name": "control-10",
+        "path": ".sunny-dev/ui-revamp/admission-control-10",
+        "version": 1,
+        "status": "failed",
+        "accepted": false,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 33844
+      },
+      {
+        "name": "control-30",
+        "path": ".sunny-dev/ui-revamp/admission-control-30",
+        "version": 1,
+        "status": "failed",
+        "accepted": false,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 57470
+      },
+      {
+        "name": "journey-cue",
+        "path": ".sunny-dev/ui-revamp/admission-journey-cue",
+        "version": 1,
+        "status": "timeout",
+        "accepted": false,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 300057
+      },
+      {
+        "name": "journey-motion-user",
+        "path": ".sunny-dev/ui-revamp/admission-journey-motion-user",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 73733,
+        "scenario": "journey-motion-user"
+      },
+      {
+        "name": "journey-motion-system",
+        "path": ".sunny-dev/ui-revamp/admission-journey-motion-system",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 76756,
+        "scenario": "journey-motion-system"
+      },
+      {
+        "name": "startup",
+        "path": ".sunny-dev/ui-revamp/admission-startup",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "platform-launch-requested",
+        "elapsedMs": 5021,
+        "scenario": "startup"
+      },
+      {
+        "name": "renderer-crash",
+        "path": ".sunny-dev/ui-revamp/admission-renderer-crash",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "store-open-enter",
+        "elapsedMs": 5415,
+        "scenario": "renderer-crash"
+      },
+      {
+        "name": "main-restart",
+        "path": ".sunny-dev/ui-revamp/admission-main-restart",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "app-ready",
+        "elapsedMs": 8546,
+        "scenario": "main-restart"
+      },
+      {
+        "name": "worker-loss",
+        "path": ".sunny-dev/ui-revamp/admission-worker-loss",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "root-registered",
+        "elapsedMs": 4704,
+        "scenario": "worker-loss"
+      },
+      {
+        "name": "write-failure",
+        "path": ".sunny-dev/ui-revamp/admission-write-failure",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "launch-return",
+        "elapsedMs": 5162,
+        "scenario": "write-failure"
+      },
+      {
+        "name": "lost-ack",
+        "path": ".sunny-dev/ui-revamp/admission-lost-ack",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "root-registered",
+        "elapsedMs": 5974,
+        "scenario": "lost-ack"
+      },
+      {
+        "name": "pending-approval",
+        "path": ".sunny-dev/ui-revamp/admission-pending-approval",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "root-registered",
+        "elapsedMs": 4676,
+        "scenario": "pending-approval"
+      },
+      {
+        "name": "pending-check",
+        "path": ".sunny-dev/ui-revamp/admission-pending-check",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "seed-enter",
+        "elapsedMs": 5134,
+        "scenario": "pending-check"
+      },
+      {
+        "name": "normal-quit",
+        "path": ".sunny-dev/ui-revamp/admission-normal-quit",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "seed-enter",
+        "elapsedMs": 4634,
+        "scenario": "normal-quit"
+      }
+    ]
   }
 }

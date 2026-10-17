@@ -32,3 +32,6 @@ test('delete-only updates also fall back when their envelope exceeds the limit',
 test('captures supported native values with their existing JSON representation',()=>{
  const source={date:new Date(0),invalid:new Date(NaN),typed:new Uint8Array([1,2])},copy=captureProfile(source);source.date.setTime(123);source.typed[0]=9;assert.equal(JSON.stringify(copy),'{"date":"1970-01-01T00:00:00.000Z","invalid":null,"typed":{"0":1,"1":2}}');const base=sealProfileSnapshot(copy),next={...source,date:new Date(1000)};assert.equal(JSON.stringify(applyProfileUpdate(base,diffProfile(base,next,{baseGeneration:0}),{generation:0})),JSON.stringify(next));
 });
+test('deep changed profiles fall back safely without overflowing the diff stack',()=>{
+ const root={};let cursor=root;for(let i=0;i<1500;i++)cursor=cursor.child={};cursor.value='old';const base=sealProfileSnapshot(captureProfile(root));cursor.value='new';const update=diffProfile(base,root,{baseGeneration:3});assert.equal(update.kind,'full');const result=applyProfileUpdate(base,update,{generation:3});let leaf=result;for(let i=0;i<1500;i++)leaf=leaf.child;assert.equal(leaf.value,'new');
+});

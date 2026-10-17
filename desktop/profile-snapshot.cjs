@@ -20,9 +20,9 @@ function sealProfileSnapshot(value){
 function isSealedProfile(value){return !object(value)||sealed.has(value);}
 function generation(value){if(!Number.isSafeInteger(value)||value<0)throw Error('Invalid profile generation');}
 function diffProfile(base,next,{baseGeneration}){
- generation(baseGeneration);const ops=[],stack=[{base,next,path:[]}];let bytes=64;
- const append=op=>{bytes+=Buffer.byteLength(JSON.stringify(op));ops.push(op);};
- while(stack.length){const item=stack.pop();if(item.remove){append({op:'delete',path:item.path});continue;}const a=item.base,b=item.next;if(Object.is(a,b)&&!item.add)continue;
+ generation(baseGeneration);const ops=[],stack=[{base,next,path:[]}];let bytes=Buffer.byteLength(JSON.stringify({kind:'patch',baseGeneration,ops:[]}));
+ const append=op=>{bytes+=Buffer.byteLength(JSON.stringify(op))+(ops.length?1:0);ops.push(op);};
+ while(stack.length){const item=stack.pop();if(item.remove){append({op:'delete',path:item.path});if(bytes>MAX_PATCH_BYTES)return {kind:'full',baseGeneration,image:captureProfile(next)};continue;}const a=item.base,b=item.next;if(Object.is(a,b)&&!item.add)continue;
  let replace=item.add||!object(a)||!object(b)||Array.isArray(a)!==Array.isArray(b),ak,bk;
  if(!replace){ak=sealed.has(a)?Object.keys(a):keys(a);bk=keys(b);if(Array.isArray(a))replace=a.length!==b.length||ak.length!==bk.length||ak.some((key,i)=>key!==bk[i]);else if(ak.length!==bk.length||ak.some((key,i)=>key!==bk[i])){const proposed=Object.fromEntries([...ak.filter(key=>own(b,key)),...bk.filter(key=>!own(a,key))].map(key=>[key,true]));replace=Object.keys(proposed).some((key,i)=>key!==bk[i]);}}
  if(replace)append({op:'set',path:item.path,value:captureProfile(b)});

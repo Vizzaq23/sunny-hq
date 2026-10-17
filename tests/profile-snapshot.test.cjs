@@ -20,3 +20,11 @@ test('cycles, accessors and executable values are rejected without invoking gett
  const cycle={};cycle.self=cycle;for(const value of [cycle,{x:()=>{}},{x:Symbol('x')},{x:1n},{x:new Date()}])assert.throws(()=>captureProfile(value));let read=false;assert.throws(()=>captureProfile({get x(){read=true;return 1;}}));assert.equal(read,false);
 });
 test('adding control metadata does not resend unchanged transcript text',()=>{const base=sealProfileSnapshot(captureProfile({task:{messages:[{text:'x'.repeat(200000)}]}})),next=captureProfile(base);next.task.intent={state:'prepared'};const update=diffProfile(base,next,{baseGeneration:0});assert.ok(Buffer.byteLength(JSON.stringify(update))<500);assert.deepEqual(applyProfileUpdate(base,update,{generation:0}),next);});
+test('many small operations include separators in the transport byte limit',()=>{
+ const base=sealProfileSnapshot(Object.fromEntries(Array.from({length:25900},(_,i)=>['k'+i,0]))),next=Object.fromEntries(Object.keys(base).map(key=>[key,1]));
+ const update=diffProfile(base,next,{baseGeneration:0});assert.equal(update.kind,'full');assert.deepEqual(applyProfileUpdate(base,update,{generation:0}),next);
+});
+test('delete-only updates also fall back when their envelope exceeds the limit',()=>{
+ const base=sealProfileSnapshot(Object.fromEntries(Array.from({length:35000},(_,i)=>['key'+i,0]))),next={};
+ const update=diffProfile(base,next,{baseGeneration:0});assert.equal(update.kind,'full');assert.deepEqual(applyProfileUpdate(base,update,{generation:0}),next);
+});

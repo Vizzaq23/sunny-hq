@@ -154,3 +154,22 @@ test('read-only proof compares the whole stored compact row and receipt, includi
   assert.equal(mismatch.exactWholeState,false);assert.equal(mismatch.receiptMatches,false);
  }finally{for(const worker of workers)await worker.terminate();assert.ok(path.resolve(runtime).startsWith(path.resolve(os.tmpdir())+path.sep));fs.rmSync(runtime,{recursive:true,force:true});}
 });
+
+
+test('control admission observes native submission before a fast background receipt can settle',async()=>{
+ const {admitPendingBackground}=require('../scripts/ordered-control-check.cjs'),sample={};let active=true;
+ const persist=()=>Promise.resolve().then(()=>{sample.nativeCheckpointPending=true;sample.onNativeCheckpointSubmitted();return new Promise(resolve=>setImmediate(()=>{sample.nativeCheckpointPending=false;active=false;resolve({sequence:1});}));});
+ await admitPendingBackground(sample,persist,()=>active);
+ assert.equal(sample.pendingAtControlAdmission,true);assert.equal(sample.nativeCheckpointPending,true);assert.equal(sample.onNativeCheckpointSubmitted,undefined);
+ await sample.background;assert.equal(sample.nativeCheckpointPending,false);assert.deepEqual(sample.backgroundReceipt,{sequence:1});
+});
+test('control admission still rejects an already-settled native checkpoint',async()=>{
+ const {admitPendingBackground}=require('../scripts/ordered-control-check.cjs'),sample={};
+ const persist=()=>{sample.nativeCheckpointPending=false;sample.onNativeCheckpointSubmitted();return Promise.resolve({sequence:1});};
+ await assert.rejects(admitPendingBackground(sample,persist,()=>true),/already settled/);assert.equal(sample.pendingAtControlAdmission,false);
+});
+test('control admission reports pre-submission persistence failure instead of waiting forever',async()=>{
+ const {admitPendingBackground}=require('../scripts/ordered-control-check.cjs'),sample={};
+ await assert.rejects(admitPendingBackground(sample,()=>Promise.reject(Error('fixture write failed')),()=>true),/before native submission/);
+ assert.equal(sample.backgroundFailure.message,'fixture write failed');assert.equal(sample.onNativeCheckpointSubmitted,undefined);
+});

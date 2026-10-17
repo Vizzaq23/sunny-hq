@@ -103,6 +103,18 @@ async function rendererControl(action,args){
  return {rttMs,outcome,reply,error,events,frameAfterSettleMs};
 }
 
+async function admitPendingBackground(sample,persist,isActive){
+ let submitted;const nativeSubmitted=new Promise(resolve=>{submitted=resolve;});
+ sample.onNativeCheckpointSubmitted=submitted;
+ const start=performance.now();
+ sample.background=persist().then(receipt=>{sample.backgroundReceipt=receipt;},error=>{sample.backgroundFailure=failure(error);});
+ sample.backgroundAdmissionMs=performance.now()-start;
+ try{await Promise.race([nativeSubmitted,sample.background.then(()=>{throw Error('Background checkpoint settled before native submission observation');})]);}
+ finally{delete sample.onNativeCheckpointSubmitted;}
+ sample.pendingAtControlAdmission=isActive()&&sample.nativeCheckpointPending===true;
+ sample.controlAdmittedAtMs=performance.now();
+ assert.ok(sample.pendingAtControlAdmission,'Background native checkpoint already settled: sample is not valid under load');
+}
 function makeDispatch({getHub,getTransport,getWindow,records,onControl,onControlSettled=()=>{}}){
  return async(event,action,args={})=>{
   const win=getWindow();
@@ -178,7 +190,7 @@ async function run(admission){
  app.setPath('userData',path.join(runtime,'electron-profile'));
  const project=path.join(runtime,'project');fs.mkdirSync(project);fs.writeFileSync(path.join(project,'fixture.txt'),'SYNTHETIC offline read fixture\n');
  const file=path.join(runtime,'state.sqlite'),workers=new Set(),timers=new Set();
- const evidence={synthetic:true,sizeMiB:mib,startedAt:new Date().toISOString(),output,source:proof(),runtime:{electron:process.versions.electron,node:process.versions.node,chrome:process.versions.chrome,executable:process.execPath,executableSha256:sha(fs.readFileSync(process.execPath)),platform:process.platform,arch:process.arch,cpu:os.cpus()[0]?.model},method:{samplesPerControl:SAMPLES,warmupsPerControl:WARMUPS,percentile:'nearest-rank',controls:['task:interrupt','approval:respond'],pendingBackground:'At actual control IPC entry, inject one production Hub checkpoint, then yield one setImmediate before the real Hub control. Require actual native checkpoint promise pending and authority queue active at control admission. If already settled, retain the raw rejected sample as invalid load. Worker/receipt delivery unmodified.',rtt:'Renderer performance.now immediately before await window.sunny.invoke to fulfilled/rejected settlement; includes background load injection/capture, authority queue waiting and all required durable receipts; executeJavaScript overhead excluded',timer:'Continuous independent 1ms monitor starts before background prepare/image capture and stays armed through real Hub control and every required receipt; records every raw observation plus settlement-tail deadline excess. All raw max <=100ms. Supplementary per-submit/admission/handler timers and twenty idle controls are retained without subtraction.',heartbeat:'Separate continuous 5ms interval across the same main control window, with settlement-tail observation; never substitutes for the 1ms metric',excludedFromMainMonitor:'Renderer executeJavaScript return/frame overhead, readonly proof workers and result/log JSON serialization after Hub control settlement',mutation:'Append 64 ASCII x characters outside each warmup/sample',noGC:true,noNetwork:true,sqlite:'production WAL/FULL; existing compact single-row state'},assertions:[],errors:[],ipcCalls:[],providerCalls:[],submissions:[],warmups:[],samples:[],timerControls:[]};
+ const evidence={synthetic:true,sizeMiB:mib,startedAt:new Date().toISOString(),output,source:proof(),runtime:{electron:process.versions.electron,node:process.versions.node,chrome:process.versions.chrome,executable:process.execPath,executableSha256:sha(fs.readFileSync(process.execPath)),platform:process.platform,arch:process.arch,cpu:os.cpus()[0]?.model},method:{samplesPerControl:SAMPLES,warmupsPerControl:WARMUPS,percentile:'nearest-rank',controls:['task:interrupt','approval:respond'],pendingBackground:'At actual control IPC entry, inject one production Hub checkpoint, then observe its actual native submission in the same event-loop turn before the real Hub control. Require actual native checkpoint promise pending and authority queue active at control admission. If already settled, retain the raw rejected sample as invalid load. Worker/receipt delivery unmodified.',rtt:'Renderer performance.now immediately before await window.sunny.invoke to fulfilled/rejected settlement; includes background load injection/capture, authority queue waiting and all required durable receipts; executeJavaScript overhead excluded',timer:'Continuous independent 1ms monitor starts before background prepare/image capture and stays armed through real Hub control and every required receipt; records every raw observation plus settlement-tail deadline excess. All raw max <=100ms. Supplementary per-submit/admission/handler timers and twenty idle controls are retained without subtraction.',heartbeat:'Separate continuous 5ms interval across the same main control window, with settlement-tail observation; never substitutes for the 1ms metric',excludedFromMainMonitor:'Renderer executeJavaScript return/frame overhead, readonly proof workers and result/log JSON serialization after Hub control settlement',mutation:'Append 64 ASCII x characters outside each warmup/sample',noGC:true,noNetwork:true,sqlite:'production WAL/FULL; exact compact state readback'},assertions:[],errors:[],ipcCalls:[],providerCalls:[],submissions:[],warmups:[],samples:[],timerControls:[]};
  evidence.method.fixtureDescription='Exact frozen predominantly ASCII fixture: 40 messages per task; each initial message is 1024 characters / 1026 UTF-8 bytes, with exactly one U+2014 em dash and otherwise ASCII codepoints. Fixture contents are unchanged.';
  evidence.method.fixtureSha256=FROZEN_FIXTURE_SHA256;
  evidence.method.fixtureDescriptionCorrection='The earlier ASCII-only descriptor was incorrect for the frozen source. The failed ASCII bootstrap is retained as failure evidence. This corrects workload labeling and shape validation; it does not replace the fixture or change samples, queue/load, timing, durability, or the 100ms/200ms gates.';
@@ -242,6 +254,7 @@ async function run(admission){
    if(sample)sample.timerPromises.push(oneMs(sample.mainTimers,'store submit '+String(reason)));
    if(sample&&reason===null){sample.nativeCheckpointSubmittedAtMs=performance.now();sample.nativeCheckpointPending=true;}
    const start=performance.now();const promise=reason===null?nativeStore.checkpoint(image):nativeStore.barrier(image,reason);record.syncHandoffMs=performance.now()-start;
+   if(sample&&reason===null)sample.onNativeCheckpointSubmitted?.();
    return promise.then(receipt=>{record.receipt=receipt;record.awaitedReceiptMs=performance.now()-record.startedAtMs;return receipt;},error=>{record.failure=failure(error);throw error;}).finally(()=>{if(sample&&reason===null)sample.nativeCheckpointPending=false;});
   }
   const dependencies=require('../desktop/packaged-acceptance.cjs').fixtureDependencies();
@@ -270,13 +283,8 @@ async function run(admission){
    assert.ok(currentSample,'Control invocation requires a declared sample');assert.equal(action,currentSample.action);assert.equal(args.taskId||currentSample.taskId,currentSample.taskId);
    stopMainMonitors=startControlMonitors(currentSample);
    currentSample.handlerStartedAtMs=performance.now();currentSample.handlerTimer=oneMs(currentSample.mainTimers,'actual main handler');
-   currentSample.backgroundTimer=oneMs(currentSample.mainTimers,'background Hub admission');const start=performance.now();
-   currentSample.background=hub.persist(null).then(receipt=>{currentSample.backgroundReceipt=receipt;},error=>{currentSample.backgroundFailure=failure(error);});
-   currentSample.backgroundAdmissionMs=performance.now()-start;
-   await new Promise(resolve=>setImmediate(resolve));
-   currentSample.pendingAtControlAdmission=hub.authorityQueue.active&&currentSample.nativeCheckpointPending===true;
-   currentSample.controlAdmittedAtMs=performance.now();
-   assert.ok(currentSample.pendingAtControlAdmission,'Background native checkpoint already settled: sample is not valid under load');
+   currentSample.backgroundTimer=oneMs(currentSample.mainTimers,'background Hub admission');
+   await admitPendingBackground(currentSample,()=>hub.persist(null),()=>hub.authorityQueue.active);
   },onControlSettled:()=>{stopMainMonitors?.();stopMainMonitors=null;if(currentSample)currentSample.mainHandlerAwaitedMs=performance.now()-currentSample.handlerStartedAtMs;}}));
   win.webContents.on('render-process-gone',(_event,details)=>{evidence.errors.push({phase:'renderer-gone',reason:details.reason});write();});
   await win.loadFile(path.join(root,'dist','index.html'));
@@ -358,4 +366,4 @@ async function run(admission){
  finally{await finish();}
 }
 if(isDirectEntry(process,require.main,module,__filename))run().catch(error=>{console.error(error);process.exitCode=1;});
-module.exports={runAdmittedControl,resolveControlInputs,parseSize,isDirectEntry,validateFrozenTextShape,summarize,explicitFailure,finalizeAndExit,startControlMonitors,rendererControl,makeDispatch,readonlyProof,READONLY_PROOF};
+module.exports={admitPendingBackground,runAdmittedControl,resolveControlInputs,parseSize,isDirectEntry,validateFrozenTextShape,summarize,explicitFailure,finalizeAndExit,startControlMonitors,rendererControl,makeDispatch,readonlyProof,READONLY_PROOF};

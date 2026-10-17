@@ -11,7 +11,17 @@ async function journeyFixture(t,{onTurn,onThread,afterPersist,expectedCloseError
  fs.writeFileSync(path.join(original,'check.cjs'),"const a=require('node:assert/strict'); a.equal(require('./src/alpha.cjs')(),42); a.equal(require('./src/beta.cjs')('crew'),'Hello crew');\n");
  if(checkpoint)fs.appendFileSync(path.join(original,'check.cjs'),`const alpha=require('./src/alpha.cjs'); if(alpha.compose)a.equal(alpha.compose('crew'),'Hello crew: 42'); const fs=require('node:fs'),gate=${JSON.stringify(path.join(dir,'hold-build'))}; if(process.env.npm_lifecycle_event==='build'&&fs.existsSync(gate)){fs.writeFileSync(gate+'.entered','entered');while(fs.existsSync(gate))Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,20);}\n`);
  if(threeWave)fs.appendFileSync(path.join(original,'check.cjs'),"if(require('node:fs').existsSync('src/a/middle.cjs'))a.equal(require('./src/a/middle.cjs')(),43);\n");
- fs.writeFileSync(path.join(original,'src/alpha.cjs'),'module.exports=()=>0;\n');fs.writeFileSync(path.join(original,'src/beta.cjs'),"module.exports=()=>'';\n");git(original,['add','.']);git(original,['commit','-m','Original fixture']);
+ fs.writeFileSync(path.join(original,'src/alpha.cjs'),'module.exports=()=>0;\n');fs.writeFileSync(path.join(original,'src/beta.cjs'),"module.exports=()=>'';\n");
+ // Windows can transiently deny a new loose-object write during fixture seeding.
+ // Retry only this idempotent, pre-Hub setup step; never replay runtime Git effects.
+ for(let attempt=0;;attempt++){
+  try{git(original,['add','.']);break;}catch(error){
+   if(attempt>=2||!/unable to write file \.git\/objects\/[a-f0-9/]+: Permission denied/.test(String(error.stderr)))throw error;
+   process.stderr.write('Fixture seed Git object write denied; retry '+(attempt+1)+' of 2 before Hub creation.\n');
+   await new Promise(resolve=>setTimeout(resolve,100*(attempt+1)));
+  }
+ }
+ git(original,['commit','-m','Original fixture']);
  let sequence=0,threadSequence=0,callSequence=0,hub,stored;const threads=[],turns=[],turnRequests=[],errors=[],errorDetails=[],responses=new Map();const client=new EventEmitter();client.connected=true;client.close=()=>{client.connected=false;};client.respond=(id,result)=>responses.set(id,result);
  client.request=async(method,p)=>{
   if(method==='skills/list')return {data:[]};if(method==='config/read')return {config:{}};

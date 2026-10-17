@@ -52,8 +52,17 @@ test('every task-capable crew room resolves only its admitted illustration',()=>
   assert.ok(conversation,id+' conversation');
   const html=renderToStaticMarkup(conversation.type(conversation.props));
   assert.doesNotMatch(html,/assets\/undefined/);
-  if(art[id])assert.match(html,new RegExp('class="conversation-room-art"[^>]+assets/'+art[id].replaceAll('.','\\.')));
-  else assert.doesNotMatch(html,/conversation-room-art/,id+' has no unmeasured room art');
+  const room=findElement(tree,e=>e.type==='aside'&&e.props.className==='workspace-room-view');
+  const chat=findElement(tree,e=>e.type==='main'&&e.props.className==='chat-pane');
+  assert.ok(chat,id+' direct conversation controls remain available');
+  assert.equal(findElement(chat,e=>e.props?.className==='workspace-room-view'),undefined,'room illustration stays outside chat');
+  assert.doesNotMatch(html,/conversation-room-art/,'conversation does not cover room art');
+  if(art[id]){
+   assert.ok(room,id+' has a separate room panel');
+   const image=findElement(room,e=>e.type==='img');assert.ok(image,id+' room image');
+   assert.equal(image.props.src,new URL('assets/'+art[id],window.location.href).href);
+   assert.ok(image.props.alt,id+' illustration has readable alternative text');
+  }else assert.equal(room,undefined,id+' has no unmeasured room art');
  }
 });
 

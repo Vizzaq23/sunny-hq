@@ -43,9 +43,15 @@
     "99 existing UI/state and attention-projection regressions passed"
   ],
   "sourceTestLog": ".sunny-dev/ui-revamp/focused-tests.log",
-  "nativeFixtureWorkflow": "Pending; user requested no desktop interaction while gaming",
+  "nativeFixtureWorkflow": {
+    "passed": true,
+    "path": ".sunny-dev/ui-revamp/workflow-helm-live-1/result.json",
+    "hidden": true,
+    "syntheticTransport": true,
+    "liveProviderProof": false
+  },
   "nativeStateVisuals": "Working, blocked and reduced-motion visual checks pending; associated projection/motion source tests passed",
-  "fullSuite": "Separate base integration suite remains incomplete with a checkpoint failure; not a UI branch pass",
+  "fullSuite": "In progress: full-suite-diagnostic.log. Earlier failed/incomplete runs remain retained; isolated passes are not a complete-suite result.",
   "installed": false,
   "liveProviderProof": false,
   "readabilityRefinement": {
@@ -120,5 +126,158 @@
     "nativeFixtureWorkflow": "Pending while user is gaming",
     "installed": false,
     "liveProviderProof": false
+  },
+  "helmRedesign": {
+    "sourceCommit": "1ecfdf1d268df7021fcfd9d6d2ada0f12a62ce46",
+    "testSynchronizationCommit": "10ff0845c1f9eb7f5b42753d339de6a94ed8cdbe",
+    "changes": [
+      "Horizontal navigation",
+      "Persistent ship world beside selected-crew inspector",
+      "Station, activity and run-control panels",
+      "Compact filterable crew dock",
+      "Sea teal, sail cream and brass palette",
+      "Room artwork beside conversation"
+    ],
+    "desktopViewport": [
+      1280,
+      800
+    ],
+    "narrowViewport": [
+      390,
+      844
+    ],
+    "destinationsChecked": 11,
+    "horizontalOverflow": false,
+    "keyboardActivityPanel": true,
+    "roomImagesValidated": 10,
+    "buildLog": ".sunny-dev/ui-revamp/build-1ecfdf1.log",
+    "package": {
+      "path": "release-helm-1ecfdf1/win-unpacked",
+      "exeSha256": "2e8793e09458ae8fcc740bd630b28b70e00bfdaff2acc25e6baf1c9b45882d12",
+      "asarSha256": "8148101d0988b63efbaac8fa3933b286d2fad50a5995ebe1a79743bf501fa65c",
+      "buildId": "e09eeae0f2d23ab4a8bcd847ec285ca2590a4f76a2483e77785dd7b7fc65d10c",
+      "trackedSourceClean": true,
+      "sourceDirtyFlag": true,
+      "dirtyReason": "Untracked generated release directories"
+    },
+    "recoveryScenarios": [
+      {
+        "scenario": "startup",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "receipt-verified",
+        "elapsedMs": 14586
+      },
+      {
+        "scenario": "renderer-crash",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 12008
+      },
+      {
+        "scenario": "main-restart",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "acceptance-exit",
+        "elapsedMs": 12114
+      },
+      {
+        "scenario": "worker-loss",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 12026
+      },
+      {
+        "scenario": "write-failure",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 11185
+      },
+      {
+        "scenario": "lost-ack",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 9461
+      },
+      {
+        "scenario": "pending-approval",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "receipt-verified",
+        "elapsedMs": 10308
+      },
+      {
+        "scenario": "pending-check",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 9293
+      },
+      {
+        "scenario": "normal-quit",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 8909
+      }
+    ],
+    "backupMigration": {
+      "passed": true,
+      "sourceHash": "e8c6e5a9dadafc25eb8cb3ad42de74b9481549c5ee486bdd3390b54fd724fd30",
+      "backupUntouched": true,
+      "exactLogicalStatePreserved": true,
+      "integrity": "ok",
+      "providerEffects": 0,
+      "scope": "Store migration and reopen on disposable online-backup copy; no Hub or provider startup"
+    },
+    "remainingGates": [
+      "Complete source suite",
+      "Ordered-control 1/10/30 MiB",
+      "Isolated journey-cue",
+      "User and OS reduced-motion journeys"
+    ],
+    "installation": "Stable files staged; existing shortcut and running application unchanged"
+  },
+  "referenceFollowThrough": {
+    "visualSequenceReviewed": [
+      "Opening animation",
+      "Worker and tool grid",
+      "Failed-test escalation",
+      "Verification and session log",
+      "Closing animation"
+    ],
+    "audioAnalyzed": false,
+    "implemented": "Persistent newest saved-work update opens the activity inspector",
+    "source": "Existing commandSignals snapshot projection",
+    "browserOverflow": {
+      "desktop": false,
+      "narrow": false
+    },
+    "nativeStreamedUpdateCheck": true,
+    "nativeWorkflow": ".sunny-dev/ui-revamp/workflow-helm-live-1/result.json",
+    "build": ".sunny-dev/ui-revamp/live-signal-build.log",
+    "package": "Rebuild and exact-package acceptance pending; earlier staged files do not contain this follow-through"
   }
 }

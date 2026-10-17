@@ -14,7 +14,7 @@ async function integrationChainProof(hub,run,source){
  const records=run.integrations||[],base=hub.runSourceProject(run.id).executionWorkspace.baseCommit,contributions=records.map(r=>require('./conflict-resolution.cjs').contribution(run,r));let head=base;
  if(!records.length||contributions.some(c=>!c))return false;
  for(let i=0;i<records.length;i++){const r=records[i],c=contributions[i];if(c.before.headCommit!==head||c.before.baseCommit!==base||c.after.baseCommit!==base)return false;for(const id of c.assignments){const a=run.assignments.find(a=>a.id===id),expected=id===r.assignmentId?r.workerHead:r.resolution.candidate.workerHead;if(!a?.taskId||a.sourceResult?.headCommit!==expected||!run.authorHistory?.some(s=>s.taskId===a.taskId&&s.state==='ready'))return false;}head=c.after.headCommit;}
- const commits=(await hub.evidence.command(hub.runSourceProject(run.id).path,['rev-list','--reverse',base+'..'+source.headCommit])).trim().split(/\r?\n/).filter(Boolean);
+ const commits=(await hub.evidence.command(hub.runSourceProject(run.id).path,['rev-list','--reverse',base+'..'+source.headCommit,'--'])).trim().split(/\r?\n/).filter(Boolean);
  return head===source.headCommit&&sameSource(commits,contributions.flatMap(c=>c.commits));
 }
 async function verifyCombinedSource(hub,input,trusted={}){

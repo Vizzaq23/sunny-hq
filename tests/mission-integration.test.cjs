@@ -4,8 +4,8 @@ const fs=require('node:fs'),path=require('node:path');
 const {schedulerFixture}=require('./helpers/scheduler-fixture.cjs');
 const {Hub}=require('../desktop/hub.cjs');
 function api(){assert.equal(typeof Hub.prototype.integrateWorkerResult,'function','Hub must integrate frozen worker source through durable serial authority');}
-async function fixture(t,write){
- const f=await schedulerFixture(t,{onTurn:async({ref})=>{write?.(f,ref.canonicalRoot);}});
+async function fixture(t,write,options={}){
+ const f=await schedulerFixture(t,{...options,onTurn:async({ref})=>{write?.(f,ref.canonicalRoot);}});
  await f.plan([f.makeAssignment('author',{ownedPaths:['src']})]);await f.until(()=>f.turns.length===1);await f.complete('author');
  await f.hub.missionMutation(book=>{book.data.runs[0].grant.scope.activities.push('integrate');});
  f.run=()=>f.hub.state.runs[0];f.worker=()=>f.run().workspaces.find(w=>w.assignmentId==='author');
@@ -50,3 +50,5 @@ test('real passing combined checks schedule fresh reviewer on integrated source 
  r=f.hub.state.runs[0];const prior=await f.hub.evidence.gitState(f.hub.runSourceProject('r').path);await f.hub.integrateWorkerResult({runId:'r',assignmentId:'repair',head:r.assignments.find(a=>a.id==='repair').sourceResult.headCommit,expectedRevision:r.revision,expectedSource:{baseCommit:f.base,headCommit:prior.commit,fingerprint:prior.fingerprint,artifactHashes:[]}});assert.equal(f.hub.state.runs[0].verification,undefined);assert.equal(f.hub.state.runs[0].repairFindings[0].status,'open');
  const fixed=await f.hub.verifyCombinedSource({runId:'r',expectedRevision:f.hub.state.runs[0].revision,missionId},{coverage:()=>['criterion'],repairCoverage:({root})=>fs.readFileSync(path.join(root,'src/a.txt'),'utf8')==='fixed'?['repair-a']:[]});assert.equal(f.hub.state.runs[0].counters.repairs,1);assert.equal(f.hub.state.runs[0].repairFindings[0].status,'resolved');assert.ok(f.hub.state.runs[0].repairProofs.length);assert.equal(f.hub.state.runs[0].readiness,null);await f.until(()=>f.turns.includes('review-fix')&&f.hub.state.tasks.find(t=>t.assignmentId==='review-fix')?.turnId);assert.equal(f.starts.find(s=>s.id==='review-fix').head,fixed.source.headCommit);await f.complete('review-fix');
 });
+
+test('actual integration accepts commit ranges in long managed workspace paths',async t=>{const f=await fixture(t,(f,root)=>commit(f,root),{managedRootLength:178});assert.equal(f.worker().canonicalRoot.length,178);const receipt=await f.integrate();assert.equal(receipt.state,'completed');assert.equal(f.stored.missionBook.runs[0].integrations[0].state,'completed');assert.equal(fs.readFileSync(path.join(f.hub.runSourceProject('r').path,'src/new.txt'),'utf8'),'worker');});

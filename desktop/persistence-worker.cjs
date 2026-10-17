@@ -56,7 +56,7 @@ parentPort.on('message',message=>{
   if(message.type!=='commit'||!Number.isSafeInteger(message.sequence)||message.sequence!==lastSequence+1)throw Error('Invalid private persistence sequence');
   const candidate=applyProfileUpdate(current,message.update,{generation:lastSequence});
   if(candidate===null||typeof candidate!=='object'||Array.isArray(candidate))throw Error('Invalid submitted profile image');
-  if(inspectMissionProfile(candidate).mode!=='v3')throw Error('Unsupported submitted profile');
+  if(inspectMissionProfile(candidate).mode!=='v3')throw Error('Unsupported or invalid mission profile. Preserve the saved data for recovery and use a compatible Sunny version.');
   const prepared=store.prepareOwned(candidate),stateSha256=prepared.stateSha256||createHash('sha256').update(prepared.compact).digest('hex');
   post({type:'prepared',sequence:message.sequence,stateSha256});writeStarted=true;prepared.commit();current=candidate;lastSequence=message.sequence;
   post({type:'committed',sequence:lastSequence,receipt:{epoch,sequence:lastSequence,stateSha256,durableAt:Date.now()}});

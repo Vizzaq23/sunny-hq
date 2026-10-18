@@ -163,3 +163,26 @@ On 2026-10-17 the user explicitly approved installing the helm candidate despite
 The current Start Menu target supersedes the helm package above: `%LOCALAPPDATA%/Programs/Sunny HQ/versions/0.11.0-motion-5de083b/Sunny HQ.exe`. It adds Motion 14.3.0, shared crew/tab selection animations, panel entrances, button feedback and pausable decorative sea light. React 19/TypeScript/Vite remain the foundation. Both live OS and Sunny reduced-motion changes are honored. Build, 21 focused tests, 34 native workflow checks and exact-package startup/renderer-recovery/pending-approval checks passed. All 249 installed files were hash-verified; backup is `before-motion-2026-10-17` beside the earlier backup. The app was not launched during gaming. Prior latency/journey/full-suite limitations remain; no full-matrix success is claimed. See [motion verification and install receipt](docs/evidence/ui-motion-2026-10-17.json).
 
 Quarters UI update (2026-10-17): source 6f18908 installed at LocalAppData/Programs/Sunny HQ/versions/0.11.0-quarters-6f18908. Start Menu target and all 249 copied files verified. Build, 21 focused tests, hidden native room workflow, eleven desktop/mobile routes and three exact-package recovery checks passed. Previous release exceptions remain; see docs/evidence/ui-quarters-2026-10-17.json. No app was launched during installation.
+
+### Installed room workstations — 2026-10-17
+
+The current Start Menu target is now `%LOCALAPPDATA%/Programs/Sunny HQ/versions/0.11.0-stations-2a20394/Sunny HQ.exe`. This update gives each room a different work surface:
+
+| Room | Work surface |
+| --- | --- |
+| Luffy | Objective sheet and recorded crew relay |
+| Zoro | Acceptance criteria and review/check ledger |
+| Nami | Destination and connected criterion waypoints |
+| Usopp | Test bench with terminal and preview controls |
+| Sanji | Service ticket for the brief, saved preparation and outputs |
+| Chopper | Current observation, error detail and diagnostic evidence |
+| Robin | Reading desk, saved passage and selected references |
+| Franky | Build console with project, branch record, working copy and check receipts |
+| Brook | Composition desk, saved take and recorded outputs |
+| Jinbe | Run watch, task requests, real assignment dependencies and blockers |
+
+Use **Expand room artwork** for a larger scene, **Focus conversation** for writing, and **Saved activity** for the latest recorded update. Starting points append to an unsent draft. Room ambience can be paused; Sunny and system reduced motion are honored live. Work pulses only appear when existing run records confirm an active crew member. A finished turn still needs review.
+
+Clean install/build, 37 focused checks and 47 hidden native workflow checks passed. The native checks include populated room states, phone-width relay layouts, 200% zoom, draft preservation, uncertain/input state transitions and reduced motion. All 251 installed files and the Start Menu target were verified. The previous version and a fresh integrity-checked database/shortcut backup remain available at `%LOCALAPPDATA%/Sunny HQ Backups/before-stations-2026-10-17`; a disposable backup copy reopened with exact logical state. If an older Sunny is running, quit it normally and open Sunny from Start Menu. Installation did not force-close or launch the daily app.
+
+This remains a user-approved local update with disclosed release exceptions: 12/15 exact-package cases passed; large-history control latency and the five-minute two-build journey failed. Full-source validation contains intermittent disposable Git object permission failures, so this is not an all-green release. See [current room installation and validation evidence](docs/evidence/ui-stations-2026-10-17.json).

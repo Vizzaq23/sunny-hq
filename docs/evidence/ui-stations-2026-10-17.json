@@ -1,0 +1,733 @@
+{
+  "updatedAt": "2026-10-18T04:28:00.298Z",
+  "taskStartedAt": "2026-10-18T02:30:46Z",
+  "branch": "codex/immersive-sunny-ui",
+  "candidate": {
+    "source": {
+      "appVersion": "0.11.0",
+      "buildId": "84d900bce06c3f234d39c4255b27ed18551592c47c71c86c06d2f5d2e266f734",
+      "fingerprintKind": "source-inputs-sha256",
+      "sourceCommit": "2a203941701d22a2f6bffc77cd4cfba2f02e0223",
+      "sourceDirty": false
+    },
+    "package": "C:\\Users\\Quintin\\.codex\\worktrees\\sunny-ui-revamp\\sunny-hq\\.sunny-dev\\ui-revamp\\package-stations-final\\win-unpacked",
+    "exeSha256": "355f11e7a03b8c13b6eb37f672b1790f4d8030de52ffeef43a6ebe3d1b4b773c",
+    "asarSha256": "38674ed088bf31c9995863406d725e50159b1b5b23f1b5727742c4665ae256ea",
+    "createdAt": "2026-10-18T03:30:18.686Z"
+  },
+  "installation": {
+    "installedAt": "2026-10-18T03:41:50.5429289Z",
+    "sourceCommit": "2a203941701d22a2f6bffc77cd4cfba2f02e0223",
+    "path": "C:\\Users\\Quintin\\AppData\\Local\\Programs\\Sunny HQ\\versions\\0.11.0-stations-2a20394",
+    "exeSha256": "355f11e7a03b8c13b6eb37f672b1790f4d8030de52ffeef43a6ebe3d1b4b773c",
+    "asarSha256": "38674ed088bf31c9995863406d725e50159b1b5b23f1b5727742c4665ae256ea",
+    "verifiedFiles": 251,
+    "shortcut": "C:\\Users\\Quintin\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Sunny HQ.lnk",
+    "previousTarget": "C:\\Users\\Quintin\\AppData\\Local\\Programs\\Sunny HQ\\versions\\0.11.0-quarters-6f18908\\Sunny HQ.exe",
+    "observedFixtureTarget": "C:\\Users\\Quintin\\.codex\\worktrees\\sunny-ui-revamp\\sunny-hq\\.sunny-dev\\ui-revamp\\package-stations-final\\win-unpacked\\Sunny HQ.exe",
+    "backup": "C:\\Users\\Quintin\\AppData\\Local\\Sunny HQ Backups\\before-stations-2026-10-17",
+    "oldAppRetained": true,
+    "nativeChecks": 47,
+    "focusedTests": 37,
+    "packageChecks": [
+      {
+        "result": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "acceptance-enter",
+          "elapsedMs": 6653,
+          "scenario": "startup"
+        },
+        "name": "startup"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "acceptance-enter",
+          "elapsedMs": 6370,
+          "scenario": "renderer-crash"
+        },
+        "name": "renderer-crash"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "process-exit",
+          "elapsedMs": 7960,
+          "scenario": "main-restart"
+        },
+        "name": "main-restart"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "platform-launch-requested",
+          "elapsedMs": 5934,
+          "scenario": "worker-loss"
+        },
+        "name": "worker-loss"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "acceptance-enter",
+          "elapsedMs": 6045,
+          "scenario": "write-failure"
+        },
+        "name": "write-failure"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "acceptance-enter",
+          "elapsedMs": 7918,
+          "scenario": "lost-ack"
+        },
+        "name": "lost-ack"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "scan-exit",
+          "elapsedMs": 7609,
+          "scenario": "pending-approval"
+        },
+        "name": "pending-approval"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "scan-exit",
+          "elapsedMs": 6368,
+          "scenario": "pending-check"
+        },
+        "name": "pending-check"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "acceptance-enter",
+          "elapsedMs": 6339,
+          "scenario": "normal-quit"
+        },
+        "name": "normal-quit"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "scan-exit",
+          "elapsedMs": 91751,
+          "scenario": "journey-motion-user"
+        },
+        "name": "journey-motion-user"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "scan-exit",
+          "elapsedMs": 75715,
+          "scenario": "journey-motion-system"
+        },
+        "name": "journey-motion-system"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "timeout",
+          "accepted": false,
+          "cleanup": "observed",
+          "lastStage": "scan-exit",
+          "elapsedMs": 300066
+        },
+        "name": "journey-cue"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "scan-enter",
+          "elapsedMs": 13275,
+          "scenario": "ordered-control"
+        },
+        "name": "ordered-control-1"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "failed",
+          "accepted": false,
+          "cleanup": "observed",
+          "lastStage": "scan-exit",
+          "elapsedMs": 29192
+        },
+        "name": "ordered-control-10"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "failed",
+          "accepted": false,
+          "cleanup": "observed",
+          "lastStage": "scan-exit",
+          "elapsedMs": 57905
+        },
+        "name": "ordered-control-30"
+      }
+    ],
+    "installationAuthority": "Standing user request: Install update commit everything, following disclosed release exceptions",
+    "knownLimitations": "Full source runs include intermittent disposable Git object permission failures; earlier provenance failure was fixed. Large-history latency and cue journey limits remain as recorded in the exact package matrix. This is not an all-green release.",
+    "dailyAppLaunched": false
+  },
+  "backupMigration": {
+    "passed": true,
+    "sourceHash": "8a46d99624dd6b888fc70109ffb7400247f8b48ffc0ec6928f649175965a7b65",
+    "backupUntouched": true,
+    "exactLogicalStatePreserved": true,
+    "integrity": "ok",
+    "providerEffects": 0,
+    "scope": "Store migration and reopen on disposable online-backup copy; no Hub or provider startup"
+  },
+  "build": {
+    "cleanCheckout": ".sunny-dev/stations-final",
+    "npmCi": "passed",
+    "build": "passed",
+    "productionAuditKnownVulnerabilities": 0,
+    "developmentAudit": {
+      "moderate": 9,
+      "high": 3
+    },
+    "runtimeComparison": {
+      "nativeFixtureBuild": "stations-relay-final-build.log",
+      "packagedSource": {
+        "appVersion": "0.11.0",
+        "buildId": "84d900bce06c3f234d39c4255b27ed18551592c47c71c86c06d2f5d2e266f734",
+        "fingerprintKind": "source-inputs-sha256",
+        "sourceCommit": "2a203941701d22a2f6bffc77cd4cfba2f02e0223",
+        "sourceDirty": false
+      },
+      "files": 134,
+      "differences": [
+        "assets\\ARTWORK.md",
+        "build-info.json"
+      ],
+      "runtimeAssetsIdentical": true
+    },
+    "productionAuditLog": ".sunny-dev/ui-revamp/stations-production-audit.json",
+    "productionAuditScope": "Same unchanged package-lock as the final installed source"
+  },
+  "focused": {
+    "passed": 37,
+    "failed": 0,
+    "log": ".sunny-dev\\ui-revamp\\stations-relay-all-focused.log"
+  },
+  "nativeWorkflow": {
+    "passed": true,
+    "checks": 47,
+    "checkNames": [
+      "helm-user-and-system-reduced-motion",
+      "helm-sea-pause",
+      "streamed-deck-activity",
+      "snapshot-race",
+      "family-search",
+      "specialist-approval",
+      "duplicate-approval",
+      "draft-per-task",
+      "home-draft-navigation",
+      "failed-start-draft",
+      "duplicate-start",
+      "lazy-tools",
+      "folder-parent",
+      "editor-load",
+      "draft-reload",
+      "reconcile",
+      "inbox",
+      "compact-layout",
+      "island-navigation",
+      "startup-retry",
+      "pending-launch-navigation",
+      "dirty-project-switch",
+      "dirty-global-settings-navigation",
+      "workspace-draft-cas-helper",
+      "dirty-file-task-start",
+      "template-cleared-after-start",
+      "character-room-theme",
+      "room-audio-toggle",
+      "room-audio-settings",
+      "robin-obsidian-library-route",
+      "note-context-unsent-robin-review",
+      "oversized-note-boundary",
+      "all-ten-illustrated-crew-rooms",
+      "distinct-station-layouts",
+      "square-room-badge",
+      "all-rooms-200-percent-zoom",
+      "station-tabs-preserve-drafts",
+      "room-focus-keeps-draft",
+      "room-starters-unsent",
+      "room-ambience-pause",
+      "room-art-expansion",
+      "room-streamed-saved-update",
+      "recorded-crew-relay-dependencies",
+      "crew-relay-input-and-uncertainty",
+      "crew-relay-mobile-layout",
+      "room-system-reduced-motion-live",
+      "reduced-motion-illustrated-room"
+    ],
+    "syntheticTransport": true,
+    "liveProviderProof": false,
+    "path": "C:\\Users\\Quintin\\.codex\\worktrees\\sunny-ui-revamp\\sunny-hq\\.sunny-dev\\ui-revamp\\workflow-stations-relay-final"
+  },
+  "browser": {
+    "rooms": 10,
+    "widths": [
+      320,
+      768,
+      1024,
+      1440
+    ],
+    "checks": 40,
+    "source": "Hidden in-app browser",
+    "coverage": [
+      "art loaded",
+      "art separate from chat",
+      "no document overflow",
+      "square crew badges",
+      "keyboard layout and ambience controls"
+    ],
+    "evidence": "C:/Users/Quintin/.codex/visualizations/2026/10/16/01a14706-5967-7c80-af6b-b460eba42f42/sunny-stations-browser-checks.json",
+    "scope": "Before relay addition; populated final relay covered by native phone-width checks"
+  },
+  "fullSourceRuns": [
+    {
+      "log": ".sunny-dev\\ui-revamp\\stations-full-suite-2.log",
+      "scope": "Working UI checkout during development; default Windows Temp",
+      "status": "failed",
+      "tests": 1574,
+      "passed": 1570,
+      "failed": 4,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 3907863.2992,
+      "failures": [
+        "held real checkpoint build settles local stop before owned effect drain",
+        "known owned Git conflict automatically prepares final-slot repair; first commit conflict",
+        "another run releasing shared crew wakes the exact prepared repair without a second prepare",
+        "two individually passing workers require actual combined checks and fresh review"
+      ]
+    },
+    {
+      "log": ".sunny-dev\\ui-revamp\\stations-full-scoped-temp.log",
+      "scope": "Working UI checkout during development; scoped private Temp; build provenance regression subsequently fixed",
+      "status": "failed",
+      "tests": 1575,
+      "passed": 1574,
+      "failed": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 4166349.995,
+      "failures": [
+        "build source fingerprint changes with runtime inputs and excludes private/generated files"
+      ],
+      "completedAt": "2026-10-18T04:04:39.330Z"
+    },
+    {
+      "log": ".sunny-dev\\ui-revamp\\stations-reviewed-full-suite.log",
+      "scope": "Frozen clean source 82b96de; final relay addition covered separately by focused/native/package checks",
+      "status": "failed",
+      "tests": 1576,
+      "passed": 1575,
+      "failed": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 4237042.2579,
+      "failures": [
+        "checkpoint collection fences unknown-effect before any integration effect"
+      ],
+      "completedAt": "2026-10-18T04:28:00.297Z"
+    }
+  ],
+  "exactPackage": {
+    "accepted": 12,
+    "total": 15,
+    "matrix": [
+      {
+        "result": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "acceptance-enter",
+          "elapsedMs": 6653,
+          "scenario": "startup"
+        },
+        "name": "startup"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "acceptance-enter",
+          "elapsedMs": 6370,
+          "scenario": "renderer-crash"
+        },
+        "name": "renderer-crash"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "process-exit",
+          "elapsedMs": 7960,
+          "scenario": "main-restart"
+        },
+        "name": "main-restart"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "platform-launch-requested",
+          "elapsedMs": 5934,
+          "scenario": "worker-loss"
+        },
+        "name": "worker-loss"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "acceptance-enter",
+          "elapsedMs": 6045,
+          "scenario": "write-failure"
+        },
+        "name": "write-failure"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "acceptance-enter",
+          "elapsedMs": 7918,
+          "scenario": "lost-ack"
+        },
+        "name": "lost-ack"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "scan-exit",
+          "elapsedMs": 7609,
+          "scenario": "pending-approval"
+        },
+        "name": "pending-approval"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "scan-exit",
+          "elapsedMs": 6368,
+          "scenario": "pending-check"
+        },
+        "name": "pending-check"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "acceptance-enter",
+          "elapsedMs": 6339,
+          "scenario": "normal-quit"
+        },
+        "name": "normal-quit"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "scan-exit",
+          "elapsedMs": 91751,
+          "scenario": "journey-motion-user"
+        },
+        "name": "journey-motion-user"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "scan-exit",
+          "elapsedMs": 75715,
+          "scenario": "journey-motion-system"
+        },
+        "name": "journey-motion-system"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "timeout",
+          "accepted": false,
+          "cleanup": "observed",
+          "lastStage": "scan-exit",
+          "elapsedMs": 300066
+        },
+        "name": "journey-cue"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "scan-enter",
+          "elapsedMs": 13275,
+          "scenario": "ordered-control"
+        },
+        "name": "ordered-control-1"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "failed",
+          "accepted": false,
+          "cleanup": "observed",
+          "lastStage": "scan-exit",
+          "elapsedMs": 29192
+        },
+        "name": "ordered-control-10"
+      },
+      {
+        "result": {
+          "version": 1,
+          "status": "failed",
+          "accepted": false,
+          "cleanup": "observed",
+          "lastStage": "scan-exit",
+          "elapsedMs": 57905
+        },
+        "name": "ordered-control-30"
+      }
+    ],
+    "controls": [
+      {
+        "sizeMiB": 1,
+        "passed": true,
+        "failedAssertions": [],
+        "stopP95Ms": 23.300000000745058,
+        "approvalP95Ms": 41.600000001490116,
+        "measuredControls": 40,
+        "controlFailures": 0,
+        "exactStatePreserved": true,
+        "receiptMatches": true,
+        "providerEffects": 0
+      },
+      {
+        "sizeMiB": 10,
+        "passed": false,
+        "failedAssertions": [
+          "approval:respond unchanged p95 RTT <200ms"
+        ],
+        "stopP95Ms": 60.40000000037253,
+        "approvalP95Ms": 352.30000000074506,
+        "measuredControls": 40,
+        "controlFailures": 0,
+        "exactStatePreserved": true,
+        "receiptMatches": true,
+        "providerEffects": 0
+      },
+      {
+        "sizeMiB": 30,
+        "passed": false,
+        "failedAssertions": [
+          "task:interrupt unchanged p95 RTT <200ms",
+          "approval:respond unchanged p95 RTT <200ms"
+        ],
+        "stopP95Ms": 278.19999999925494,
+        "approvalP95Ms": 412.69999999925494,
+        "measuredControls": 40,
+        "controlFailures": 0,
+        "exactStatePreserved": true,
+        "receiptMatches": true,
+        "providerEffects": 0
+      }
+    ],
+    "performanceConditions": "Concurrent source suites were active; no claim of an idle-machine benchmark.",
+    "cue": {
+      "accepted": false,
+      "timeoutMs": 300000,
+      "observedStages": [
+        "renderer-ready",
+        "source-reviewed",
+        "runtime-stopped",
+        "feedback-started"
+      ]
+    }
+  },
+  "isolatedFailureRerun": {
+    "passed": 1,
+    "failed": 0,
+    "sourceCommit": "2a203941701d22a2f6bffc77cd4cfba2f02e0223",
+    "log": ".sunny-dev\\ui-revamp\\stations-final-fixture-rerun.log",
+    "scope": "Exact unknown-effect checkpoint fixture that hit Git commit-object Permission denied in the clean full run"
+  },
+  "reviews": {
+    "resolved": [
+      "Jinbe requests explicitly scoped to selected task",
+      "Queued assignments cannot borrow a neighbor label through missing task IDs"
+    ],
+    "skills": [
+      "ecc-frontend-a11y",
+      "sunny-world-art-review",
+      "web-design-guidelines",
+      "vercel-react-best-practices"
+    ],
+    "react": "Derived snapshot state; bounded display lists; existing heavy tools remain lazy; transform/opacity motion; no polling or duplicated work-state effect",
+    "projectionMicrobenchmark": {
+      "createdAt": "2026-10-18T03:45:01.889Z",
+      "sourceCommit": "2a203941701d22a2f6bffc77cd4cfba2f02e0223",
+      "scope": "Synthetic pure room-relay projection microbenchmark; not renderer, IPC or live-provider latency",
+      "results": [
+        {
+          "taskSummaries": 250,
+          "iterations": 200,
+          "medianMs": 0.005200000000002092,
+          "p95Ms": 0.013499999999993406,
+          "maxMs": 0.3692999999999955
+        },
+        {
+          "taskSummaries": 1000,
+          "iterations": 200,
+          "medianMs": 0.011600000000001387,
+          "p95Ms": 0.014099999999999113,
+          "maxMs": 0.16140000000000043
+        },
+        {
+          "taskSummaries": 10000,
+          "iterations": 200,
+          "medianMs": 0.09390000000000498,
+          "p95Ms": 0.16729999999999734,
+          "maxMs": 0.556200000000004
+        }
+      ],
+      "assignmentCount": 1,
+      "warmupIterations": 20
+    }
+  },
+  "reference": {
+    "url": "https://x.com/thegreatest_sv/status/2110069829889626112/video/1",
+    "visualPlaybackInspected": true,
+    "audioAnalyzed": false,
+    "claimsVerified": false,
+    "application": "Actual assignment/dependency flow and confirmation-based motion, without invented metrics or copied vendor code"
+  },
+  "limitations": [
+    "No completely green full source suite is claimed. Git object permission failures remain intermittent; private Temp is not a proven cure.",
+    "Exact-package large-history latency and two-build timeout remain; installation follows the existing explicit user approval.",
+    "Fixtures do not prove live-provider execution."
+  ],
+  "changes": [
+    "Ten distinct role-specific workstations",
+    "Pausable individual room ambience and reduced-motion-aware transitions",
+    "Live saved-update panels and current-attempt evidence",
+    "Guarded crew relay navigation with real dependency labels",
+    "Responsive layout, larger text, art expansion and conversation focus"
+  ],
+  "pushOrMerge": false,
+  "installedStartup": {
+    "version": 1,
+    "status": "completed",
+    "accepted": true,
+    "cleanup": "observed",
+    "lastStage": "scan-exit",
+    "elapsedMs": 6206,
+    "scenario": "startup"
+  },
+  "installedStartupScope": "Actual installed executable and ASAR, isolated profile, zero provider effects; daily app not launched",
+  "visualReview": {
+    "rooms": [
+      "luffy",
+      "zoro",
+      "nami",
+      "usopp",
+      "sanji",
+      "chopper",
+      "robin",
+      "franky",
+      "brook",
+      "jinbe"
+    ],
+    "scope": "Populated native fixture captures, inspected after final relay workflow; not live-provider work",
+    "observations": [
+      "Artwork and conversation remain separate",
+      "Distinct role-specific station hierarchy",
+      "Readable populated review, error, output and dependency states",
+      "No additional visual blocker found in final captures"
+    ]
+  },
+  "finalInstalledReadback": {
+    "checkedAt": "2026-10-18T04:28:00.298Z",
+    "targetMatches": true,
+    "workingDirectoryMatches": true,
+    "arguments": "",
+    "exeSha256": "355f11e7a03b8c13b6eb37f672b1790f4d8030de52ffeef43a6ebe3d1b4b773c",
+    "asarSha256": "38674ed088bf31c9995863406d725e50159b1b5b23f1b5727742c4665ae256ea"
+  },
+  "validationComplete": true,
+  "previewCleanup": {
+    "isolatedTabClosed": true,
+    "developmentServerStopped": true
+  }
+}

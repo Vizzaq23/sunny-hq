@@ -40,10 +40,11 @@ test('Workbench passes selected summary identity to paged conversation and leave
 
 test('every task-capable crew room resolves only its admitted illustration',()=>{
  global.window={sunny:{},confirm:()=>true,location:{href:'https://fixture.invalid/'},addEventListener(){},removeEventListener(){}};global.location=window.location;global.sessionStorage={getItem:()=>null};
+ global.document={hidden:false};global.matchMedia=()=>({matches:true});
  const Workbench=componentForNode(),{renderToStaticMarkup}=require('react-dom/server');
  const art={luffy:'luffy-captains-den.png',zoro:'zoro-dojo-room.png',nami:'nami-chart-room.png',usopp:'usopp-inventors-workshop.png',sanji:'sanji-galley-room.png',chopper:'chopper-infirmary-room.png',robin:'robin-ship-library.png',franky:'franky-shipwright-room.png',brook:'brook-music-room.png',jinbe:'jinbe-helm-room.png'};
  for(const id of [...Object.keys(art),'law','ace','vivi','perona']){
-  const snapshot={projects:[{id:'p',name:'Fixture'}],tasks:[{id:'t',projectId:'p',crewId:id,status:'finished',transcriptRevision:1,messageCount:1}],approvals:[],settings:{reducedMotion:true},workspace:{version:1,revision:0,context:null,drafts:[],seenAcceptanceIds:[]},world:{residents:['law','ace','vivi','perona'].map(crewId=>({id:crewId,recruited:true}))}};
+  const snapshot={projects:[{id:'p',name:'Fixture'}],tasks:[{id:'t',projectId:'p',crewId:id,status:'finished',updatedAt:1,transcriptRevision:1,messageCount:1}],approvals:[],settings:{reducedMotion:true},workspace:{version:1,revision:0,context:null,drafts:[],seenAcceptanceIds:[]},world:{residents:['law','ace','vivi','perona'].map(crewId=>({id:crewId,recruited:true}))}};
   const tree=Workbench({snapshot,initial:{taskId:'t',projectId:'p',crewId:id},invoke:async()=>{},toast(){},onClose(){},embedded:true});
   assert.equal(tree.props['data-crew-id'],id);
   assert.ok(findElement(tree,e=>e.type==='button'&&e.props['aria-label']==='Back to workspace'));
@@ -52,16 +53,17 @@ test('every task-capable crew room resolves only its admitted illustration',()=>
   assert.ok(conversation,id+' conversation');
   const html=renderToStaticMarkup(conversation.type(conversation.props));
   assert.doesNotMatch(html,/assets\/undefined/);
-  const room=findElement(tree,e=>e.type==='aside'&&e.props.className==='workspace-room-view');
+  const room=findElement(tree,e=>typeof e.type==='function'&&e.type.name==='RoomStation');
   const chat=findElement(tree,e=>e.type==='main'&&e.props.className==='chat-pane');
   assert.ok(chat,id+' direct conversation controls remain available');
-  assert.equal(findElement(chat,e=>e.props?.className==='workspace-room-view'),undefined,'room illustration stays outside chat');
+  assert.equal(findElement(chat,e=>typeof e.type==='function'&&e.type.name==='RoomStation'),undefined,'room illustration stays outside chat');
   assert.doesNotMatch(html,/conversation-room-art/,'conversation does not cover room art');
   if(art[id]){
    assert.ok(room,id+' has a separate room panel');
-   const image=findElement(room,e=>e.type==='img');assert.ok(image,id+' room image');
-   assert.equal(image.props.src,new URL('assets/'+art[id],window.location.href).href);
-   assert.ok(image.props.alt,id+' illustration has readable alternative text');
+   const roomHtml=renderToStaticMarkup(room);
+   assert.ok(roomHtml.includes('src="'+new URL('assets/'+art[id],window.location.href).href+'"'),id+' admitted room image');
+   assert.match(roomHtml,/alt="[^" ]+[^"]*room aboard the Sunny"/,id+' readable illustration alternative');
+   assert.ok(roomHtml.includes('data-room-layout="'+id+'"'),id+' dedicated station composition');
   }else assert.equal(room,undefined,id+' has no unmeasured room art');
  }
 });

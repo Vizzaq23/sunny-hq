@@ -11,3 +11,9 @@ test('the authorized worktree build stamp retains its exact Git revision without
  const root=path.resolve(__dirname,'..');const {execFileSync}=require('node:child_process');const expected=execFileSync('git',['-c','safe.directory='+root,'rev-parse','HEAD'],{cwd:root,encoding:'utf8',windowsHide:true}).trim();
  const previous=process.env.GIT_TEST_ASSUME_DIFFERENT_OWNER;process.env.GIT_TEST_ASSUME_DIFFERENT_OWNER='1';try{assert.equal(require('../scripts/write-build-info.cjs').writeBuildInfo(root).sourceCommit,expected);}finally{if(previous===undefined)delete process.env.GIT_TEST_ASSUME_DIFFERENT_OWNER;else process.env.GIT_TEST_ASSUME_DIFFERENT_OWNER=previous;}
 });
+
+test('copied source nested below another checkout cannot claim the parent commit',t=>{
+ const parent=path.resolve(__dirname,'..','.sunny-dev');fs.mkdirSync(parent,{recursive:true});const root=fs.mkdtempSync(path.join(parent,'build-export-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+ fs.writeFileSync(path.join(root,'package.json'),JSON.stringify({version:'0.11.0'}));fs.mkdirSync(path.join(root,'src'));fs.writeFileSync(path.join(root,'src','main.ts'),'export const copied=true;');
+ const info=require('../scripts/write-build-info.cjs').writeBuildInfo(root);assert.equal(info.sourceCommit,'unknown');assert.equal(info.sourceDirty,null);assert.match(info.buildId,/^[a-f0-9]{64}$/);
+});

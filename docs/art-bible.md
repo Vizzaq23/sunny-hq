@@ -109,3 +109,6 @@ The helm now uses shallow rounded controls, brass shared selection accents, a cl
 
 ### Shared quarters presentation — 2026-10-17
 The quarters layer extends ocean, parchment and copper controls throughout the app. Existing crew artwork remains in an independent room panel with crew-specific chrome; atlas geometry and provenance are unchanged. Category rows organize Tools, grouped panels organize Settings, and the library retains separate browsing and editing regions. Page entrances are decorative and disabled by Sunny or OS reduced motion. No animation denotes real progress.
+
+### Crew workstation composition — 2026-10-17
+All ten admitted 1536×1024 room illustrations remain intact, outside the chat panel, with explicit intrinsic dimensions and contained scaling. Compact and expanded scene sizes preserve the original aspect ratio without cropping the source. Work surfaces have different editorial, route, ledger, ticket, console and watch compositions. Dark crew headers, warm readable work areas and restrained copper/sea controls connect them to the same ship. Room-specific CSS light and particles are original decorative overlays, not edits to artwork or actor atlases. Pause, live OS/Sunny reduced motion, hidden-page and focus-mode suppression apply to ambience. No image provenance or atlas geometry changed.

@@ -11,7 +11,12 @@ function writeBuildInfo(root){
  const hash=createHash('sha256');for(const relative of sourceInputs(root)){const data=fs.readFileSync(path.join(root,relative));hash.update(relative.split(path.sep).join('/'));hash.update('\0'+data.length+'\0');hash.update(data);}
  let sourceCommit='unknown',sourceDirty=null;
  const gitScope=['-c','safe.directory='+fs.realpathSync(root).split(path.sep).join('/')];
- try{const commit=execFileSync('git',[...gitScope,'rev-parse','HEAD'],{cwd:root,encoding:'utf8',windowsHide:true,stdio:['ignore','pipe','ignore'],timeout:5000}).trim();if(/^[a-f0-9]{40,64}$/.test(commit))sourceCommit=commit;sourceDirty=!!execFileSync('git',[...gitScope,'status','--porcelain','--untracked-files=normal'],{cwd:root,encoding:'utf8',windowsHide:true,stdio:['ignore','pipe','ignore'],timeout:5000}).trim();}catch{}
+ try{
+  // A copied export inside another checkout does not own that checkout's revision.
+  const top=execFileSync('git',[...gitScope,'rev-parse','--show-toplevel'],{cwd:root,encoding:'utf8',windowsHide:true,stdio:['ignore','pipe','ignore'],timeout:5000}).trim();
+  const canonical=value=>{const resolved=fs.realpathSync(value);return process.platform==='win32'?resolved.toLowerCase():resolved;};
+  if(canonical(top)!==canonical(root))throw Error('Source root is not the repository root.');
+  const commit=execFileSync('git',[...gitScope,'rev-parse','HEAD'],{cwd:root,encoding:'utf8',windowsHide:true,stdio:['ignore','pipe','ignore'],timeout:5000}).trim();if(/^[a-f0-9]{40,64}$/.test(commit))sourceCommit=commit;sourceDirty=!!execFileSync('git',[...gitScope,'status','--porcelain','--untracked-files=normal'],{cwd:root,encoding:'utf8',windowsHide:true,stdio:['ignore','pipe','ignore'],timeout:5000}).trim();}catch{}
  const info={appVersion:JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8')).version,buildId:hash.digest('hex'),fingerprintKind:'source-inputs-sha256',sourceCommit,sourceDirty};
  fs.mkdirSync(path.join(root,'dist'),{recursive:true});fs.writeFileSync(path.join(root,'dist','build-info.json'),JSON.stringify(info,null,2)+'\n','utf8');return info;
 }

@@ -103,3 +103,6 @@ The nautical UI uses deep teal for primary actions, parchment for work surfaces,
 
 ### Command deck palette and room composition — 2026-10-16
 The current helm pass supersedes the earlier ink-blue/orange shell with deep sea teal (#102c32 / #16383e), sail cream (#faf5e9), brass (#e8b365) and restrained green for actual working state. Keep the warm existing ship and room art as the visual focal point. Work surfaces use fewer, flatter boundaries; primary actions and attention cues retain readable text. The ship and Franky room keep their original aspect ratio, actor anchor and atlas contracts. Chat occupies an independent panel. Existing assets were reused without pixel edits or new provenance requirements.
+
+### Motion treatment — 2026-10-17
+The helm now uses shallow rounded controls, brass shared selection accents, a clearer static activity timeline, and slow decorative sea/light layers. These layers sit behind the unchanged Sunny artwork and have their own pause control. No artwork, atlas frames, palette provenance, actor anchors or bitmap bytes changed. Full-motion, paused and 390px compositions were inspected in the hidden browser; both OS and Sunny reduced-motion behavior is checked by the native workflow.

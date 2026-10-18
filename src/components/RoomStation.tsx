@@ -1,3 +1,4 @@
+import {RoomCrewRelay} from './RoomCrewRelay';
 import {useEffect,useId,useState} from 'react';
 import {motion,MotionConfig} from 'motion/react';
 import {Activity,ArrowDownRight,ArrowUpRight,BookOpen,Maximize2,Minimize2,Compass,FileCheck2,Files,Flag,Gauge,GitBranch,Layers3,Music2,Pause,Play,Search,ShieldCheck,Sparkles,Stethoscope,Target,Waves,Wrench} from 'lucide-react';
@@ -6,7 +7,7 @@ import {CrewBadge} from './Chrome';
 import {taskLabel} from '../taskFlow';
 import {roomEvidence} from '../roomEvidence';
 
-type Props={visible?:boolean;crew:Crew;art:string;snapshot:Snapshot;task?:TaskSummary;project?:Project;onTools:(pane:'files'|'git'|'terminal'|'preview')=>void;onLibrary?:()=>void;onFocus:()=>void};
+type Props={visible?:boolean;crew:Crew;art:string;snapshot:Snapshot;task?:TaskSummary;project?:Project;onTools:(pane:'files'|'git'|'terminal'|'preview')=>void;onLibrary?:()=>void;onOpenTask:(id:string)=>void;onFocus:()=>void};
 const rooms:Record<string,{title:string;subtitle:string;eyebrow:string;icon:typeof Compass}>={
  luffy:{title:'The captain’s table',subtitle:'Turn a big ambition into the crew’s next clear move.',eyebrow:'01 / COMMAND',icon:Flag},
  zoro:{title:'The review dojo',subtitle:'Evidence first. Sharpen the work before it leaves the ship.',eyebrow:'02 / REVIEW',icon:ShieldCheck},
@@ -21,7 +22,7 @@ const rooms:Record<string,{title:string;subtitle:string;eyebrow:string;icon:type
 };
 function Empty({children}:{children:React.ReactNode}){return <p className="station-empty">{children}</p>}
 function Stamp({children}:{children:React.ReactNode}){return <span className="station-stamp">{children}</span>}
-export function RoomStation({visible=true,crew,art,snapshot,task,project,onTools,onLibrary,onFocus}:Props){
+export function RoomStation({visible=true,crew,art,snapshot,task,project,onTools,onLibrary,onOpenTask,onFocus}:Props){
  const room=rooms[crew.id],Icon=room.icon,stationId=useId();
  const [panel,setPanel]=useState<'station'|'activity'>('station');
  const [artExpanded,setArtExpanded]=useState(false);
@@ -35,7 +36,7 @@ export function RoomStation({visible=true,crew,art,snapshot,task,project,onTools
  const criteria=<>{evidence.criteria.length>6?<p className="station-evidence-note">First 6 of {evidence.criteria.length} criteria. Review the complete list in the mission.</p>:null}{evidence.criteria.length?<ol className="station-waypoints">{evidence.criteria.slice(0,6).map((criterion,index)=><li key={index}><span>{String(index+1).padStart(2,'0')}</span><p>{criterion}</p></li>)}</ol>:<Empty>Acceptance criteria will appear here when this conversation belongs to a mission.</Empty>}</>;
  const outputs=<>{evidence.deliverables.length>4?<p className="station-evidence-note">Latest 4 of {evidence.deliverables.length} recorded outputs.</p>:null}{evidence.deliverables.length?<ul className="station-outputs">{evidence.deliverables.slice(-4).map(output=><li key={output.id}><Layers3 aria-hidden="true"/><span><b>{output.filePath??output.kind}</b><small>Recorded {output.kind} · review in the mission</small></span></li>)}</ul>:<Empty>No deliverables recorded for this attempt yet.</Empty>}</>;
  const latest=<>{preview?<blockquote className="station-excerpt" tabIndex={0} aria-label="Latest saved reply">{preview}</blockquote>:<Empty>A saved assistant reply will appear here after the crew responds.</Empty>}</>;
- const crewList=<>{evidence.run?.assignments.length?<ul className="station-watch">{evidence.run.assignments.slice(0,6).map(assignment=><li key={assignment.id}><span>{assignment.crewId}</span><b>{assignment.state}</b><small>{assignment.objective}</small></li>)}</ul>:evidence.peers.length?<ul className="station-watch">{evidence.peers.slice(0,6).map(peer=><li key={peer.id}><span>{peer.crewId}</span><b>{taskLabel(peer)}</b><small>{peer.title}</small></li>)}</ul>:<Empty>No linked crew assignments. This conversation can stay with {crew.name}.</Empty>}</>;
+ const crewList=<>{evidence.run?.assignments.length?<RoomCrewRelay snapshot={snapshot} run={evidence.run} animate={animate} onOpen={onOpenTask}/>:evidence.peers.length?<ul className="station-watch">{evidence.peers.slice(0,6).map(peer=><li key={peer.id}><span>{peer.crewId}</span><b>{taskLabel(peer)}</b><small>{peer.title}</small></li>)}</ul>:<Empty>No linked crew assignments. This conversation can stay with {crew.name}.</Empty>}</>;
  const focus=<button className="station-action" onClick={onFocus}>Continue the conversation <ArrowDownRight aria-hidden="true"/></button>;
  let content:React.ReactNode;
  switch(crew.id){

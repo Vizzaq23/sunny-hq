@@ -1,4 +1,4 @@
-import {ROOM_BRIEFS,appendRoomStarter} from '../roomBriefs';
+import {DEFAULT_ROOM_BRIEF,ROOM_BRIEFS,appendRoomStarter} from '../roomBriefs';
 import {RoomStation} from '../components/RoomStation';
 import {FailedLaunchRecovery} from '../components/FailedLaunchRecovery';
 import {lazy,Suspense,useEffect,useMemo,useRef,useState} from 'react';
@@ -85,7 +85,7 @@ export function Workbench({snapshot,initial,invoke,toast,onClose,onSettings,onOp
 }
 
 function MissionStart({disabled,crew,projects,projectId,setProjectId,crewId,setCrewId,onStarter}:{disabled:boolean;crew:typeof CREW;projects:Project[];projectId:string;setProjectId:(id:string)=>void;crewId:CrewId;setCrewId:(id:CrewId)=>void;onStarter:(text:string)=>void}){
-  const brief=ROOM_BRIEFS[crewId]??ROOM_BRIEFS.luffy;
+  const brief=ROOM_BRIEFS[crewId]??DEFAULT_ROOM_BRIEF;
   return <div className="mission-start"><span className="start-emblem"><ShipWheel/></span><span className="eyebrow">Brief {CREW_BY_ID.get(crewId)?.name??'the crew'}</span><h3 className="room-brief-heading">{brief.heading}</h3><p>{brief.body}</p><div className="start-fields"><label><span>Project</span><select disabled={disabled} value={projectId} onChange={e=>setProjectId(e.target.value)}><option value="">Choose a project…</option>{projects.map(project=><option value={project.id} key={project.id}>{project.name}</option>)}</select></label><label><span>Lead specialist</span><select disabled={disabled} value={crewId} onChange={e=>setCrewId(e.target.value as CrewId)}>{crew.map(crew=><option value={crew.id} key={crew.id}>{crew.name} · {crew.role}</option>)}</select></label></div><div className="room-starters" aria-label="Add a starting point to your draft">{brief.starters.map(starter=><button key={starter.label} disabled={disabled||!projectId} onClick={()=>onStarter(starter.text)}>{starter.label}<ChevronRight/></button>)}</div><small className="room-starter-hint">Starting points add to your draft. You decide when to send.</small></div>;
 }
 

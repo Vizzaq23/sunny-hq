@@ -106,3 +106,6 @@ The current helm pass supersedes the earlier ink-blue/orange shell with deep sea
 
 ### Motion treatment — 2026-10-17
 The helm now uses shallow rounded controls, brass shared selection accents, a clearer static activity timeline, and slow decorative sea/light layers. These layers sit behind the unchanged Sunny artwork and have their own pause control. No artwork, atlas frames, palette provenance, actor anchors or bitmap bytes changed. Full-motion, paused and 390px compositions were inspected in the hidden browser; both OS and Sunny reduced-motion behavior is checked by the native workflow.
+
+### Shared quarters presentation — 2026-10-17
+The quarters layer extends ocean, parchment and copper controls throughout the app. Existing crew artwork remains in an independent room panel with crew-specific chrome; atlas geometry and provenance are unchanged. Category rows organize Tools, grouped panels organize Settings, and the library retains separate browsing and editing regions. Page entrances are decorative and disabled by Sunny or OS reduced motion. No animation denotes real progress.

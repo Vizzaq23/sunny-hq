@@ -118,7 +118,8 @@ async function faultStore(profileDir,scenario){
   native.on('message',message=>{if(message.type==='failed')failedReceipt=structuredClone(message);if(scenario==='lost-ack'&&message.type==='committed')return;proxy.emit('message',message);});
   proxy.terminate=()=>native.terminate();proxy.postMessage=message=>{if(message.type==='commit'){expectedEpoch=message.epoch;expectedSequence=message.sequence;if(scenario==='worker-loss'){void native.terminate();return;}}native.postMessage(message);};return proxy;
  };
- const file=path.join(profileDir,'fault.sqlite'),options={kind:'sqlite',file,backupDir:path.join(profileDir,'fault-backups'),timeoutMs:1200,workerFactory:factory};
+ // Use production storage deadlines: a short startup limit can fail before the intended fault.
+ const file=path.join(profileDir,'fault.sqlite'),options={kind:'sqlite',file,backupDir:path.join(profileDir,'fault-backups'),workerFactory:factory};
  const store=await openOrderedStore(options);let error,before;
  try{
   if(scenario==='write-failure'){

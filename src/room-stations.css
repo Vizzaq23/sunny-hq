@@ -72,7 +72,7 @@
 .voyage-ui .workbench .start-fields{width:100%;max-width:none;margin:24px 0 16px;gap:14px}.voyage-ui .workbench .start-fields label>span{font:11px ui-monospace,monospace;letter-spacing:.08em;color:#566f62}.voyage-ui .workbench .start-fields select{font-size:13px;border-radius:8px;min-height:44px}
 .room-starters{display:flex;gap:9px;flex-wrap:wrap;margin:5px 0 12px}.room-starters button{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid #bdcdbd;border-radius:8px;background:#f1f4e9;color:#315d50;font-size:12px;min-height:40px}.room-starters button:disabled{opacity:.55}.room-starters svg{width:13px;height:13px}.room-starter-hint{font-size:11px;color:#65766a;line-height:1.6}
 .voyage-ui .workbench .composer{margin:0 16px 16px;border-radius:12px}.voyage-ui .workbench .chat-pane{min-height:480px}
-@media(min-width:1051px){.voyage-ui .workbench .chat-pane{position:sticky;top:18px;align-self:start}}
+@media(min-width:1051px){.voyage-ui .workbench .chat-pane{position:static;align-self:stretch}}
 @media(max-width:700px){.voyage-ui .workbench .mission-start{padding:20px}.voyage-ui .workbench .start-fields{grid-template-columns:1fr}.voyage-ui .workbench .chat-pane{min-height:0}.voyage-ui .workbench .composer{margin:0 12px 12px}}
 .room-layout-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 24px;background:#f8f7ef;border-bottom:1px solid #cfd8c8;color:#365950}.room-layout-toolbar>span{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:650}.room-layout-toolbar>span>svg{width:16px;height:16px}.room-layout-toolbar small{font-size:11px;font-weight:400;color:#586f60;margin-left:8px}.room-layout-toolbar>div{display:flex;gap:3px;padding:3px;background:#e6ecdf;border:1px solid #cbd7c5;border-radius:9px}.room-layout-toolbar button{border:0;border-radius:6px;min-height:34px;padding:7px 12px;color:#5b7264;background:transparent;font-size:12px}.room-layout-toolbar button[aria-pressed=true]{background:#fffdf5;color:#234d43;box-shadow:0 1px 4px #1c3e3a15}
 .voyage-ui .workbench[data-room-mode=focus] .crew-station-panel{display:none}.voyage-ui .workbench[data-room-mode=focus] .workbench-body{grid-template-columns:minmax(0,1fr);max-width:1100px;width:100%;margin-inline:auto}.voyage-ui .workbench[data-room-mode=focus] .chat-pane{position:static}
@@ -122,3 +122,23 @@
 @keyframes station-relay-pulse{0%{transform:scale(.6);opacity:.8}100%{transform:scale(1.6);opacity:0}}
 @media(prefers-reduced-motion:reduce){.station-relay-node>i:after{animation:none!important}}
 .voyage-ui.reduce-motion .station-relay-node>i:after{animation:none!important}
+
+/* Keep tools in their own full-width row, with a usable artifact viewport. */
+.voyage-ui .embedded-workbench .work-pane{height:clamp(520px,72vh,900px);min-height:520px;overflow:hidden}.voyage-ui .embedded-workbench .work-content{flex:1;min-height:0;height:auto}.voyage-ui .embedded-workbench .files-pane{height:100%;min-height:0}.voyage-ui .embedded-workbench .file-workspace{flex:1;min-height:0}
+
+/* Opening an artifact promotes it beside the conversation, rather than below it. */
+@media(min-width:1051px){
+ .voyage-ui .embedded-workbench:not(.focused-chat)[data-room-mode=room]:has(.crew-station-panel) .workbench-body{grid-template-columns:minmax(0,1.35fr) minmax(340px,.85fr);grid-template-areas:'tools chat' 'station station';align-items:start}
+ .voyage-ui .embedded-workbench:not(.focused-chat)[data-room-mode=room] .work-pane{grid-area:tools;height:max(420px,calc(100dvh - 270px));min-height:420px}
+ .voyage-ui .embedded-workbench:not(.focused-chat)[data-room-mode=room] .chat-pane{grid-area:chat;max-height:max(420px,calc(100dvh - 270px));min-height:420px}
+ .voyage-ui .embedded-workbench:not(.focused-chat)[data-room-mode=room] .crew-station-panel{grid-area:station;grid-template-columns:minmax(260px,.65fr) minmax(0,1.35fr);grid-template-areas:'heading tabs' 'art content' 'ambience content' 'state content'}
+ .voyage-ui .embedded-workbench:not(.focused-chat)[data-room-mode=room] .conversation{min-height:120px}
+ .voyage-ui .embedded-workbench:not(.focused-chat)[data-room-mode=room] .git-pane{grid-template-columns:minmax(160px,.65fr) minmax(0,1fr)}
+ .voyage-ui .embedded-workbench:not(.focused-chat)[data-room-mode=room] .file-workspace{grid-template-columns:160px minmax(0,1fr)}
+}
+@media(max-width:1050px){
+ .voyage-ui .embedded-workbench:not(.focused-chat) .workbench-body{display:flex;flex-direction:column;overflow-x:visible}
+ .voyage-ui .embedded-workbench:not(.focused-chat) .work-pane{order:-1;width:100%;min-width:0}
+ .voyage-ui .embedded-workbench:not(.focused-chat) .chat-pane{order:0;width:100%;min-width:0}
+ .voyage-ui .embedded-workbench:not(.focused-chat) .crew-station-panel{order:1;width:100%}
+}

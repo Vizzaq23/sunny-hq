@@ -199,3 +199,10 @@ test('getExecutable resolves supported commands from PATH without a shell',t=>{
   assert.equal(catalog.getExecutable('gh',home),gh);
   assert.equal(catalog.getExecutable('unsupported',home),null);
 });
+
+test('coverage response distinguishes unavailable vault and keeps the legacy array contract',t=>{
+ const home=fixture(t);assert.deepEqual(catalog.searchLibrary(home,'needle'),[]);assert.throws(()=>catalog.searchLibrary(home,'needle',true),/vault is unavailable/);
+ const vault=makeDir(catalog.vaultPath(home));write(path.join(vault,'Alpha.md'),'# Alpha\nneedle');write(path.join(vault,'Large.md'),'needle'+ 'x'.repeat(1024*1024));
+ const result=catalog.searchLibrary(home,'needle',true);assert.equal(result.results.length,1);assert.equal(result.scanned,2);assert.equal(result.skipped,1);assert.equal(result.partial,true);assert.deepEqual(catalog.searchLibrary(home,'needle'),result.results);
+ assert.deepEqual(catalog.searchLibrary(home,'',true),{results:[],scanned:0,partial:false,skipped:0});
+});

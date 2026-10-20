@@ -56,7 +56,7 @@ declare global {interface Window {sunny?:SunnyAPI;}}
 // git:commit {projectId,paths,message} -> string; git:branches {projectId} -> string
 // terminal:create {projectId} -> {id}; terminal:write {id,data}; terminal:resize {id,cols,rows}; terminal:close {id}
 // tools:open {toolId,projectId?}; tools:refresh {}; tools:call {taskId,server,name,arguments}
-// library:search {query} -> {path,title,excerpt}[]; library:read {path} -> FileData
+// library:search {query,includeCoverage?:boolean} -> {path,title,excerpt}[] or {results,scanned,partial,skipped}; library:read {path} -> FileData
 // library:write {path,text,hash} -> FileData; library:capture {title,text,projectId?} -> {path}
 // settings:update {...partialSettings}; dialog:openExternal {url}; preview:open {url}; app:export -> {path?}
 // docker:list -> any[]; docker:action {id,action:'start'|'stop'|'logs'}; github:prs {projectId} -> any[]

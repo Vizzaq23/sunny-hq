@@ -97,3 +97,16 @@
 .mission-execution{display:block;font-size:11px;color:#416665;line-height:1.5}.mission-execution>span,.mission-execution>small{display:block}.mission-execution-bar{padding:8px 16px;border-bottom:1px solid #dfd6c4;background:#fcf9ef;flex-shrink:0}.mission-execution-bar:has(.mission-execution:empty){display:none}
 
 
+
+/* Library owns the editor containing block; Monaco cannot cover the note header. */
+.library-editor-wrap{position:relative;flex:1;min-height:280px;min-width:0;overflow:hidden}
+.note-editor{min-height:0}.library-note-head{flex:none}.library-note-head p{font-size:13px;color:#596455;margin:6px 0 0}
+.library-browser .search-box input,.search-results b{font-size:14px}.search-results small,.library-welcome p{font-size:13px;color:#596455}.search-results em{font-size:12px;color:#596455}
+.library-drafts{padding:16px;border-bottom:1px solid var(--line)}.library-drafts h3{font-size:15px}.library-drafts p{font-size:12px;color:#596455}.library-drafts button{display:block;background:none;border:0;text-align:left;color:#245e59;padding:10px 0;text-decoration:underline;overflow-wrap:anywhere}
+.library-note-actions label>span{font-size:12px;letter-spacing:0;text-transform:none;color:#596455}.library-note-actions select,.library-note-actions .secondary-button{font-size:13px;min-height:38px}
+.capture-dialog{border:0;color:#263f3b;max-height:calc(100dvh - 32px);overflow:auto}.capture-dialog::backdrop{background:#07232680}.capture-dialog label>span{font-size:13px;text-transform:none;letter-spacing:0;color:#596455}.capture-dialog input,.capture-dialog select,.capture-dialog textarea{font-size:16px}.capture-dialog p{font-size:13px;line-height:1.6}.capture-dialog .dialog-actions>button{min-height:40px;font-size:13px}
+.git-diff-panel{display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}.git-diff-panel .diff-view{flex:1;overflow:auto}.git-diff-panel .pane-toolbar{flex:none;overflow-wrap:anywhere;height:auto;min-height:42px}.commit-message-label{display:block;font-size:13px;margin-top:18px}.git-sidebar [role=alert],.git-sidebar [role=status]{font-size:13px;line-height:1.5;overflow-wrap:anywhere}.git-sidebar .small-button{margin-block:12px}.git-file button[aria-pressed=true]{background:#e1ebe5;color:#174c50}
+@media(prefers-reduced-motion:reduce){.capture-dialog{animation:none}}
+.library-coverage{font-size:12px;line-height:1.6;padding:12px 16px;color:#596455;border-bottom:1px solid var(--line)}
+.git-branch,.git-file button,.git-sidebar textarea,.clean-tree{font-size:13px}.commit-button{font-size:13px;min-height:38px}.pane-label{font-size:12px;color:#596455}.pane-toolbar>span,.pane-toolbar button,.file-tree>button,.work-tabs button{font-size:12px}.file-tree>button{min-height:34px}.pane-toolbar button{min-height:32px}
+.git-sidebar>.pane-label{display:block;margin-block:8px}.git-sidebar .git-branch{font-size:13px}.git-sidebar .commit-button{min-height:38px;font-size:13px}

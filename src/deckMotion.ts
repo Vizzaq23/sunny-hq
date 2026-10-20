@@ -24,6 +24,11 @@ type Options={statuses?:Partial<Record<CrewId,string>>;meeting?:CrewId[];held?:C
 const destinations=['north','bow','sw','se','nw','east','port','south'];
 function target(w:Walker,end:string){if(w.target===end)return;w.target=end;const anchor=w.path[0]??w.node;w.path=[...(w.path.length?[anchor]:[]),...route(anchor,end)];}
 export function stepWalkers(current:Walker[],elapsed:number,{statuses={},meeting=[],held=[],paused=false}:Options):Walker[]{
+ if(paused){
+  const modeFor=(id:CrewId)=>{const status=statuses[id];return status==='waiting'||status==='attention'?status:status==='working'?'working':'idle';};
+  if(current.every(w=>!w.moving&&w.mode===modeFor(w.id)))return current;
+  return current.map(w=>!w.moving&&w.mode===modeFor(w.id)?w:{...w,moving:false,mode:modeFor(w.id)});
+ }
  const dt=Math.min(.1,Math.max(0,elapsed));
  return current.map((old,index)=>{const w={...old,path:[...old.path]};const status=statuses[w.id]??'idle';w.moving=false;
   if(status==='waiting'||status==='attention'){w.mode=status;return w;}

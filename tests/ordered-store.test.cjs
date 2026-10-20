@@ -92,8 +92,14 @@ test('invalid_checkpoint_image_cannot_save_an_unchanged_profile',{timeout:15000}
 test('initialization_and_commit_timeouts_terminate_workers',{timeout:15000},async t=>{
  const f=fixture(t);let terminations=0;const silent=()=>{const bridge=new EventEmitter();bridge.postMessage=()=>{};bridge.terminate=async()=>{terminations++;};return bridge;};
  await assert.rejects(open(f,{workerFactory:silent,timeoutMs:50}),error=>error.code==='WORKER_TIMEOUT');assert.equal(terminations,1);
- const gate=gateFactory(f),store=await open(f,{workerFactory:gate.factory,timeoutMs:1000});const commit=store.barrier(image(),'mission');await gate.committed;
- await assert.rejects(commit,error=>error.code==='COMMIT_UNCERTAIN'&&/timed out/.test(error.message));await assert.rejects(store.close(),/timed out/);
+ // Worker startup uses the production deadline. Advance only the commit deadline
+ // after the real worker has durably committed and the fixture holds its receipt.
+ const gate=gateFactory(f),store=await open(f,{workerFactory:gate.factory});
+ t.mock.timers.enable({apis:['setTimeout']});
+ const commit=store.barrier(image(),'mission');
+ const rejected=assert.rejects(commit,error=>error.code==='COMMIT_UNCERTAIN'&&/timed out/.test(error.message));
+ await gate.committed;t.mock.timers.tick(30001);
+ await rejected;await assert.rejects(store.close(),/timed out/);t.mock.timers.reset();
 });
 test('commits_use_no_main_thread_writable_storage_apis',{timeout:15000},async t=>{
  const f=fixture(t,'json'),store=await open(f),core=require('../desktop/core.cjs');const originals=new Map();

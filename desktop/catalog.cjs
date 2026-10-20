@@ -280,27 +280,30 @@ function excerptFor(text,needle){
   const end=Math.min(single.length,adjusted+needle.length+120);
   return `${start?'…':''}${single.slice(start,end).trim()}${end<single.length?'…':''}`;
 }
-function searchLibrary(home,query){
+function searchLibrary(home,query,includeCoverage=false){
   const needle=typeof query==='string'?query.trim():'';
-  if(!needle)return [];
+  if(!needle)return includeCoverage?{results:[],scanned:0,partial:false,skipped:0}:[];
   const configured=vaultPath(home);
-  if(!existsDir(configured))return [];
+  if(!existsDir(configured)){if(includeCoverage)throw Error('The Obsidian vault is unavailable. Check its location and access, then retry.');return [];}
   let root;
-  try{root=core.guardedPath(configured,'');}catch{return [];}
+  try{root=core.guardedPath(configured,'');}catch{if(includeCoverage)throw Error('The Obsidian vault could not be opened. Check access and retry.');return [];}
   const results=[];
-  for(const relative of markdownFiles(root)){
+  let scanned=0,skipped=0;
+  const files=markdownFiles(root);
+  for(const relative of files){
+    scanned++;
     let file;
-    try{file=core.guardedPath(root,relative);if(fs.statSync(file).size>1024*1024)continue;}catch{continue;}
+    try{file=core.guardedPath(root,relative);if(fs.statSync(file).size>1024*1024){skipped++;continue;}}catch{skipped++;continue;}
     let text;
-    try{text=fs.readFileSync(file,'utf8');}catch{continue;}
-    if(text.includes('\0'))continue;
+    try{text=fs.readFileSync(file,'utf8');}catch{skipped++;continue;}
+    if(text.includes('\0')){skipped++;continue;}
     const index=text.toLowerCase().indexOf(needle.toLowerCase());
     if(index<0)continue;
     const heading=text.match(/^#\s+(.+?)\s*$/m);
     results.push({path:relative,title:heading?heading[1].trim():path.basename(relative,'.md'),excerpt:excerptFor(text,needle)});
     if(results.length>=50)break;
   }
-  return results;
+  return includeCoverage?{results,scanned,partial:true,skipped}:results;
 }
 
 module.exports={discoverProjects,vaultPath,discoverTools,discoverAutomations,searchLibrary,getExecutable};

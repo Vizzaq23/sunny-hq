@@ -1,8 +1,9 @@
+import {GitPane} from '../components/GitPane';
 import {DEFAULT_ROOM_BRIEF,ROOM_BRIEFS,appendRoomStarter} from '../roomBriefs';
 import {RoomStation} from '../components/RoomStation';
 import {FailedLaunchRecovery} from '../components/FailedLaunchRecovery';
 import {lazy,Suspense,useEffect,useMemo,useRef,useState} from 'react';
-import {ArrowLeft,BookOpen,Check,ChevronDown,ChevronRight,Code2,Eye,File,FileCode2,Files,GitBranch,GitCommitHorizontal,LoaderCircle,Pause,Play,Save,Send,ShipWheel,TerminalSquare,Volume2,VolumeX,X} from 'lucide-react';
+import {ArrowLeft,BookOpen,Check,ChevronDown,ChevronRight,Code2,Eye,File,FileCode2,Files,GitBranch,LoaderCircle,Pause,Play,Save,Send,ShipWheel,TerminalSquare,Volume2,VolumeX,X} from 'lucide-react';
 import type {Approval,CrewId,FileData,FileEntry,Project,SkillChoice,Snapshot,TaskSummary as Task} from '../shared';
 import {SkillPicker} from '../components/SkillPicker';
 import {ALL_CREW as CREW,CREW_BY_ID} from '../data';
@@ -158,16 +159,6 @@ function FilesPane({locked,project,invoke,toast,onDirtyChange}:{locked:boolean;p
   const parent=directory.replace(/\\/g,'/').split('/').slice(0,-1).join('/');
   return <div className="files-pane"><div className="pane-toolbar"><span><FileCode2/> {openFile?.path??project.name}{dirty?' · Unsaved':''}</span>{openFile?<button onClick={()=>void save()} disabled={!dirty||saving||locked}><Save/>{saving?'Saving…':'Save'}</button>:null}</div>{error?<div className="file-load-error" role="alert">{error}</div>:null}<div className="file-workspace"><div className="file-tree"><button className="file-up" disabled={atRoot||loading} onClick={()=>void list(parent)}><ArrowLeft/><span>{atRoot?'Project files':'Up one folder'}</span></button>{loading?<LoaderCircle className="spin"/>:files.map(file=><button key={file.path} onClick={()=>void open(file)} className={openFile?.path===file.path?'active':''}>{file.directory?<ChevronRight/>:<File/>}<span>{file.name}</span></button>)}</div><div className="editor-wrap">{openFile?<Suspense fallback={<p className="file-load-error">Opening editor…</p>}><CodeEditor readOnly={locked} path={project.id+'/'+openFile.path} value={text} onChange={setText}/></Suspense>:<EmptyState title="Choose a file" body="Open a file to edit it. Use Up one folder to return to its parent folder."/>}</div></div></div>;
 }
-
-function GitPane({project,invoke,toast}:{project:Project;invoke:Invoke;toast:(message:string,tone?:'default'|'success'|'error')=>void}){
-  type GitState={branch:string;files:{path:string;status:string}[];diff:string};
-  const [git,setGit]=useState<GitState|null>(null),[selected,setSelected]=useState<string[]>([]),[diff,setDiff]=useState(''),[message,setMessage]=useState('');
-  const refresh=()=>invoke<GitState>('git:status',{projectId:project.id}).then(data=>{setGit(data);setDiff(data.diff);});useEffect(()=>{void refresh();},[project.id]);
-  const choose=async(path:string)=>{setDiff(await invoke<string>('git:diff',{projectId:project.id,path}));};
-  const commit=async()=>{if(!message.trim()||!selected.length)return;await invoke('git:commit',{projectId:project.id,paths:selected,message:message.trim()});toast('Commit created.','success');setSelected([]);setMessage('');await refresh();};
-  return <div className="git-pane"><div className="git-sidebar"><div className="git-branch"><GitBranch/>{git?.branch??'Loading…'}</div><span className="pane-label">Changes</span>{git?.files.length?git.files.map(file=><div className="git-file" key={file.path}><input type="checkbox" checked={selected.includes(file.path)} onChange={()=>setSelected(prev=>prev.includes(file.path)?prev.filter(p=>p!==file.path):[...prev,file.path])}/><button onClick={()=>void choose(file.path)}><span>{file.path}</span><em>{file.status}</em></button></div>):<p className="clean-tree">Working tree is clean.</p>}<textarea placeholder="Commit message" value={message} onChange={e=>setMessage(e.target.value)}/><button className="commit-button" disabled={!selected.length||!message.trim()} onClick={()=>void commit()}><GitCommitHorizontal/>Commit {selected.length||''}</button></div><pre className="diff-view">{diff||'Select a changed file to inspect its diff.'}</pre></div>;
-}
-
 
 function PreviewPane({invoke}:{invoke:Invoke}){
   const [url,setUrl]=useState('http://127.0.0.1:5173');const safe=useMemo(()=>/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/.*)?$/i.test(url),[url]);

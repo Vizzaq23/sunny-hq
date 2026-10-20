@@ -6,3 +6,9 @@ test('real working crew return home and then work without wandering',()=>{let cr
 test('pause freezes positions and active routes without losing destinations',()=>{let crew=createWalkers();for(let i=0;i<40;i++)crew=stepWalkers(crew,.1,{});const next=stepWalkers(crew,10,{paused:true});assert.deepEqual(next.map(c=>[c.x,c.y,c.path]),crew.map(c=>[c.x,c.y,c.path]));});
 test('waiting and selected crew stay still and do not fake working',()=>{let crew=createWalkers();for(let i=0;i<80;i++)crew=stepWalkers(crew,.1,{});const zoro=crew.find(c=>c.id==='zoro'),chopper=crew.find(c=>c.id==='chopper');for(let i=0;i<50;i++)crew=stepWalkers(crew,.1,{statuses:{zoro:'waiting'},held:['chopper']});const after=crew.find(c=>c.id==='zoro');assert.equal(after.x,zoro.x);assert.equal(after.mode,'waiting');assert.equal(crew.find(c=>c.id==='chopper').x,chopper.x);});
 test('rerouting in mid-stride finishes the current walkway segment',()=>{let crew=createWalkers();for(let i=0;i<50;i++)crew=stepWalkers(crew,.1,{});const before=crew.find(c=>c.moving);assert.ok(before);const after=stepWalkers(crew,.1,{statuses:{[before.id]:'working'}}).find(c=>c.id===before.id);assert.ok(Math.hypot(after.x-before.x,after.y-before.y)<2);});
+test('paused frames retain identity until authoritative status changes',()=>{
+ const crew=createWalkers(),paused=stepWalkers(crew,.05,{paused:true});assert.equal(paused,crew);
+ const working=stepWalkers(paused,.05,{paused:true,statuses:{nami:'working'}});assert.notEqual(working,paused);assert.equal(working.find(w=>w.id==='nami').mode,'working');assert.equal(working.find(w=>w.id==='nami').moving,false);
+ assert.equal(stepWalkers(working,.05,{paused:true,statuses:{nami:'working'}}),working);
+ const blocked=stepWalkers(working,.05,{paused:true,statuses:{nami:'attention'}});assert.equal(blocked.find(w=>w.id==='nami').mode,'attention');assert.deepEqual(blocked.map(w=>[w.x,w.y,w.path]),crew.map(w=>[w.x,w.y,w.path]));
+});

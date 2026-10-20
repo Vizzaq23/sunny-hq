@@ -19,7 +19,7 @@ const nav=[
   {id:'tools',label:'Tools',icon:Sparkles},
 ] as const;
 
-export function Sidebar({view,onView,projects,tasks,activeProjectId,onProject,open,onToggle}:{view:ViewId;onView:(view:ViewId)=>void;projects:Project[];tasks:Task[];activeProjectId?:string;onProject:(id:string)=>void;open:boolean;onToggle:()=>void}){
+export function Sidebar({view,onView,projects,tasks,activeProjectId,onProject,open,onToggle,search}:{search?:ReactNode;view:ViewId;onView:(view:ViewId)=>void;projects:Project[];tasks:Task[];activeProjectId?:string;onProject:(id:string)=>void;open:boolean;onToggle:()=>void}){
   const sidebarRef=useRef<HTMLElement>(null);
   useEffect(()=>{
     if(!open)return;
@@ -38,6 +38,7 @@ export function Sidebar({view,onView,projects,tasks,activeProjectId,onProject,op
   }
   return <aside id="sunny-navigation" ref={sidebarRef} onKeyDown={handleNavigationKey} className={`sidebar ${open?'is-open':''}`}>
     <div className="brand"><span className="brand-mark"><ShipWheel size={22}/></span><span><strong>Sunny HQ</strong><small>Your pirate headquarters</small></span><button className="mobile-close" onClick={onToggle} aria-label="Close menu"><X/></button></div>
+    {search}
     <nav className="main-nav" aria-label="Main navigation">
       <p className="nav-label">Captain’s command</p>
       {nav.map(item=><Fragment key={item.id}>{item.id==='island'?<p className="nav-label voyage-nav-group">Explore the Grand Line</p>:item.id==='library'?<p className="nav-label voyage-nav-group">Ship’s resources</p>:null}<button className={view===item.id?'active':''} aria-current={view===item.id?'page':undefined} onClick={()=>onView(item.id)}><item.icon size={18} aria-hidden="true"/><span>{item.label}</span>{item.id==='inbox'&&tasks.some(taskNeedsAttention)?<em>{tasks.filter(taskNeedsAttention).length}</em>:null}</button></Fragment>)}

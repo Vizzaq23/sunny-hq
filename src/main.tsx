@@ -15,3 +15,5 @@ const Surface=isCompanion?<Companion/>:<App/>;
 ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><RecoveryBoundary><Suspense fallback={<div className="loading-deck"><span/><h2>Loading Sunny HQ…</h2></div>}>{Surface}</Suspense></RecoveryBoundary></React.StrictMode>);
 import './quarters.css';
 import './room-stations.css';
+
+import './work-navigation.css';

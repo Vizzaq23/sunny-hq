@@ -186,3 +186,10 @@ Use **Expand room artwork** for a larger scene, **Focus conversation** for writi
 Clean install/build, 37 focused checks and 47 hidden native workflow checks passed. The native checks include populated room states, phone-width relay layouts, 200% zoom, draft preservation, uncertain/input state transitions and reduced motion. All 251 installed files and the Start Menu target were verified. The previous version and a fresh integrity-checked database/shortcut backup remain available at `%LOCALAPPDATA%/Sunny HQ Backups/before-stations-2026-10-17`; a disposable backup copy reopened with exact logical state. If an older Sunny is running, quit it normally and open Sunny from Start Menu. Installation did not force-close or launch the daily app.
 
 This remains a user-approved local update with disclosed release exceptions: 12/15 exact-package cases passed; large-history control latency and the five-minute two-build journey failed. Full-source validation contains intermittent disposable Git object permission failures, so this is not an all-green release. See [current room installation and validation evidence](docs/evidence/ui-stations-2026-10-17.json).
+
+
+### Find work quickly
+
+Use **Jump to work** or **Ctrl+K** (Cmd+K on macOS) to search local conversations, projects and destinations. Arrow keys select a result, Enter opens it and Escape closes the compass. Navigation retains Sunny's existing unsaved-file checks; this menu does not approve or execute work.
+
+The mission inbox searches local work separately from the imported read-only archive. Filter by project, crew or state, and use **Show more work** to reach older conversations. **Ready to review** means a crew turn ended, not that a mission passed acceptance.

@@ -1,3 +1,4 @@
+import {QuickSwitcher} from './components/QuickSwitcher';
 import type {WorkReportResult} from './shared';
 export type ReportViewState={result:WorkReportResult|null;draft:string;dirty:boolean;title:string};
 import './island.css';
@@ -70,7 +71,7 @@ export default function App(){
  if(!sunny.ready)return <div className="loading-deck" role="status"><span/><h2>Getting your workspace ready.</h2></div>;
  if(sunny.loadError)return <div className="loading-deck" role="alert"><h2>Your workspace couldn't load</h2><p>{sunny.loadError}</p><button className="primary-button" onClick={()=>window.location.reload()}>Reload Sunny</button></div>;
  return <div className={`app-shell continuous-shell voyage-ui ${snapshot.settings.reducedMotion?'reduce-motion':''}`} data-view={view}>
-  <a className="skip-to-work" href="#sunny-main">Skip to workspace</a><Sidebar view={view} onView={navigate} projects={snapshot.projects} tasks={snapshot.tasks} activeProjectId={activeProjectId} onProject={id=>openWorkspace({projectId:id})} open={menu} onToggle={()=>setMenu(value=>!value)}/>
+  <a className="skip-to-work" href="#sunny-main">Skip to workspace</a><Sidebar search={<QuickSwitcher tasks={snapshot.tasks} projects={snapshot.projects} onTask={taskId=>openWorkspace({taskId})} onProject={projectId=>openWorkspace({projectId})} onView={navigate} onOpening={()=>setMenu(false)}/>} view={view} onView={navigate} projects={snapshot.projects} tasks={snapshot.tasks} activeProjectId={activeProjectId} onProject={id=>openWorkspace({projectId:id})} open={menu} onToggle={()=>setMenu(value=>!value)}/>
   {menu?<button className="mobile-scrim" onClick={()=>setMenu(false)} aria-label="Close navigation"/>:null}
   <div className="main-shell"><Topbar menuOpen={menu} title={viewTitles[view].title} subtitle={viewTitles[view].subtitle} desktop={sunny.desktop} codexStatus={snapshot.codex.status} onMenu={()=>setMenu(true)} actions={<>{sunny.desktop?<button className="float-ship-button" onClick={()=>void invoke('companion:show').catch(()=>{})}>Ship on desktop</button>:null}{['settings','library','tools'].includes(view)&&context?<button className="workspace-return" onClick={returnToWork}>Return to work</button>:null}{topActions}</>}/>
    {contextError?<div className="workspace-draft-status" role="alert">{contextError}<button onClick={()=>persistContext(context)}>Save navigation again</button></div>:null}
@@ -89,7 +90,7 @@ export default function App(){
      {view==='crew'?<CrewView snapshot={snapshot} invoke={invoke} onSelect={crewId=>openWorkspace({projectId:activeProjectId,crewId})}/>:null}
      {view==='library'?<LibraryView projects={snapshot.projects} activeProjectId={activeProjectId} invoke={invoke} toast={toast} onAskRobin={(projectId,prompt,draftKey)=>openWorkspace({projectId,crewId:'robin',prompt,draftKey})}/>:null}
      {view==='tools'?<ToolsView tools={snapshot.tools} projects={snapshot.projects} desktop={sunny.desktop} invoke={invoke} toast={toast}/>:null}
-     {view==='inbox'?<InboxView tasks={snapshot.tasks} automations={snapshot.automations} desktop={sunny.desktop} invoke={invoke} onOpen={taskId=>openWorkspace({taskId})}/>:null}
+     {view==='inbox'?<InboxView projects={snapshot.projects} approvals={snapshot.approvals} tasks={snapshot.tasks} automations={snapshot.automations} desktop={sunny.desktop} invoke={invoke} onOpen={taskId=>openWorkspace({taskId})}/>:null}
      {view==='settings'?<SettingsView snapshot={snapshot} invoke={invoke} mergeSnapshot={sunny.mergeSnapshot} toast={toast}/>:null}
     </>}
    </main><details className="logbook-dock"><summary><span>Captain’s log</span><small>Saved work &amp; review</small>{attentionCount>0?<b>{attentionCount} need attention</b>:null}</summary><CaptainLog snapshot={snapshot} context={context} onContext={selectContext} onOpenResult={taskId=>openWorkspace({taskId})} onRequestChanges={missionId=>{const mission=snapshot.missions?.find(m=>m.id===missionId);if(mission)selectContext({projectId:mission.projectId,runId:mission.runId,missionId,attemptId:mission.activeAttemptId,surface:'deck',returnTo:{view:'ship',missionId,projectId:mission.projectId}});}} invoke={invoke}/></details></div>

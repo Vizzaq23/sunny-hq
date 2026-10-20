@@ -21,3 +21,9 @@ export function searchLocalTasks(tasks:TaskSummary[],projects:Project[],crew:{id
   return terms.every(term=>haystack.includes(term));
  }).sort((a,b)=>b.updatedAt-a.updatedAt||a.id.localeCompare(b.id));
 }
+
+// Keep a chosen destination visible when new results enter the bounded list.
+export function quickSwitchWindow<T extends {id:string}>(results:T[],selected:string,limit=60):T[]{
+ const shown=results.slice(0,limit),chosen=results.find(result=>result.id===selected);
+ return limit>0&&chosen&&!shown.some(result=>result.id===selected)?[...shown.slice(0,limit-1),chosen]:shown;
+}

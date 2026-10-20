@@ -1,6 +1,6 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
-const {inboxLane,searchLocalTasks}=require('../src/workNavigation.ts');
+const {inboxLane,searchLocalTasks,quickSwitchWindow}=require('../src/workNavigation.ts');
 const task=(id,status,extra={})=>({id,title:'Review landing page',status,projectId:'p',crewId:'robin',updatedAt:1,...extra});
 test('pending approval and errors outrank finished and active status',()=>{
  assert.equal(inboxLane(task('a','finished'),[{taskId:'a'}]),'attention');
@@ -24,4 +24,14 @@ test('search includes older tasks beyond the former twelve-item cutoff',()=>{
  assert.equal(searchLocalTasks(tasks,[],[],'').length,45);
  assert.ok(searchLocalTasks(tasks,[],[],'Saved task 0').some(t=>t.id==='0'));
  assert.equal(searchLocalTasks(tasks,[],[],'').at(-1).id,'0');
+});
+
+test('bounded compass keeps the selected destination when live updates push it beyond the limit',()=>{
+ const results=Array.from({length:80},(_,i)=>({id:String(i)}));
+ const shown=quickSwitchWindow(results,'59');assert.equal(shown.at(-1).id,'59');
+ const updated=quickSwitchWindow([{id:'new'},...results],'59');
+ assert.equal(updated.length,60);assert.equal(updated.at(-1).id,'59');
+ assert.equal(new Set(updated.map(r=>r.id)).size,60);
+ assert.equal(quickSwitchWindow(results,'removed')[0].id,'0');
+ assert.equal(quickSwitchWindow(results,'59',0).length,0);
 });

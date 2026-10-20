@@ -4,14 +4,14 @@ import {Search,X,ArrowUpRight} from 'lucide-react';
 import type {Project,TaskSummary} from '../shared';
 import type {ViewId} from './Chrome';
 import {ALL_CREW} from '../data';
-import {searchLocalTasks} from '../workNavigation';
+import {quickSwitchWindow,searchLocalTasks} from '../workNavigation';
 const destinations:{id:ViewId;title:string}[]=[{id:'home',title:'Home'},{id:'inbox',title:'Mission inbox'},{id:'ship',title:'The Sunny'},{id:'island',title:'The Island'},{id:'crew',title:'Crew'},{id:'projects',title:'Projects'},{id:'missions',title:'Missions'},{id:'news',title:'Morgans’ blimp'},{id:'library',title:'Library'},{id:'tools',title:'Tools'},{id:'settings',title:'Settings'}];
 export function QuickSwitcher({tasks,projects,onTask,onProject,onView,onOpening}:{tasks:TaskSummary[];projects:Project[];onTask:(id:string)=>void;onProject:(id:string)=>void;onView:(id:ViewId)=>void;onOpening:()=>void}){
  const dialog=useRef<HTMLDialogElement>(null),input=useRef<HTMLInputElement>(null),trigger=useRef<HTMLButtonElement>(null),previousFocus=useRef<HTMLElement|null>(null);
  const [query,setQuery]=useState(''),[selected,setSelected]=useState('');
  const normalized=query.trim().toLocaleLowerCase();
  const results=[...destinations.filter(d=>d.title.toLocaleLowerCase().includes(normalized)).map(d=>({id:'view:'+d.id,title:d.title,detail:'Navigate',run:()=>onView(d.id)})),...projects.filter(p=>p.name.toLocaleLowerCase().includes(normalized)).map(p=>({id:'project:'+p.id,title:p.name,detail:'Project',run:()=>onProject(p.id)})),...searchLocalTasks(tasks,projects,ALL_CREW,query).map(t=>({id:'task:'+t.id,title:t.title,detail:'Conversation · '+(projects.find(p=>p.id===t.projectId)?.name??'Project unavailable'),run:()=>onTask(t.id)}))];
- const shown=results.slice(0,60),active=shown.find(r=>r.id===selected)??shown[0];
+ const shown=quickSwitchWindow(results,selected),active=shown.find(r=>r.id===selected)??shown[0];
  const open=()=>{if(document.querySelector('dialog[open],[aria-modal="true"],.modal-backdrop'))return;previousFocus.current=document.activeElement instanceof HTMLElement?document.activeElement:null;setQuery('');setSelected('');onOpening();dialog.current?.showModal();requestAnimationFrame(()=>input.current?.focus());};
  const close=()=>dialog.current?.close();
  useEffect(()=>{const handle=(event:KeyboardEvent)=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'&&!event.isComposing){event.preventDefault();if(dialog.current?.open)close();else trigger.current?.click();}};window.addEventListener('keydown',handle);return()=>window.removeEventListener('keydown',handle);},[]);

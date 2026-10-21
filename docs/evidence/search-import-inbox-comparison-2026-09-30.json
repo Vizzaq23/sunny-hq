@@ -1,0 +1,320 @@
+{
+  "generatedAt": "2026-09-30T19:16:42.694Z",
+  "baselineRevision": "5b70fb2",
+  "node": "v24.18.0",
+  "platform": "win32",
+  "fixtureOnly": true,
+  "method": "Nine warm filesystem trials; timerDelay measures zero-delay timer dispatch after operation begins, not monitorEventLoopDelay distribution. p95 with n=9 is the maximum sample. Async traversal may take longer overall while allowing timer dispatch.",
+  "results": [
+    {
+      "name": "baseline:flat-4000-4KiB",
+      "trials": 9,
+      "elapsedMs": {
+        "p50": 259.18090000000007,
+        "p95": 265.91830000000004
+      },
+      "timerDelayMs": {
+        "p50": 259.30410000000006,
+        "p95": 265.95949999999993
+      },
+      "counts": {
+        "readdirSync": 1,
+        "enumeratedEntries": 4000,
+        "statSync": 4000,
+        "readFileSync": 4000,
+        "bytesRead": 16384000,
+        "resultCount": 0
+      },
+      "countsStable": true
+    },
+    {
+      "name": "async:flat-4000-4KiB",
+      "trials": 9,
+      "elapsedMs": {
+        "p50": 2232.2765,
+        "p95": 2295.8935999999994
+      },
+      "timerDelayMs": {
+        "p50": 1.3649000000000342,
+        "p95": 1.6358999999974912
+      },
+      "counts": {
+        "realpath": 12002,
+        "lstat": 8001,
+        "readdir": 1,
+        "enumeratedEntries": 4000,
+        "open": 4000,
+        "handle:stat": 4000,
+        "handle:read": 8000,
+        "bytesRead": 16384000,
+        "handle:close": 4000,
+        "resultCount": 0
+      },
+      "countsStable": true
+    },
+    {
+      "name": "baseline:flat-5000-4KiB",
+      "trials": 9,
+      "elapsedMs": {
+        "p50": 318.2476999999999,
+        "p95": 347.5760999999984
+      },
+      "timerDelayMs": {
+        "p50": 318.3667999999998,
+        "p95": 347.60489999999845
+      },
+      "counts": {
+        "readdirSync": 1,
+        "enumeratedEntries": 5000,
+        "statSync": 5000,
+        "readFileSync": 5000,
+        "bytesRead": 20480000,
+        "resultCount": 0
+      },
+      "countsStable": true
+    },
+    {
+      "name": "async:flat-5000-4KiB",
+      "trials": 9,
+      "elapsedMs": {
+        "p50": 2177.5053999999946,
+        "p95": 2215.523100000002
+      },
+      "timerDelayMs": {
+        "p50": 1.7014000000053784,
+        "p95": 2.036600000003091
+      },
+      "counts": {
+        "realpath": 12002,
+        "lstat": 8001,
+        "readdir": 1,
+        "enumeratedEntries": 5000,
+        "open": 4000,
+        "handle:stat": 4000,
+        "handle:read": 8000,
+        "bytesRead": 16384000,
+        "handle:close": 4000,
+        "resultCount": 0
+      },
+      "countsStable": true
+    },
+    {
+      "name": "baseline:nested-5000-4KiB",
+      "trials": 9,
+      "elapsedMs": {
+        "p50": 267.4455999999991,
+        "p95": 271.84850000000006
+      },
+      "timerDelayMs": {
+        "p50": 267.46809999999823,
+        "p95": 271.8726999999999
+      },
+      "counts": {
+        "readdirSync": 42,
+        "enumeratedEntries": 4150,
+        "statSync": 4100,
+        "readFileSync": 4100,
+        "bytesRead": 16793600,
+        "resultCount": 0
+      },
+      "countsStable": true
+    },
+    {
+      "name": "async:nested-5000-4KiB",
+      "trials": 9,
+      "elapsedMs": {
+        "p50": 2274.7831000000006,
+        "p95": 2346.3312000000005
+      },
+      "timerDelayMs": {
+        "p50": 0.4418000000005122,
+        "p95": 1.0595000000030268
+      },
+      "counts": {
+        "realpath": 12042,
+        "lstat": 8041,
+        "readdir": 41,
+        "enumeratedEntries": 4050,
+        "open": 4000,
+        "handle:stat": 4000,
+        "handle:read": 8000,
+        "bytesRead": 16384000,
+        "handle:close": 4000,
+        "resultCount": 0
+      },
+      "countsStable": true
+    },
+    {
+      "name": "baseline:flat-100-256000bytes",
+      "trials": 9,
+      "elapsedMs": {
+        "p50": 44.34919999999693,
+        "p95": 45.21940000000177
+      },
+      "timerDelayMs": {
+        "p50": 44.37589999999909,
+        "p95": 45.243900000001304
+      },
+      "counts": {
+        "readdirSync": 1,
+        "enumeratedEntries": 100,
+        "statSync": 100,
+        "readFileSync": 100,
+        "bytesRead": 25600000,
+        "resultCount": 0
+      },
+      "countsStable": true
+    },
+    {
+      "name": "async:flat-100-256000bytes",
+      "trials": 9,
+      "elapsedMs": {
+        "p50": 91.3012999999919,
+        "p95": 94.31119999999646
+      },
+      "timerDelayMs": {
+        "p50": 0.6272999999928288,
+        "p95": 0.8849000000045635
+      },
+      "counts": {
+        "realpath": 302,
+        "lstat": 201,
+        "readdir": 1,
+        "enumeratedEntries": 100,
+        "open": 100,
+        "handle:stat": 100,
+        "handle:read": 200,
+        "bytesRead": 25600000,
+        "handle:close": 100,
+        "resultCount": 0
+      },
+      "countsStable": true
+    },
+    {
+      "name": "baseline:empty-directories-5000",
+      "trials": 9,
+      "elapsedMs": {
+        "p50": 243.13649999999325,
+        "p95": 247.51339999999618
+      },
+      "timerDelayMs": {
+        "p50": 243.2832999999955,
+        "p95": 247.5515999999916
+      },
+      "counts": {
+        "readdirSync": 5001,
+        "enumeratedEntries": 5000,
+        "resultCount": 0
+      },
+      "countsStable": true
+    },
+    {
+      "name": "async:empty-directories-5000",
+      "trials": 9,
+      "elapsedMs": {
+        "p50": 1103.9166000000114,
+        "p95": 1130.3703999999998
+      },
+      "timerDelayMs": {
+        "p50": 1.5908999999955995,
+        "p95": 1.8427999999985332
+      },
+      "counts": {
+        "realpath": 4001,
+        "lstat": 4000,
+        "readdir": 4000,
+        "enumeratedEntries": 5000,
+        "resultCount": 0
+      },
+      "countsStable": true
+    },
+    {
+      "name": "import-50-near512KiB",
+      "trials": 9,
+      "elapsedMs": {
+        "p50": 0.481500000008964,
+        "p95": 1.221399999994901
+      },
+      "timerDelayMs": {
+        "p50": 14.940000000002328,
+        "p95": 16.51469999999972
+      },
+      "counts": {
+        "resultCount": {
+          "added": 50,
+          "total": 50
+        }
+      },
+      "countsStable": true,
+      "inputBytes": 524288
+    },
+    {
+      "name": "inbox-5000-irrelevant-100-briefings",
+      "trials": 9,
+      "elapsedMs": {
+        "p50": 12.617899999997462,
+        "p95": 21.05260000000999
+      },
+      "timerDelayMs": {
+        "p50": 12.62840000000142,
+        "p95": 21.067600000009406
+      },
+      "counts": {
+        "readdirSync": 1,
+        "enumeratedEntries": 5100,
+        "lstatSync": 200,
+        "openSync": 100,
+        "readSync": 200,
+        "bytesRead": 618590,
+        "resultCount": {
+          "added": 100,
+          "imported": 100,
+          "errors": []
+        }
+      },
+      "countsStable": true
+    },
+    {
+      "name": "inbox-5100-entries-unchanged",
+      "trials": 9,
+      "elapsedMs": {
+        "p50": 3.5247999999992317,
+        "p95": 3.8016000000061467
+      },
+      "timerDelayMs": {
+        "p50": 3.5319000000017695,
+        "p95": 3.8139000000082888
+      },
+      "counts": {
+        "readdirSync": 1,
+        "enumeratedEntries": 5100,
+        "lstatSync": 100,
+        "resultCount": {
+          "added": 0,
+          "imported": 0,
+          "errors": []
+        }
+      },
+      "countsStable": true
+    },
+    {
+      "name": "import-50-at500-capacity-rejected",
+      "trials": 9,
+      "elapsedMs": {
+        "p50": 0.1812999999965541,
+        "p95": 0.24790000000211876
+      },
+      "timerDelayMs": {
+        "p50": 15.478499999997439,
+        "p95": 15.515099999989616
+      },
+      "counts": {
+        "resultCount": {
+          "error": "The briefing archive is full (500 stories). Remove older items before importing.",
+          "retainedItems": 500
+        }
+      },
+      "countsStable": true
+    }
+  ]
+}

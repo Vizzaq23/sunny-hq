@@ -1,0 +1,657 @@
+{
+  "date": "2026-10-16",
+  "branch": "codex/immersive-sunny-ui",
+  "baseCommit": "e865f82cb7c687ff2b32dae6f972d36b3e8e8693",
+  "scope": "Immersive presentation across existing screens; no IPC or persistence changes",
+  "browser": "Isolated hidden Codex browser; no native mouse or keyboard input",
+  "desktopViewport": [
+    1280,
+    720
+  ],
+  "narrowViewport": [
+    390,
+    844
+  ],
+  "screensChecked": [
+    "Home",
+    "Projects",
+    "Crew",
+    "Missions",
+    "Inbox",
+    "The Island",
+    "The Sunny",
+    "Morgans’ blimp",
+    "Library",
+    "Tools",
+    "Settings"
+  ],
+  "horizontalOverflow": {
+    "desktop": false,
+    "narrow": false,
+    "mainWidthDesktop": 1035,
+    "mainWidthNarrow": 375
+  },
+  "keyboard": {
+    "mobileMenuInitialFocus": "Close menu",
+    "escapeReturnsFocus": "Open menu",
+    "logbookEnterOpenAndClose": true
+  },
+  "additionalChecks": [
+    "Empty Luffy workbench renders without starting a task",
+    "Hidden mobile navigation excluded from accessibility tree",
+    "TypeScript and Vite build passed",
+    "99 existing UI/state and attention-projection regressions passed"
+  ],
+  "sourceTestLog": ".sunny-dev/ui-revamp/focused-tests.log",
+  "nativeFixtureWorkflow": {
+    "passed": true,
+    "path": ".sunny-dev/ui-revamp/workflow-helm-live-1/result.json",
+    "hidden": true,
+    "syntheticTransport": true,
+    "liveProviderProof": false
+  },
+  "nativeStateVisuals": "Working, blocked and reduced-motion visual checks pending; associated projection/motion source tests passed",
+  "fullSuite": {
+    "log": ".sunny-dev/ui-revamp/full-suite-diagnostic.log",
+    "passed": false,
+    "tests": 1567,
+    "pass": 1564,
+    "fail": 3,
+    "cancelled": 0,
+    "skipped": 0,
+    "durationMs": 5823988.6771,
+    "extraDiagnosticHarnessEntry": 1,
+    "failures": [
+      {
+        "test": "ordinary held delivery honors cumulative activeMs exhaustion",
+        "cause": "Transient permission denial writing fixture Git object before Hub creation"
+      },
+      {
+        "test": "delivery audit durability fence stop",
+        "cause": "Same fixture seed Git object permission denial"
+      },
+      {
+        "test": "every task-capable crew room resolves only its admitted illustration",
+        "cause": "Obsolete assertion expected art inside Conversation instead of separate room panel"
+      }
+    ],
+    "followup": {
+      "roomPanelRegression": {
+        "passed": true,
+        "tests": 5,
+        "log": ".sunny-dev/ui-revamp/room-panel-regression.log"
+      },
+      "gitSetupRegressions": {
+        "passed": true,
+        "tests": 2,
+        "log": ".sunny-dev/ui-revamp/git-setup-fixed.log"
+      },
+      "fullRerun": ".sunny-dev/ui-revamp/full-suite-verified.log",
+      "status": "Targeted regressions passed; complete rerun interrupted after 576 passes with no final receipt",
+      "interrupted": true
+    }
+  },
+  "installed": true,
+  "liveProviderProof": false,
+  "readabilityRefinement": {
+    "date": "2026-10-16",
+    "changes": [
+      "Full-width Home brief with paired fields and mobile stacking",
+      "Readable 44px action buttons and distinct crew journal secondary buttons",
+      "Stronger text and field contrast in teal, parchment, brass and coral palette",
+      "Shorter Home hero and aligned crew run panel"
+    ],
+    "screensChecked": [
+      "Home",
+      "Projects",
+      "Crew",
+      "Missions",
+      "Inbox",
+      "The Island",
+      "The Sunny",
+      "Morgans’ blimp",
+      "Library",
+      "Tools",
+      "Settings"
+    ],
+    "viewports": [
+      [
+        1280,
+        720
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "horizontalOverflow": false,
+    "conditionalPlayableDescriptor": "Visible when Playable build selected; hidden again for Reviewed reply",
+    "tests": {
+      "passed": 99,
+      "failed": 0,
+      "log": ".sunny-dev/ui-revamp/refinement-tests.log"
+    },
+    "build": "TypeScript and Vite passed; existing large bundle warning remains",
+    "nativeFixtureWorkflow": "Pending while user is gaming; installed app unchanged"
+  },
+  "commandDeckRedesign": {
+    "date": "2026-10-16",
+    "changes": [
+      "Ink blue shell, sea glass navigation and orange actions",
+      "Large living ship with authoritative task and mission activity feed",
+      "Crew state filters and attention queue",
+      "Separate room art and conversation; responsive Franky workshop",
+      "Navigation resets workspace scroll"
+    ],
+    "desktopDestinations": 11,
+    "narrowDestinations": 11,
+    "horizontalOverflow": false,
+    "desktopMainWidth": 1065,
+    "narrowMainWidth": 375,
+    "navigationScrollTop": 0,
+    "tests": {
+      "log": ".sunny-dev/ui-revamp/redesign-tests.log",
+      "failed": 0,
+      "passed": 120
+    },
+    "visualFixtures": [
+      "Working state and Working filter",
+      "Waiting state and Needs you filter",
+      "Franky approval state",
+      "Reduced motion stops working pulse and actor movement"
+    ],
+    "fixtureDisclaimer": "Synthetic isolated snapshots, no provider connected",
+    "buildLog": ".sunny-dev/ui-revamp/redesign-build.log",
+    "nativeFixtureWorkflow": "Pending while user is gaming",
+    "installed": false,
+    "liveProviderProof": false
+  },
+  "helmRedesign": {
+    "sourceCommit": "1ecfdf1d268df7021fcfd9d6d2ada0f12a62ce46",
+    "testSynchronizationCommit": "10ff0845c1f9eb7f5b42753d339de6a94ed8cdbe",
+    "changes": [
+      "Horizontal navigation",
+      "Persistent ship world beside selected-crew inspector",
+      "Station, activity and run-control panels",
+      "Compact filterable crew dock",
+      "Sea teal, sail cream and brass palette",
+      "Room artwork beside conversation"
+    ],
+    "desktopViewport": [
+      1280,
+      800
+    ],
+    "narrowViewport": [
+      390,
+      844
+    ],
+    "destinationsChecked": 11,
+    "horizontalOverflow": false,
+    "keyboardActivityPanel": true,
+    "roomImagesValidated": 10,
+    "buildLog": ".sunny-dev/ui-revamp/build-1ecfdf1.log",
+    "package": {
+      "path": "release-helm-1ecfdf1/win-unpacked",
+      "exeSha256": "2e8793e09458ae8fcc740bd630b28b70e00bfdaff2acc25e6baf1c9b45882d12",
+      "asarSha256": "8148101d0988b63efbaac8fa3933b286d2fad50a5995ebe1a79743bf501fa65c",
+      "buildId": "e09eeae0f2d23ab4a8bcd847ec285ca2590a4f76a2483e77785dd7b7fc65d10c",
+      "trackedSourceClean": true,
+      "sourceDirtyFlag": true,
+      "dirtyReason": "Untracked generated release directories"
+    },
+    "recoveryScenarios": [
+      {
+        "scenario": "startup",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "receipt-verified",
+        "elapsedMs": 14586
+      },
+      {
+        "scenario": "renderer-crash",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 12008
+      },
+      {
+        "scenario": "main-restart",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "acceptance-exit",
+        "elapsedMs": 12114
+      },
+      {
+        "scenario": "worker-loss",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 12026
+      },
+      {
+        "scenario": "write-failure",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 11185
+      },
+      {
+        "scenario": "lost-ack",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 9461
+      },
+      {
+        "scenario": "pending-approval",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "receipt-verified",
+        "elapsedMs": 10308
+      },
+      {
+        "scenario": "pending-check",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 9293
+      },
+      {
+        "scenario": "normal-quit",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 8909
+      }
+    ],
+    "backupMigration": {
+      "passed": true,
+      "sourceHash": "e8c6e5a9dadafc25eb8cb3ad42de74b9481549c5ee486bdd3390b54fd724fd30",
+      "backupUntouched": true,
+      "exactLogicalStatePreserved": true,
+      "integrity": "ok",
+      "providerEffects": 0,
+      "scope": "Store migration and reopen on disposable online-backup copy; no Hub or provider startup"
+    },
+    "remainingGates": [
+      "Complete source suite",
+      "Ordered-control 1/10/30 MiB",
+      "Isolated journey-cue",
+      "User and OS reduced-motion journeys"
+    ],
+    "installation": "Stable files staged; existing shortcut and running application unchanged"
+  },
+  "referenceFollowThrough": {
+    "visualSequenceReviewed": [
+      "Opening animation",
+      "Worker and tool grid",
+      "Failed-test escalation",
+      "Verification and session log",
+      "Closing animation"
+    ],
+    "audioAnalyzed": false,
+    "implemented": "Persistent newest saved-work update opens the activity inspector",
+    "source": "Existing commandSignals snapshot projection",
+    "browserOverflow": {
+      "desktop": false,
+      "narrow": false
+    },
+    "nativeStreamedUpdateCheck": true,
+    "nativeWorkflow": ".sunny-dev/ui-revamp/workflow-helm-live-1/result.json",
+    "build": ".sunny-dev/ui-revamp/live-signal-build.log",
+    "package": "Superseded by acceptanceCandidate, which also keeps cue and motion fixtures offscreen"
+  },
+  "acceptanceCandidate": {
+    "sourceCommit": "8b1096e1f5854029c893f4fc2c1e3eea9a11f90e",
+    "path": "C:\\Users\\Quintin\\.codex\\worktrees\\sunny-ui-revamp\\sunny-hq\\.sunny-dev\\ui-revamp\\package-admission\\win-unpacked",
+    "exeSha256": "2ff9465e73764326bc9b6a821ba5c6e383751125dbf5ea1b91919fbc03947df3",
+    "asarSha256": "0f7b9632deb442b14e51fdf852ce45ebf7a8faaf390223d7f2257f4a58c49008",
+    "build": {
+      "appVersion": "0.11.0",
+      "buildId": "1531c28fe0d55cf42affe7c95e15433524720988da0f8258dc99086ea67ab1fe",
+      "fingerprintKind": "source-inputs-sha256",
+      "sourceCommit": "8b1096e1f5854029c893f4fc2c1e3eea9a11f90e",
+      "sourceDirty": true
+    }
+  },
+  "cleanCheckoutVerification": {
+    "sourceCommit": "eff59e7220486b95ddc77d63df9b2bddeca034ba",
+    "path": ".sunny-dev/ui-revamp/clean-eff59e7",
+    "npmCi": {
+      "passed": true,
+      "log": ".sunny-dev/ui-revamp/clean-npm-ci.log",
+      "audit": {
+        "moderate": 9,
+        "high": 3
+      },
+      "pendingInstallScripts": [
+        "electron-winstaller",
+        "esbuild",
+        "node-pty"
+      ]
+    },
+    "build": {
+      "passed": true,
+      "log": ".sunny-dev/ui-revamp/clean-build.log",
+      "sourceDirty": false,
+      "buildId": "aee6d5c9f84a5a920f1118e9da0c1933c89e5fb2ddbed504ad07c7af3154a17f"
+    },
+    "candidateComparison": {
+      "differingInputFiles": 11,
+      "allDifferences": "CRLF/LF line endings",
+      "contentDifferences": 0,
+      "packageUnchanged": true
+    }
+  },
+  "updatedAt": "2026-10-17T05:42:22.220Z",
+  "releaseBlocker": {
+    "installed": true,
+    "code": "CONTROL_LATENCY_EXCEEDS_RELEASE_GATE",
+    "requiredP95Ms": 200,
+    "controls": [
+      {
+        "mib": 1,
+        "path": ".sunny-dev/ui-revamp/admission-control-1",
+        "accepted": true,
+        "cleanup": "observed",
+        "metrics": [
+          {
+            "control": "task:interrupt",
+            "count": 20,
+            "failures": 0,
+            "p95Ms": 13.899999998509884,
+            "mainTimerMaxMs": 14.933100000000195
+          },
+          {
+            "control": "approval:respond",
+            "count": 20,
+            "failures": 0,
+            "p95Ms": 14.699999995529652,
+            "mainTimerMaxMs": 7.86830000000009
+          }
+        ]
+      },
+      {
+        "mib": 10,
+        "path": ".sunny-dev/ui-revamp/admission-control-10",
+        "accepted": false,
+        "cleanup": "observed",
+        "metrics": [
+          {
+            "control": "task:interrupt",
+            "count": 20,
+            "failures": 0,
+            "p95Ms": 358.1000000014901,
+            "mainTimerMaxMs": 29.33480000000054
+          },
+          {
+            "control": "approval:respond",
+            "count": 20,
+            "failures": 0,
+            "p95Ms": 507.70000000298023,
+            "mainTimerMaxMs": 23.97700000000259
+          }
+        ]
+      },
+      {
+        "mib": 30,
+        "path": ".sunny-dev/ui-revamp/admission-control-30",
+        "accepted": false,
+        "cleanup": "observed",
+        "metrics": [
+          {
+            "control": "task:interrupt",
+            "count": 20,
+            "failures": 0,
+            "p95Ms": 350.8999999985099,
+            "mainTimerMaxMs": 44.275400000002264
+          },
+          {
+            "control": "approval:respond",
+            "count": 20,
+            "failures": 0,
+            "p95Ms": 435.3999999985099,
+            "mainTimerMaxMs": 63.13810000000376
+          }
+        ]
+      }
+    ],
+    "diagnostics": {
+      "sql": ".sunny-dev/ui-revamp/native-storage-sql-probe-10",
+      "finding": "SQLite COMMIT spikes; insert/delete statements remain below 1ms. Disabling automatic checkpoints in diagnostic did not remove delay; no product durability settings changed.",
+      "standaloneFlush": ".sunny-dev/ui-revamp/flush-probe/interleaved-result.json",
+      "standaloneFinding": "Alternating file-only fsync test reproduced 146.99ms and 138.84ms maxima in repository and Temp paths. Specific OS/device cause remains unverified."
+    },
+    "cue": {
+      "path": ".sunny-dev/ui-revamp/admission-journey-cue",
+      "version": 1,
+      "status": "timeout",
+      "accepted": false,
+      "cleanup": "observed",
+      "lastStage": "scan-exit",
+      "elapsedMs": 300057,
+      "unfinished": "Second feedback delivery awaiting independent review when fixed 300-second supervisor expired"
+    },
+    "disposition": "Explicit user-approved installation exception; all failed checks remain failed"
+  },
+  "shortcutRestoration": {
+    "at": "2026-10-17T05:40:52.7383851Z",
+    "restored": "C:\\Users\\Quintin\\.codex\\worktrees\\sunny-donor-recovery\\sunny-hq\\.sunny-dev\\timeout-verification-hZxOoK\\win-unpacked\\Sunny HQ.exe",
+    "reason": "Candidate not accepted; prior launch target restored",
+    "appLaunched": false
+  },
+  "finalPackageChecks": {
+    "candidateCommit": "8b1096e1f5854029c893f4fc2c1e3eea9a11f90e",
+    "passed": 12,
+    "failed": 3,
+    "results": [
+      {
+        "name": "control-1",
+        "path": ".sunny-dev/ui-revamp/admission-control-1",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 13027,
+        "scenario": "ordered-control"
+      },
+      {
+        "name": "control-10",
+        "path": ".sunny-dev/ui-revamp/admission-control-10",
+        "version": 1,
+        "status": "failed",
+        "accepted": false,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 33844
+      },
+      {
+        "name": "control-30",
+        "path": ".sunny-dev/ui-revamp/admission-control-30",
+        "version": 1,
+        "status": "failed",
+        "accepted": false,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 57470
+      },
+      {
+        "name": "journey-cue",
+        "path": ".sunny-dev/ui-revamp/admission-journey-cue",
+        "version": 1,
+        "status": "timeout",
+        "accepted": false,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 300057
+      },
+      {
+        "name": "journey-motion-user",
+        "path": ".sunny-dev/ui-revamp/admission-journey-motion-user",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 73733,
+        "scenario": "journey-motion-user"
+      },
+      {
+        "name": "journey-motion-system",
+        "path": ".sunny-dev/ui-revamp/admission-journey-motion-system",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "scan-exit",
+        "elapsedMs": 76756,
+        "scenario": "journey-motion-system"
+      },
+      {
+        "name": "startup",
+        "path": ".sunny-dev/ui-revamp/admission-startup",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "platform-launch-requested",
+        "elapsedMs": 5021,
+        "scenario": "startup"
+      },
+      {
+        "name": "renderer-crash",
+        "path": ".sunny-dev/ui-revamp/admission-renderer-crash",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "store-open-enter",
+        "elapsedMs": 5415,
+        "scenario": "renderer-crash"
+      },
+      {
+        "name": "main-restart",
+        "path": ".sunny-dev/ui-revamp/admission-main-restart",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "app-ready",
+        "elapsedMs": 8546,
+        "scenario": "main-restart"
+      },
+      {
+        "name": "worker-loss",
+        "path": ".sunny-dev/ui-revamp/admission-worker-loss",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "root-registered",
+        "elapsedMs": 4704,
+        "scenario": "worker-loss"
+      },
+      {
+        "name": "write-failure",
+        "path": ".sunny-dev/ui-revamp/admission-write-failure",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "launch-return",
+        "elapsedMs": 5162,
+        "scenario": "write-failure"
+      },
+      {
+        "name": "lost-ack",
+        "path": ".sunny-dev/ui-revamp/admission-lost-ack",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "root-registered",
+        "elapsedMs": 5974,
+        "scenario": "lost-ack"
+      },
+      {
+        "name": "pending-approval",
+        "path": ".sunny-dev/ui-revamp/admission-pending-approval",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "root-registered",
+        "elapsedMs": 4676,
+        "scenario": "pending-approval"
+      },
+      {
+        "name": "pending-check",
+        "path": ".sunny-dev/ui-revamp/admission-pending-check",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "seed-enter",
+        "elapsedMs": 5134,
+        "scenario": "pending-check"
+      },
+      {
+        "name": "normal-quit",
+        "path": ".sunny-dev/ui-revamp/admission-normal-quit",
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "seed-enter",
+        "elapsedMs": 4634,
+        "scenario": "normal-quit"
+      }
+    ]
+  },
+  "installation": {
+    "installedAt": "2026-10-17T05:45:55.3662834Z",
+    "sourceCommit": "8b1096e1f5854029c893f4fc2c1e3eea9a11f90e",
+    "path": "C:\\Users\\Quintin\\AppData\\Local\\Programs\\Sunny HQ\\versions\\0.11.0-helm-8b1096e",
+    "exeSha256": "2ff9465e73764326bc9b6a821ba5c6e383751125dbf5ea1b91919fbc03947df3",
+    "asarSha256": "0f7b9632deb442b14e51fdf852ce45ebf7a8faaf390223d7f2257f4a58c49008",
+    "verifiedFiles": 251,
+    "shortcut": "C:\\Users\\Quintin\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Sunny HQ.lnk",
+    "previousTarget": "C:\\Users\\Quintin\\.codex\\worktrees\\sunny-donor-recovery\\sunny-hq\\.sunny-dev\\timeout-verification-hZxOoK\\win-unpacked\\Sunny HQ.exe",
+    "backup": "C:\\Users\\Quintin\\AppData\\Local\\Sunny HQ Backups\\before-helm-2026-10-17",
+    "newAppLaunched": false,
+    "releaseException": "User explicitly requested Install update commit everything after disclosure of 12/15 package checks and interrupted full suite",
+    "knownFailures": [
+      "10 MiB control latency",
+      "30 MiB control latency",
+      "two-build cue journey timeout"
+    ],
+    "fullSuite": "Interrupted, not passed",
+    "activation": "Open Sunny HQ from Start Menu; no app launched to avoid disrupting gaming",
+    "backupMigration": {
+      "passed": true,
+      "source": "C:\\Users\\Quintin\\AppData\\Local\\Sunny HQ Backups\\before-helm-2026-10-17\\sunny.sqlite",
+      "fixture": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-install-migration-4bwJtc",
+      "exactState": true,
+      "providerStarted": false
+    }
+  }
+}

@@ -1,10 +1,9 @@
 'use strict';
 const {createHash}=require('node:crypto');
 const {decide}=require('./jev/decide.cjs');
-const {ROLE_BINDINGS}=require('./mission-roles.cjs');
+const {CREW_ROLES,crewBinding}=require('./crew-registry.cjs');
 const {assertStageAssignment}=require('./mission-workflow.cjs');
 const {selectExecution}=require('./model-routing.cjs');
-const residents=require('./island-residents.json');
 const digest=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 function enabledFor(hub,task,env=process.env){
  return env.SUNNY_JEV_ENABLED==='1'&&typeof env.SUNNY_JEV_PROJECT_IDS==='string'
@@ -13,8 +12,7 @@ function enabledFor(hub,task,env=process.env){
 }
 function availableRoles(hub,task){
  if(!task.captain)return [];
- const roles=ROLE_BINDINGS.filter(r=>r.crewId!=='luffy'&&r.crewId!=='morgans').map(r=>({id:r.crewId,description:r.label+': '+r.capability}));
- for(const resident of residents){const current=hub.state.world.residents.find(r=>r.id===resident.id&&r.recruited);if(current)roles.push({id:current.id,description:current.role||resident.role});}
+ const roles=CREW_ROLES.filter(role=>role.access==='specialist'&&crewBinding(role.crewId,hub.state.world).eligible).map(role=>({id:role.crewId,description:hub.state.world.residents.find(value=>value.id===role.crewId)?.role||role.label+': '+role.capabilities.join(', ')}));
  const attempt=hub.state.missions.flatMap(m=>m.attempts).find(a=>a.taskId===task.id);
  return roles.filter(r=>{try{if(attempt)assertStageAssignment(attempt,hub.state.tasks,r.id);return true;}catch{return false;}});
 }

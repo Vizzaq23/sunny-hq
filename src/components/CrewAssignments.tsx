@@ -1,4 +1,4 @@
-import type {Task} from '../shared';
+import type {TaskSummary as Task} from '../shared';
 import {CREW_BY_ID} from '../data';
 import {MissionExecution} from './MissionExecution';
 import {CrewBadge} from './Chrome';

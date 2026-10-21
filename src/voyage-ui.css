@@ -1,0 +1,167 @@
+/* Shared visual layer; authoritative state and existing sprite geometry remain unchanged. */
+.voyage-ui{--ink:#203e43;--muted:#62736e;--ivory:#f4eddd;--paper:#fffcf3;--line:#d9ceb5;--teal:#22636b;--coral:#bd523a;--gold:#c9a15a;--voyage-art:url('/assets/thousand-sunny.png');background:#f4eddd;color:var(--ink)}
+.voyage-ui[data-view="projects"]{--voyage-art:url('/assets/project-quarters.png')}
+.voyage-ui[data-view="crew"]{--voyage-art:url('/assets/ship-deck.png')}
+.voyage-ui[data-view="missions"]{--voyage-art:url('/assets/nami-chart-room.png')}
+.voyage-ui[data-view="library"]{--voyage-art:url('/assets/robin-ship-library.png')}
+.voyage-ui[data-view="tools"]{--voyage-art:url('/assets/usopp-inventors-workshop.png')}
+.voyage-ui[data-view="inbox"]{--voyage-art:url('/assets/jinbe-helm-room.png')}
+.voyage-ui[data-view="settings"]{--voyage-art:url('/assets/luffy-captains-den.png')}
+.voyage-ui :is(button,a,input,select,textarea,summary):focus-visible{outline:3px solid #b65b2e;outline-offset:3px}
+.voyage-ui :is(button,a,summary){touch-action:manipulation}
+.voyage-ui button{transition:background-color .16s,border-color .16s,box-shadow .16s}
+.voyage-ui button:disabled{cursor:not-allowed}
+.voyage-ui svg{flex-shrink:0}
+.skip-to-work{position:fixed;left:16px;top:-100px;z-index:1000;padding:14px 20px;background:#fff5d8;color:#153e45;border-radius:8px}
+.skip-to-work:focus{top:12px}
+.voyage-ui .sidebar{width:230px;background:radial-gradient(ellipse at 0 0,#245560,transparent 70%),linear-gradient(180deg,#103b45,#092b34);border-right:1px solid #bc985b65;padding:0 14px 12px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#527278 transparent}
+.voyage-ui .sidebar:after{opacity:.045}
+.voyage-ui .brand{min-height:92px;padding:20px 6px;align-items:center}
+.voyage-ui .brand-mark{background:#cba35d;color:#183f46;border-radius:50%;border:3px double #ffe4a3;box-shadow:0 0 0 4px #cba35d15}
+.voyage-ui .brand strong{font-size:22px;color:#fff5dc}
+.voyage-ui .brand small{font-size:9px;color:#bbcbc4;letter-spacing:.09em}
+.voyage-ui .main-nav{padding-top:20px;overflow:visible}
+.voyage-ui .nav-label{color:#bba475;font-size:9px;letter-spacing:.16em}
+.voyage-ui .voyage-nav-group{margin-top:20px;padding-top:15px;border-top:1px solid #bba47530}
+.voyage-ui .main-nav>button{min-height:42px;padding:10px 12px;border-radius:6px;color:#c5d4cf;gap:10px;font-size:13px}
+.voyage-ui .main-nav>button:nth-of-type(6){margin-top:0;border-top:0;border-radius:6px}
+.voyage-ui .main-nav>button.active{background:#e5ca8c;color:#163d43;box-shadow:inset 3px 0 #fff0c1,0 3px 12px #0002}
+.voyage-ui .main-nav>button:hover:not(.active){background:#ffffff12;color:#fff6df}
+.voyage-ui .sidebar-foot{margin-top:20px}
+.voyage-ui .connection{color:#bbc9be}
+.voyage-ui .topbar{min-height:76px;padding:13px 28px;background:#fffcf3;border-bottom:1px solid #d2c3a4;backdrop-filter:none}
+.voyage-ui .topbar h1{font-size:26px;color:#1a4249}
+.voyage-ui .topbar-kicker{color:#826a43;font-size:9px;letter-spacing:.16em}
+.voyage-ui .top-action{background:#245963;color:#fff5de;border-color:#245963;border-radius:6px;padding:10px 16px}
+.voyage-ui .status-pill{border-radius:5px;font-size:11px;background:#eee7d5;color:#695632}
+.voyage-ui .continuous-content{display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.voyage-ui .journey-surface{flex:1;min-height:0;overflow:auto;scrollbar-color:#bbae91 transparent;background:radial-gradient(ellipse at top right,#e6e8d8,transparent 60%),#f4eddd;scroll-padding:24px}
+.voyage-ui .journey-surface:focus-visible{outline:3px solid #b65b2e;outline-offset:-3px}
+.voyage-ui .page{padding:28px 32px 44px;max-width:1600px;animation:none}
+.voyage-ui .journey-surface>.page>.page-intro,.voyage-ui .home-heading{position:relative;isolation:isolate;min-height:235px;align-items:center;overflow:hidden;padding:32px;margin:0 0 28px;border:1px solid #c9ba99;border-radius:14px;background:#f9f1df;box-shadow:0 6px 20px #183e4510;gap:20px}
+.voyage-ui .journey-surface>.page>.page-intro:before,.voyage-ui .home-heading:before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background-image:linear-gradient(90deg,#fbf4e5 0%,#fbf4e5f5 35%,#fbf4e51a 75%),var(--voyage-art);background-position:center,right center;background-size:cover,62% auto;background-repeat:no-repeat}
+.voyage-ui :is(.page-intro,.home-heading)>div{max-width:56%}
+.voyage-ui :is(.page-intro,.home-heading) h2{font-size:clamp(30px,3vw,45px);line-height:1.1;color:#1b4249;text-wrap:balance}
+.voyage-ui :is(.page-intro,.home-heading) p{color:#4f655f;font-size:14px;line-height:1.65}
+.voyage-ui :is(.page-intro,.home-heading)>button{align-self:flex-end;background:#fffaf0ef;box-shadow:0 3px 12px #173e4520}
+.voyage-ui .eyebrow{color:#8d6336;font-size:10px;letter-spacing:.13em}
+.voyage-ui :is(.panel,.project-card,.crew-card,.mission-card,.tool-card,.settings-section,.infra-panel,.mission-brief,.mission-log){border:1px solid #d6c8ab;border-radius:12px;background:#fffcf3;box-shadow:0 4px 16px #163e4507}
+.voyage-ui :is(.project-grid,.crew-grid,.tool-grid){gap:18px;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))}
+.voyage-ui .crew-card{padding:26px 22px;border-top:3px solid var(--crew,#c7a368)}
+.voyage-ui .crew-card h3{font-size:27px}
+.voyage-ui .crew-card p{font-size:13px;line-height:1.65;color:#5e7068}
+.voyage-ui .crew-card button{min-height:38px}
+.voyage-ui .crew-station{font-size:10px;letter-spacing:.1em}
+.voyage-ui :is(.primary-button,.small-button,.launch-submit){background:#245e66;color:#fff8e6;border-radius:7px;box-shadow:0 4px 12px #19454c18}
+.voyage-ui :is(.secondary-button,.small-button,.primary-button){min-height:40px;white-space:normal}
+.voyage-ui :is(input,select,textarea){border-radius:6px;color:#203e43;accent-color:#22636b}
+.voyage-ui :is(input,select){min-height:38px}
+.voyage-ui :is(.search-box,.task-search){background:#fffdf5;border-color:#cdbf9f;border-radius:7px}
+.voyage-ui .empty-state{border:1px dashed #cbbb98;border-radius:12px;background:#faf4e5;padding:36px 24px}
+.voyage-ui .empty-state p{color:#5c6d63;font-size:14px}
+.voyage-ui .settings-layout{gap:22px}
+.voyage-ui .settings-section{padding:24px}
+.voyage-ui .setting-row{padding:18px 0}
+.voyage-ui .setting-row small{font-size:12px;color:#607167;line-height:1.6}
+.voyage-ui .mission-board-layout{grid-template-columns:minmax(280px,.85fr) minmax(0,1.15fr);gap:22px}
+.voyage-ui .home-page .mission-board{padding:0}
+.voyage-ui .home-page .mission-board>.page-intro{margin-bottom:20px}
+.voyage-ui .home-page .mission-board>.page-intro>div{max-width:100%}
+.voyage-ui .home-page .mission-board>.page-intro h2{font-size:28px}
+.voyage-ui .home-page .home-stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+.voyage-ui .journey-scene{margin:20px 28px;border:1px solid #b8c9bf;border-radius:14px;overflow:hidden;background:#d9ece5}
+.voyage-ui .journey-scene>summary{padding:14px 20px;background:#214f59;color:#fff1ce;font-size:14px}
+.voyage-ui .journey-scene .page{padding:0}
+.voyage-ui .journey-scene .ship-board{max-height:none}
+.voyage-ui[data-view="ship"] .home-heading{min-height:160px}
+.voyage-ui[data-view="ship"] .home-heading:before{background-image:linear-gradient(110deg,#fcf4e2,#e6eddc)}
+.voyage-ui .morgans-masthead{min-height:270px;padding:24px 30px;border:1px solid #c8b895;border-bottom:4px double #b69b68;border-radius:14px;background:#fff7e5;gap:20px}
+.voyage-ui .morgans-masthead h2{font-size:clamp(36px,4vw,58px)}
+.voyage-ui .morgans-masthead img{width:43%;max-width:440px}
+.voyage-ui .morgans-report{box-shadow:none;border-radius:12px;background:#fffaf0}
+.voyage-ui .morgans-layout{grid-template-columns:minmax(0,1fr) 290px}
+.voyage-ui .morgans-story{border-radius:10px;border-color:#d5c5a7}
+.voyage-ui .morgans-story p,.voyage-ui .morgans-sidebar p{color:#52675d}
+.voyage-ui .morgans-filters>div{flex-wrap:wrap}
+.voyage-ui .morgans-filters button{min-height:38px}
+.voyage-ui .embedded-workbench{height:100%;min-height:480px;background:#f8f0df}
+.voyage-ui .workbench-head{background:#fff9e9;border-bottom-color:#cdbb96;padding:16px 22px}
+.voyage-ui .workbench-body{background:#f6efdf}
+.voyage-ui .chat-pane{background:#fffcf4}
+.voyage-ui .workbench .composer{border:1px solid #cdbd9c;border-radius:12px;background:#fffaf0;box-shadow:0 5px 18px #123d4510}
+.voyage-ui .workbench .work-tabs{background:#e9e2ce}
+.voyage-ui .logbook-dock{flex:none;order:initial;border-top:1px solid #bca779;background:#fff8e7;min-width:0;z-index:2}
+.voyage-ui .logbook-dock>summary{display:flex;align-items:center;gap:14px;list-style:none;cursor:pointer;padding:13px 28px;min-height:48px;color:#234b51;font-size:14px;font-weight:700}
+.voyage-ui .logbook-dock>summary::-webkit-details-marker{display:none}
+.voyage-ui .logbook-dock>summary:before{content:'⌃';font-size:20px;line-height:1}
+.voyage-ui .logbook-dock[open]>summary:before{content:'⌄'}
+.voyage-ui .logbook-dock>summary small{font-weight:400;color:#6b6d5b;font-size:12px}
+.voyage-ui .logbook-dock>summary b{margin-left:auto;background:#f6dfb1;color:#70491f;padding:4px 9px;border-radius:5px;font-size:12px}
+.voyage-ui .logbook-dock .captain-log{order:initial;border:0;border-top:1px solid #e0d3b5;max-height:40vh;overflow:auto;padding:22px 28px;background:#fffaf0}
+.voyage-ui .captain-queue{max-width:1100px}
+.voyage-ui .captain-queue :is(input,select){min-height:40px}
+@media(min-width:1500px){.voyage-ui .page{padding:36px 48px}.voyage-ui .journey-surface>.page>.page-intro,.voyage-ui .home-heading{min-height:290px}.voyage-ui .crew-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:1100px){.voyage-ui .sidebar{width:210px}.voyage-ui .page{padding:22px}.voyage-ui .mission-board-layout,.voyage-ui .morgans-layout{grid-template-columns:1fr}.voyage-ui .morgans-sidebar{grid-template-columns:1fr 1fr}.voyage-ui :is(.page-intro,.home-heading)>div{max-width:65%}.voyage-ui .journey-scene{margin:18px 22px}}
+@media(max-width:760px){.voyage-ui .topbar{padding:12px 16px}.voyage-ui .topbar h1{font-size:22px}.voyage-ui .topbar-actions{gap:6px}.voyage-ui .status-pill{font-size:10px}.voyage-ui .page{padding:16px}.voyage-ui .journey-surface>.page>.page-intro,.voyage-ui .home-heading{min-height:240px;padding:24px;align-items:flex-start;flex-direction:column}.voyage-ui :is(.page-intro,.home-heading)>div{max-width:85%}.voyage-ui .journey-surface>.page>.page-intro:before,.voyage-ui .home-heading:before{background-size:cover,100% auto;background-image:linear-gradient(90deg,#fbf4e5f5,#fbf4e5bb),var(--voyage-art)}.voyage-ui .journey-scene{margin:16px}.voyage-ui .morgans-masthead{padding:22px;min-height:240px}.voyage-ui .morgans-masthead img{width:35%}.voyage-ui .morgans-masthead small{font-size:12px}.voyage-ui .logbook-dock>summary{padding:12px 16px;flex-wrap:wrap;gap:8px}.voyage-ui .logbook-dock>summary small{display:none}.voyage-ui .logbook-dock .captain-log{padding:18px}.voyage-ui .morgans-sidebar{grid-template-columns:1fr}.voyage-ui .morgans-report{padding:16px}.voyage-ui .crew-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr))}}
+@media(prefers-reduced-motion:reduce){.voyage-ui *,.voyage-ui *:before,.voyage-ui *:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+.voyage-ui.reduce-motion *,.voyage-ui.reduce-motion *:before,.voyage-ui.reduce-motion *:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+/* Keep one ship identity when Home supplies its own legacy palette. */
+.voyage-ui.continuous-shell .sidebar{background:radial-gradient(ellipse at 0 0,#245560,transparent 70%),linear-gradient(180deg,#103b45,#092b34)}
+.voyage-ui.continuous-shell .topbar{background:#fffcf3;border-bottom-color:#d2c3a4}
+.voyage-ui.continuous-shell .brand-mark{background:#cba35d}
+.voyage-ui.continuous-shell .main-nav>button.active{background:#e5ca8c;color:#163d43}
+.voyage-ui .journey-surface>.page>.page-intro:before,.voyage-ui .home-heading:before{background-image:linear-gradient(90deg,#fbf4e5 0%,#fbf4e5f5 44%,#fbf4e530 78%),var(--voyage-art)}
+@media(max-width:900px){.voyage-ui .sidebar:not(.is-open){visibility:hidden}.voyage-ui .sidebar.is-open{visibility:visible}}
+@media(max-width:480px){.voyage-ui .morgans-masthead{display:grid;grid-template-columns:1fr}.voyage-ui .morgans-masthead img{width:70%;max-height:140px;justify-self:center;order:-1}.voyage-ui .morgans-masthead h2{font-size:36px}.voyage-ui .home-page .home-stats{grid-template-columns:1fr}.voyage-ui .topbar-title{flex-basis:130px}.voyage-ui .topbar-actions>button{padding:8px 10px}.voyage-ui .morgans-filters label{min-width:0;max-width:100%}}
+@media(max-width:760px){.voyage-ui .journey-surface>.page>.page-intro:before,.voyage-ui .home-heading:before{background-image:linear-gradient(180deg,#fbf4e5 0%,#fbf4e5f0 43%,#fbf4e530 100%),var(--voyage-art);background-position:center,right bottom}.voyage-ui :is(.page-intro,.home-heading)>div{max-width:100%}}
+/* Keep identity and Settings anchored while only the destination list scrolls. */
+.voyage-ui.continuous-shell .sidebar{overflow:hidden}
+.voyage-ui.continuous-shell .sidebar .main-nav{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#527278 transparent}
+.voyage-ui.continuous-shell .sidebar .sidebar-foot{flex:0 0 auto;margin-top:8px}
+.voyage-ui.continuous-shell .sidebar .sidebar-projects{max-height:160px;overflow:auto}
+/* Clear work surfaces: seawater actions, parchment fields, brass navigation. */
+.voyage-ui{--muted:#52645f}
+.voyage-ui .topbar{height:76px}
+.voyage-ui :is(.topbar-kicker,.nav-label,.eyebrow,.crew-station){font-size:11px;letter-spacing:.1em}
+.voyage-ui .brand small{font-size:10px;letter-spacing:.025em}
+.voyage-ui .nav-empty{font-size:12px;color:#c2cec7;line-height:1.5}
+.voyage-ui :is(.primary-button,.secondary-button,.small-button,.top-action,.launch-submit,.home-explore){min-height:44px;height:auto;padding:11px 16px;font-size:14px;line-height:1.4;font-weight:700;border-radius:8px;border:1px solid #245e66;white-space:normal}
+.voyage-ui :is(.primary-button,.small-button,.top-action,.launch-submit){background:#215760;color:#fff9ea;box-shadow:inset 0 1px #ffffff20,0 2px 0 #123c43}
+.voyage-ui :is(.secondary-button,.home-explore){background:#fffaf0;color:#234e55;border-color:#b5b6a0;box-shadow:0 2px 0 #d8ceb8}
+.voyage-ui :is(.primary-button,.small-button,.top-action,.launch-submit):hover:not(:disabled){background:#163f48;transform:none}
+.voyage-ui :is(.secondary-button,.home-explore):hover:not(:disabled){background:#eee5cf;border-color:#8b927c}
+.voyage-ui :is(.primary-button,.small-button,.top-action,.launch-submit):disabled{opacity:1;background:#dce3dc;color:#52655e;border-color:#b6c3ba;box-shadow:none}
+.voyage-ui :is(.text-button,.ghost-button){font-size:13px;min-height:36px;color:#8e432f;text-decoration:underline;text-underline-offset:3px}
+.voyage-ui :is(input:not([type=checkbox]):not([type=radio]),select,textarea){font-size:14px;line-height:1.5;background-color:#fffef9;border-color:#aebdb3}
+.voyage-ui :is(input,textarea)::placeholder{color:#65746d;opacity:1}
+.voyage-ui :is(input:not([type=checkbox]):not([type=radio]),select){min-height:44px}
+.voyage-ui .crew-run-panel{margin:16px 32px 0;padding:16px 20px;border-radius:10px;border-color:#b6c9bd;border-left:4px solid #467c75;background:#edf2e9;font-size:14px;line-height:1.5}
+.voyage-ui .crew-run-panel h2{font-size:18px}
+.voyage-ui .crew-run-unselected>p{margin:8px 0 0;color:#52645f;font-size:13px}
+.voyage-ui .crew-run-panel label{font-size:13px;font-weight:600}
+.voyage-ui .crew-run-panel button{min-height:44px;font-size:14px}
+.voyage-ui .crew-run-panel .run-stop{color:#8f3429;border-color:#c78f7d;background:#fff4eb}
+.voyage-ui .home-heading{min-height:190px;margin-bottom:24px;padding:26px 30px}
+.voyage-ui .home-heading h2{font-size:clamp(30px,3vw,40px)}
+.voyage-ui .mission-board-brief-only .mission-board-layout{grid-template-columns:minmax(0,1fr)}
+.voyage-ui .mission-board-brief-only .mission-brief{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 24px;border-top:4px solid #bc985b}
+.voyage-ui .mission-board-brief-only .mission-brief>h3,.voyage-ui .mission-board-brief-only .mission-brief>.brief-title,.voyage-ui .mission-board-brief-only .mission-brief>.brief-descriptor,.voyage-ui .mission-board-brief-only .mission-brief>p,.voyage-ui .mission-board-brief-only .mission-brief>.draft-status{grid-column:1/-1;margin:0}
+.voyage-ui .mission-board-brief-only .mission-brief>label{margin:0;align-content:start}
+.voyage-ui .mission-board-brief-only .mission-create{align-self:end;width:100%}
+.voyage-ui .mission-board label{font-size:14px;color:#2e504d}
+.voyage-ui .mission-board p{font-size:14px;color:#52645f}
+.voyage-ui .mission-board-brief-only .mission-brief>p{font-size:13px;max-width:78ch}
+.voyage-ui .mission-brief textarea{min-height:120px}
+.voyage-ui .home-page .mission-board>.page-intro{margin-bottom:16px}
+.voyage-ui .home-page .mission-board>.page-intro h2{font-size:25px}
+.voyage-ui .home-conversations{margin-top:24px;border-top:1px solid #cdbf9f;padding-top:16px}
+.voyage-ui .home-conversations>summary{font-size:14px;font-weight:600;color:#28555a;cursor:pointer;padding:12px 0}
+.voyage-ui .crew-card p{font-size:14px;color:#52645f}
+.voyage-ui .setting-row small{font-size:13px;color:#52645f}
+@media(max-width:1100px){.voyage-ui .crew-run-panel{margin-inline:22px}}
+@media(max-width:760px){.voyage-ui .crew-run-panel{margin:12px 16px 0;padding:14px}.voyage-ui .crew-run-panel label{display:grid;width:100%;margin-top:8px}.voyage-ui .crew-run-panel select{width:100%}.voyage-ui .home-heading{min-height:220px;padding:24px}.voyage-ui .mission-board-brief-only .mission-brief{grid-template-columns:minmax(0,1fr);padding:20px;gap:18px}.voyage-ui .top-action{font-size:13px}.voyage-ui .topbar{height:auto;min-height:76px}}
+.voyage-ui .crew-card>button{width:100%;justify-content:center;min-height:44px;padding:10px 14px;border:1px solid #215760;border-radius:8px;background:#215760;color:#fff9ea;font-size:14px;line-height:1.4}
+.voyage-ui .crew-card>.journal-open{background:#f1ead9;color:#3f5750;border-color:#c5c4ad;font-size:13px}
+.voyage-ui .crew-card>button:hover{background:#163f48;color:#fff9ea}
+.voyage-ui .crew-card .crew-station{font-size:11px;color:#80552e}
+.voyage-ui .crew-card h4{font-size:11px;color:#52645f;line-height:1.5}

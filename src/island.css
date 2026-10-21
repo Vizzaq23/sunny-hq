@@ -43,12 +43,3 @@
 .captain-map-controls{display:flex;align-items:center;gap:14px;padding:12px 15px;border-top:1px solid #d9d5c5;background:#f5efde}.captain-map-controls>label{display:grid;gap:5px;min-width:190px;color:#315e5b;font-size:11px;font-weight:700}.captain-map-controls select{min-height:36px;padding:7px 9px;border:1px solid #d0cdbb;border-radius:7px;background:#fffdf5;color:#234f53;font:inherit;font-weight:500}.island-move-pad{display:grid;grid-template:34px 34px/34px 34px 34px;gap:3px}.island-move-pad button{border:1px solid #c9c6b4;border-radius:7px;background:#fffcf3;color:#194e57;font-size:19px;line-height:1;box-shadow:0 2px 3px #243d3716}.island-move-pad button:active{transform:translateY(1px);background:#e5ebd9}.island-move-pad button:nth-child(1){grid-area:1/2}.island-move-pad button:nth-child(2){grid-area:2/1}.island-move-pad button:nth-child(3){grid-area:2/2}.island-move-pad button:nth-child(4){grid-area:2/3}.captain-map-hint{max-width:470px;color:#687871;font-size:10px;line-height:1.5}
 @media(max-width:640px){.captain-map-controls{align-items:flex-start;flex-wrap:wrap}.captain-map-controls>label{flex:1 1 160px}.captain-map-hint{flex:1 1 100%}}
 @media(prefers-reduced-motion:reduce){.island-page .island-actors .deck-crew,.island-page .island-resident{transition:none!important}}
-
-/* Chart view lets the illustrated voyage use the full page while keeping the district desk reachable. */
-.island-page.chart-expanded .island-layout{grid-template-columns:minmax(0,1fr)}
-.island-page.chart-expanded .island-viewport{height:min(76vh,840px);min-height:560px}
-.island-page.chart-expanded .island-control{max-height:none;scroll-margin-top:96px}
-.island-page .island-control:focus{outline:3px solid #f1ad65;outline-offset:3px}
-.island-page .island-map-toolbar button[aria-pressed="true"]{background:#155760;color:#fff9e9;border-color:#155760}
-.island-page .chart-return-button{display:block;margin:0 0 14px;padding:7px 10px;border:1px solid #cbd4c5;border-radius:7px;background:#fffdf6;color:#23565b;font-size:11px;font-weight:700}
-@media(max-width:640px){.island-page.chart-expanded .island-viewport{min-height:430px;height:68vh}}

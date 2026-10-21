@@ -1,0 +1,43 @@
+{
+  "installedAt": "2026-10-18T02:15:17.2273117Z",
+  "sourceCommit": "6f18908ff6fd70451cf4d81166f2aa1823115d99",
+  "path": "C:\\Users\\Quintin\\AppData\\Local\\Programs\\Sunny HQ\\versions\\0.11.0-quarters-6f18908",
+  "exeSha256": "ee012426d963cfb5a46f0401171154a69a13c1a3e35b4a8ed5ddf34bb84b6eba",
+  "asarSha256": "9e231faa396409721ee7e1c45ae26b3e06382699405a6a362caad83a028fc3f9",
+  "verifiedFiles": 249,
+  "shortcut": "C:\\Users\\Quintin\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Sunny HQ.lnk",
+  "backup": "C:\\Users\\Quintin\\AppData\\Local\\Sunny HQ Backups\\before-quarters-2026-10-17",
+  "newAppLaunched": false,
+  "packageChecks": [
+    {
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "platform-launch-requested",
+      "elapsedMs": 5858,
+      "scenario": "startup"
+    },
+    {
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "store-open-enter",
+      "elapsedMs": 5714,
+      "scenario": "renderer-crash"
+    },
+    {
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "platform-launch-requested",
+      "elapsedMs": 5490,
+      "scenario": "pending-approval"
+    }
+  ],
+  "workflowPassed": true,
+  "focusedTestsPassed": 21,
+  "knownLimitations": "Previously disclosed 10/30 MiB latency, cue timeout and interrupted full suite remain unresolved; full package matrix not repeated for this presentation-only change."
+}

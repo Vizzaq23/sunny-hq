@@ -1,0 +1,57 @@
+# Run presentation and goal entry — 2026-10-04
+
+Task14 extends v3 additively. Optional run `presentation.calls` contains bounded
+request receipts: requestId, projectId, runId, attemptId, revision, state
+(seen/snoozed), time, optional taskId/type/resolved. A recovered unresolved receipt stays listed as requiring reconciliation, with no live answer authority. An absent attempt is represented by the literal `none` for
+coordinator calls before a mission attempt exists. These are presentation receipts
+only; they cannot answer, approve, accept, dispatch or change a run revision.
+`run:ackCall` requires the exact current request binding and expectedRevision;
+the ordered required barrier persists it. Repeats replace the same receipt, never
+remove the pending request. Snooze silences that request until it changes; there is
+no timer or provider wakeup. The public boundary exposes only these fields.
+
+Pending request binding is derived in main from its task and retained run/mission
+ownership. Answers keep `approval:respond` and must include this binding for
+supervised requests; revision changes reject stale answers before any provider
+effect. Recovery keeps receipts but requires reconciliation for lost live requests.
+
+WorkContext gains optional runId in current and return selection, validated against
+project/mission membership. Missing IDs remain retained and unavailable. The pure
+run and attention projections consume public state, never assistant prose.
+Unknown or failed storage overrides working animation; readiness requires the
+existing selected-result verifier and captain acceptance remains a separate receipt.
+
+Goal entry saves a mission and bounded captain grant/run before attempting actual
+integration-workspace/coordinator setup. The default disabled supervision gate
+returns a visible blocked saved run without claiming execution. Trusted offline
+fixtures exercise the actual setup path. Ordinary conversation remains explicit.
+
+Compatibility: optional fields preserve old v3 profiles and workflow-v1 history.
+The existing profile backup/ordered barrier is reused; no automatic migration,
+budget refill or destructive rollback. Rollback uses a preserved pre-upgrade
+fixture/profile copy, never overwrites a current profile. Failure tests cover
+strict fields, stale binding, unchanged authority, restart dedup and storage failure.
+
+Native run-ui states are hardcoded labelled display fixtures only; seeded ready
+and accepted receipts prove rendering, not actual acceptance. Actual actions are
+covered separately with the trusted offline Hub. The frozen fixture and zero-effect
+offline transport remain unchanged.
+
+Reviewed corrections: run-bound mission starts are coordinator-only. Worker calls
+and navigation resolve the coordinator ancestry to its mission attempt; assignment
+ownership supplements (never rewrites) mission task membership. Roster retains
+all assignment history and selects current work first. Cancelled dependencies stay
+blocked. Recovery selects the latest saved request revision/time. The private
+run-ui window uses offscreen painting and bounded capture; normal windows retain
+their security settings. Driver phase1 exit73 and distinct-main checks include run-ui.
+
+Final integration correction — 2026-10-07: notification identity is the stable
+project/run/attempt/request tuple. A live request retains its seen/snoozed state
+through unrelated run revisions; its response binding still uses the exact current
+revision. New acknowledgments update the latest unresolved receipt for that tuple
+instead of allocating one receipt per revision. Existing multiple-revision receipts
+remain accepted and retained, with the newest time/revision used for the live call;
+there is no schema change or destructive migration. A failed required acknowledgment
+still cannot start audio. The optional sound controller deduplicates by that same
+stable tuple, cancels pending playback on mute/unmount, and stops/closes active audio
+immediately. Cancellation is presentation-only; the required acknowledgment continues.

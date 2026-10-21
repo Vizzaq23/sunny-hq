@@ -1,9 +1,10 @@
+const {receiptStore}=require('./helpers/receipt-store.cjs');
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const {Hub}=require('../desktop/hub.cjs');
 
 function fixture(t){
- const hub=new Hub({home:process.cwd(),store:{load:()=>({}),save:()=>{},close:()=>{}},catalog:{discoverProjects:()=>[{id:'p',path:process.cwd()}],discoverTools:()=>[],discoverAutomations:()=>[]}});
+ const hub=new Hub({home:process.cwd(),store:receiptStore({load:()=>({}),save:()=>{},close:()=>{}}),catalog:{discoverProjects:()=>[{id:'p',path:process.cwd()}],discoverTools:()=>[],discoverAutomations:()=>[]}});
  t.after(()=>hub.close());
  const task={id:'task',projectId:'p',crewId:'franky',threadId:'thread',turnId:'turn',status:'working',messages:[]};
  hub.state.tasks.push(task);
@@ -26,78 +27,86 @@ test('nullable elicitation cannot bind to a task without a valid thread',t=>{
  }
  assert.equal(hub.state.approvals.length,0);assert.equal(sent.length,0);assert.equal(rejected.length,6);
 });
-test('approval cannot authorize a superseding turn',t=>{
+test('approval cannot authorize a superseding turn',async t=>{
  const {hub,task,sent,request}=fixture(t);request();const a=hub.state.approvals[0];task.turnId='new-turn';
- assert.throws(()=>hub.respond({id:a.id,decision:'accept'}),/no longer|stale|changed/i);assert.equal(sent.length,0);
+ await assert.rejects(()=>hub.respond({id:a.id,decision:'accept'}),/no longer|stale|changed/i);assert.equal(sent.length,0);
 });
-test('reused RPC IDs cannot replay a previously displayed approval',t=>{
- const {hub,sent,request}=fixture(t);request();const old=hub.state.approvals[0];hub.respond({id:old.id,decision:'decline'});
+test('reused RPC IDs cannot replay a previously displayed approval',async t=>{
+ const {hub,sent,request}=fixture(t);request();const old=hub.state.approvals[0];await hub.respond({id:old.id,decision:'decline'});
  request();assert.notEqual(hub.state.approvals[0].id,old.id);
- assert.throws(()=>hub.respond({id:old.id,decision:'accept'}),/no longer/i);assert.equal(sent.length,1);
+ await assert.rejects(()=>hub.respond({id:old.id,decision:'accept'}),/no longer/i);assert.equal(sent.length,1);
 });
-test('resolving one of several requests keeps the task waiting',t=>{
+test('resolving one of several requests keeps the task waiting',async t=>{
  const {hub,task,request}=fixture(t);request(1);request(2);
- hub.respond({id:hub.state.approvals[0].id,decision:'accept'});
+ await hub.respond({id:hub.state.approvals[0].id,decision:'accept'});
  assert.equal(task.status,'waiting');assert.equal(hub.state.approvals.length,1);
- hub.notification({method:'serverRequest/resolved',params:{threadId:'thread',requestId:2}});
+ await hub.notification({method:'serverRequest/resolved',params:{threadId:'thread',requestId:2}});
  assert.equal(task.status,'working');assert.equal(hub.state.approvals.length,0);
 });
-test('permission snapshot is detached from mutable provider parameters',t=>{
+test('permission snapshot is detached from mutable provider parameters',async t=>{
  const {hub,sent}=fixture(t);const permissions={network:{enabled:false}};
  hub.request({id:1,method:'item/permissions/requestApproval',params:{threadId:'thread',turnId:'turn',permissions}});
  permissions.network.enabled=true;
- hub.respond({id:hub.state.approvals[0].id,decision:'accept'});
+ await hub.respond({id:hub.state.approvals[0].id,decision:'accept'});
  assert.equal(sent[0].result.permissions.network.enabled,false);
 });
-test('expired acceptance sends nothing; same live request may still be declined',t=>{
+test('expired acceptance sends nothing; same live request may still be declined',async t=>{
  const {hub,sent,request}=fixture(t);request();const a=hub.state.approvals[0];
  const realNow=Date.now;Date.now=()=>realNow()+31*60*1000;
- try{assert.throws(()=>hub.respond({id:a.id,decision:'accept'}),/expired/i);assert.equal(sent.length,0);hub.respond({id:a.id,decision:'decline'});}finally{Date.now=realNow;}
+ try{await assert.rejects(()=>hub.respond({id:a.id,decision:'accept'}),/expired/i);assert.equal(sent.length,0);await hub.respond({id:a.id,decision:'decline'});}finally{Date.now=realNow;}
  assert.equal(sent[0].result.decision,'decline');
 });
-test('declining user input does not submit the filled answers',t=>{
+test('declining user input does not submit the filled answers',async t=>{
  const {hub,sent}=fixture(t);
  hub.request({id:1,method:'item/tool/requestUserInput',params:{threadId:'thread',turnId:'turn',questions:[{id:'q',question:'Proceed?'}]}});
- hub.respond({id:hub.state.approvals[0].id,decision:'decline',answers:{q:'yes'}});
+ await hub.respond({id:hub.state.approvals[0].id,decision:'decline',answers:{q:'yes'}});
  assert.deepEqual(sent[0].result,{answers:{}});
 });
-test('unknown question and invalid decision reject before provider output',t=>{
+test('unknown question and invalid decision reject before provider output',async t=>{
  const {hub,sent}=fixture(t);
  hub.request({id:1,method:'item/tool/requestUserInput',params:{threadId:'thread',turnId:'turn',questions:[{id:'q'}]}});
  const id=hub.state.approvals[0].id;
- assert.throws(()=>hub.respond({id,decision:'accept',answers:{injected:'yes'}}),/question/i);
- assert.throws(()=>hub.respond({id,decision:'acceptForSession'}),/allow or decline/i);assert.equal(sent.length,0);
+ await assert.rejects(()=>hub.respond({id,decision:'accept',answers:{injected:'yes'}}),/question/i);
+ await assert.rejects(()=>hub.respond({id,decision:'acceptForSession'}),/allow or decline/i);assert.equal(sent.length,0);
 });
-test('active status notifications cannot hide a pending approval',t=>{
+test('active status notifications cannot hide a pending approval',async t=>{
  const {hub,task,request}=fixture(t);request();
- hub.notification({method:'thread/status/changed',params:{threadId:'thread',status:{type:'active',activeFlags:[]}}});
+ await hub.notification({method:'thread/status/changed',params:{threadId:'thread',status:{type:'active',activeFlags:[]}}});
  assert.equal(task.status,'waiting');
 });
-test('approval received before start acknowledgement binds to the eventual turn',t=>{
+test('approval received before start acknowledgement binds to the eventual turn',async t=>{
  const {hub,task,sent,request}=fixture(t);task.turnId=undefined;request();
- assert.throws(()=>hub.respond({id:hub.state.approvals[0].id,decision:'accept'}),/no longer/);
- hub.notification({method:'turn/started',params:{threadId:'thread',turn:{id:'turn'}}});
- hub.respond({id:hub.state.approvals[0].id,decision:'accept'});assert.equal(sent.length,1);
+ await assert.rejects(()=>hub.respond({id:hub.state.approvals[0].id,decision:'accept'}),/no longer/);
+ await hub.notification({method:'turn/started',params:{threadId:'thread',turn:{id:'turn'}}});
+ await hub.respond({id:hub.state.approvals[0].id,decision:'accept'});assert.equal(sent.length,1);
 });
-test('changed project and completed task both invalidate approval',t=>{
+test('changed project and completed task both invalidate approval',async t=>{
  const {hub,task,sent,request}=fixture(t);request();const id=hub.state.approvals[0].id;
- task.projectId='other';assert.throws(()=>hub.respond({id,decision:'accept'}),/no longer/);
- task.projectId='p';task.status='finished';assert.throws(()=>hub.respond({id,decision:'accept'}),/no longer/);assert.equal(sent.length,0);
+ task.projectId='other';await assert.rejects(()=>hub.respond({id,decision:'accept'}),/no longer/);
+ task.projectId='p';task.status='finished';await assert.rejects(()=>hub.respond({id,decision:'accept'}),/no longer/);assert.equal(sent.length,0);
 });
 test('command approvals require a provider turn identifier',t=>{
  const {hub,task,rejected,request}=fixture(t);task.turnId=undefined;
  for(const turnId of [undefined,null,'',42,{}])request(rejected.length+1,{turnId});
  assert.equal(hub.state.approvals.length,0);assert.equal(rejected.length,5);
 });
-test('nullable MCP elicitation stays bound to its local execution across acknowledgement',t=>{
+test('nullable MCP elicitation stays bound to its local execution across acknowledgement',async t=>{
  const {hub,task,sent}=fixture(t);task.turnId=undefined;task.executionId='execution';
  hub.request({id:1,method:'mcpServer/elicitation/request',params:{threadId:'thread',turnId:null}});
  const id=hub.state.approvals[0].id;
- hub.notification({method:'turn/started',params:{threadId:'thread',turn:{id:'turn'}}});
- hub.respond({id,decision:'decline'});assert.equal(sent.length,1);
+ await hub.notification({method:'turn/started',params:{threadId:'thread',turn:{id:'turn'}}});
+ await hub.respond({id,decision:'decline'});assert.equal(sent.length,1);
 });
-test('foreign thread resolution cannot remove a captain request',t=>{
+test('foreign thread resolution cannot remove a captain request',async t=>{
  const {hub,request}=fixture(t);request();
- hub.notification({method:'serverRequest/resolved',params:{threadId:'foreign',requestId:1}});
+ await hub.notification({method:'serverRequest/resolved',params:{threadId:'foreign',requestId:1}});
  assert.equal(hub.state.approvals.length,1);
 });
+test('result acceptance never answers an unrelated provider approval',async t=>{
+ const {hub,task,sent,request}=fixture(t);request();const approval=structuredClone(hub.state.approvals[0]);
+ const mission=await hub.createMission({projectId:'p',title:'Result review fixture',objective:'Review only this bounded result',acceptanceCriteria:['Review the assistant output']});const attempt=hub.missionBook.begin(mission.id,mission.revision),text='Finished bounded fixture output';
+ const producer={id:attempt.taskId,projectId:'p',status:'finished',messages:[{id:'result',role:'assistant',text}]};hub.state.tasks.push(producer);hub.missionBook.sync(hub.state.tasks,hub.state.approvals);
+ const sha256=require('node:crypto').createHash('sha256').update(text,'utf8').digest('hex');await hub.selectMissionResult({missionId:mission.id,revision:mission.revision,ref:{kind:'reply',taskId:producer.id,messageId:'result',sha256}});
+ await hub.acceptMission({missionId:mission.id,revision:mission.revision,resultId:mission.selectedResult.id,resultSha256:sha256,criteria:[true]});assert.equal(mission.status,'COMPLETE');assert.deepEqual(hub.state.approvals[0],approval);assert.deepEqual(sent,[]);assert.equal(task.status,'waiting');
+});
+test('offline scheduler dependency cannot unlock the live supervision admission gate',async t=>{const hub=fixture(t),{CrewScheduler}=require('../desktop/crew-scheduler.cjs');let starts=0;const run={id:'r',phase:'waiting',grant:{maxWorkers:3,maxRepairs:3},counters:{repairs:0},assignments:[{id:'a',crewId:'franky',ownedPaths:['src'],dependencies:[],state:'queued'}]};const scheduler=new CrewScheduler({getRun:()=>run,capacity:()=>({available:3}),assertLaunch:()=>hub.assertSupervisedExecutionAdmission(),prepare:async()=>{},durableCommit:async mutate=>mutate(run),start:async()=>starts++});await scheduler.pump('r');assert.equal(starts,0);assert.equal(run.assignments[0].state,'queued');});

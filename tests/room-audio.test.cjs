@@ -47,3 +47,19 @@ test('room audio stays unavailable without a running audio context',async()=>{
  assert.equal(await player.play('zoro'),false);
  assert.equal(context.oscillators.length,0);
 });
+
+test('stop cancels playback awaiting native resume and a later explicit play can start',async()=>{
+ const {createRoomCuePlayer}=await import('../src/roomAudio.ts');const context=new FakeAudioContext();let resume;
+ context.resume=()=>new Promise(resolve=>{resume=()=>{context.state='running';resolve();};});
+ const player=createRoomCuePlayer(()=>context),pending=player.play('franky');player.stop();resume();
+ assert.equal(await pending,false);assert.equal(context.oscillators.length,0);
+ assert.equal(await player.play('franky'),true);assert.equal(context.oscillators.length,3);
+});
+
+test('active voices remain owned until real ended cleanup and repeated stop still cancels them',async()=>{
+ const {createRoomCuePlayer}=await import('../src/roomAudio.ts');const context=new FakeAudioContext(),player=createRoomCuePlayer(()=>context);
+ await player.play('jinbe');const calls=[];for(const node of context.oscillators){node.stop=time=>calls.push({node,time});node.disconnect=()=>{node.disconnected=true;};}
+ context.currentTime=.02;player.stop();assert.equal(calls.length,3);assert.ok(calls.every(v=>v.time<=.028));
+ context.currentTime=.03;player.stop();assert.equal(calls.length,6,'a JS set clear is not native ended cleanup');
+ for(const node of context.oscillators)node.onended();player.stop();assert.equal(calls.length,6);assert.ok(context.oscillators.every(node=>node.disconnected));
+});

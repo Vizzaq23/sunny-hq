@@ -1,82 +1,99 @@
+import {QuickSwitcher} from './components/QuickSwitcher';
+import type {WorkReportResult} from './shared';
+export type ReportViewState={result:WorkReportResult|null;draft:string;dirty:boolean;title:string};
 import './island.css';
-import {lazy,Suspense,useEffect,useMemo,useState} from 'react';
+import {workEntries} from './taskFlow';
+import {MorgansView} from './views/MorgansView';
+import {lazy,Suspense,useEffect,useMemo,useRef,useState} from 'react';
 import {FolderPlus,Plus} from 'lucide-react';
-import type {CrewId,Project,WorkReportPacket,WorkReportResult,WorkReportItem} from './shared';
+import type {CrewId,Project,WorkContext} from './shared';
 import {useSunny} from './useSunny';
 import {Sidebar,Toasts,Topbar,type ViewId} from './components/Chrome';
+import {CrewView,InboxView,MissionsView,ProjectsView} from './views/DashboardViews';
+import {IslandView} from './views/IslandView';
 import {HomeView} from './views/HomeView';
+import {CommandDeck} from './views/CommandDeck';
 import {ProjectRoom} from './views/ProjectRoom';
 import {MissionBoard} from './views/MissionBoard';
-import {resolveReportTask} from './reportTask';
-
+import {LibraryView,SettingsView,ToolsView} from './views/OpsViews';
+import {CrewRunPanel} from './components/CrewRunPanel';
+import {CaptainLog} from './components/CaptainLog';
+import {FrankyWorkshop} from './components/FrankyWorkshop';
+import {projectMission} from './missionProjection';
+import {roomRequest,crewSceneProjection} from './roomActivity';
+import {resolveWorkContext,workspaceReturnTarget,taskWorkSelection} from './workContext';
+import {updateWorkspace} from './useDraft';
 const Workbench=lazy(()=>import('./views/Workbench').then(module=>({default:module.Workbench})));
-const MorgansView=lazy(()=>import('./views/MorgansView').then(module=>({default:module.MorgansView})));
-const IslandView=lazy(()=>import('./views/IslandView').then(module=>({default:module.IslandView})));
-const ShipView=lazy(()=>import('./views/DashboardViews').then(module=>({default:module.ShipView})));
-const CrewView=lazy(()=>import('./views/DashboardViews').then(module=>({default:module.CrewView})));
-const InboxView=lazy(()=>import('./views/DashboardViews').then(module=>({default:module.InboxView})));
-const MissionsView=lazy(()=>import('./views/DashboardViews').then(module=>({default:module.MissionsView})));
-const ProjectsView=lazy(()=>import('./views/DashboardViews').then(module=>({default:module.ProjectsView})));
-const LibraryView=lazy(()=>import('./views/OpsViews').then(module=>({default:module.LibraryView})));
-const ToolsView=lazy(()=>import('./views/OpsViews').then(module=>({default:module.ToolsView})));
-const SettingsView=lazy(()=>import('./views/OpsViews').then(module=>({default:module.SettingsView})));
-type WorkspaceInit={taskId?:string;projectId?:string;crewId?:CrewId;prompt?:string;draftKey?:string};
-export type ReportViewState={result:WorkReportResult|null;draft:string;dirty:boolean;title:string};
-function appendReportSources(answer:string,packet:WorkReportPacket){
-  const items=packet.projects.flatMap(project=>[...project.tasks,...project.missions,...project.observations]);
-  const sources=items.map(item=>`- ${item.kind} ${item.sourceId} · ${new Date(item.sourceTime).toISOString()} · project ${item.projectId}`).join('\n');
-  return `${answer.trim()}\n\n## Saved Sunny sources\nPacket: ${new Date(packet.createdAt).toISOString()}\nScope: ${packet.scope.projectIds.join(', ')||'none'}\n${sources||'No saved records in this scope.'}`;
-}
-const viewTitles:Record<ViewId,{title:string;subtitle:string}>={home:{title:'Home',subtitle:'Your daily workspace'},news:{title:'Morgans’ blimp',subtitle:'The flying press'},island:{title:'The Island',subtitle:'Your growing AI world'},ship:{title:'The Sunny',subtitle:'Command deck'},projects:{title:'Projects',subtitle:'Local cargo'},crew:{title:'Crew',subtitle:'Your specialists'},missions:{title:'Missions',subtitle:'Templates & routes'},library:{title:'Library',subtitle:'Obsidian knowledge'},tools:{title:'Tools',subtitle:'Workshop'},inbox:{title:'Inbox',subtitle:'Mission signals'},settings:{title:'Settings',subtitle:'Captain’s quarters'}};
-
+type WorkspaceInit={runId?:string;taskId?:string;projectId?:string;missionId?:string;attemptId?:string;crewId?:CrewId;prompt?:string;draftKey?:string};
+const viewTitles:Record<ViewId,{title:string;subtitle:string}>={home:{title:'Home',subtitle:'Your daily workspace'},news:{title:"Morgans' blimp",subtitle:'The flying press'},island:{title:'The Island',subtitle:'Your growing AI world'},ship:{title:'The Sunny',subtitle:'Command deck'},projects:{title:'Projects',subtitle:'Local cargo'},crew:{title:'Crew',subtitle:'Your specialists'},missions:{title:'Missions',subtitle:'Templates & routes'},library:{title:'Library',subtitle:'Obsidian knowledge'},tools:{title:'Tools',subtitle:'Workshop'},inbox:{title:'Inbox',subtitle:'Mission signals'},settings:{title:'Settings',subtitle:"Captain's quarters"}};
 export default function App(){
-  const sunny=useSunny();
-  const {snapshot,invoke,toast}=sunny;
-  const [roomProjectId,setRoomProjectId]=useState<string>();
-  const [view,setView]=useState<ViewId>('home');
-  const [menu,setMenu]=useState(false);
-  const [launchPending,setLaunchPending]=useState(false);
-  const [workspace,setWorkspace]=useState<WorkspaceInit|null>(null);
-  const [activeProjectId,setActiveProjectId]=useState<string>();
-  const [reportView,setReportView]=useState<ReportViewState>({result:null,draft:'',dirty:false,title:'Morgans work report'});
-  const [focusMission,setFocusMission]=useState<{id:string;sequence:number}>();
-  const reporterTask=resolveReportTask(snapshot.tasks,reportView.result?.task);
-  const reportSaved=snapshot.resultSaves?.some(record=>record.taskId===reporterTask?.id&&record.title===reportView.title.trim()&&record.text===reportView.draft&&record.status==='saved');
-  useEffect(()=>{if(!reportView.dirty||reportSaved)return;const warn=(event:BeforeUnloadEvent)=>{event.preventDefault();event.returnValue='';};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[reportView.dirty,reportSaved]);
-  useEffect(()=>{if(reporterTask?.status!=='finished')return;setReportView(current=>{
-    if(!current.result||current.dirty||current.draft||resolveReportTask(snapshot.tasks,current.result.task)?.id!==reporterTask.id)return current;
-    const answer=[...reporterTask.messages].reverse().find(message=>message.role==='assistant')?.text;
-    return answer?{...current,draft:appendReportSources(answer,current.result.packet)}:current;
-  });},[reporterTask?.status,reporterTask?.messages]);
-  useEffect(()=>window.sunny?.subscribe(event=>{if(event.type==='workspace:open'){if(workspace&&!window.confirm('Switch workspaces? Unsaved drafts and file edits in the current workspace will be discarded.'))return;setWorkspace(event.data);}}),[workspace]);
-  const titles=viewTitles[view];
-  const navigate=(next:ViewId)=>{setView(next);setRoomProjectId(undefined);setMenu(false);};
-  const openWorkspace=(init:WorkspaceInit)=>{setActiveProjectId(init.projectId??snapshot.tasks.find(task=>task.id===init.taskId)?.projectId);setWorkspace(init);};
-  const openReportSource=(item:WorkReportItem)=>{if(item.target.view==='task')openWorkspace({taskId:item.target.id});else{setFocusMission(previous=>({id:item.target.id,sequence:(previous?.sequence??0)+1}));navigate('missions');}};
-  const importProject=async()=>{try{const project=await invoke<Project|null>('project:add');if(!project)return;sunny.setSnapshot(previous=>({...previous,projects:previous.projects.some(item=>item.id===project.id)?previous.projects:[...previous.projects,project]}));toast(`${project.name} is aboard.`,'success');setActiveProjectId(project.id);}catch{/* invoke reports errors */}};
-  const removeProject=async(projectId:string)=>{await invoke('project:remove',{projectId});sunny.setSnapshot(previous=>({...previous,projects:previous.projects.filter(project=>project.id!==projectId)}));toast('Project removed from Sunny HQ.','success');};
-  const topActions=useMemo(()=>view==='projects'?<button className="top-action" onClick={()=>void importProject()}><FolderPlus/>Import</button>:view!=='home'?<button className="top-action" onClick={()=>openWorkspace({projectId:activeProjectId??snapshot.projects[0]?.id,crewId:'luffy'})}><Plus/>New task</button>:null,[view,snapshot.projects,activeProjectId]);
-
-  if(!sunny.ready)return <div className="loading-deck" role="status"><span/><h2>Getting your workspace ready…</h2></div>;
-  if(sunny.loadError)return <div className="loading-deck" role="alert"><h2>Your workspace couldn’t load</h2><p>{sunny.loadError}</p><button className="primary-button" onClick={()=>window.location.reload()}>Reload Sunny</button></div>;
-  if(workspace)return <><Suspense fallback={<div className="loading-deck"><span/><h2>Opening the workbench…</h2></div>}><Workbench key={JSON.stringify(workspace)} snapshot={snapshot} initial={workspace} invoke={invoke} toast={toast} onClose={()=>setWorkspace(null)} onSettings={()=>{setWorkspace(null);navigate('settings');}} onOpenLibrary={()=>{setWorkspace(null);navigate('library');}}/></Suspense><Toasts items={sunny.toasts}/></>;
-  return <div className={`app-shell ${snapshot.settings.reducedMotion?'reduce-motion':''}`}>
-    {sunny.desktop?<button className="float-ship-button" onClick={()=>void invoke('companion:show').catch(()=>{})}>↗ Ship on desktop</button>:null}
-    <Sidebar view={view} onView={navigate} projects={snapshot.projects} tasks={snapshot.tasks} activeProjectId={activeProjectId} onProject={id=>openWorkspace({projectId:id})} open={menu} onToggle={()=>setMenu(value=>!value)}/>
-    {menu?<button className="mobile-scrim" onClick={()=>setMenu(false)} aria-label="Close navigation"/>:null}
-    <div className="main-shell"><Topbar title={titles.title} subtitle={titles.subtitle} desktop={sunny.desktop} codexStatus={snapshot.codex.status} onMenu={()=>setMenu(true)} actions={topActions}/><Suspense key={view} fallback={<div className="page-scroll"><div className="loading-deck"><span/><h2>Loading the deck…</h2></div></div>}><div className="page-scroll">
-      {view==='home'?<HomeView launchPending={launchPending} onLaunchPending={setLaunchPending} snapshot={snapshot} invoke={invoke} onWorkspace={openWorkspace} onImport={()=>void importProject()} onExplore={()=>navigate('island')} onSettings={()=>navigate('settings')}/>:null}
-      {view==='island'&&roomProjectId?<ProjectRoom projectId={roomProjectId} snapshot={snapshot} invoke={invoke} onBack={()=>setRoomProjectId(undefined)} onOpen={taskId=>openWorkspace({taskId})}/>:null}
-      {view==='island'&&!roomProjectId?<IslandView onProjectRoom={id=>setRoomProjectId(id)} snapshot={snapshot} invoke={invoke} onWorkspace={openWorkspace} onShip={()=>navigate('ship')} onNews={()=>navigate('news')}/>:null}
-      {view==='news'?<MorgansView snapshot={snapshot} invoke={invoke} onWorkspace={openWorkspace} onBack={()=>navigate('island')} reportView={reportView} setReportView={setReportView} onReportSource={openReportSource}/>:null}
-      {view==='ship'?<ShipView snapshot={snapshot} onWorkspace={openWorkspace} onNavigate={navigate} onImport={()=>void importProject()} invoke={invoke} toast={toast}/>:null}
-      {view==='projects'?<ProjectsView projects={snapshot.projects} tasks={snapshot.tasks} onImport={()=>void importProject()} onOpen={id=>openWorkspace({projectId:id})} onRemove={id=>void removeProject(id)}/>:null}
-      {view==='crew'?<CrewView snapshot={snapshot} invoke={invoke} onSelect={crewId=>openWorkspace({projectId:snapshot.projects[0]?.id,crewId})}/>:null}
-      {view==='missions'?<><MissionBoard snapshot={snapshot} invoke={invoke} onOpen={taskId=>openWorkspace({taskId})} focusMission={focusMission}/><MissionsView automations={snapshot.automations} onStart={(crewId,prompt)=>openWorkspace({projectId:snapshot.projects[0]?.id,crewId,prompt})}/></>:null}
-      {view==='library'?<LibraryView projects={snapshot.projects} activeProjectId={activeProjectId} invoke={invoke} toast={toast} onAskRobin={(projectId,prompt,draftKey)=>openWorkspace({projectId,crewId:'robin',prompt,draftKey})}/>:null}
-      {view==='tools'?<ToolsView tools={snapshot.tools} projects={snapshot.projects} desktop={sunny.desktop} invoke={invoke} toast={toast}/>:null}
-      {view==='inbox'?<InboxView tasks={snapshot.tasks} automations={snapshot.automations} desktop={sunny.desktop} invoke={invoke} onOpen={taskId=>openWorkspace({taskId})}/>:null}
-      {view==='settings'?<SettingsView snapshot={snapshot} invoke={invoke} mergeSnapshot={sunny.mergeSnapshot} toast={toast}/>:null}
-    </div></Suspense></div><Toasts items={sunny.toasts}/>
-  </div>;
+ const sunny=useSunny(),{snapshot,invoke,toast}=sunny;
+ const attentionCount=workEntries(snapshot.missions??[],snapshot.tasks,snapshot).filter(entry=>entry.phase==='attention'||entry.phase==='review').length;
+ const [sceneExpanded,setSceneExpanded]=useState(()=>!window.matchMedia('(max-width:640px)').matches);
+ const [frankyPaused,setFrankyPaused]=useState(false);
+ const [roomStop,setRoomStop]=useState<{taskId?:string;pending:boolean;error:string;requested:boolean}>({pending:false,error:'',requested:false}),roomStopInFlight=useRef(false);
+ const [roomProjectId,setRoomProjectId]=useState<string>(),[view,setView]=useState<ViewId>('ship'),[menu,setMenu]=useState(false),[launchPending,setLaunchPending]=useState(false);
+ const [workspace,setWorkspace]=useState<WorkspaceInit|null>(null),[workspaceSession,setWorkspaceSession]=useState(0),[context,setContext]=useState<WorkContext|null>(null),[activeProjectId,setActiveProjectId]=useState<string>(),[contextError,setContextError]=useState('');
+ useEffect(()=>{document.getElementById('sunny-main')?.scrollTo({top:0,left:0,behavior:'instant'});},[view,workspaceSession]);
+ const initialized=useRef(false),guard=useRef<()=>boolean>(()=>true),opener=useRef<HTMLElement|null>(null),openerDestination=useRef<{id:string;roomProjectId?:string}|null>(null),returnView=useRef<ViewId>('ship');
+ const rememberOpener=()=>{opener.current=document.activeElement instanceof HTMLElement?document.activeElement:null;const id=opener.current?.dataset.worldDestination;openerDestination.current=id?{id,roomProjectId}:null;};
+ const restoreFocus=()=>requestAnimationFrame(()=>{if(opener.current?.isConnected){opener.current.focus();return;}const saved=openerDestination.current;const roster=saved?document.querySelectorAll<HTMLElement>(`${saved.roomProjectId?'.project-room':'.island-page'} .world-roster [data-world-destination]`):[];const destination=Array.from(roster).find(button=>button.dataset.worldDestination===saved?.id);(destination??document.querySelector<HTMLElement>('.captain-review-mission,.work-entry,.workspace-return'))?.focus();});
+ const persistContext=(next:WorkContext|null)=>{setContext(next);setActiveProjectId(next?.projectId);setContextError('');if(window.sunny)void updateWorkspace(invoke,{context:next}).catch(error=>setContextError(`Navigation is unsaved: ${error instanceof Error?error.message:String(error)}`));};
+ useEffect(()=>{if(!sunny.ready||initialized.current)return;initialized.current=true;const saved=snapshot.workspace?.context??null;setContext(saved);setActiveProjectId(saved?.projectId);if(saved?.surface==='workbench')setWorkspace({projectId:saved.projectId,missionId:saved.missionId,attemptId:saved.attemptId,taskId:saved.taskId});},[sunny.ready,snapshot.workspace]);
+ const [reportView,setReportView]=useState<ReportViewState>({result:null,draft:'',dirty:false,title:'Morgans work report'});
+ useEffect(()=>{if(!reportView.dirty)return;const warn=(event:BeforeUnloadEvent)=>{event.preventDefault();event.returnValue='';};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[reportView.dirty]);
+ const navigate=(next:ViewId)=>{if(!guard.current())return;if(next==='news')rememberOpener();if(workspace){returnView.current=view;setWorkspace(null);}setView(next);setRoomProjectId(next==='island'&&view==='news'?openerDestination.current?.roomProjectId:undefined);setMenu(false);if(next==='island'&&view==='news')restoreFocus();};
+ const openWorkspace=(init:WorkspaceInit)=>{
+  if(!guard.current())return;rememberOpener();
+  const selectedWork=taskWorkSelection(snapshot,init,context);init={...init,...selectedWork};
+  const task=snapshot.tasks.find(t=>t.id===init.taskId),mission=(snapshot.missions??[]).find(m=>m.id===init.missionId||Boolean(init.taskId&&m.taskIds.includes(init.taskId)));
+  const attempt=mission?.attempts.find(a=>init.attemptId?a.id===init.attemptId:Boolean(init.taskId&&a.taskIds.includes(init.taskId)))??(!init.taskId?mission?.attempts.find(a=>a.id===mission.activeAttemptId):undefined);
+  const projectId=init.projectId??task?.projectId??mission?.projectId;
+  const next=projectId?{projectId,runId:init.runId??mission?.runId,missionId:init.missionId??mission?.id,attemptId:init.attemptId??attempt?.id,taskId:init.taskId,surface:'workbench' as const,returnTo:workspaceReturnTarget(context,{projectId,runId:init.runId??mission?.runId,attemptId:init.attemptId??attempt?.id,missionId:init.missionId??mission?.id,taskId:init.taskId},view,Boolean(workspace))}:null;
+  persistContext(next);setWorkspace({...init,projectId,missionId:next?.missionId,attemptId:next?.attemptId});setWorkspaceSession(n=>n+1);setView('ship');setMenu(false);
+ };
+ const selectContext=(next:WorkContext)=>{if(!guard.current())return;rememberOpener();persistContext(next);setWorkspace(null);setView(next.missionId?'missions':'ship');setMenu(false);};
+ const closeWorkspace=()=>{const target=context?.returnTo.view;setWorkspace(null);setView(target&&target in viewTitles?target as ViewId:'ship');if(context)persistContext({...context,taskId:context.returnTo.taskId,surface:'deck'});restoreFocus();};
+ const returnToWork=()=>{if(!guard.current())return;if(context?.surface==='franky'){setWorkspace(null);setView('ship');restoreFocus();return;}if(context?.taskId){setWorkspace({projectId:context.projectId,missionId:context.missionId,attemptId:context.attemptId,taskId:context.taskId});setWorkspaceSession(n=>n+1);setView('ship');}else setView(context?.missionId?'missions':returnView.current);restoreFocus();};
+ useEffect(()=>window.sunny?.subscribe(event=>{if(event.type==='workspace:open')openWorkspace(event.data);}),[context,view,snapshot]);
+ const importProject=async()=>{try{const project=await invoke<Project|null>('project:add');if(!project)return;sunny.setSnapshot(prev=>({...prev,projects:prev.projects.some(p=>p.id===project.id)?prev.projects:[...prev.projects,project]}));toast(`${project.name} is aboard.`,'success');setActiveProjectId(project.id);}catch{}};
+ const removeProject=async(projectId:string)=>{await invoke('project:remove',{projectId});sunny.setSnapshot(prev=>({...prev,projects:prev.projects.filter(p=>p.id!==projectId)}));toast('Project removed from Sunny HQ.','success');};
+ const topActions=useMemo(()=>view==='projects'?<button className="top-action" onClick={()=>void importProject()}><FolderPlus/>Import</button>:<button className="top-action" onClick={()=>navigate('home')}><Plus/>New goal</button>,[view,workspace]);
+ const resolved=resolveWorkContext(context,snapshot);
+ const selectedProjection=context?projectMission(snapshot,context):undefined;
+ const projection=context&&selectedProjection?.crewId?crewSceneProjection(snapshot,selectedProjection.crewId,context):selectedProjection;
+ const inFrankyRoom=Boolean(context?.surface==='franky'&&view==='ship'&&!workspace);
+ const openFrankyRoom=()=>{if(!context||!guard.current())return;rememberOpener();persistContext({...context,surface:'franky',returnTo:workspaceReturnTarget(context,context,view,Boolean(workspace))});setWorkspace(null);setView('ship');};
+ const inspectRoom=()=>{if(projection?.taskId)openWorkspace({projectId:context?.projectId,missionId:projection.missionId,attemptId:projection.attemptId,taskId:projection.taskId});else if(context)selectContext({...context,surface:'deck'});};
+ const inspectRoomApproval=()=>{const request=projection?roomRequest(snapshot,projection):undefined;if(request?.taskId)openWorkspace({taskId:request.taskId,projectId:context?.projectId,missionId:projection?.missionId,attemptId:projection?.attemptId});else inspectRoom();};
+ const stopRoomWork=async()=>{const taskId=projection?.taskId;if(!taskId||roomStopInFlight.current)return;roomStopInFlight.current=true;setRoomStop({taskId,pending:true,error:'',requested:false});try{await invoke('task:interrupt',{taskId});setRoomStop({taskId,pending:false,error:'',requested:true});}catch(error){setRoomStop({taskId,pending:false,error:`Stop could not be confirmed: ${error instanceof Error?error.message:String(error)}`,requested:false});}finally{roomStopInFlight.current=false;}};
+ const workspaceUnavailable=resolved.unavailable??(workspace?.taskId&&!snapshot.tasks.some(t=>t.id===workspace.taskId)?'Task unavailable. Your selected task ID is retained.':workspace?.missionId&&!snapshot.missions?.some(m=>m.id===workspace.missionId)?'Mission unavailable. Your selected mission ID is retained.':undefined);
+ if(!sunny.ready)return <div className="loading-deck" role="status"><span/><h2>Getting your workspace ready.</h2></div>;
+ if(sunny.loadError)return <div className="loading-deck" role="alert"><h2>Your workspace couldn't load</h2><p>{sunny.loadError}</p><button className="primary-button" onClick={()=>window.location.reload()}>Reload Sunny</button></div>;
+ return <div className={`app-shell continuous-shell voyage-ui ${snapshot.settings.reducedMotion?'reduce-motion':''}`} data-view={view}>
+  <a className="skip-to-work" href="#sunny-main">Skip to workspace</a><Sidebar search={<QuickSwitcher tasks={snapshot.tasks} projects={snapshot.projects} onTask={taskId=>openWorkspace({taskId})} onProject={projectId=>openWorkspace({projectId})} onView={navigate} onOpening={()=>setMenu(false)}/>} view={view} onView={navigate} projects={snapshot.projects} tasks={snapshot.tasks} activeProjectId={activeProjectId} onProject={id=>openWorkspace({projectId:id})} open={menu} onToggle={()=>setMenu(value=>!value)}/>
+  {menu?<button className="mobile-scrim" onClick={()=>setMenu(false)} aria-label="Close navigation"/>:null}
+  <div className="main-shell"><Topbar menuOpen={menu} title={viewTitles[view].title} subtitle={viewTitles[view].subtitle} desktop={sunny.desktop} codexStatus={snapshot.codex.status} onMenu={()=>setMenu(true)} actions={<>{sunny.desktop?<button className="float-ship-button" onClick={()=>void invoke('companion:show').catch(()=>{})}>Ship on desktop</button>:null}{['settings','library','tools'].includes(view)&&context?<button className="workspace-return" onClick={returnToWork}>Return to work</button>:null}{topActions}</>}/>
+   {contextError?<div className="workspace-draft-status" role="alert">{contextError}<button onClick={()=>persistContext(context)}>Save navigation again</button></div>:null}
+   {snapshot.persistence?.uncertain||snapshot.persistence?.state==='uncertain'?<div className="workspace-draft-status" role="alert">Storage outcome is uncertain. Keep this window open to copy or export drafts, then restart Sunny to recover saved work.</div>:snapshot.persistence?.state==='pending'?<div className="workspace-draft-status" role="status">Saving current changes...</div>:snapshot.persistence?.state==='unsaved'?<div className="workspace-draft-status" role="alert">Sunny has unsaved changes. Keep this window open and export important drafts.</div>:null}
+   <div className="continuous-content"><main id="sunny-main" tabIndex={-1} className="journey-surface">
+    {!workspace&&!inFrankyRoom&&['missions'].includes(view)?<CrewRunPanel snapshot={snapshot} context={context} invoke={invoke} onContext={selectContext} onOpen={taskId=>openWorkspace({taskId})}/>:null}
+    {context&&!inFrankyRoom&&['ship','missions'].includes(view)?<button className="workspace-return" onClick={openFrankyRoom}>Open Franky's workshop</button>:null}
+    {inFrankyRoom&&projection?<FrankyWorkshop projection={projection} reducedMotion={snapshot.settings.reducedMotion} paused={frankyPaused} onPause={()=>setFrankyPaused(value=>!value)} onInspect={inspectRoom} onApproval={inspectRoomApproval} onStop={()=>void stopRoomWork()} stopPending={roomStop.pending} stopError={roomStop.taskId===projection.taskId?roomStop.error:''} stopRequested={roomStop.taskId===projection.taskId&&roomStop.requested} claimAcceptanceCue={async()=>projection.acceptanceId?Boolean((await invoke<{play:boolean}>('workspace:claimAcceptanceCue',{acceptanceId:projection.acceptanceId})).play):false} onBack={()=>{if(context)persistContext({...context,surface:'deck'});restoreFocus();}}/>:workspace?workspaceUnavailable?<div className="page" role="alert"><p>{workspaceUnavailable}</p><button className="workspace-return" onClick={closeWorkspace}>Return to deck</button></div>:<Suspense fallback={<div className="loading-deck"><h2>Opening the workbench.</h2></div>}><Workbench key={workspaceSession} embedded snapshot={snapshot} initial={workspace} invoke={invoke} toast={toast} onClose={closeWorkspace} onSettings={()=>{setWorkspace(null);setView('settings');}} onOpenLibrary={()=>{setWorkspace(null);setView('library');}} onNavigationGuard={fn=>{guard.current=fn??(()=>true);}} onTaskChange={taskId=>{if(context){const selectedWork=taskWorkSelection(snapshot,{taskId},context);persistContext({...context,...selectedWork,projectId:selectedWork.projectId??context.projectId});setWorkspace(previous=>previous?{...previous,taskId}:previous);}}}/></Suspense>:<>
+     {view==='home'?<HomeView launchPending={launchPending} onLaunchPending={setLaunchPending} snapshot={snapshot} invoke={invoke} onWorkspace={openWorkspace} onImport={()=>void importProject()} onExplore={()=>navigate('island')} onSettings={()=>navigate('settings')} onMission={mission=>selectContext({projectId:mission.projectId,runId:mission.runId,missionId:mission.id,attemptId:mission.activeAttemptId,surface:'deck',returnTo:{view:'ship',projectId:mission.projectId,runId:mission.runId,missionId:mission.id}})}/>:null}
+     {view==='ship'?<CommandDeck snapshot={snapshot} context={context} invoke={invoke} onContext={selectContext} onWorkspace={openWorkspace} onNavigate={navigate} onImport={()=>void importProject()}/>:null}
+      {view==='missions'?<><MissionBoard snapshot={snapshot} invoke={invoke} onOpen={(taskId,selection)=>openWorkspace({taskId,...selection})} focusMission={context?.missionId?{id:context.missionId,sequence:0}:undefined} onSelectMission={mission=>persistContext({projectId:mission.projectId,runId:mission.runId,missionId:mission.id,attemptId:mission.activeAttemptId,surface:'deck',returnTo:{view:'ship',projectId:mission.projectId,runId:mission.runId,missionId:mission.id}})}/><details><summary>Conversation starters</summary><MissionsView automations={snapshot.automations} onStart={(crewId,prompt)=>openWorkspace({projectId:activeProjectId,crewId,prompt})}/></details></>:null}
+     {view==='island'&&roomProjectId?<ProjectRoom projectId={roomProjectId} snapshot={snapshot} invoke={invoke} onBack={()=>setRoomProjectId(undefined)} onOpen={taskId=>openWorkspace({taskId})} onCrew={crewId=>openWorkspace({projectId:roomProjectId,crewId})} onBriefings={()=>navigate('news')}/>:null}
+     {view==='island'&&!roomProjectId?<IslandView onProjectRoom={id=>setRoomProjectId(id)} snapshot={snapshot} invoke={invoke} onWorkspace={openWorkspace} onShip={()=>navigate('ship')} onNews={()=>navigate('news')}/>:null}
+     {view==='news'?<MorgansView reportView={reportView} setReportView={setReportView} onReportSource={item=>{if(item.target.view==='task')openWorkspace({taskId:item.target.id});else {const mission=snapshot.missions?.find(m=>m.id===item.target.id);if(mission)selectContext({projectId:mission.projectId,missionId:mission.id,runId:mission.runId,attemptId:mission.activeAttemptId,surface:'deck',returnTo:{view:'news',projectId:mission.projectId}});}}} snapshot={snapshot} invoke={invoke} onWorkspace={openWorkspace} onBack={()=>navigate('island')}/>:null}
+     {view==='projects'?<ProjectsView projects={snapshot.projects} tasks={snapshot.tasks} onImport={()=>void importProject()} onOpen={id=>openWorkspace({projectId:id})} onRemove={id=>void removeProject(id)}/>:null}
+     {view==='crew'?<CrewView snapshot={snapshot} invoke={invoke} onSelect={crewId=>openWorkspace({projectId:activeProjectId,crewId})}/>:null}
+     {view==='library'?<LibraryView projects={snapshot.projects} activeProjectId={activeProjectId} invoke={invoke} toast={toast} onAskRobin={(projectId,prompt,draftKey)=>openWorkspace({projectId,crewId:'robin',prompt,draftKey})}/>:null}
+     {view==='tools'?<ToolsView tools={snapshot.tools} projects={snapshot.projects} desktop={sunny.desktop} invoke={invoke} toast={toast}/>:null}
+     {view==='inbox'?<InboxView projects={snapshot.projects} approvals={snapshot.approvals} tasks={snapshot.tasks} automations={snapshot.automations} desktop={sunny.desktop} invoke={invoke} onOpen={taskId=>openWorkspace({taskId})}/>:null}
+     {view==='settings'?<SettingsView snapshot={snapshot} invoke={invoke} mergeSnapshot={sunny.mergeSnapshot} toast={toast}/>:null}
+    </>}
+   </main><details className="logbook-dock"><summary><span>Captain’s log</span><small>Saved work &amp; review</small>{attentionCount>0?<b>{attentionCount} need attention</b>:null}</summary><CaptainLog snapshot={snapshot} context={context} onContext={selectContext} onOpenResult={taskId=>openWorkspace({taskId})} onRequestChanges={missionId=>{const mission=snapshot.missions?.find(m=>m.id===missionId);if(mission)selectContext({projectId:mission.projectId,runId:mission.runId,missionId,attemptId:mission.activeAttemptId,surface:'deck',returnTo:{view:'ship',missionId,projectId:mission.projectId}});}} invoke={invoke}/></details></div>
+  </div><Toasts items={sunny.toasts}/>
+ </div>;
 }

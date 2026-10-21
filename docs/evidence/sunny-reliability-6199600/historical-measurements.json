@@ -1,0 +1,44 @@
+[
+  {
+    "source": "C:\\Users\\Quintin\\Documents\\Codex\\2026-09-29\\task\\sunny-responsive-20261001\\.sunny-dev\\ordered-control-check\\2026-10-02T02-43-47-895Z-1MiB\\result.json",
+    "sha256": "76729F6DB8D34189CBC3286C6DE5C558C8151036F3418441DCC6D0AF743951E2",
+    "sizeMiB": 1,
+    "stopSamples": 20,
+    "approvalSamples": 20,
+    "stopFailures": 0,
+    "approvalFailures": 0,
+    "stopP95Ms": 52.599999994039536,
+    "approvalP95Ms": 54.79999999701977,
+    "mainTimerExcessMaxMs": 18.125,
+    "historyExact": true,
+    "historical": true
+  },
+  {
+    "source": "C:\\Users\\Quintin\\Documents\\Codex\\2026-09-29\\task\\sunny-responsive-20261001\\.sunny-dev\\ordered-control-check\\2026-10-02T02-43-56-349Z-10MiB\\result.json",
+    "sha256": "7C52A2910EABD9D4B010693BF3C4E06A1D1E05DD78172CAC9B121B61A70CCFFA",
+    "sizeMiB": 10,
+    "stopSamples": 20,
+    "approvalSamples": 20,
+    "stopFailures": 0,
+    "approvalFailures": 0,
+    "stopP95Ms": 417.6000000089407,
+    "approvalP95Ms": 595.7000000029802,
+    "mainTimerExcessMaxMs": 54.578199999999924,
+    "historyExact": true,
+    "historical": true
+  },
+  {
+    "source": "C:\\Users\\Quintin\\Documents\\Codex\\2026-09-29\\task\\sunny-responsive-20261001\\.sunny-dev\\ordered-control-check\\2026-10-02T02-44-43-456Z-30MiB\\result.json",
+    "sha256": "D00FDD716AC34A20C1B2A31CC1AC5525A744DF56D0A2BD531498BEC0030C4C72",
+    "sizeMiB": 30,
+    "stopSamples": 20,
+    "approvalSamples": 20,
+    "stopFailures": 0,
+    "approvalFailures": 0,
+    "stopP95Ms": 1176.4000000059605,
+    "approvalP95Ms": 1756.2000000029802,
+    "mainTimerExcessMaxMs": 132.04499999999825,
+    "historyExact": true,
+    "historical": true
+  }
+]

@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-17",
+  "stack": "React 19 + TypeScript + Vite + Motion 14.3.0",
+  "installed": {
+    "installedAt": "2026-10-18T02:02:34.7508129Z",
+    "sourceCommit": "5de083b7be72dd6e2aa5fb322ab659d1f8759de9",
+    "path": "C:\\Users\\Quintin\\AppData\\Local\\Programs\\Sunny HQ\\versions\\0.11.0-motion-5de083b",
+    "exeSha256": "813741e273d1c54f7adfc0aae0e7948fe6ca8a1f70cfbe293c145466eb028ac7",
+    "asarSha256": "13fa49c22a744d2349b2c607d633a4928d3323c0a58fb83af1c581086e3f3027",
+    "verifiedFiles": 249,
+    "shortcut": "C:\\Users\\Quintin\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Sunny HQ.lnk",
+    "backup": "C:\\Users\\Quintin\\AppData\\Local\\Sunny HQ Backups\\before-motion-2026-10-17",
+    "newAppLaunched": false,
+    "packageChecks": [
+      {
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "acceptance-enter",
+        "elapsedMs": 8958,
+        "scenario": "startup"
+      },
+      {
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "acceptance-enter",
+        "elapsedMs": 7306,
+        "scenario": "renderer-crash"
+      },
+      {
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "acceptance-enter",
+        "elapsedMs": 6365,
+        "scenario": "pending-approval"
+      }
+    ],
+    "workflowPassed": true,
+    "focusedTestsPassed": 21,
+    "knownLimitations": "Previously disclosed 10/30 MiB latency, cue timeout and interrupted full suite remain unresolved; full package matrix not repeated for this presentation-only refinement."
+  },
+  "buildLog": ".sunny-dev/ui-revamp/motion-build-3.log",
+  "workflow": ".sunny-dev/ui-revamp/workflow-motion-3/result.json",
+  "workflowChecks": 34,
+  "failedPreFixWorkflow": ".sunny-dev/ui-revamp/workflow-motion-2/result.json",
+  "focusedTestLog": ".sunny-dev/ui-revamp/motion-focused-tests.log",
+  "browser": {
+    "hidden": true,
+    "keyboardPanel": true,
+    "seaPause": true,
+    "mobileWidth": 390,
+    "horizontalOverflow": false,
+    "screenshot": "C:/Users/Quintin/.codex/visualizations/2026/10/16/01a14706-5967-7c80-af6b-b460eba42f42/sunny-motion-refinement.png"
+  },
+  "liveProviderProof": false,
+  "fullSuiteRerun": false
+}

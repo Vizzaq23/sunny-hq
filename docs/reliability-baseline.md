@@ -111,6 +111,45 @@ Required fresh evidence: record build hash, isolated profile, task ID, last succ
 
 Installed-build activation remains a separate step after source validation and a closed-profile backup; never restore an older backup over current data to pass a test.
 
+## Integrated candidate validation — 2026-10-16
+
+The newer committed local work is integrated on `codex/integrate-local-sunny`. Source commits are `fb97855` (integration), `a86da50` (profile fidelity and clean-checkout fixtures), and `5940758` (exact serialized control evidence). The original checkout's existing README, baseline and untracked plan edits were preserved; nothing was pushed or merged to main.
+
+The packaged source is `5940758280f39d941939090f925a90a65d10ec27`, clean at build time; version 0.11.0, build ID `5123e84ec8f7ac57d833a8c83dd01cf1e71875fcbab8d49e6e4f8cd726931a65`. Executable SHA-256: `6543d89a778353a558bb391454ce4b9756617663c461474543461173f4abfd21`; archive SHA-256: `468182ade957bf3d1fe083b343a039c8191a6f63da03fa1e843622d3ea9c6516`. Package: `release/win-unpacked` in the integration worktree. This is a candidate, not the daily installation.
+
+Fresh checks: clean Node 24 dependency install, TypeScript/Vite build, 70 compatibility regressions, 56 additional compatibility/fixture tests, 12 copied-profile/IPC tests, 34 receipt/control regressions, and the native production-transport workflow fixture passed. The full run completed 1,520 tests: 1,505 passed and 15 failed; it started before the final fixes. All fifteen failures have passing targeted reruns, including the complete seven-case playable file (7/7) after fixing its assumption that an external sibling evidence directory exists. Do not describe the original full run as green.
+
+All nine latest-package contained scenarios passed with observed process cleanup: startup, renderer crash, main restart, worker loss, write failure, lost acknowledgement, pending approval, pending check and normal quit. All use isolated synthetic profiles and zero real-provider effects.
+
+### Promotion blocker: large-history control latency
+
+The unchanged frozen control protocol uses 20 measured Stop and 20 approval operations per size, under pending background persistence, SQLite WAL/FULL, full history and exact durable receipts. Measurements below retain the failed batches; no thresholds or workload were changed.
+
+| History | Stop p95 | Approval p95 | Maximum main timer excess | Gate |
+| --- | ---: | ---: | ---: | --- |
+| 1 MiB | 92.4 ms | 77.5 ms | 16.3 ms | Pass |
+| 10 MiB | 421.3 ms | 728.4 ms | 57.1 ms | Fail: control RTT |
+| 30 MiB | 1,040.2 ms | 1,483.9 ms | 148.5 ms | Fail: control RTT and main timer |
+
+All 120 measured operations completed with correct effect/reservation semantics and exact whole-state preservation. This does not satisfy the required p95 below 200 ms and timer excess at most 100 ms. Failed run receipts report cleanup observed. The control evidence writer correctly refuses a passing package receipt when performance assertions fail.
+
+The 10 MiB first Stop sample spent 187.6 ms waiting for the required save to start; its background and required receipts awaited 172.8 and 179.5 ms respectively. This locates a material delay in whole-image durable persistence/queue waiting. It does not isolate all time to disk or establish a speedup comparison. A separate synthetic store probe also confirms that serialization and SQLite write costs both contribute; those diagnostic samples are not substituted for native acceptance measurements.
+
+Per the [frozen protocol](evidence/protocols/ordered-control-2026-10-02.md), these violations prevent promotion. Next design work should measure per-stage costs with the exact mutated workload and assess reducing full-image copying and redundant writes while preserving ordered intent/receipt barriers. Schema changes or incremental storage need their own compatibility, backup, rollback and failure design. Returning before durability, truncating history, changing WAL/FULL, relaxing thresholds, or cherry-picking reruns are rejected alternatives.
+
+Evidence resides under `.sunny-dev/integration/` in the integration worktree: `verification-summary.json`, `receipt-control-{1,10,30}/output`, `current-<scenario>/output`, `full-tests.log`, targeted rerun logs and `workflow-transport/result.json`. Failed earlier receipt-format and timed-out journey evidence is retained. The daily profile has not been migrated and the prior executable remains the Start Menu target. No installation success is claimed.
+
+Final journey: the isolated latest-package journey-cue run passed in 264,313 ms within the unchanged 300-second limit, with distinct restart phases, zero provider effects and observed cleanup. It completed source review, stopped preview, requested feedback, second review, captain acceptance and restart/no-replay checks. Evidence: .sunny-dev/integration/isolated-journey-cue/output. The earlier timeout remains failed historical evidence. Windows retargeted the Start Menu shortcut during fixture launches; it was restored and verified against the existing daily executable. Large-history latency still blocks installation. The compact [versioned evidence manifest](evidence/integration-validation-2026-10-16.json) binds the tested package and receipts.
+
+### History-repair validation follow-up — 2026-10-16
+
+Candidate `6f0f39d` passed the unchanged 1/10/30 MiB control gates and nine packaged recovery scenarios. Its isolated mission journey failed while integrating finished worker results. A separate diagnostic package traced `git rev-list` interpreting a commit range as a possible filename in a 177-character Windows workspace path; a read-only reproduction on that failed fixture succeeded with an explicit `--` revision/path separator. The resulting numeric process exit code also violated the delivery failure-code schema, preventing the blocked state from being persisted.
+
+The follow-up adds that separator to integration, conflict-resolution and verification range reads, and normalizes invalid delivery error codes to `DELIVERY_BLOCKED`. Uncertainty classification and retained reservations are unchanged. Both reproducing regressions failed before the fix and passed afterward. An independent read-only review found no introduced correctness or authority defects. The fixed package still requires fresh acceptance and a complete source run before installation; prior failures and partial runs remain retained under `.sunny-dev/history-repair/`.
+
+The repaired `2d79da5` package completed the isolated full mission/restart journey in 285,235 ms with observed cleanup. Its user reduced-motion journey reached captain acceptance, then failed a renderer script during navigation; a separate diagnostic copy completed that journey in 72,206 ms. This timing-sensitive failure is consistent with querying Return to work immediately after clicking Settings, before React renders the destination. The fixture now uses its existing bounded observation wait for the actual target button before the same native click. Motion, cue, reload, identity and cleanup assertions, and the overall 300-second deadline, remain unchanged. Fresh final-package validation is required; the diagnostic pass is not promotion evidence.
+
+Candidate 9344f47 passed both reduced-motion journeys (84,041/81,143 ms), but its full journey timed out at 300,071 ms during second-attempt validation; cleanup was observed. The default full-suite runner on this 32-CPU machine then exceeded a checkpoint test's unchanged 180-second timeout while more than 100 Node processes were present. That run was interrupted and retained as failed/incomplete evidence. The npm test script now caps concurrent test files at four; all tests, assertions and per-test deadlines remain unchanged. A complete bounded-concurrency run and fresh package acceptance are still required.
 ## Resumed original reliability work — 2026-10-17
 
 Scope: `codex/sunny-hq`, runtime revision `ea90831`. This is separate from the newer donor/UI worktrees and installation candidates recorded above. Pre-existing README, baseline and integration-plan edits were preserved. The daily application, shortcut and normal profile were not changed.

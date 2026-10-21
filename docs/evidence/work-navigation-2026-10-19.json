@@ -1,0 +1,114 @@
+{
+  "date": "2026-10-19",
+  "scope": "Searchable local inbox and guarded quick navigation",
+  "sourceBase": "78413c678d365bb53e89f22fdcd0e49f56d1ac98",
+  "research": "../REFERENCE-REVIEW.md",
+  "status": "Native checks passed; clean packaging underway",
+  "focused": {
+    "passed": 16,
+    "failed": 0,
+    "log": ".sunny-dev/navigation-focused.log"
+  },
+  "build": {
+    "passed": true,
+    "typescript": true,
+    "warning": "Existing lazy Monaco chunk exceeds Vite size advisory"
+  },
+  "native": {
+    "passed": true,
+    "checks": [
+      "inbox-show-more",
+      "inbox-project-filter",
+      "quick-switch-mobile",
+      "quick-switch-stable-selection",
+      "quick-switch-dirty-guard",
+      "searchable-local-inbox",
+      "inbox-review-state",
+      "quick-switch-enter-target",
+      "quick-switch-ime",
+      "helm-user-and-system-reduced-motion",
+      "helm-sea-pause",
+      "streamed-deck-activity",
+      "snapshot-race",
+      "family-search",
+      "specialist-approval",
+      "duplicate-approval",
+      "draft-per-task",
+      "home-draft-navigation",
+      "failed-start-draft",
+      "duplicate-start",
+      "lazy-tools",
+      "folder-parent",
+      "editor-load",
+      "draft-reload",
+      "reconcile",
+      "inbox",
+      "compact-layout",
+      "island-navigation",
+      "startup-retry",
+      "pending-launch-navigation",
+      "dirty-project-switch",
+      "dirty-global-settings-navigation",
+      "workspace-draft-cas-helper",
+      "dirty-file-task-start",
+      "template-cleared-after-start",
+      "character-room-theme",
+      "room-audio-toggle",
+      "room-audio-settings",
+      "robin-obsidian-library-route",
+      "note-context-unsent-robin-review",
+      "oversized-note-boundary",
+      "all-ten-illustrated-crew-rooms",
+      "distinct-station-layouts",
+      "square-room-badge",
+      "all-rooms-200-percent-zoom",
+      "station-tabs-preserve-drafts",
+      "room-focus-keeps-draft",
+      "room-starters-unsent",
+      "room-ambience-pause",
+      "room-art-expansion",
+      "room-streamed-saved-update",
+      "recorded-crew-relay-dependencies",
+      "crew-relay-input-and-uncertainty",
+      "crew-relay-mobile-layout",
+      "room-system-reduced-motion-live",
+      "reduced-motion-illustrated-room"
+    ],
+    "count": 56,
+    "syntheticTransport": true,
+    "liveProviderProof": false,
+    "log": ".sunny-dev/navigation-native-final-3-out.log",
+    "screenshots": ".sunny-dev/navigation-workflow-final-3",
+    "scope": "Final interaction implementation; subsequent result-count singular/plural copy only"
+  },
+  "browser": {
+    "mobile390": {
+      "dialogVisible": true,
+      "escapeFocus": "Open menu",
+      "documentOverflow": false
+    },
+    "fixes": [
+      "Dialog portaled outside hidden mobile menu",
+      "Inherited select background contrast",
+      "Visually hidden search labels",
+      "Late close event no longer resets reopened search"
+    ],
+    "widthsWithoutOverflow": [
+      320,
+      390,
+      768
+    ]
+  },
+  "rea": {
+    "asarSha256": "38674ed088bf31c9995863406d725e50159b1b5b23f1b5727742c4665ae256ea",
+    "inventory": "ev_8367becf749e2ec9c3360c65b257bba048d75cd2beffab87755525ea0f24a53a",
+    "shellAnalysis": "ev_0cf9b46891f8937910560f48f9b2b2d949a189f680bbf61c10f78038d94a698c",
+    "scope": "Exact installed package manifest, main and preload; other service imports absent",
+    "coverage": "Partial static application graph; runtime enforcement unproven"
+  },
+  "fullSuite": {
+    "status": "running",
+    "observedFailure": "Checkpoint journey integration Git commit-object permission denial in disposable Temp repository",
+    "log": ".sunny-dev/navigation-tests.log"
+  }
+}

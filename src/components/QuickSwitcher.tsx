@@ -1,0 +1,25 @@
+import {createPortal} from 'react-dom';
+import {useEffect,useRef,useState} from 'react';
+import {Search,X,ArrowUpRight} from 'lucide-react';
+import type {Project,TaskSummary} from '../shared';
+import type {ViewId} from './Chrome';
+import {ALL_CREW} from '../data';
+import {quickSwitchWindow,searchLocalTasks} from '../workNavigation';
+const destinations:{id:ViewId;title:string}[]=[{id:'home',title:'Home'},{id:'inbox',title:'Mission inbox'},{id:'ship',title:'The Sunny'},{id:'island',title:'The Island'},{id:'crew',title:'Crew'},{id:'projects',title:'Projects'},{id:'missions',title:'Missions'},{id:'news',title:'Morgans’ blimp'},{id:'library',title:'Library'},{id:'tools',title:'Tools'},{id:'settings',title:'Settings'}];
+export function QuickSwitcher({tasks,projects,onTask,onProject,onView,onOpening}:{tasks:TaskSummary[];projects:Project[];onTask:(id:string)=>void;onProject:(id:string)=>void;onView:(id:ViewId)=>void;onOpening:()=>void}){
+ const dialog=useRef<HTMLDialogElement>(null),input=useRef<HTMLInputElement>(null),trigger=useRef<HTMLButtonElement>(null),previousFocus=useRef<HTMLElement|null>(null);
+ const [query,setQuery]=useState(''),[selected,setSelected]=useState('');
+ const normalized=query.trim().toLocaleLowerCase();
+ const results=[...destinations.filter(d=>d.title.toLocaleLowerCase().includes(normalized)).map(d=>({id:'view:'+d.id,title:d.title,detail:'Navigate',run:()=>onView(d.id)})),...projects.filter(p=>p.name.toLocaleLowerCase().includes(normalized)).map(p=>({id:'project:'+p.id,title:p.name,detail:'Project',run:()=>onProject(p.id)})),...searchLocalTasks(tasks,projects,ALL_CREW,query).map(t=>({id:'task:'+t.id,title:t.title,detail:'Conversation · '+(projects.find(p=>p.id===t.projectId)?.name??'Project unavailable'),run:()=>onTask(t.id)}))];
+ const shown=quickSwitchWindow(results,selected),active=shown.find(r=>r.id===selected)??shown[0];
+ const open=()=>{if(document.querySelector('dialog[open],[aria-modal="true"],.modal-backdrop'))return;previousFocus.current=document.activeElement instanceof HTMLElement?document.activeElement:null;setQuery('');setSelected('');onOpening();dialog.current?.showModal();requestAnimationFrame(()=>input.current?.focus());};
+ const close=()=>dialog.current?.close();
+ useEffect(()=>{const handle=(event:KeyboardEvent)=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'&&!event.isComposing){event.preventDefault();if(dialog.current?.open)close();else trigger.current?.click();}};window.addEventListener('keydown',handle);return()=>window.removeEventListener('keydown',handle);},[]);
+ useEffect(()=>{if(dialog.current?.open&&active)document.getElementById('switch-'+encodeURIComponent(active.id))?.scrollIntoView({block:'nearest'});},[active?.id]);
+ return <><button ref={trigger} className="quick-switch-trigger" onClick={open}><Search size={17} aria-hidden="true"/><span>Jump to work</span><kbd>Ctrl K</kbd></button>{createPortal(<dialog className="quick-switcher" ref={dialog} aria-labelledby="quick-switch-title" onClose={()=>{if(dialog.current?.open)return;const previous=previousFocus.current;if(previous?.isConnected&&previous.getClientRects().length)previous.focus();else document.querySelector<HTMLButtonElement>('.menu-button')?.focus();}} onClick={e=>{if(e.target===e.currentTarget)close();}}>
+  <div className="quick-switch-content"><header><div><span className="eyebrow">Captain’s compass</span><h2 id="quick-switch-title">Where next?</h2></div><button onClick={close} aria-label="Close quick switcher"><X size={20}/></button></header>
+  <label className="work-search"><Search size={20} aria-hidden="true"/><span className="sr-only">Search destinations and work</span><input ref={input} role="combobox" aria-expanded="true" aria-controls="quick-switch-results" aria-autocomplete="list" aria-activedescendant={active?'switch-'+encodeURIComponent(active.id):undefined} value={query} placeholder="Search tasks, projects and destinations…" onChange={e=>{setQuery(e.target.value);setSelected('');}} onKeyDown={e=>{if(e.nativeEvent.isComposing)return;if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(!shown.length)return;const index=shown.findIndex(r=>r.id===active?.id),next=(index+(e.key==='ArrowDown'?1:-1)+shown.length)%shown.length;setSelected(shown[next].id);}if(e.key==='Enter'&&active){e.preventDefault();close();active.run();}}}/></label>
+  <div id="quick-switch-results" role="listbox" aria-label="Destinations and work">{shown.map(result=><button type="button" role="option" tabIndex={-1} aria-selected={result.id===active?.id} id={'switch-'+encodeURIComponent(result.id)} key={result.id} onMouseMove={()=>setSelected(result.id)} onClick={()=>{close();result.run();}}><span><b>{result.title}</b><small>{result.detail}</small></span><ArrowUpRight size={17} aria-hidden="true"/></button>)}</div>
+  <footer role="status">{results.length?results.length>shown.length?'Showing 60 of '+results.length+' results. Type more to narrow your search.':results.length+(results.length===1?' result':' results')+' · ↑ ↓ to move · Enter to open':'No matches. Try a task title or project name.'}</footer></div>
+ </dialog>,document.body)}</>;
+}

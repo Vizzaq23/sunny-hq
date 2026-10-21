@@ -57,12 +57,14 @@ Source commit: ${source.commit}`;
   return {id:randomUUID(),attemptId:mission.activeAttemptId,repository,branch:source.branch,base,title:mission.title,body,commit:source.commit,fingerprint:source.fingerprint,state:'prepared',createdAt:Date.now(),expiresAt:Date.now()+15*60*1000};
  }
  async validate(root,preview){const source=await this.evidence.gitState(root),repository=await this.repository(root);if(source.dirty||source.commit!==preview.commit||source.branch!==preview.branch||source.fingerprint!==preview.fingerprint||repository!==preview.repository)throw Error('Source or repository changed. Prepare and review a new PR preview.');}
- async publish(root,preview){
+ async publish(root,preview,beforeEffect){
   await this.validate(root,preview);
+  beforeEffect?.();
   const folder=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-pr-')),bodyFile=path.join(folder,'body.md');
   try{
    fs.writeFileSync(bodyFile,preview.body,'utf8');
    await this.run(this.git,['push',`https://github.com/${preview.repository}.git`,`${preview.commit}:refs/heads/${preview.branch}`],root);
+   try{beforeEffect?.();}catch(error){error.uncertain=true;throw error;}
    const url=(await this.run(this.gh,['pr','create','--repo','github.com/'+preview.repository,'--draft','--base',preview.base,'--head',preview.branch,'--title',preview.title,'--body-file',bodyFile],root)).trim();
    const prefix=`https://github.com/${preview.repository}/pull/`,number=Number(url.slice(prefix.length));if(!url.startsWith(prefix)||!Number.isSafeInteger(number)||number<1)throw Error('Publication response could not be verified.');return {url,number};
   }finally{fs.rmSync(bodyFile,{force:true});fs.rmdirSync(folder);}
@@ -73,29 +75,32 @@ class MissionPublication{
  async act(input,mode){
   const hub=this.hub;hub.validateMissionAction(input,mode==='prepare'?['missionId','revision','base']:mode==='publish'?['missionId','revision','previewId','confirmed']:['missionId','revision','prNumber']);
   const mission=hub.missionBook.get(input.missionId);hub.missionBook.check(mission,input.revision);if(mission.status!=='WAITING_FOR_REVIEW')throw Error('Finish the attempt before preparing a pull request.');
-  if(hub.missionActions.has(mission.id))throw Error('Wait for the current mission action.');
-  const project=hub.project(mission.projectId),lock='mission-publication:'+mission.id;
-  hub.gate.acquire(lock,project.path);hub.missionActions.add(mission.id);
+  const project=hub.missionProject(mission),lock='mission-publication:'+mission.id;if(project.executionWorkspace)await hub.assertExecutionProject(project);
+  hub.publicationRuns??=new Set();const recovering=mode==='reconcile'&&hub.gate.active.has(lock)&&!hub.publicationRuns.has(mission.id);
+  if(hub.missionActions.has(mission.id)&&!recovering)throw Error('Reconcile the existing publication or wait for the current mission action.');
+  if(!recovering)hub.gate.acquire(lock,project.path,{projectId:project.id,runId:mission.runId,integrating:true});hub.missionActions.add(mission.id);hub.publicationRuns.add(mission.id);
+  let externalStarted=false,outcomeDurable=false;
   try{
    if(mode==='prepare'){
     if(mission.prPublication&&mission.prPublication.state!=='prepared')throw Error('Reconcile the existing publication before preparing another.');
     const preview=await hub.publisher.prepare(project.path,mission,input.base);
-    return hub.missionMutation(()=>{hub.missionBook.check(mission,input.revision);mission.prPublication=preview;hub.missionBook.record(mission,'PR_PREPARED',{previewId:preview.id});return preview;});
+    return await hub.missionMutation(book=>{const current=book.get(mission.id);book.check(current,input.revision);current.prPublication=preview;book.record(current,'PR_PREPARED',{previewId:preview.id});return preview;});
    }
    const preview=mission.prPublication;
    if(!preview||preview.attemptId!==mission.activeAttemptId)throw Error('Prepare a PR preview for this attempt first.');
    if(mode==='publish'){
     if(input.confirmed!==true||input.previewId!==preview.id||preview.state!=='prepared'||Date.now()>preview.expiresAt)throw Error('Review and confirm the current unexpired PR preview.');
-    await hub.publisher.validate(project.path,preview);if(hub.closed)throw Error('Sunny closed before publication.');
-    hub.missionMutation(()=>{hub.missionBook.check(mission,input.revision);preview.state='publishing';preview.authorizedAt=Date.now();hub.missionBook.record(mission,'PR_PUBLISH_AUTHORIZED',{previewId:preview.id,actor:'captain'});});
-    try{const result=await hub.publisher.publish(project.path,preview);return hub.missionMutation(()=>{preview.state='published';Object.assign(preview,result);hub.missionBook.record(mission,'PR_CREATED',{previewId:preview.id,url:result.url});return preview;});}
-    catch(error){hub.missionMutation(()=>{preview.state='uncertain';hub.missionBook.record(mission,'PR_PUBLICATION_UNCERTAIN',{previewId:preview.id});});throw Error('Publication may have reached GitHub. Inspect the repository and reconcile the PR; Sunny will not retry automatically.');}
+    await hub.publisher.validate(project.path,preview);if(hub.closed||hub.quiescing)throw Error('Sunny closed before publication.');
+    await hub.missionMutation(book=>{const current=book.get(mission.id);book.check(current,input.revision);current.prPublication.state='publishing';current.prPublication.authorizedAt=Date.now();book.record(current,'PR_PUBLISH_AUTHORIZED',{previewId:preview.id,actor:'captain'});},'publication-intent');
+    const authorized=mission.prPublication;await hub.publisher.validate(project.path,authorized);if(hub.closed||hub.quiescing)throw Error('Sunny closed before publication.');if(project.executionWorkspace)await hub.assertExecutionProject(project);hub.assertOpenForEffect();externalStarted=true;
+    try{const result=await hub.publisher.publish(project.path,authorized,()=>hub.assertOpenForEffect());const saved=await hub.missionMutation(book=>{const current=book.get(mission.id);if(current.prPublication?.id!==preview.id)throw Error('Publication intent changed.');current.prPublication.state='published';Object.assign(current.prPublication,result);book.record(current,'PR_CREATED',{previewId:preview.id,url:result.url});return current.prPublication;},'reservation-release');outcomeDurable=true;return saved;}
+    catch(error){if(!hub.authorityQueue.uncertain)await hub.missionMutation(book=>{const current=book.get(mission.id);current.prPublication.state='uncertain';book.record(current,'PR_PUBLICATION_UNCERTAIN',{previewId:preview.id});});throw Error('Publication may have reached GitHub. Inspect the repository and reconcile the PR; Sunny will not retry automatically.');}
    }
    if(!Number.isSafeInteger(input.prNumber)||input.prNumber<1)throw Error('Enter the published PR number.');
    const evidence=await hub.pullRequests.inspect(project.path,input.prNumber);
    if(evidence.repository!==preview.repository||evidence.commit!==preview.commit||evidence.baseBranch!==preview.base)throw Error('That PR does not match the publication preview.');
-   return hub.missionMutation(()=>{hub.missionBook.check(mission,input.revision);preview.state='published';preview.url=evidence.url;preview.number=evidence.number;mission.artifacts.push({...evidence,id:randomUUID(),attemptId:mission.activeAttemptId,projectId:project.id,producer:'sunny-local-verifier'});hub.missionBook.record(mission,'PR_RECONCILED',{previewId:preview.id,url:evidence.url});return preview;});
-  }finally{hub.gate.release(lock);hub.missionActions.delete(mission.id);}
+   const saved=await hub.missionMutation(book=>{const current=book.get(mission.id);book.check(current,input.revision);current.prPublication.state='published';current.prPublication.url=evidence.url;current.prPublication.number=evidence.number;current.artifacts.push({...evidence,id:randomUUID(),attemptId:current.activeAttemptId,projectId:project.id,producer:'sunny-local-verifier'});book.record(current,'PR_RECONCILED',{previewId:preview.id,url:evidence.url});return current.prPublication;},'reservation-release');outcomeDurable=true;return saved;
+  }finally{hub.publicationRuns.delete(mission.id);if(!hub.authorityQueue.uncertain&&(!externalStarted||outcomeDurable)&&(!recovering||outcomeDurable)){hub.gate.release(lock);hub.missionActions.delete(mission.id);}}
  }
 }
 module.exports={MissionPublisher,MissionPublication};

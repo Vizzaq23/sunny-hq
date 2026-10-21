@@ -1,0 +1,2 @@
+const {test}=require('node:test');const assert=require('node:assert/strict');const {ROOM_BRIEFS,appendRoomStarter}=require('../src/roomBriefs.ts');
+test('room starters preserve the captain draft and remain unsent strings',()=>{assert.equal(appendRoomStarter('Keep my requirements','Review the design'),'Keep my requirements\n\nReview the design');assert.equal(appendRoomStarter('','Review the design'),'Review the design');});

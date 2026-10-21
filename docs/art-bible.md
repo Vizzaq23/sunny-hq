@@ -50,3 +50,67 @@ Acceptable variation: room props, role-specific tools, controlled district accen
 Conversation workspaces use ten original character-specific 1536×1024 room illustrations, recorded with generated source paths, SHA256 hashes and prompt summaries in `public/assets/ARTWORK.md`. Zoro's dojo, Robin's library, Nami's chart room and the other seven rooms each use distinct props and palette. Keep the fixed scene subdued at 19% opacity beneath all text and controls; the image is decorative and aria-hidden. Rooms remain static for reduced motion. Native fixture captures in `.sunny-dev/workflow-check/` are implementation evidence, not distributable art.
 
 Audio identity can reinforce those same station materials without becoming a soundtrack: use brief, low-volume, original synthesized arrival cues with distinct intervals and timbres for each crew room. Keep audio off until the captain enables it, provide a saved volume control and an immediate mute, and never attach sounds to mission progress. Current implementation uses small Web Audio note sequences and no recorded or third-party samples.
+
+## Full roster source extension — 2026-10-05
+
+The shared scene catalog exposes fifteen distinct destinations: ten core crew,
+four residents, and Morgans' read-only news blimp. Each configuration records
+station, atlas reference, state cues and direct navigation. Only the specialist
+Franky scene has admitted rest/work feet and a route. All other specialist and
+resident configurations explicitly retain null anchors and empty routes; their
+decorative room art is not an actor floor. Existing quarters lanes and deck
+geometry remain unchanged. Residents keep their saved districts and a static
+idle atlas cell; no unmeasured work-prop cell or new room travel is admitted.
+
+Scene work follows the authoritative selected run and current assignment, with
+retained historical attempts kept distinct. Review, uncertainty, failed work and
+run stop/pause/block gates stop purposeful work. Visual pause freezes travel and
+frame animation while status still updates; an obsolete Franky work frame clears
+even while paused. System/user reduced motion and the existing opt-in arrival
+audio and durable acceptance-cue contracts remain in force. No bitmap, atlas
+geometry, sound sample, dependency or provenance changed.
+
+The ten core conversation rooms retain their original illustrated backdrops.
+Law, Ace, Vivi and Perona have no measured room illustration, so an existing-task
+resident conversation leaves that decorative image absent. The prior constructed
+`assets/undefined` URL is removed; the resident's name and direct work controls
+remain. The rendered source regression covers all fourteen task-capable rooms.
+
+Task17 source and tests are separate from native art admission. Exact-package
+captures for the state matrix, all destinations, keyboard routing and 200% text
+remain pending while native crash/hang diagnosis is open. The existing performance
+protocol and failed Stage A promotion gate remain binding.
+
+Established 2026-09-21 from inspected `island-world.png`, `crew-pet-states.png`, existing rendering code and [artwork provenance](../public/assets/ARTWORK.md). A separately named supplied pixel-art sheet was not located; the existing Chopper atlas is the documented user-selected anchor. Do not claim an unseen sheet was reviewed.
+
+
+## Franky one-room source pilot — 2026-10-01
+
+The root visually reviewed the raw contact overlay and corrected diagnostic contact sheet before admitting the measured Franky room geometry. Existing `franky-shipwright-room.png` remains byte-identical: SHA256 `E29915E79F9A279AF61EF490E51527190A87BBE7AF941F962D6702419D051A8C`, full1536×1024 (3:2), uncropped and proportionally letterboxed beside the opaque captain log. Rest feet are(650,680), bench feet(1150,590); the clear-floor route is(650,680)→(820,640)→(1040,550)→(1150,590), normalized to that full canvas in `FRANKY_ROOM_GEOMETRY`.
+
+The original1586×992 crew-pet-states atlas is unchanged. Its nominal Franky row3 columns4–7 contain adjacent-row feet/prop fragments and clip soles/wrenches. The admitted in-memory extraction keeps the existing edge-connected neutral-white key, examines padded216×216 windows at x784/982/1180/1378,y595, and independently retains each largest4-connected alpha component. Column7 pads its208px source width to216. Measured sole bottoms are203/203/203/206; each frame grounds against its own bottom, keeping the shadow attached. Retained extents and source hashes are tested against the actual decoded PNG. No new bitmap, generated art or borrowed signature-action row is introduced.
+
+Franky uses the existing viewer-facing wrench poses while working beside the bench; this does not depict or prove a literal tabletop strike. Authoritatively selected Franky build work permits travel and work frames; attention, review, acceptance and other specialist stages keep him still. Visual Pause affects only presentation. System/Sunny reduced motion suppresses travel, frame stepping and acceptance glow. A brief restrained glow requires the backend's durable first claim of a live modern result-bound acceptance; historical mounts/reloads and finished provider turns never earn it. Ambient deck entertainment remains separately labelled.
+
+Evidence: session contact overlays/measurements in `../../sunny-session-20261001/franky-geometry-review.md`; actual-PNG and scene/state tests in `tests/franky-frames.test.cjs`, `tests/franky-workshop.test.cjs` and `tests/mission-projection.test.cjs`. Source pilot admission does not assert installed cutover, packaged rollout or passing pending native scene/accessibility captures. Strict timing/large-profile promotion gates remain independent.
+
+## Interface art reuse — 2026-10-16
+
+The immersive UI refresh uses existing Sunny, ship-deck, project-quarters, Nami chart-room, Robin library, Usopp workshop, Jinbe helm and Luffy den illustrations in decorative destination headers. Morgans' existing blimp is larger in the masthead. Gradient scrims protect text contrast; compact layouts use vertical scrims. No generated image, sprite frame, atlas coordinate, foot anchor, provenance or original bitmap changed. The browser preview was checked at desktop and narrow widths. The hidden native workflow now checks all ten room images outside chat, streamed work updates, draft/editor preservation, approvals and reduced motion; this is synthetic fixture evidence, not a live provider claim. See the dated refresh in the world bible and its UI evidence.
+
+### 2026-10-16 readability refinement
+The nautical UI uses deep teal for primary actions, parchment for work surfaces, brass for selected navigation and section edges, and coral for caution. Primary and secondary controls have 44px minimum targets and 14px labels; disabled primary controls retain readable text. The Home brief spans its available width with paired fields on desktop and a single column on narrow screens. Crew journals use secondary buttons and work launch uses primary buttons. Existing art, sprite geometry, state and authority contracts are unchanged.
+
+### Command deck palette and room composition — 2026-10-16
+The current helm pass supersedes the earlier ink-blue/orange shell with deep sea teal (#102c32 / #16383e), sail cream (#faf5e9), brass (#e8b365) and restrained green for actual working state. Keep the warm existing ship and room art as the visual focal point. Work surfaces use fewer, flatter boundaries; primary actions and attention cues retain readable text. The ship and Franky room keep their original aspect ratio, actor anchor and atlas contracts. Chat occupies an independent panel. Existing assets were reused without pixel edits or new provenance requirements.
+
+### Motion treatment — 2026-10-17
+The helm now uses shallow rounded controls, brass shared selection accents, a clearer static activity timeline, and slow decorative sea/light layers. These layers sit behind the unchanged Sunny artwork and have their own pause control. No artwork, atlas frames, palette provenance, actor anchors or bitmap bytes changed. Full-motion, paused and 390px compositions were inspected in the hidden browser; both OS and Sunny reduced-motion behavior is checked by the native workflow.
+
+### Shared quarters presentation — 2026-10-17
+The quarters layer extends ocean, parchment and copper controls throughout the app. Existing crew artwork remains in an independent room panel with crew-specific chrome; atlas geometry and provenance are unchanged. Category rows organize Tools, grouped panels organize Settings, and the library retains separate browsing and editing regions. Page entrances are decorative and disabled by Sunny or OS reduced motion. No animation denotes real progress.
+
+### Crew workstation composition — 2026-10-17
+All ten admitted 1536×1024 room illustrations remain intact, outside the chat panel, with explicit intrinsic dimensions and contained scaling. Compact and expanded scene sizes preserve the original aspect ratio without cropping the source. Work surfaces have different editorial, route, ledger, ticket, console and watch compositions. Dark crew headers, warm readable work areas and restrained copper/sea controls connect them to the same ship. Room-specific CSS light and particles are original decorative overlays, not edits to artwork or actor atlases. Pause, live OS/Sunny reduced motion, hidden-page and focus-mode suppression apply to ambience. No image provenance or atlas geometry changed.
+
+Room relay refinement: Luffy/Jinbe use a dark sea-green inset with warm dependency rules and restrained mint status rings. It complements their parchment objective/watch surfaces. No animated charts or unverified counters are added. The shared room pause, visibility and reduced-motion controls govern status-ring motion. All artwork and atlas geometry remain unchanged.

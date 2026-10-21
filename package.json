@@ -9,8 +9,8 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "desktop": "electron .",
-    "build": "tsc --noEmit && vite build",
-    "test": "node --test tests/*.test.cjs",
+    "build": "tsc --noEmit && vite build && node scripts/write-build-info.cjs",
+    "test": "node --test --test-concurrency=1 --test-reporter=tap tests/*.test.cjs",
     "dist": "npm run build && electron-builder --win nsis --x64",
     "preview": "vite preview --host 127.0.0.1"
   },
@@ -20,6 +20,7 @@
     "@xterm/xterm": "^5.5.0",
     "lucide-react": "^0.468.0",
     "monaco-editor": "^0.52.0",
+    "motion": "14.3.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
@@ -44,6 +45,11 @@
     "files": [
       "dist/**/*",
       "desktop/**/*",
+      "tests/fixtures/playable-local/**/*",
+      "scripts/ordered-control-check.cjs",
+      "tests/helpers/frozen-control-loader.cjs",
+      "tests/helpers/frozen-control-fixture.cjs",
+      "docs/evidence/protocols/ordered-control-2026-10-02.md",
       "package.json"
     ],
     "win": {

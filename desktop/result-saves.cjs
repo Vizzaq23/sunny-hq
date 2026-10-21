@@ -25,7 +25,10 @@ function notePath(record){
 }
 
 class ResultSaves{
- constructor(hub){this.hub=hub;}
+ constructor(hub){this.hub=hub;this.pending=Promise.resolve();}
+ serialize(operation){const next=this.pending.then(()=>{this.hub.assertOpenForEffect?.();return operation();});this.pending=next.catch(()=>{});return next;}
+ save(input){return this.serialize(()=>this.saveUnlocked(input));}
+ recover(input){return this.serialize(()=>this.recoverUnlocked(input));}
  reserveVault(){
   const configured=this.hub.catalog.vaultPath?.(this.hub.home);
   if(typeof configured!=='string'||!path.isAbsolute(configured))throw Error('The Obsidian vault is not configured.');
@@ -38,7 +41,7 @@ class ResultSaves{
   if(!configured||!fs.existsSync(configured)||!fs.statSync(configured).isDirectory())throw Error('The Obsidian vault is unavailable. Restore it before saving.');
   return fs.realpathSync(configured);
  }
- save(input){
+ async saveUnlocked(input){
   command(input,['taskId','messageId','title','text','reviewed']);
   text(input.taskId,'task ID',200);text(input.messageId,'result ID',200);
   const title=text(input.title,'note title',480).trim();if(title.length>120)throw Error('Note title exceeds 120 characters.');
@@ -47,28 +50,30 @@ class ResultSaves{
   const task=this.hub.task(input.taskId);this.hub.project(task.projectId);
   if(task.external)throw Error('Choose a local Sunny task.');
   if(task.status!=='finished')throw Error('Wait for a finished task before reviewing its result.');
-  const message=task.messages.findLast(item=>item.role==='assistant'&&item.text?.trim());
+  const candidates=task.messages.filter(item=>item.role==='assistant'&&item.id===input.messageId&&item.text?.trim());
+  const accepted=candidates.length===1&&this.hub.state.missions.some(m=>m.status==='COMPLETE'&&!m.pendingAcceptance&&!m.acceptanceRecovery&&m.acceptance?.attemptId===m.activeAttemptId&&m.selectedResult?.attemptId===m.activeAttemptId&&m.acceptance?.resultId===m.selectedResult?.id&&m.selectedResult?.producerTaskId===task.id&&m.selectedResult?.ref.kind==='reply'&&m.selectedResult.ref.taskId===task.id&&m.selectedResult.ref.messageId===input.messageId&&m.selectedResult.ref.sha256===hash(candidates[0].text)&&m.acceptance.resultSha256===m.selectedResult.ref.sha256&&content===candidates[0].text);
+  const message=accepted?candidates[0]:task.messages.findLast(item=>item.role==='assistant'&&item.text?.trim());
   if(!message||message.id!==input.messageId)throw Error('The task result changed. Review the latest result before saving.');
   const sourceHash=hash(message.text),key=hash(JSON.stringify([task.id,message.id,sourceHash,title,content]));
   const previous=this.hub.state.resultSaves.find(record=>record.key===key);
-  if(previous)return this.recover({saveId:previous.id});
+  if(previous)return this.recoverUnlocked({saveId:previous.id});
   const vault=this.reserveVault(),id=randomUUID(),createdAt=Date.now();
   const mission=this.hub.state.missions.find(item=>item.attempts.some(attempt=>attempt.taskIds.includes(task.id)));
   const attempt=mission?.attempts.find(item=>item.taskIds.includes(task.id));
   const record={id,key,taskId:task.id,projectId:task.projectId,messageId:message.id,sourceHash,executionId:task.executionId,missionId:mission?.id,attemptId:attempt?.id,title,text:content,reviewedAt:createdAt,createdAt,updatedAt:createdAt,vault,path:path.join(vault,'00 Inbox',`Sunny-${id}.md`),status:'saving'};
   record.sha256=hash(noteBody(record));
   this.hub.state.resultSaves.unshift(record);
-  try{this.hub.persist();}catch(error){this.hub.state.resultSaves.shift();throw error;}
+  try{await this.hub.persist();}catch(error){if(error.uncertain||error.durable){record.status="needs-recovery";}else this.hub.state.resultSaves=this.hub.state.resultSaves.filter(value=>value.id!==record.id);throw error;}
   return this.finish(record);
  }
- recover(input){
+ async recoverUnlocked(input){
   command(input,['saveId']);text(input.saveId,'save ID',200);
   const record=this.hub.state.resultSaves.find(item=>item.id===input.saveId);
   if(!record)throw Error('Saved result was not found.');
   this.hub.project(record.projectId);
   return this.finish(record);
  }
- finish(record){
+ async finish(record){
   if(this.hub.closed)throw Error('Sunny is closed. Reopen it before recovering the save.');
   let writeAttempted=false;
   try{
@@ -79,7 +84,7 @@ class ResultSaves{
    if(!exists){
     if(record.receipt)throw Error('The previously saved note is missing or was removed. Inspect the original path; Sunny will not recreate it.');
     // Checkpoint again before a retry's first side effect. Failed checkpoints never write.
-    record.status='saving';record.error=undefined;this.hub.persist();
+    record.status='saving';record.error=undefined;await this.hub.persist();
     fs.mkdirSync(path.dirname(file),{recursive:true});notePath(record);
     let fd;
     try{writeAttempted=true;fd=fs.openSync(file,'wx');fs.writeFileSync(fd,body,'utf8');fs.fsyncSync(fd);}
@@ -92,13 +97,13 @@ class ResultSaves{
    const oldReceipt=record.receipt;
    record.receipt=oldReceipt||{id:record.id,path:file,sha256:record.sha256,bytes:Buffer.byteLength(body),verifiedAt:Date.now()};
    record.status='saved';record.error=undefined;record.updatedAt=Date.now();
-   try{this.hub.persist();}catch(error){record.receipt=oldReceipt;throw Error('The note exists, but its receipt could not be saved: '+error.message);}
+   try{await this.hub.persist();}catch(error){record.receipt=oldReceipt;throw Error('The note exists, but its receipt could not be saved: '+error.message);}
    this.hub.changed();return record;
   }catch(error){
    // A possible write or an existing receipt/file requires reconciliation, never a new path.
    record.status=writeAttempted||record.receipt||fs.existsSync(record.path)?'needs-recovery':'failed';
    record.error=String(error.message).slice(0,1000);record.updatedAt=Date.now();
-   try{this.hub.persist();}catch{/* The previously checkpointed intent remains recoverable after restart. */}
+   try{await this.hub.persist();}catch{/* The previously checkpointed intent remains recoverable after restart. */}
    this.hub.changed();throw error;
   }
  }

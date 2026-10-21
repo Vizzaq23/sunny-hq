@@ -1,44 +1,39 @@
-// Runs the production UI against a controlled IPC boundary; never starts Codex or uses real user data.
+// Runs the production UI against explicitly synthetic IPC transport; never starts Codex or uses real user data.
 const {app,BrowserWindow,ipcMain}=require('electron');
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
-const root=path.resolve(__dirname,'..'),output=path.join(root,'.sunny-dev','workflow-check');
+const {emptyWorkspace}=require('./mission-profile.cjs');
+const {applyWorkspaceUpdate}=require('./workspace-state.cjs');
+const root=path.resolve(__dirname,'..'),output=path.resolve(process.env.SUNNY_WORKFLOW_CHECK_OUTPUT||path.join(root,'.sunny-dev','workflow-check',new Date().toISOString().replaceAll(':','-')));
 fs.mkdirSync(output,{recursive:true});app.setPath('userData',path.join(output,'profile-'+Date.now()));
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const now=Date.now();
 const task=(id,title,status,crewId='luffy',extra={})=>({id,title,status,crewId,projectId:'studio',createdAt:now-300000,updatedAt:now-30000,messages:[],threadId:'thread-'+id,turnId:'turn-'+id,...extra});
 const skillOption={id:'ecc-frontend-a11y',name:'ecc-frontend-a11y',category:'Engineering',purpose:'Check interactive UI access.',roles:['builder','designer','reviewer'],revision:'a'.repeat(64)};
-const state={projects:[{id:'studio',name:'Sunny Studio',path:output,category:'development'},{id:'launch',name:'Launch planning',path:output,category:'creative'}],tasks:[
+const state={runs:[],workspace:emptyWorkspace(),persistence:{state:'saved',failures:0},missions:[],missionRoles:[],projects:[{id:'studio',name:'Sunny Studio',path:output,category:'development'},{id:'launch',name:'Launch planning',path:output,category:'creative'}],tasks:[
  task('captain','Polish the customer dashboard','working','luffy',{captain:true}),
  task('design','Refresh the dashboard layout','waiting','sanji',{parentTaskId:'captain'}),
  task('research','Compare three launch ideas','working','robin',{projectId:'launch'}),
  task('unknown','Recover the settings update','unknown','chopper',{error:'The connection was interrupted.'}),
  task('done','Write the onboarding guide','finished','robin',{messages:[{id:'reply',role:'assistant',text:'The onboarding guide is ready. It covers setup, first tasks, and reviewing the crew’s results.',time:now-60000}]})
 ],settings:{reducedMotion:true,notifications:false},codex:{status:'connected'},approvals:[{id:'permission',taskId:'design',method:'item/commandExecution/requestApproval',params:{command:'npm test',reason:'Verify the updated dashboard.'}}],models:[],tools:[],automations:[],usage:null,world:{paused:true,residents:[],jobs:[],ledger:[]}};
- let win,failStart=true,starts=0,answers=0,failSnapshot=false,raceSnapshot=true,startDelay=150,stops=0,failCheck=true,taskRace=false,reportRequests=0,captures=0,failCapture=true;
-const emit=()=>win.webContents.send('sunny:event',{type:'snapshot',data:structuredClone(state)});
-const saveVault=fs.mkdtempSync(path.join(output,'result-vault-'));
-const saveStateFile=path.join(saveVault,'sunny-state.json');
-state.resultSaves=[];
-const resultSaves=new (require('./result-saves.cjs').ResultSaves)({state,home:saveVault,catalog:{vaultPath:()=>saveVault},task:id=>{const value=state.tasks.find(task=>task.id===id);if(!value)throw Error('Task missing');return value;},project:id=>{const value=state.projects.find(project=>project.id===id);if(!value)throw Error('Project missing');return value;},persist:()=>fs.writeFileSync(saveStateFile,JSON.stringify(state)),changed:emit});
-const readVault=resultSaves.vault.bind(resultSaves);resultSaves.vault=()=>{if(failCapture)throw Error('Fixture: Obsidian vault unavailable');return readVault();};
-let launchRetries=0;
+const watchdog=setTimeout(()=>{const health={mainPid:process.pid,mainAlive:true,windowDestroyed:win?.isDestroyed()??true,rendererPid:win&&!win.isDestroyed()?win.webContents.getOSProcessId():null};fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({passed:false,syntheticTransport:true,liveProviderProof:false,error:'Fixture watchdog exceeded 150 seconds',health}));console.error('SUNNY_WORKFLOW_WATCHDOG '+JSON.stringify(health));app.exit(1);},150000);
+app.on('will-quit',()=>clearTimeout(watchdog));
+ let win,failStart=true,starts=0,answers=0,failSnapshot=false,raceSnapshot=true,startDelay=150,stops=0,failCheck=true,taskRace=false;
+const projection=require('./state-projection.cjs').createStateProjection();
+const emit=()=>win.webContents.send('sunny:event',projection.event('snapshot',state));
 ipcMain.handle('sunny:invoke',async(_event,action,args)=>{
- if(action==='task:retryLaunch'){
-  const source=state.tasks.find(task=>task.id===args.taskId);assert.equal(source.launchNotSubmitted,true);assert.equal(args.expectedUpdatedAt,source.updatedAt);
-  if(source.retryTaskId)return state.tasks.find(task=>task.id===source.retryTaskId);
-  launchRetries++;await delay(150);const next=task('launch-recovery','Recovered launch','finished','franky',{recoveryOfTaskId:source.id,messages:source.messages});source.retryTaskId=next.id;state.tasks.unshift(next);emit();return next;
- }
- if(action==='result:save'){captures++;return resultSaves.save(args);}
- if(action==='result:recover')return resultSaves.recover(args);
+ if(action==='transcript:page')return projection.page(state,args);
+ if(action==='workspace:get')return structuredClone(state.workspace);
+ if(action==='workspace:update'){state.workspace=applyWorkspaceUpdate(state.workspace,structuredClone(args),structuredClone(state));emit();return structuredClone(state.workspace);}
  if(action==='skills:suggest')return args.brief.includes('dashboard')?{available:[skillOption],suggested:[skillOption]}:{available:[],suggested:[]};
  if(action==='snapshot'){
   if(failSnapshot)throw Error('Fixture: connection unavailable');
-  if(raceSnapshot){raceSnapshot=false;const stale={...structuredClone(state),tasks:[]};setTimeout(emit,20);await delay(180);return stale;}
-  if(taskRace){taskRace=false;const stale=structuredClone(state);setTimeout(()=>{state.tasks[0].title='Latest streamed task';win.webContents.send('sunny:event',{type:'task',data:state.tasks[0]});},20);await delay(180);return stale;}
-  return state;
+  if(raceSnapshot){raceSnapshot=false;const stale=projection.snapshot({...structuredClone(state),tasks:[]});setTimeout(emit,20);await delay(180);return stale;}
+  if(taskRace){taskRace=false;const stale=projection.snapshot(state);setTimeout(()=>{state.tasks[0].title='Latest streamed task';win.webContents.send('sunny:event',projection.event('task',state.tasks[0]));},20);await delay(180);return stale;}
+  return projection.snapshot(state);
  }
  if(action==='task:start'){starts++;await delay(startDelay);if(failStart)throw Error('Fixture: unable to connect');const next=task('new-'+starts,args.prompt,'working',args.crewId,{projectId:args.projectId,captain:args.crewId==='luffy',selectedSkills:args.selectedSkills?.map(choice=>({...skillOption,...choice})),messages:[{id:'user',role:'user',text:args.prompt,time:Date.now()}]});state.tasks.unshift(next);emit();return next;}
- if(action==='task:send'){const target=state.tasks.find(task=>task.id===args.taskId);target.status='working';target.messages.push({id:'followup',role:'user',text:args.prompt,time:Date.now()});emit();return;}
+ if(action==='task:send'){const target=state.tasks.find(task=>task.id===args.taskId);target.status='working';target.messages.push({id:'followup',role:'user',text:args.prompt,time:Date.now()});const delta=projection.transcriptChanged(target);win.webContents.send('sunny:event',{type:'transcript:delta',epoch:delta.epoch,sequence:delta.sequence,data:delta});emit();return;}
  if(action==='approval:respond'){answers++;await delay(150);state.approvals=[];state.tasks.find(task=>task.id==='design').status='working';emit();return;}
  if(action==='task:checkStatus'){if(failCheck)throw Error('Fixture: status check offline');const target=state.tasks.find(task=>task.id===args.taskId);target.status='working';target.error=undefined;emit();return target;}
  if(action==='task:interrupt'){stops++;state.tasks.find(task=>task.id===args.taskId).status='interrupted';state.tasks.find(task=>task.id===args.taskId).error=undefined;emit();return;}
@@ -46,41 +41,33 @@ ipcMain.handle('sunny:invoke',async(_event,action,args)=>{
  if(action==='files:read')return {path:args.path,text:'Hello Sunny\n',hash:'fixture'};
  if(action==='library:search')return [{path:'00 Projects/Launch Notes.md',title:'Launch Notes',excerpt:'A useful saved project note.'},{path:'00 Projects/Long Notes.md',title:'Long Notes',excerpt:'A large reference note.'}];
  if(action==='library:read')return {path:args.path,text:args.path.includes('Long Notes')?'x'.repeat(16001):'Keep the launch focused on a small, verifiable first release.',hash:'fixture-note'};
- if(action==='library:capture'){captures++;if(failCapture)throw Error('Fixture: Obsidian vault unavailable');return {path:'00 Inbox/Morgans work report.md'};}
- if(action==='report:create'){
-  reportRequests++;assert.equal(args.projectIds,undefined,'default includes all projects');assert.ok(Math.abs(Date.now()-args.since-7*86400000)<5000,'default is seven days');
-  if(reportRequests>1){const packet={createdAt:now,scope:{projectIds:['studio','launch'],since:args.since,until:now},coverage:{source:'saved-local-records',truncated:true,retainedEventLimit:500},projects:[{id:'studio',name:'Sunny Studio',tasks:[],missions:[],observations:[]},{id:'launch',name:'Launch planning',tasks:[],missions:[],observations:[]}],attention:[]};const reportTask=task('morgans-unknown','Morgans work report','unknown','morgans',{error:'Provider status uncertain.'});state.tasks.unshift(reportTask);emit();return {packet,task:reportTask};}
-  state.tasks.unshift(task('failed-fixture','Failed build review','failed','zoro'));
-  state.missions=[{id:'review-fixture',projectId:'launch',title:'Review the launch',objective:'Review saved launch evidence.',acceptanceCriteria:['Captain checks the result'],completionBoundary:'review',status:'WAITING_FOR_REVIEW',connection:'connected',revision:1,createdAt:now,updatedAt:now,taskIds:[],attempts:[],artifacts:[],events:[]}];
-  const reportTask=task('morgans-report','Morgans work report','working','morgans');state.tasks.unshift(reportTask);emit();
-  const item=(kind,id,title,status,target,projectId='studio')=>({kind,id,title,status,projectId,observedAt:now,sourceId:id,sourceTime:now,target:{view:kind==='task'?'task':'mission',id:target}});
-  const failed=item('task','failed-fixture','Failed build review','failed','failed-fixture');
-  const mission=item('mission','review-fixture','Review the launch','review-needed','review-fixture','launch');
-  const deployment=item('deployment','review-fixture:deployment','Deployment observation','unobserved','review-fixture','launch');
-  const packet={createdAt:now,scope:{projectIds:['studio','launch'],since:args.since,until:now},coverage:{source:'saved-local-records',truncated:false,retainedEventLimit:500},projects:[{id:'studio',name:'Sunny Studio',tasks:[failed],missions:[],observations:[]},{id:'launch',name:'Launch planning',tasks:[],missions:[mission],observations:[deployment]}],attention:[failed,mission]};
-  setTimeout(()=>{reportTask.status='finished';reportTask.messages=[{id:'morgans-reply',role:'assistant',text:'The build review failed. The launch mission awaits review.',time:Date.now()}];emit();},250);
-  return {packet,task:reportTask};
- }
  if(action==='settings:update'){if(Object.hasOwn(args,'roomSoundEnabled'))state.settings.roomSoundEnabled=args.roomSoundEnabled;if(Object.hasOwn(args,'roomSoundVolume'))state.settings.roomSoundVolume=args.roomSoundVolume;emit();return state.settings;}
  if(action==='task:history')return [];
  if(action==='app:diagnostic'||action==='asset:crewTexture')return null;
  throw Error('Unexpected smoke IPC: '+action);
 });
 app.whenReady().then(async()=>{
- const hidden=process.env.SUNNY_SMOKE_HIDDEN==='1';
- win=new BrowserWindow({width:1440,height:1050,show:false,webPreferences:{offscreen:hidden,preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,backgroundThrottling:false}});
- if(hidden)assert.equal(win.isVisible(),false);else win.showInactive();
- const js=async code=>{try{return await win.webContents.executeJavaScript(code);}catch(error){throw Error(code+'\n'+error.message);}};
+ win=new BrowserWindow({width:1440,height:1050,show:false,webPreferences:{offscreen:process.env.SUNNY_SMOKE_HIDDEN==='1',preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,backgroundThrottling:false}});
+ assert.equal(win.isVisible(),false); // Always hidden; retain optional offscreen rendering.
+ const js=async code=>{let timer;try{return await Promise.race([win.webContents.executeJavaScript(code),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Runtime.evaluate timed out after 10 seconds')),10000);})]);}catch(error){throw Error(code+'\n'+error.message);}finally{clearTimeout(timer);}};
  const wait=async(code)=>{for(let i=0;i<120;i++){if(await js(code))return;await delay(50);}throw Error('UI wait timed out: '+code);};
- const click=async selector=>{await js(`document.querySelector(${JSON.stringify(selector)}).click()`);await delay(70);};
- const fill=(selector,value)=>js(`(()=>{const element=document.querySelector(${JSON.stringify(selector)});Object.getOwnPropertyDescriptor(element.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value').set.call(element,${JSON.stringify(value)});element.dispatchEvent(new Event('input',{bubbles:true}));})()`);
- const select=(selector,value)=>js(`(()=>{const element=document.querySelector(${JSON.stringify(selector)});element.value=${JSON.stringify(value)};element.dispatchEvent(new Event('change',{bubbles:true}));})()`);
- const nav=async label=>{await js(`Array.from(document.querySelectorAll('.sidebar .main-nav button')).find(button=>button.querySelector('span').textContent===${JSON.stringify(label)}).click()`);await delay(70);};
+ const revealConversations=async()=>{await js('(()=>{const details=document.querySelector(".home-conversations");if(details&&!details.open)details.querySelector("summary").click();})()');};
+ const prepare=async selector=>{await js(`(()=>{const element=document.querySelector(${JSON.stringify(selector)});if(!element)throw Error('Missing fixture target '+${JSON.stringify(selector)});let parent=element.parentElement;while(parent){if(parent.tagName==='DETAILS'&&!parent.open)parent.querySelector(':scope > summary').click();parent=parent.parentElement;}element.scrollIntoView({block:'center',behavior:'instant'});})()`);await delay(40);};
+ const click=async selector=>{await prepare(selector);await wait(`!document.querySelector(${JSON.stringify(selector)}).disabled`);await js(`(()=>{const element=document.querySelector(${JSON.stringify(selector)});element.focus();element.click();})()`);await delay(70);await revealConversations();};
+ const fill=async(selector,value)=>{await prepare(selector);return js(`(()=>{const element=document.querySelector(${JSON.stringify(selector)});Object.getOwnPropertyDescriptor(element.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value').set.call(element,${JSON.stringify(value)});element.dispatchEvent(new Event('input',{bubbles:true}));})()`);};
+ const select=async(selector,value)=>{await prepare(selector);return js(`(()=>{const element=document.querySelector(${JSON.stringify(selector)});element.value=${JSON.stringify(value)};element.dispatchEvent(new Event('change',{bubbles:true}));})()`);};
+ const nav=async label=>{await js(`(()=>{const button=Array.from(document.querySelectorAll('.sidebar .main-nav button')).find(button=>button.querySelector('span').textContent===${JSON.stringify(label)});button.focus();button.click();})()`);await delay(70);if(label==='Home')await revealConversations();};
+ const reload=async()=>{const loaded=new Promise(resolve=>win.webContents.once('did-finish-load',resolve));win.reload();await loaded;await wait('Boolean(document.querySelector(".helm-workspace,.workbench,.home-page,.loading-deck[role=alert]"))');if(await js('Boolean(document.querySelector(".helm-workspace"))'))await nav('Home');await revealConversations();};
+ const conversationStarters=async()=>{await wait('Boolean(document.querySelector(".mission-board"))');await js('(()=>{const details=Array.from(document.querySelectorAll(".journey-surface > details")).find(d=>d.querySelector("summary").textContent.trim()==="Conversation starters");if(!details)throw Error("Missing conversation starters disclosure");if(!details.open)details.querySelector("summary").click();})()');await wait('Boolean(document.querySelector(".mission-card button"))');};
+ const newConversation=async(projectId)=>{const name=state.projects.find(p=>p.id===projectId)?.name;await js(`(()=>{const button=Array.from(document.querySelectorAll('.sidebar .project-nav')).find(button=>button.querySelector('b').textContent===${JSON.stringify(name)});button.focus();button.click();})()`);await wait('Boolean(document.querySelector(".workbench .mission-start"))');assert.equal(await js('document.querySelector(".start-fields label:first-child select").value'),projectId,'direct project shortcut opens that exact project');};
  const screenshot=async name=>{
   let lastError;
   for(let attempt=1;attempt<=3;attempt++){
    try{
     await delay(150*attempt);
+    // Hidden Chromium can return its previous compositor surface on the first read.
+    // Warm that surface, then capture the rendered frame after the DOM settled.
+    await win.webContents.capturePage();await delay(250);
     const image=await win.webContents.capturePage();
     fs.writeFileSync(path.join(output,name),image.toPNG());
     return;
@@ -89,65 +76,30 @@ app.whenReady().then(async()=>{
   throw lastError;
  };
  try{
-  await win.loadFile(path.join(root,'dist','index.html'));await wait('Boolean(document.querySelector(".home-page"))');await delay(250);
+  await win.loadFile(path.join(root,'dist','index.html'));await wait('Boolean(document.querySelector(".helm-workspace"))');await screenshot('command-deck.png');
+  assert.equal(await js('document.querySelector(".helm-workspace").dataset.motion'),'reduced');
+  assert.equal(await js('getComputedStyle(document.querySelector(".helm-scene"),"::before").animationName'),'none');
+  state.settings.reducedMotion=false;emit();await wait('document.querySelector(".helm-workspace").dataset.motion==="full"');
+  assert.equal(await js('getComputedStyle(document.querySelector(".helm-scene"),"::before").animationName'),'helm-tide');
+  await click('.helm-sea-toggle');assert.equal(await js('getComputedStyle(document.querySelector(".helm-scene"),"::before").animationName'),'none');
+  await click('.helm-sea-toggle');
+  win.webContents.debugger.attach('1.3');
+  try{await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});await wait('document.querySelector(".helm-workspace").dataset.motion==="reduced"');assert.equal(await js('getComputedStyle(document.querySelector(".helm-scene"),"::before").animationName'),'none');}
+  finally{await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia',{features:[]});win.webContents.debugger.detach();}
+  state.settings.reducedMotion=true;emit();await wait('document.querySelector(".helm-workspace").dataset.motion==="reduced"');
+  const originalDeckTask={title:state.tasks[0].title,updatedAt:state.tasks[0].updatedAt};state.tasks[0].title='Fixture live deck update';state.tasks[0].updatedAt=Date.now();emit();
+  await wait('document.querySelector(".helm-live-update strong")?.textContent==="Fixture live deck update"');await click('[aria-label="Open saved work activity"]');
+  await wait('Boolean(document.querySelector(".helm-activity"))');assert.ok(await js('document.querySelector(".helm-activity").textContent.includes("Fixture live deck update")'),'deck update and activity use the same streamed snapshot');
+  Object.assign(state.tasks[0],originalDeckTask);emit();await nav('Home');await wait('Boolean(document.querySelector(".home-page"))');await revealConversations();await delay(250);
   assert.equal(await js('document.querySelectorAll(".home-task").length'),4,'newer snapshot wins over stale initial response');
   await delay(250);await screenshot('home-desktop.png');
-  await nav('Morgans’ blimp');await wait('Boolean(document.querySelector(".morgans-page"))');
-  assert.ok(await js('Boolean(document.querySelector(".morgans-report"))'),'Morgans has a saved-work report section');
-  assert.equal(await js('document.querySelector(".morgans-report-controls select").value'),'all');
-  assert.equal(await js('document.querySelectorAll(".morgans-report-controls select")[1].value'),'7');
-  await js('document.querySelector(".morgans-report-generate").focus()');assert.equal(await js('document.activeElement.classList.contains("morgans-report-generate")'),true,'report action is keyboard reachable');
-  await click('.morgans-report-generate');await wait('document.querySelectorAll(".morgans-source").length===3');
-  assert.equal(reportRequests,1);assert.equal(captures,0,'generation and viewing never write to Obsidian');
-  assert.ok(await js('document.querySelector(".morgans-report-evidence").textContent.includes("failed")'));
-  assert.ok(await js('document.querySelector(".morgans-report-evidence").textContent.includes("review needed")'));
-  assert.ok(await js('document.querySelector(".morgans-report-evidence").textContent.includes("unobserved")'));
-  await wait('document.querySelector(".morgans-report-draft textarea").value.includes("The build review failed")');
-  assert.ok(await js('document.querySelector(".morgans-report-draft textarea").value.includes("failed-fixture")'),'generated wording appends saved source IDs');
-  await fill('[aria-label="Report draft"]','Captain-edited report with saved evidence.');assert.equal(captures,0,'editing stays local');
-  await click('.morgans-report-draft>button');await wait('Boolean(document.querySelector(".morgans-report-error"))');assert.equal(captures,1);
-  assert.equal(await js('document.querySelector(".morgans-report-draft textarea").value'),'Captain-edited report with saved evidence.','failed save keeps draft');
-  failCapture=false;await click('.morgans-report-draft>button');await wait('document.querySelector(".morgans-report-draft>button").disabled');assert.equal(captures,2);
-  await click('.morgans-report-draft>button');assert.equal(captures,2,'saved draft cannot be duplicated by another click');
-  assert.equal(state.resultSaves.length,1,'reviewed report has a durable task-linked save');
-  assert.equal(state.resultSaves[0].taskId,'morgans-report');
-  assert.equal(fs.existsSync(state.resultSaves[0].receipt.path),true);
-  await screenshot('morgans-report-saved.png');
-  await click('.morgans-report-task button');await wait('document.querySelector(".workbench")?.dataset.crewId==="morgans"');
-  assert.ok(await js('document.querySelector(".conversation-room-art").src.endsWith("/assets/morgans-blimp.png")'),'reporter task uses packaged blimp art');
-  assert.ok(await js('document.querySelector(".workbench-crew .crew-badge").style.backgroundImage.includes("morgans-blimp-key.png")'),'reporter badge uses Morgans artwork');
-  assert.equal(await js('document.querySelector(".composer textarea").disabled'),true,'reporter task is read-only after its sourced turn');
-  await click('[aria-label="Back to workspace"]');await nav('Morgans’ blimp');await wait('Boolean(document.querySelector(".morgans-report-draft"))');
-  await fill('[aria-label="Report draft"]','Keep this unsaved draft while checking the source.');
-  await js('Array.from(document.querySelectorAll(".morgans-source")).find(button=>button.textContent.includes("Failed build review")).click()');await wait('document.querySelector(".workbench")?.dataset.crewId==="zoro"');
-  await click('[aria-label="Back to workspace"]');await nav('Morgans’ blimp');await wait('Boolean(document.querySelector(".morgans-report-draft"))');
-  assert.equal(await js('document.querySelector(".morgans-report-draft textarea").value'),'Keep this unsaved draft while checking the source.','source navigation keeps draft');
-  await js('Array.from(document.querySelectorAll(".morgans-source")).find(button=>button.textContent.includes("Review the launch")).click()');await wait('Boolean(document.querySelector(".mission-board"))');
-  assert.ok(await js('document.querySelector(".mission-entries button[aria-pressed=true]")?.textContent.includes("Review the launch")'),'mission source opens exact mission');
-  assert.equal(await js('Array.from(document.querySelectorAll(".mission-launch-controls select option")).some(option=>option.value==="reporter")'),false,'on-demand reporter is not an unsourced mission lead');
-  await nav('Morgans’ blimp');await wait('Boolean(document.querySelector(".morgans-report-draft"))');
-  assert.equal(await js('document.querySelector(".morgans-report-draft textarea").value'),'Keep this unsaved draft while checking the source.');
-  await js('window.confirm=()=>false;undefined');await click('.morgans-report-generate');assert.equal(reportRequests,1,'unsaved draft replacement requires confirmation');
-  await js('window.confirm=()=>true;undefined');state.settings.reducedMotion=true;emit();await click('.morgans-report-generate');await wait('document.querySelector(".morgans-report-coverage")?.textContent.includes("truncated")');
-  assert.equal(reportRequests,2);assert.equal(captures,2,'uncertain report and empty evidence do not save automatically');
-  assert.ok(await js('document.querySelector(".morgans-report-task").textContent.includes("uncertain")'));
-  assert.ok(await js('document.querySelector(".morgans-report-evidence").textContent.includes("No saved task")'));
-  assert.equal(await js('getComputedStyle(document.querySelector(".morgans-report")).animationName'),'none','report remains usable with reduced motion');
-  await screenshot('morgans-report-uncertain.png');
-  const failedReporter=state.tasks.find(task=>task.id==='morgans-unknown');
-  failedReporter.status='failed';failedReporter.launchNotSubmitted=true;failedReporter.retryTaskId='morgans-recovered';
-  const recoveredReporter=task('morgans-recovered','Recovered work report','finished','morgans',{recoveryOfTaskId:failedReporter.id,messages:[{id:'recovered-reply',role:'assistant',text:'Recovered report keeps its original source packet.',time:Date.now()}]});
-  state.tasks.unshift(recoveredReporter);emit();
-  await wait('document.querySelector(".morgans-report-draft textarea").value.includes("Recovered report keeps")');
-  assert.equal(await js('document.querySelector(".morgans-report-draft>button").disabled'),false,'recovered reporter can save against its replacement task');
-  await fill('[aria-label="Report draft"]','Captain edited the recovered report.');emit();await delay(100);
-  assert.equal(await js('document.querySelector(".morgans-report-draft textarea").value'),'Captain edited the recovered report.','recovery updates preserve captain edits');
-  await click('.morgans-report-task button');await wait('document.querySelector(".workbench")?.dataset.crewId==="morgans"');
-  assert.ok(await js('document.body.textContent.includes("Recovered work report")'),'report source opens the replacement');
-  await click('[aria-label="Back to workspace"]');
-  await nav('Crew');await wait('Boolean(document.querySelector(".crew-grid"))');assert.equal(await js('document.querySelectorAll(".crew-card").length'),10,'Morgans reporter stays separate from the ten Straw Hats');
-  await nav('Home');
   assert.equal(await js('document.querySelectorAll("button button").length'),0,'no nested buttons');
+  const contractBefore=structuredClone(state.workspace),probe={id:'workflow-contract-probe',kind:'message',projectId:'studio',taskId:'done',text:'Keep exact fixture input',revision:0,updatedAt:Date.now()};
+  const probeSaved=await js(`window.sunny.invoke('workspace:update',${JSON.stringify({expectedRevision:contractBefore.revision,draft:probe})})`);assert.equal(probeSaved.drafts.find(d=>d.id===probe.id).revision,1,'fixture uses actual draft revision increment');
+  await assert.rejects(js(`window.sunny.invoke('workspace:update',${JSON.stringify({expectedRevision:contractBefore.revision,draft:{...probe,text:'Stale overwrite'}})})`),/revision changed/i);
+  assert.equal(state.workspace.drafts.find(d=>d.id===probe.id).text,probe.text,'stale fixture write preserves useful draft');
+  await assert.rejects(js(`window.sunny.invoke('workspace:update',${JSON.stringify({expectedRevision:state.workspace.revision,deleteDraft:{id:probe.id,expectedDraftRevision:0}})})`),/draft revision changed/i);
+  await js(`window.sunny.invoke('workspace:update',${JSON.stringify({expectedRevision:state.workspace.revision,deleteDraft:{id:probe.id,expectedDraftRevision:1}})})`);assert.equal(state.workspace.drafts.some(d=>d.id===probe.id),false,'only exact fixture revision is deleted');assert.equal(starts,0,'presentation contract probe dispatches no task');
   await fill('[aria-label="Search tasks"]','dashboard layout');await wait('document.querySelectorAll(".home-task").length===1');
   await click('.home-task-open');await wait('Boolean(document.querySelector(".approval-card"))');
   assert.equal(await js('document.querySelector(".workbench-head h2").textContent'),'Refresh the dashboard layout');
@@ -161,9 +113,10 @@ app.whenReady().then(async()=>{
   assert.equal(await js('document.querySelector(".task-search input").value'),'dashboard layout','task search survives opening a conversation');
   await fill('[aria-label="Search tasks"]','');
   await select('[aria-label="Task project"]','studio');await fill('[aria-label="Task brief"]','Build a clearer task dashboard');await click('input[value="direct"]');assert.equal(await js('document.querySelector(".launch-main>textarea").value'),'Build a clearer task dashboard');await click('input[value="delegate"]');
-  await wait('Boolean(document.querySelector(".launch-options .skill-options input"))');assert.equal(await js('document.querySelector(".launch-options .skill-options input").checked'),true,'matching skill is suggested');
-  await click('.launch-options .skill-options input');assert.equal(await js('document.querySelector(".launch-options .skill-options input").checked'),false,'captain can remove a suggestion');
-  await click('.launch-options .skill-options input');assert.equal(await js('document.querySelector(".launch-options .skill-options input").checked'),true,'captain can confirm a skill again');
+  await wait('Boolean(document.querySelector(".launch-options .skill-options input"))');assert.equal(await js('document.querySelector(".launch-options .skill-options input").checked'),false,'matching skill is suggested but not enabled');
+  await click('.launch-options .skill-options input');assert.equal(await js('document.querySelector(".launch-options .skill-options input").checked'),true,'captain explicitly enables a suggestion');
+  await click('.launch-options .skill-options input');assert.equal(await js('document.querySelector(".launch-options .skill-options input").checked'),false,'captain can remove an explicit choice');
+  await click('.launch-options .skill-options input');assert.equal(await js('document.querySelector(".launch-options .skill-options input").checked'),true,'captain confirms skill before navigation');
   await nav('Projects');await nav('Home');await wait('Boolean(document.querySelector(".home-page"))');
   assert.equal(await js('document.querySelector(".launch-main>textarea").value'),'Build a clearer task dashboard');
   await click('input[value="direct"]');await select('[aria-label="Task specialist"]','robin');await nav('Projects');await nav('Home');
@@ -192,8 +145,6 @@ app.whenReady().then(async()=>{
   assert.equal(await js('document.querySelector(".workbench").dataset.crewId'),'robin','selected Obsidian note opens with Robin');
   assert.ok(await js('document.querySelector(".composer textarea").value.includes("Keep the launch focused on a small, verifiable first release.")'),'selected note content is attached as a reviewable draft');
   assert.ok(await js('document.querySelector(".composer textarea").value.includes("Do not edit or save the Obsidian vault")'),'Robin is asked to propose changes without automatic vault writes');
-  assert.ok(await js('document.querySelector(".composer textarea").value.includes("Note revision: fixture-note")'),'Robin handoff cites exact note revision');
-  assert.ok(await js('document.querySelector(".composer textarea").value.includes("captain’s project decision")'),'Robin handoff asks for decision context');
   assert.equal(await js('document.querySelector(".composer textarea").value.includes("Older unrelated draft")'),false,'Robin note context has an isolated draft key');
   assert.equal(starts,1,'preparing Robin review does not start or send a task');
   await click('[aria-label="Back to workspace"]');await wait('Boolean(document.querySelector(".library-page"))');await fill('.search-box input','launch');await wait('document.querySelectorAll(".search-results button").length===2');await click('.search-results button:nth-child(2)');await wait('Boolean(document.querySelector(".robin-note-limit"))');assert.equal(await js('document.querySelector(".library-note-actions .secondary-button").disabled'),true,'oversized note is not silently truncated into Robin context');await nav('Home');await wait('Boolean(document.querySelector(".home-page"))');await js('Array.from(document.querySelectorAll(".sidebar button")).find(button=>button.textContent.trim()==="Settings").click()');await wait('Boolean(document.querySelector(".settings-page"))');
@@ -208,7 +159,7 @@ app.whenReady().then(async()=>{
   await js('Array.from(document.querySelectorAll(".file-tree button")).find(button=>button.textContent==="nested").click()');await wait('document.querySelector(".file-tree").textContent.includes("notes.txt")');
   await click('.file-up');await wait('document.querySelector(".file-tree").textContent.includes("hello.txt")');assert.equal(await js('document.querySelector(".file-up").disabled'),true,'parent navigation stops at registered project root');
   await js('Array.from(document.querySelectorAll(".file-tree button")).find(button=>button.textContent==="hello.txt").click()');await wait('Boolean(document.querySelector(".monaco-editor"))');await wait('document.querySelector(".monaco-editor .view-lines")?.textContent.replaceAll(String.fromCharCode(160)," ").includes("Hello Sunny")');await screenshot('files-workspace.png');
-  await click('[aria-label="Back to workspace"]');await wait('Boolean(document.querySelector(".home-page"))');await win.reload();await wait('Boolean(document.querySelector(".home-page"))');
+  await click('[aria-label="Back to workspace"]');await wait('Boolean(document.querySelector(".home-page"))');await reload();await wait('Boolean(document.querySelector(".home-page"))');
   await js('Array.from(document.querySelectorAll(".home-task-title")).find(button=>button.textContent.includes("Compare three launch ideas")).click()');await wait('Boolean(document.querySelector(".workbench"))');assert.equal(await js('document.querySelector(".composer textarea").value'),'Save this for after the first result','task draft survives UI reload');
   await click('[aria-label="Back to workspace"]');await wait('Boolean(document.querySelector(".home-page"))');
   await fill('[aria-label="Search tasks"]','Recover the settings');await wait('document.querySelectorAll(".home-task").length===1');await click('.home-task-open');await wait('Boolean(document.querySelector(".task-recovery"))');
@@ -219,16 +170,27 @@ app.whenReady().then(async()=>{
   await click('.interrupt-button');await wait('!document.querySelector(".interrupt-button")');await fill('.composer textarea','Continue after recovery');assert.equal(await js('document.querySelector(".composer-foot button").disabled'),false);
   await screenshot('stopped-task.png');
   await click('[aria-label="Back to workspace"]');await wait('Boolean(document.querySelector(".home-page"))');
-  await nav('Inbox');await wait('Boolean(document.querySelector(".inbox-layout"))');await nav('Home');
+  await nav('Inbox');await wait('Boolean(document.querySelector(".work-inbox"))');
+  await fill('.work-inbox input[type=search]','onboarding');await wait('document.querySelectorAll(".work-inbox-row").length===1');
+  assert.ok(await js('document.querySelector(".work-inbox-group[data-lane=review]").textContent.includes("onboarding")'));
+  await fill('.work-inbox input[type=search]','no-such-task');await wait('Boolean(document.querySelector(".work-inbox-empty"))');
+  await click('.work-inbox-empty button');await js('document.getElementById("sunny-main").scrollTo(0,0)');await screenshot('searchable-inbox.png');
+  const originalTasks=[...state.tasks];state.tasks.push(...Array.from({length:65},(_,i)=>task('nav-'+i,'Navigation check '+i,'idle','robin',{updatedAt:now-i})));emit();await wait('document.querySelectorAll(".work-inbox-row").length===24');await click('.work-inbox-more');await wait('document.querySelectorAll(".work-inbox-row").length===48');await click('.work-inbox-more');await wait('document.querySelectorAll(".work-inbox-row").length===70');
+  await select('.work-inbox-tools select','launch');await wait('document.querySelectorAll(".work-inbox-row").length===1');await select('.work-inbox-tools select','');
+  win.setSize(390,844);await delay(100);await click('.menu-button');await click('.quick-switch-trigger');await wait('document.querySelector(".quick-switcher").open&&document.querySelector(".quick-switcher").getBoundingClientRect().width>0');await wait('document.activeElement===document.querySelector(".quick-switcher input")');await screenshot('quick-switch-mobile.png');await click('.quick-switcher header button');await wait('document.activeElement===document.querySelector(".menu-button")');assert.ok(await js('document.documentElement.scrollWidth<=innerWidth'));await screenshot('inbox-mobile.png');win.setSize(1440,1050);
+  await click('.quick-switch-trigger');await fill('.quick-switcher input','Navigation check');await wait('document.querySelectorAll(".quick-switcher [role=option]").length===60');await js('document.querySelector(".quick-switcher input").dispatchEvent(new KeyboardEvent("keydown",{key:"ArrowUp",bubbles:true}))');const stableSelection=await js('document.querySelector(".quick-switcher input").getAttribute("aria-activedescendant")');state.tasks.push(task('nav-new','Navigation check newest','working','luffy',{updatedAt:now+10000}));emit();await wait('document.querySelector(".quick-switcher [role=option]").textContent.includes("newest")');assert.equal(await js('document.querySelector(".quick-switcher input").getAttribute("aria-activedescendant")'),stableSelection,'streamed ordering preserves selected identity');await click('.quick-switcher header button');state.tasks=originalTasks;emit();
+  await click('.quick-switch-trigger');await wait('document.querySelector(".quick-switcher").open');
+  await fill('.quick-switcher input','onboarding');await wait('document.querySelectorAll(".quick-switcher [role=option]").length===1');
+  await js('document.querySelector(".quick-switcher input").dispatchEvent(new KeyboardEvent("keydown",{key:"Enter",bubbles:true,isComposing:true}))');
+  assert.ok(await js('document.querySelector(".quick-switcher").open'),'IME enter must not navigate');
+  await screenshot('quick-switcher.png');
+  await js('document.querySelector(".quick-switcher input").dispatchEvent(new KeyboardEvent("keydown",{key:"Enter",bubbles:true}))');
+  await wait('Boolean(document.querySelector(".workbench"))');
+  assert.ok(await js('document.querySelector(".workbench").textContent.includes("onboarding")'),'Enter opens the displayed result');
+  await nav('Home');
   await fill('[aria-label="Search tasks"]','');
   win.setSize(1000,740);await delay(150);await screenshot('home-compact.png');assert.ok(await js('document.documentElement.scrollWidth<=innerWidth'));
-  await nav('The Island');await wait('Boolean(document.querySelector(".island-scene"))');
-  assert.ok(await js('document.querySelector(".island-art").src.includes("grand-line-voyage-map.png")'),'Grand Line chart asset is loaded');
-  await click('[aria-label="Toggle captain controls"]');await wait(`Boolean(document.querySelector('[aria-label="Captain character"]'))`);await select('[aria-label="Captain character"]','zoro');
-  for(let index=0;index<13;index++)await click('[aria-label="Zoom in"]');assert.ok(await js('[...document.querySelectorAll(".island-map-toolbar button")].some(button=>button.textContent.includes("400%"))'),'chart zoom reaches 400%');await click('[aria-label="Reset map zoom"]');
-  const beforeMove=await js(`parseFloat([...document.querySelectorAll('.island-actors [data-crew-id]')].find(item=>item.dataset.crewId==='zoro').style.left)`);await js('document.querySelector(".island-viewport").focus();document.querySelector(".island-viewport").dispatchEvent(new KeyboardEvent("keydown",{key:"ArrowRight",bubbles:true}))');await wait(`parseFloat([...document.querySelectorAll('.island-actors [data-crew-id]')].find(item=>item.dataset.crewId==='zoro').style.left)>${beforeMove}`);
-  const beforeSouth=await js(`parseFloat([...document.querySelectorAll('.island-actors [data-crew-id]')].find(item=>item.dataset.crewId==='zoro').style.top)`);await click('[aria-label="Move south"]');await wait(`parseFloat([...document.querySelectorAll('.island-actors [data-crew-id]')].find(item=>item.dataset.crewId==='zoro').style.top)>${beforeSouth}`);await screenshot('island-captain-controls.png');await click('[aria-label="Toggle captain controls"]');
-  await nav('Home');
+  await nav('The Island');await wait('Boolean(document.querySelector(".island-scene"))');await nav('Home');
   // A late launcher response must not steal navigation or erase a newer draft.
   failStart=false;startDelay=650;await select('[aria-label="Task project"]','studio');await fill('[aria-label="Task brief"]','A launch that finishes after navigation');await wait('!document.querySelector(".launch-submit").disabled');await click('.launch-submit');await nav('Projects');await nav('Home');
   assert.equal(await js('document.querySelector(".launch-submit").disabled'),true,'launch remains pending across navigation');
@@ -238,49 +200,52 @@ app.whenReady().then(async()=>{
   await fill('[aria-label="Task brief"]','Submit only this brief');await wait('!document.querySelector(".launch-submit").disabled');await click('.launch-submit');await nav('Projects');
   await js('sessionStorage.setItem("sunny:draft:v1:home:studio","A newer draft for later")');await nav('Home');await delay(750);
   assert.equal(await js('document.querySelector(".launch-main>textarea").value'),'A newer draft for later','successful launch preserves a newer draft across remount');
-  startDelay=150;await nav('The Island');await click('.destination-work-button');await wait('Boolean(document.querySelector(".mission-start"))');await click('.workbench-head [aria-expanded]');await wait('document.querySelector(".file-tree").textContent.includes("hello.txt")');
+  startDelay=150;await nav('Missions');await conversationStarters();await click('.mission-card button');await wait('Boolean(document.querySelector(".mission-start"))');await click('.workbench-head [aria-expanded]');await wait('document.querySelector(".file-tree").textContent.includes("hello.txt")');
   await js('Array.from(document.querySelectorAll(".file-tree button")).find(button=>button.textContent==="hello.txt").click()');await wait('Boolean(document.querySelector(".monaco-editor"))');
-  win.focus();win.webContents.focus();const point=await js('(()=>{const r=document.querySelector(".monaco-editor .view-lines").getBoundingClientRect();return {x:Math.round(r.x+12),y:Math.round(r.y+10)};})()');win.webContents.sendInputEvent({type:'mouseDown',...point,button:'left',clickCount:1});win.webContents.sendInputEvent({type:'mouseUp',...point,button:'left',clickCount:1});await delay(100);await win.webContents.insertText('Unsaved file buffer');await wait('document.querySelector(".pane-toolbar").textContent.includes("Unsaved")');
-  await js('window.confirm=()=>false;undefined');await select('.start-fields label:first-child select','launch');assert.equal(await js('document.querySelector(".start-fields label:first-child select").value'),'studio','project change protects dirty editor');
+  await prepare('.monaco-editor .view-lines');win.webContents.focus();const point=await js('(()=>{const r=document.querySelector(".monaco-editor .view-lines").getBoundingClientRect();return {x:Math.round(r.x+12),y:Math.round(r.y+10)};})()');win.webContents.sendInputEvent({type:'mouseDown',...point,button:'left',clickCount:1});win.webContents.sendInputEvent({type:'mouseUp',...point,button:'left',clickCount:1});await delay(100);await js('document.querySelector(".monaco-editor textarea").focus()');await win.webContents.insertText('Unsaved file buffer');await wait('document.querySelector(".pane-toolbar").textContent.includes("Unsaved")');
+  await js('window.confirm=()=>false;undefined');const dirtyContext=structuredClone(state.workspace.context);await click('.quick-switch-trigger');await fill('.quick-switcher input','settings');await wait('document.querySelector(".quick-switcher [role=option][aria-selected=true]").textContent.includes("Settings")');await js('document.querySelector(".quick-switcher input").dispatchEvent(new KeyboardEvent("keydown",{key:"Enter",bubbles:true}))');assert.ok(await js('Boolean(document.querySelector(".workbench .monaco-editor"))'),'quick switcher respects declined dirty-buffer navigation');assert.deepEqual(state.workspace.context,dirtyContext);await js('document.querySelector(".sidebar-foot > button").click()');await delay(90);assert.equal(await js('Boolean(document.querySelector(".workbench .monaco-editor"))'),true,'global Settings navigation protects the dirty editor');assert.equal(await js('Boolean(document.querySelector(".settings-page"))'),false,'declining discard keeps Settings closed');assert.deepEqual(state.workspace.context,dirtyContext,'declining Settings navigation retains exact workspace selection');await prepare('.monaco-editor .view-lines');await wait('document.querySelector(".monaco-editor").textContent.replaceAll(String.fromCharCode(160)," ").includes("Unsaved file buffer")');await select('.start-fields label:first-child select','launch');assert.equal(await js('document.querySelector(".start-fields label:first-child select").value'),'studio','project change protects dirty editor');
   await fill('.composer textarea','Start without losing my open file');await wait('!document.querySelector(".composer-foot button").disabled');await click('.composer-foot button');await wait('!document.querySelector(".mission-start")');
   assert.ok(await js('document.querySelector(".pane-toolbar").textContent.includes("Unsaved")'),'starting a task keeps dirty file');
   assert.ok(await js('document.querySelector(".monaco-editor").textContent.replaceAll(String.fromCharCode(160)," ").includes("Unsaved file buffer")'),'editor buffer survives task creation');
   assert.equal(await js('document.querySelector(".composer textarea").value'),'','sent template does not reappear as a follow-up');
   await js('window.confirm=()=>true;undefined');await click('[aria-label="Back to workspace"]');await nav('Home');await wait('Boolean(document.querySelector(".home-page"))');
-  failSnapshot=true;win.reload();await wait('document.body.innerText.includes("Your workspace couldn’t load")');assert.ok(await js('document.body.innerText.includes("Fixture: connection unavailable")'));failSnapshot=false;
-  await click('.primary-button');await wait('Boolean(document.querySelector(".home-page"))');
-  taskRace=true;await win.reload();await wait('Boolean(document.querySelector(".home-page"))');await delay(250);
+  failSnapshot=true;await reload();await wait("document.querySelector(\".loading-deck[role=alert] h2\")?.textContent===\"Your workspace couldn't load\"");assert.ok(await js('document.body.innerText.includes("Fixture: connection unavailable")'));failSnapshot=false;
+  await click('.primary-button');await wait('Boolean(document.querySelector(".helm-workspace"))');await nav('Home');await wait('Boolean(document.querySelector(".home-page"))');
+  taskRace=true;await reload();await wait('Boolean(document.querySelector(".home-page"))');await delay(250);
   assert.ok(await js('document.querySelector(".home-task-title").textContent.includes("Latest streamed task")'),'early streamed task is preserved over initial snapshot');
+  win.setSize(1440,1050);
   const roomAssets={luffy:'luffy-captains-den.png',zoro:'zoro-dojo-room.png',nami:'nami-chart-room.png',usopp:'usopp-inventors-workshop.png',sanji:'sanji-galley-room.png',chopper:'chopper-infirmary-room.png',robin:'robin-ship-library.png',franky:'franky-shipwright-room.png',brook:'brook-music-room.png',jinbe:'jinbe-helm-room.png'};failStart=false;
-  for(const [crewId,asset] of Object.entries(roomAssets)){state.settings.reducedMotion=crewId==='chopper';emit();await nav('Missions');await click('.top-action');await wait('Boolean(document.querySelector(".workbench"))');await select('[aria-label="Assigned crewmate"]',crewId);await wait(`document.querySelector(".workbench").dataset.crewId==="${crewId}"`);await fill('.composer textarea',`Fixture-only ${crewId} room preview`);await wait('!document.querySelector(".composer-foot button").disabled');await click('.composer-foot button');await wait('Boolean(document.querySelector(".conversation-room-art"))');await wait('document.querySelector(".conversation-room-art").complete&&document.querySelector(".conversation-room-art").naturalWidth===1536');
-   assert.ok(await js(`document.querySelector(".conversation-room-art").src.endsWith("/assets/${asset}")`),`${crewId} opens its own packaged room art`);assert.equal(await js('document.querySelector(".conversation-room-art").getAttribute("aria-hidden")'),'true',`${crewId} art remains decorative`);assert.equal(await js('getComputedStyle(document.querySelector(".conversation-room-art")).opacity'),'0.19',`${crewId} scene stays subdued below chat content`);assert.ok(await js('Boolean(document.querySelector(".composer textarea")&&Array.from(document.querySelectorAll("button")).some(button=>button.getAttribute("aria-label")==="Back to workspace"))'),`${crewId} keeps direct work controls available`);
-   if(crewId==='zoro')await screenshot('zoro-dojo-room-working.png');if(crewId==='chopper'){assert.ok(await js('document.querySelector(".workbench").classList.contains("reduce-motion")'),'reduced motion keeps Chopper room static and usable');await screenshot('chopper-infirmary-reduced-motion.png');}await click('[aria-label="Back to workspace"]');await wait('!document.querySelector(".workbench")');
+  for(const [crewId,asset] of Object.entries(roomAssets)){state.settings.reducedMotion=crewId==='chopper';emit();await nav('Missions');await conversationStarters();await newConversation('studio');await select('[aria-label="Assigned crewmate"]',crewId);await wait(`document.querySelector(".workbench").dataset.crewId==="${crewId}"`);const startsBefore=starts;await fill('.composer textarea','Captain constraints.');await click('.room-starters button:first-child');assert.ok(await js('document.querySelector(".composer textarea").value.startsWith("Captain constraints.\\n\\n")'),'starter appends instead of replacing draft');assert.equal(starts,startsBefore,'starter never submits task');await fill('.composer textarea',`Fixture-only ${crewId} room preview`);await wait('!document.querySelector(".composer-foot button").disabled');await click('.composer-foot button');await wait('!document.querySelector(".mission-start")');await wait(`document.querySelector(".workbench").dataset.crewId==="${crewId}"`);await wait('Boolean(document.querySelector(".workspace-room-view>img"))');await wait('document.querySelector(".workspace-room-view>img").complete&&document.querySelector(".workspace-room-view>img").naturalWidth===1536');
+   assert.ok(await js(`document.querySelector(".workspace-room-view>img").src.endsWith("/assets/${asset}")`),`${crewId} opens its own packaged room art`);assert.ok(await js('Boolean(document.querySelector(".workspace-room-view>img").alt)'),`${crewId} room art has a readable description`);assert.ok(await js('(()=>{const art=document.querySelector(".workspace-room-view>img"),chat=document.querySelector(".chat-pane");if(!art||!chat||!art.complete||art.naturalWidth!==1536)return false;const a=art.getBoundingClientRect(),c=chat.getBoundingClientRect();return a.width>100&&a.height>100&&(a.right<=c.left||a.bottom<=c.top);})()'),`${crewId} room art stays visible outside the chat pane`);assert.ok(await js('Boolean(document.querySelector(".composer textarea")&&Array.from(document.querySelectorAll("button")).some(button=>button.getAttribute("aria-label")==="Back to workspace"))'),`${crewId} keeps direct work controls available`);
+   assert.equal(await js('document.querySelector(".crew-station-panel").dataset.roomLayout'),crewId,'dedicated station layout');
+   const stationTask=state.tasks.find(value=>value.id==='new-'+starts),attemptId='station-attempt-'+crewId;
+   stationTask.messages.push({id:'station-activity-'+crewId,role:'system',text:'Fixture: saved work update received',time:Date.now()});stationTask.updatedAt=Date.now();stationTask.messages.push({id:'station-reply-'+crewId,role:'assistant',text:'Fixture only: the first draft is ready for inspection. Check the recorded output and remaining criteria before accepting it.',time:Date.now()});
+   if(crewId==='chopper')stationTask.error='Fixture: the build could not resolve a local import. Review the diagnostic receipt before retrying.';
+   const stationMission={id:'station-mission-'+crewId,projectId:'studio',title:'Fixture: improve the customer workspace',objective:'Make the customer workspace readable, responsive and easy to review.',acceptanceCriteria:['The primary task stays visible at compact widths.','Keyboard users can reach every work control.','Saved evidence supports the final review.'],completionBoundary:'review',status:'working',connection:'connected',revision:1,createdAt:now,updatedAt:Date.now(),taskIds:[stationTask.id],activeAttemptId:attemptId,attempts:[{id:attemptId,taskId:stationTask.id,taskIds:[stationTask.id],status:'working',startedAt:now}],artifacts:[{id:'station-check-'+crewId,attemptId,projectId:'studio',producer:stationTask.id,kind:'check',script:'Fixture responsive check',status:crewId==='chopper'?'failed':'passed',exitCode:crewId==='chopper'?1:0,recordedAt:Date.now()},{id:'station-output-'+crewId,attemptId,projectId:'studio',producer:stationTask.id,kind:'deliverable',filePath:'fixture/workspace-review.md',recordedAt:Date.now()}],events:[],reviewDecisions:crewId==='zoro'?[{id:'review-fixture',attemptId,decision:'changes-requested',note:'Fixture: check keyboard reachability.',reviewedRevision:1,time:now,actor:'captain'}]:[]};
+   if(['luffy','jinbe'].includes(crewId)){stationTask.runId='station-run-'+crewId;state.runs.push({id:stationTask.runId,projectId:'studio',phase:'executing',missionIds:[],assignments:[{id:'context',crewId:'robin',state:'finished',objective:'Fixture: gather context',dependencies:[],criteriaIds:[]},{id:'build',crewId,taskId:stationTask.id,state:'working',objective:'Fixture: coordinate the workspace update',dependencies:['context'],criteriaIds:[]},{id:'verify',crewId:'usopp',state:'queued',objective:'Fixture: verify the updated workspace',dependencies:['build'],criteriaIds:[]}],grant:{maxWorkers:3,maxLaunches:20,maxRepairs:4,activeMs:600000,tokenLimit:100000},counters:{launches:1,repairs:0,activeMs:100,tokens:50},budget:{},stopIntent:null});}
+   state.missions.push(stationMission);const stationDelta=projection.transcriptChanged(stationTask);win.webContents.send('sunny:event',{type:'transcript:delta',epoch:stationDelta.epoch,sequence:stationDelta.sequence,data:stationDelta});emit();await wait('document.querySelector(".station-latest")?.textContent.includes("Fixture: saved work update received")');await click('.station-latest');await wait('document.querySelector(".station-activity")?.textContent.includes("Fixture: saved work update received")');await click('.station-tabs button:first-child');await wait('!document.querySelector(".station-activity")');
+   if(['luffy','jinbe'].includes(crewId)){
+    await wait('document.querySelectorAll(".station-relay li").length===3');assert.equal(await js('document.querySelectorAll(".station-relay li[data-active=true]").length'),1,'only confirmed current work is animated');assert.ok(await js('document.querySelector(".station-relay").textContent.includes("robin (context)")'),'dependency identity is visible');
+    stationTask.status='unknown';emit();await wait('document.querySelectorAll(".station-relay li[data-active=true]").length===0');stationTask.status='working';emit();await wait('document.querySelectorAll(".station-relay li[data-active=true]").length===1');
+    state.approvals.push({id:'station-call',taskId:stationTask.id,method:'item/commandExecution/requestApproval',params:{command:'fixture only'}});emit();await wait('document.querySelectorAll(".station-relay li[data-active=true]").length===0');state.approvals=state.approvals.filter(value=>value.id!=='station-call');emit();await wait('document.querySelectorAll(".station-relay li[data-active=true]").length===1');
+   }
+   const draft='Unsent '+crewId+' station draft';await fill('.composer textarea',draft);
+   await click('.room-layout-toolbar button:last-child');assert.equal(await js('getComputedStyle(document.querySelector(".crew-station-panel")).display'),'none','focus mode hides scenery');assert.equal(await js('document.querySelector(".composer textarea").value'),draft,'focus mode keeps draft');await click('.room-layout-toolbar button:first-child');
+   await click('.station-scene-controls button');assert.equal(await js('document.querySelector(".crew-station-panel").dataset.ambient'),'false','ambience pause is immediate');await click('.station-scene-controls button');
+   await click('.station-tabs button:last-child');await wait('Boolean(document.querySelector(".station-activity"))');assert.equal(await js('document.querySelector(".composer textarea").value'),draft,'station switch keeps draft');
+   await click('.station-tabs button:first-child');await wait('!document.querySelector(".station-activity")');
+   const compactArtHeight=await js('document.querySelector(".crew-station-panel>img").getBoundingClientRect().height');await click('[aria-label="Expand room artwork"]');assert.ok(await js('document.querySelector(".crew-station-panel>img").getBoundingClientRect().height')>compactArtHeight,'expanded artwork increases visible scene area');await click('[aria-label="Compact room artwork"]');
+   if(crewId==='franky'){
+    win.webContents.debugger.attach('1.3');
+    try{await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});await wait('document.querySelector(".crew-station-panel").dataset.ambient==="false"');assert.equal(await js('getComputedStyle(document.querySelector(".station-atmosphere i")).animationName'),'none','OS preference stops room effects without remounting');assert.equal(await js('document.querySelector(".composer textarea").value'),draft);}
+    finally{await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia',{features:[]});win.webContents.debugger.detach();}
+   }
+   await js('document.querySelector(".workbench-head").scrollIntoView({block:"start",behavior:"instant"})');await screenshot('station-'+crewId+'.png');assert.ok(await js('(()=>{const r=document.querySelector(".workspace-room-state>.crew-badge").getBoundingClientRect();return r.width===r.height&&r.width>=32&&r.width<=64;})()'),'room badge preserves square atlas geometry');await js('document.querySelector(".station-content").scrollIntoView({block:"center",behavior:"instant"})');await screenshot('station-'+crewId+'-workspace.png');
+   win.webContents.setZoomFactor(2);try{await wait('innerWidth<800');assert.ok(await js('document.documentElement.scrollWidth<=innerWidth'),'200 percent zoom has no page overflow');assert.equal(await js('document.querySelector(".composer textarea").value'),draft,'200 percent zoom keeps unsent draft');assert.ok(await js('document.querySelector(".crew-station-panel>img").naturalWidth===1536'),'zoom retains loaded artwork');if(crewId==='franky')await screenshot('station-franky-200-percent.png');}finally{win.webContents.setZoomFactor(1);await wait('innerWidth>1000');}
+   if(['luffy','jinbe'].includes(crewId)){win.setSize(360,900);await wait('innerWidth<400');assert.ok(await js('document.documentElement.scrollWidth<=innerWidth'),'populated crew relay fits a narrow phone');assert.equal(await js('document.querySelectorAll(".station-relay li").length'),3);if(crewId==='jinbe')await screenshot('station-jinbe-relay-mobile.png');win.setSize(1440,1050);await wait('innerWidth>1000');}
+   if(crewId==='zoro')await screenshot('zoro-dojo-room-working.png');if(crewId==='chopper'){assert.ok(await js('document.querySelector(".workbench").classList.contains("reduce-motion")'),'reduced motion keeps Chopper room static and usable');await screenshot('chopper-infirmary-reduced-motion.png');}state.missions=state.missions.filter(value=>value.id!==stationMission.id);state.runs=state.runs.filter(value=>value.id!==stationTask.runId);await click('[aria-label="Back to workspace"]');await wait('!document.querySelector(".workbench")');
   }
-  state.resultSaves=JSON.parse(fs.readFileSync(saveStateFile,'utf8')).resultSaves;
-  await win.reload();await wait('Boolean(document.querySelector(".home-page"))');await nav('Morgans’ blimp');
-  await wait('document.querySelector(".result-save-history")?.textContent.includes("Saved")');
-  const receipt=state.resultSaves[0],note=fs.readFileSync(receipt.path,'utf8');
-  assert.ok(await js(`document.querySelector('.result-save-history').textContent.includes(${JSON.stringify(receipt.path)})`),'reloaded UI retains exact note path');
-  assert.equal(await js('Boolean(document.querySelector(".morgans-report-draft"))'),false,'receipt is visible even with empty renderer report state');
-  fs.writeFileSync(receipt.path,'An external edit.');await click('.result-save-history article>button');
-  await wait('document.querySelector(".result-save-history")?.textContent.includes("Needs recovery")');
-  assert.equal(fs.readFileSync(receipt.path,'utf8'),'An external edit.','checking does not overwrite a changed note');
-  await screenshot('morgans-report-needs-recovery.png');
-  fs.writeFileSync(receipt.path,note);await click('.result-save-history article>button');
-  await wait('document.querySelector(".result-save-history article strong")?.textContent==="Saved"');
-  assert.equal(fs.readdirSync(path.join(saveVault,'00 Inbox')).length,1);
-  await js('document.querySelector(".result-save-history summary").click();document.querySelector(".result-save-history").scrollIntoView({block:"start"})');await delay(3700);await screenshot('morgans-receipt-after-reload.png');
-  state.tasks.unshift(task('failed-launch','Never-submitted launch','failed','franky',{launchNotSubmitted:true,error:'Fixture: transport rejected before submission',messages:[{id:'goal',role:'user',text:'Keep the exact failed-launch goal.',time:now}]}));emit();
-  await nav('Home');await wait('Boolean(document.querySelector(".home-page"))');await fill('[aria-label="Search tasks"]','Never-submitted launch');await click('.home-task-open');await wait('Boolean(document.querySelector(".failed-launch-recovery"))');
-  assert.equal(await js('document.querySelector(".composer-foot button").disabled'),true,'failed launch cannot accidentally submit a follow-up');
-  await js('document.querySelector(".failed-launch-recovery button").focus()');assert.equal(await js('document.activeElement.textContent'),'Retry failed launch');
-  await js('document.querySelector(".failed-launch-recovery button").click();document.querySelector(".failed-launch-recovery button").click()');
-  await wait('document.querySelector(".workbench h2")?.textContent==="Recovered launch"');assert.equal(launchRetries,1,'double click submits only one replacement');
-  assert.ok(await js('document.body.innerText.includes("Keep the exact failed-launch goal.")'));
-  await js('Array.from(document.querySelectorAll(".chat-pane button")).find(button=>button.textContent==="Inspect original failure").click()');await wait('Boolean(document.querySelector(".failed-launch-recovery"))');
-  assert.equal(await js('document.querySelector(".failed-launch-recovery button").textContent'),'Open recovery task');
-  await screenshot('failed-launch-recovery.png');await click('.failed-launch-recovery button');await wait('document.querySelector(".workbench h2")?.textContent==="Recovered launch"');assert.equal(launchRetries,1);
-  if(hidden)assert.equal(win.isVisible(),false);fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({passed:true,hidden}));console.log('SUNNY_WORKFLOW '+JSON.stringify({passed:true,hidden,checks:['snapshot-race','family-search','specialist-approval','duplicate-approval','draft-per-task','home-draft-navigation','failed-start-draft','duplicate-start','lazy-tools','folder-parent','editor-load','draft-reload','reconcile','inbox','compact-layout','island-navigation','captain-controlled-map-zoom-keyboard-touch','startup-retry','pending-launch-navigation','dirty-project-switch','dirty-file-task-start','template-cleared-after-start','character-room-theme','room-audio-toggle','room-audio-settings','robin-obsidian-library-route','note-context-unsent-robin-review','robin-note-revision-decision-context','morgans-saved-work-report','morgans-source-navigation','morgans-explicit-obsidian-save','morgans-durable-receipt-reload','morgans-conflict-recovery-no-duplicate','morgans-uncertain-truncated-state','oversized-note-boundary','all-ten-illustrated-crew-rooms','reduced-motion-illustrated-room'],screenshots:output}));
- }catch(error){await screenshot('failure.png').catch(()=>{});fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({passed:false,error:error.stack}));console.error(error);process.exitCode=1;}
+  fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({passed:true,hidden:!win.isVisible(),syntheticTransport:true,liveProviderProof:false}));console.log('SUNNY_WORKFLOW '+JSON.stringify({passed:true,hidden:!win.isVisible(),syntheticTransport:true,liveProviderProof:false,checks:['inbox-show-more','inbox-project-filter','quick-switch-mobile','quick-switch-stable-selection','quick-switch-dirty-guard','searchable-local-inbox','inbox-review-state','quick-switch-enter-target','quick-switch-ime','helm-user-and-system-reduced-motion','helm-sea-pause','streamed-deck-activity','snapshot-race','family-search','specialist-approval','duplicate-approval','draft-per-task','home-draft-navigation','failed-start-draft','duplicate-start','lazy-tools','folder-parent','editor-load','draft-reload','reconcile','inbox','compact-layout','island-navigation','startup-retry','pending-launch-navigation','dirty-project-switch','dirty-global-settings-navigation','workspace-draft-cas-helper','dirty-file-task-start','template-cleared-after-start','character-room-theme','room-audio-toggle','room-audio-settings','robin-obsidian-library-route','note-context-unsent-robin-review','oversized-note-boundary','all-ten-illustrated-crew-rooms','distinct-station-layouts','square-room-badge','all-rooms-200-percent-zoom','station-tabs-preserve-drafts','room-focus-keeps-draft','room-starters-unsent','room-ambience-pause','room-art-expansion','room-streamed-saved-update','recorded-crew-relay-dependencies','crew-relay-input-and-uncertainty','crew-relay-mobile-layout','room-system-reduced-motion-live','reduced-motion-illustrated-room'],screenshots:output}));
+ }catch(error){await screenshot('failure.png').catch(()=>{});fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({passed:false,syntheticTransport:true,liveProviderProof:false,error:error.stack,health:{mainPid:process.pid,mainAlive:true,windowDestroyed:win.isDestroyed(),rendererPid:win.isDestroyed()?null:win.webContents.getOSProcessId()}}));console.error(error);process.exitCode=1;}
  finally{win.destroy();app.exit(process.exitCode||0);}
 }).catch(error=>{console.error(error);app.exit(1);});

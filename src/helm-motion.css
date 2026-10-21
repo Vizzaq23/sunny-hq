@@ -1,0 +1,43 @@
+/* Motion is decoration; all progress labels still come from the saved projection. */
+.helm-workspace{--helm-ease:cubic-bezier(.22,1,.36,1);--helm-brass:#e8b365}
+.helm-inspector{box-shadow:-12px 0 38px #071d241a;z-index:1;scrollbar-gutter:stable}
+.helm-tabs{position:sticky;top:0;z-index:3;isolation:isolate;background:#eee9d9;padding:8px;gap:4px}
+.helm-tabs>button{position:relative;isolation:isolate;min-height:40px;border-radius:7px;background:transparent!important;transition:color .18s}
+.helm-tabs>button>span:not(.helm-tab-marker){position:relative;z-index:1}
+.helm-tab-marker{position:absolute;inset:0;background:#19464a;border-radius:7px;box-shadow:0 2px 5px #0d292629;z-index:0;pointer-events:none}
+.helm-tabs>button[aria-pressed=true]{color:#ffdfaa}
+.helm-panel-content{min-width:0}
+.helm-station>header{padding-block:8px 18px}.helm-station h3{letter-spacing:-.035em}
+.helm-primary,.helm-launch{border-radius:7px;transition:background .18s,box-shadow .18s,transform .18s var(--helm-ease)}
+.helm-primary:hover{background:#27655e;box-shadow:0 5px 16px #183b3824;transform:translateY(-2px)}
+.helm-launch:hover{background:#f5c77f;box-shadow:0 5px 20px #e8b36525;transform:translateY(-2px)}
+.helm-primary:active,.helm-launch:active{transform:translateY(0)}
+.helm-primary>svg,.helm-live-update>svg:last-child{transition:transform .2s var(--helm-ease)}
+.helm-primary:hover>svg,.helm-live-update:hover>svg:last-child{transform:translate(2px,-2px)}
+.helm-world-label{align-items:center;position:relative;z-index:1;background:#102f356b}
+.helm-sea-toggle{margin-left:auto;min-height:32px;padding:5px 10px;border:1px solid #8bb1aa55;border-radius:20px;background:#183f45;color:#d2e6db;font:inherit;letter-spacing:0;cursor:pointer}
+.helm-sea-toggle:hover{border-color:#e8b365;color:#ffe1a9}.helm-sea-toggle:disabled{opacity:.75;cursor:default}
+.helm-scene{isolation:isolate;background:radial-gradient(ellipse at 50% 40%,#719f94 0%,#376d70 50%,#16474f 100%)}
+.helm-scene::before,.helm-scene::after{content:"";position:absolute;inset:-25%;z-index:-1;pointer-events:none;opacity:.24;background:repeating-radial-gradient(ellipse at 35% 55%,transparent 0 48px,#b8e0c91c 50px 52px,transparent 55px 96px);transform:rotate(-12deg)}
+.helm-scene::after{background:linear-gradient(115deg,transparent 35%,#b9dfc839 48%,transparent 60%);opacity:.16;transform:translateX(-10%)}
+.helm-workspace[data-sea-motion=true] .helm-scene::before{animation:helm-tide 24s ease-in-out infinite alternate}
+.helm-workspace[data-sea-motion=true] .helm-scene::after{animation:helm-light 19s ease-in-out infinite alternate}
+@keyframes helm-tide{to{transform:translate(3%,2%) rotate(-7deg)}}
+@keyframes helm-light{to{transform:translateX(12%);opacity:.3}}
+.helm-crew-strip{padding-block:5px 7px;gap:8px}
+.helm-crew{position:relative;border-radius:8px;isolation:isolate;overflow:hidden;transition:background .18s,border-color .18s;min-height:64px}
+.helm-crew-marker{position:absolute;left:13px;right:13px;top:0;height:3px;background:#fff0c2;border-radius:0 0 8px 8px;pointer-events:none}
+.helm-crew[aria-pressed=true]{background:linear-gradient(135deg,#edd6a2,#dfbd7c);border-color:#f9e5b8;color:#16383e;box-shadow:0 3px 12px #030f1726}
+.helm-crew:hover:not([aria-pressed=true]){background:#2d5558;border-color:#78988b}
+.helm-activity ol{position:relative}.helm-activity li{border-left:2px solid #b4c8b6;padding-left:12px;position:relative}
+.helm-activity li::before{content:"";position:absolute;left:-5px;top:10px;width:8px;height:8px;border-radius:50%;background:#527c6e;border:2px solid #faf5e9}
+.helm-activity li:first-child::before{background:#a76d2c}
+.helm-workspace :is(button,select):focus-visible{outline:3px solid #cf8e3d;outline-offset:3px}
+.voyage-ui .sidebar .main-nav>button{transition:background .18s,color .18s;border-radius:7px}
+.voyage-ui .sidebar .main-nav>button>svg{transition:transform .22s var(--helm-ease)}
+.voyage-ui .sidebar .main-nav>button:hover>svg{transform:translateY(-2px)}
+.helm-workspace[data-motion=reduced] *{animation:none!important;transition:none!important}
+.helm-workspace[data-motion=reduced] :is(.helm-primary,.helm-launch):hover{transform:none}
+.reduce-motion .sidebar .main-nav>button>svg{transition:none;transform:none!important}
+@media(prefers-reduced-motion:reduce){.helm-workspace *,.helm-workspace ::before,.helm-workspace ::after{animation:none!important;transition:none!important}.helm-workspace :is(.helm-primary,.helm-launch):hover,.voyage-ui .sidebar .main-nav>button:hover>svg{transform:none}.voyage-ui .sidebar .main-nav>button>svg{transition:none}}
+@media(max-width:760px){.helm-world-label{flex-wrap:wrap;gap:6px}.helm-world-label>span:last-child{flex-basis:100%;font-size:9px}.helm-crew-strip{padding-block:5px 8px}.helm-inspector{box-shadow:none}}

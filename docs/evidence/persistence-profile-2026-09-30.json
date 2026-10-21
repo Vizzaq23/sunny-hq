@@ -1,0 +1,5616 @@
+{
+  "capturedAt": "2026-09-30T19:12:28.496Z",
+  "synthetic": true,
+  "context": {
+    "node": "v24.18.0",
+    "platform": "win32",
+    "arch": "x64",
+    "cpu": "AMD Ryzen 9 9950X3D 16-Core Processor          ",
+    "cpuLogicalCount": 32,
+    "totalMemoryBytes": 68302811136,
+    "tempStorage": "Windows temporary directory on current host; warm filesystem/cache; no provider/profile reads"
+  },
+  "method": {
+    "samplesPerStoreCase": 40,
+    "warmups": 3,
+    "latencyBudgetMs": 100,
+    "percentile": "nearest-rank",
+    "workerIsolation": "fresh Node process per size/kind; one GC before measured batch",
+    "timerDelay": "1ms timer scheduled immediately before synchronous operation; overdue deadline measured after it returns",
+    "memory": "process.memoryUsage snapshots after each sample; allocation peak inside operation may be higher",
+    "writeOnly": "Serialized string is prepared before timedBlocking; wall/timer call metrics exclude preparation, while process memory and continuous event-loop monitor can include it."
+  },
+  "stores": [
+    {
+      "sizeMiB": 1,
+      "kind": "serialize-compact",
+      "samples": 40,
+      "warmups": 3,
+      "taskCount": 25,
+      "messagesPerTask": 40,
+      "textCharactersPerInitialMessage": 1024,
+      "mutations": "append 64 ASCII characters to newest task after each warmup/sample; initial text is 1024 characters / 1026 UTF-8 bytes, including U+2014 (code point 8212)",
+      "compactBytesBefore": 1091804,
+      "compactBytesAfter": 1094556,
+      "prettyBytesBefore": 1160350,
+      "wallMs": {
+        "count": 40,
+        "min": 1.9329999999999927,
+        "p50": 2.299900000000207,
+        "p95": 2.5529000000000224,
+        "max": 2.6961000000000013,
+        "mean": 2.2974975000000257,
+        "over100ms": 0
+      },
+      "timerDelayMs": {
+        "count": 40,
+        "min": 0.9539000000000897,
+        "p50": 1.325900000000047,
+        "p95": 1.5955999999999904,
+        "max": 1.720299999999952,
+        "mean": 1.3211649999999964,
+        "over100ms": 0
+      },
+      "eventLoopMonitorMs": {
+        "resolution": 1,
+        "min": 0.026112,
+        "p50": 12.648447,
+        "p95": 13.524991,
+        "max": 15.523839
+      },
+      "memoryBytes": {
+        "baseline": {
+          "rss": 59453440,
+          "heapUsed": 7277640,
+          "external": 2243527,
+          "arrayBuffers": 143611
+        },
+        "peak": {
+          "rss": 66387968,
+          "heapUsed": 14102352,
+          "external": 2243567,
+          "arrayBuffers": 143611
+        },
+        "after": {
+          "rss": 62050304,
+          "heapUsed": 9452584,
+          "external": 2243567,
+          "arrayBuffers": 143611
+        }
+      },
+      "diskBytesBeforeClose": {},
+      "records": [
+        {
+          "wallMs": 2.546600000000012,
+          "timerDelayMs": 1.5955999999999904
+        },
+        {
+          "wallMs": 1.983699999999999,
+          "timerDelayMs": 1.008199999999988
+        },
+        {
+          "wallMs": 2.0475000000000136,
+          "timerDelayMs": 1.0743999999999687
+        },
+        {
+          "wallMs": 2.4499000000000706,
+          "timerDelayMs": 1.4758000000000493
+        },
+        {
+          "wallMs": 1.9329999999999927,
+          "timerDelayMs": 0.9539000000000897
+        },
+        {
+          "wallMs": 2.409999999999968,
+          "timerDelayMs": 1.4332999999999174
+        },
+        {
+          "wallMs": 2.624300000000062,
+          "timerDelayMs": 1.6575000000000273
+        },
+        {
+          "wallMs": 1.9461999999999762,
+          "timerDelayMs": 0.9592999999999847
+        },
+        {
+          "wallMs": 2.4249999999999545,
+          "timerDelayMs": 1.4471999999999525
+        },
+        {
+          "wallMs": 2.5529000000000224,
+          "timerDelayMs": 1.5797999999999774
+        },
+        {
+          "wallMs": 2.6961000000000013,
+          "timerDelayMs": 1.720299999999952
+        },
+        {
+          "wallMs": 2.4914999999999736,
+          "timerDelayMs": 1.5170000000000528
+        },
+        {
+          "wallMs": 2.5307000000000244,
+          "timerDelayMs": 1.5532000000000608
+        },
+        {
+          "wallMs": 2.309600000000046,
+          "timerDelayMs": 1.332300000000032
+        },
+        {
+          "wallMs": 2.5494999999999663,
+          "timerDelayMs": 1.571800000000053
+        },
+        {
+          "wallMs": 1.9832000000000107,
+          "timerDelayMs": 0.996599999999944
+        },
+        {
+          "wallMs": 2.113499999999931,
+          "timerDelayMs": 1.135499999999979
+        },
+        {
+          "wallMs": 2.3156000000000176,
+          "timerDelayMs": 1.338100000000054
+        },
+        {
+          "wallMs": 2.293299999999931,
+          "timerDelayMs": 1.3180000000000973
+        },
+        {
+          "wallMs": 2.5508000000002085,
+          "timerDelayMs": 1.5751000000000204
+        },
+        {
+          "wallMs": 2.299900000000207,
+          "timerDelayMs": 1.325900000000047
+        },
+        {
+          "wallMs": 2.0701000000001386,
+          "timerDelayMs": 1.0825999999999567
+        },
+        {
+          "wallMs": 2.2001000000000204,
+          "timerDelayMs": 1.221599999999853
+        },
+        {
+          "wallMs": 2.1340000000000146,
+          "timerDelayMs": 1.1499999999998636
+        },
+        {
+          "wallMs": 2.0103999999998905,
+          "timerDelayMs": 1.022899999999936
+        },
+        {
+          "wallMs": 2.311300000000074,
+          "timerDelayMs": 1.3327999999999065
+        },
+        {
+          "wallMs": 2.2486999999998716,
+          "timerDelayMs": 1.3130999999998494
+        },
+        {
+          "wallMs": 2.1532999999999447,
+          "timerDelayMs": 1.177500000000009
+        },
+        {
+          "wallMs": 2.3921000000000276,
+          "timerDelayMs": 1.4137000000000626
+        },
+        {
+          "wallMs": 2.154800000000023,
+          "timerDelayMs": 1.175799999999981
+        },
+        {
+          "wallMs": 2.1192000000000917,
+          "timerDelayMs": 1.1386999999999716
+        },
+        {
+          "wallMs": 2.189100000000053,
+          "timerDelayMs": 1.2113999999999123
+        },
+        {
+          "wallMs": 2.4117999999998574,
+          "timerDelayMs": 1.4337000000000444
+        },
+        {
+          "wallMs": 2.18100000000004,
+          "timerDelayMs": 1.2025000000001
+        },
+        {
+          "wallMs": 2.460600000000113,
+          "timerDelayMs": 1.4816000000000713
+        },
+        {
+          "wallMs": 2.201999999999998,
+          "timerDelayMs": 1.2231000000001586
+        },
+        {
+          "wallMs": 2.481700000000046,
+          "timerDelayMs": 1.5027999999999793
+        },
+        {
+          "wallMs": 2.304500000000189,
+          "timerDelayMs": 1.3287000000000262
+        },
+        {
+          "wallMs": 2.5522000000000844,
+          "timerDelayMs": 1.573699999999917
+        },
+        {
+          "wallMs": 2.270200000000159,
+          "timerDelayMs": 1.2916000000000167
+        }
+      ],
+      "timerControlDelayMs": {
+        "count": 40,
+        "min": 13.177599999999998,
+        "p50": 14.483900000000006,
+        "p95": 14.511099999999942,
+        "max": 14.517599999999959,
+        "mean": 14.442375000000007,
+        "over100ms": 0
+      }
+    },
+    {
+      "sizeMiB": 1,
+      "kind": "serialize-pretty",
+      "samples": 40,
+      "warmups": 3,
+      "taskCount": 25,
+      "messagesPerTask": 40,
+      "textCharactersPerInitialMessage": 1024,
+      "mutations": "append 64 ASCII characters to newest task after each warmup/sample; initial text is 1024 characters / 1026 UTF-8 bytes, including U+2014 (code point 8212)",
+      "compactBytesBefore": 1091804,
+      "compactBytesAfter": 1094556,
+      "prettyBytesBefore": 1160350,
+      "wallMs": {
+        "count": 40,
+        "min": 1.935200000000009,
+        "p50": 2.306100000000015,
+        "p95": 2.5976000000000568,
+        "max": 2.76279999999997,
+        "mean": 2.3149899999999946,
+        "over100ms": 0
+      },
+      "timerDelayMs": {
+        "count": 40,
+        "min": 0.9474999999999909,
+        "p50": 1.330299999999852,
+        "p95": 1.623299999999972,
+        "max": 1.7850000000000819,
+        "mean": 1.3367700000000042,
+        "over100ms": 0
+      },
+      "eventLoopMonitorMs": {
+        "resolution": 1,
+        "min": 1.961984,
+        "p50": 12.804095,
+        "p95": 13.533183,
+        "max": 15.515647
+      },
+      "memoryBytes": {
+        "baseline": {
+          "rss": 59453440,
+          "heapUsed": 7277560,
+          "external": 2243527,
+          "arrayBuffers": 143611
+        },
+        "peak": {
+          "rss": 66740224,
+          "heapUsed": 14274840,
+          "external": 2243567,
+          "arrayBuffers": 143611
+        },
+        "after": {
+          "rss": 62001152,
+          "heapUsed": 9452472,
+          "external": 2243567,
+          "arrayBuffers": 143611
+        }
+      },
+      "diskBytesBeforeClose": {},
+      "records": [
+        {
+          "wallMs": 2.089399999999955,
+          "timerDelayMs": 1.1099000000000387
+        },
+        {
+          "wallMs": 1.99249999999995,
+          "timerDelayMs": 1.0105000000000928
+        },
+        {
+          "wallMs": 2.387499999999932,
+          "timerDelayMs": 1.411100000000033
+        },
+        {
+          "wallMs": 2.5627000000000635,
+          "timerDelayMs": 1.5845999999999094
+        },
+        {
+          "wallMs": 2.0661999999999807,
+          "timerDelayMs": 1.0837000000000216
+        },
+        {
+          "wallMs": 1.9886000000000195,
+          "timerDelayMs": 1.005200000000059
+        },
+        {
+          "wallMs": 2.5976000000000568,
+          "timerDelayMs": 1.623299999999972
+        },
+        {
+          "wallMs": 2.2089999999999463,
+          "timerDelayMs": 1.244799999999941
+        },
+        {
+          "wallMs": 1.935200000000009,
+          "timerDelayMs": 0.9474999999999909
+        },
+        {
+          "wallMs": 2.3016000000000076,
+          "timerDelayMs": 1.3185999999999467
+        },
+        {
+          "wallMs": 2.240000000000009,
+          "timerDelayMs": 1.2565999999999349
+        },
+        {
+          "wallMs": 2.328000000000088,
+          "timerDelayMs": 1.346900000000005
+        },
+        {
+          "wallMs": 2.580600000000004,
+          "timerDelayMs": 1.6025999999999385
+        },
+        {
+          "wallMs": 2.09800000000007,
+          "timerDelayMs": 1.1204999999999927
+        },
+        {
+          "wallMs": 2.490699999999947,
+          "timerDelayMs": 1.5167000000000144
+        },
+        {
+          "wallMs": 1.9828999999999724,
+          "timerDelayMs": 0.9955999999999676
+        },
+        {
+          "wallMs": 2.205699999999979,
+          "timerDelayMs": 1.2332999999999856
+        },
+        {
+          "wallMs": 2.2644000000000233,
+          "timerDelayMs": 1.294300000000021
+        },
+        {
+          "wallMs": 2.2105000000000246,
+          "timerDelayMs": 1.2323999999999842
+        },
+        {
+          "wallMs": 2.4254999999999427,
+          "timerDelayMs": 1.4470999999999776
+        },
+        {
+          "wallMs": 2.2670000000000528,
+          "timerDelayMs": 1.2834000000000287
+        },
+        {
+          "wallMs": 2.4248999999999796,
+          "timerDelayMs": 1.4465999999999894
+        },
+        {
+          "wallMs": 2.1243999999999232,
+          "timerDelayMs": 1.1412000000000262
+        },
+        {
+          "wallMs": 2.5320999999999003,
+          "timerDelayMs": 1.5529999999998836
+        },
+        {
+          "wallMs": 2.3583000000000993,
+          "timerDelayMs": 1.3808000000001357
+        },
+        {
+          "wallMs": 2.306100000000015,
+          "timerDelayMs": 1.330299999999852
+        },
+        {
+          "wallMs": 2.432600000000093,
+          "timerDelayMs": 1.4861000000000786
+        },
+        {
+          "wallMs": 2.518199999999979,
+          "timerDelayMs": 1.541400000000067
+        },
+        {
+          "wallMs": 2.423799999999801,
+          "timerDelayMs": 1.4429000000000087
+        },
+        {
+          "wallMs": 2.151499999999942,
+          "timerDelayMs": 1.164600000000064
+        },
+        {
+          "wallMs": 2.3333999999999833,
+          "timerDelayMs": 1.3558000000000447
+        },
+        {
+          "wallMs": 2.76279999999997,
+          "timerDelayMs": 1.7850000000000819
+        },
+        {
+          "wallMs": 2.334300000000212,
+          "timerDelayMs": 1.3565000000000964
+        },
+        {
+          "wallMs": 2.672399999999925,
+          "timerDelayMs": 1.688899999999876
+        },
+        {
+          "wallMs": 2.387899999999945,
+          "timerDelayMs": 1.4097999999999047
+        },
+        {
+          "wallMs": 2.2967999999998483,
+          "timerDelayMs": 1.3185000000000855
+        },
+        {
+          "wallMs": 2.101599999999962,
+          "timerDelayMs": 1.118099999999913
+        },
+        {
+          "wallMs": 2.29320000000007,
+          "timerDelayMs": 1.314200000000028
+        },
+        {
+          "wallMs": 2.491800000000012,
+          "timerDelayMs": 1.5147000000001754
+        },
+        {
+          "wallMs": 2.4299000000000888,
+          "timerDelayMs": 1.453800000000001
+        }
+      ],
+      "timerControlDelayMs": {
+        "count": 40,
+        "min": 13.415399999999991,
+        "p50": 14.482999999999947,
+        "p95": 14.514399999999966,
+        "max": 14.517500000000013,
+        "mean": 14.457492500000004,
+        "over100ms": 0
+      }
+    },
+    {
+      "sizeMiB": 1,
+      "kind": "json",
+      "samples": 40,
+      "warmups": 3,
+      "taskCount": 25,
+      "messagesPerTask": 40,
+      "textCharactersPerInitialMessage": 1024,
+      "mutations": "append 64 ASCII characters to newest task after each warmup/sample; initial text is 1024 characters / 1026 UTF-8 bytes, including U+2014 (code point 8212)",
+      "compactBytesBefore": 1091804,
+      "compactBytesAfter": 1094556,
+      "prettyBytesBefore": 1160350,
+      "wallMs": {
+        "count": 40,
+        "min": 3.6141000000000076,
+        "p50": 3.9493999999999687,
+        "p95": 4.281299999999874,
+        "max": 4.432900000000018,
+        "mean": 3.974344999999997,
+        "over100ms": 0
+      },
+      "timerDelayMs": {
+        "count": 40,
+        "min": 2.637399999999843,
+        "p50": 2.9728999999999814,
+        "p95": 3.3049000000000888,
+        "max": 3.460199999999986,
+        "mean": 2.9998299999999913,
+        "over100ms": 0
+      },
+      "eventLoopMonitorMs": {
+        "resolution": 1,
+        "min": 0.02816,
+        "p50": 10.993663,
+        "p95": 11.870207,
+        "max": 15.515647
+      },
+      "memoryBytes": {
+        "baseline": {
+          "rss": 58793984,
+          "heapUsed": 7289312,
+          "external": 2243563,
+          "arrayBuffers": 143611
+        },
+        "peak": {
+          "rss": 61698048,
+          "heapUsed": 9637768,
+          "external": 2243567,
+          "arrayBuffers": 143611
+        },
+        "after": {
+          "rss": 61554688,
+          "heapUsed": 9481008,
+          "external": 2243567,
+          "arrayBuffers": 143611
+        }
+      },
+      "diskBytesBeforeClose": {
+        "state.json": 1163102
+      },
+      "records": [
+        {
+          "wallMs": 3.887299999999982,
+          "timerDelayMs": 2.914099999999962
+        },
+        {
+          "wallMs": 4.432900000000018,
+          "timerDelayMs": 3.460199999999986
+        },
+        {
+          "wallMs": 3.701400000000035,
+          "timerDelayMs": 2.72079999999994
+        },
+        {
+          "wallMs": 4.1474000000000615,
+          "timerDelayMs": 3.181699999999978
+        },
+        {
+          "wallMs": 4.239400000000046,
+          "timerDelayMs": 3.2728000000000748
+        },
+        {
+          "wallMs": 4.105799999999931,
+          "timerDelayMs": 3.1399000000000115
+        },
+        {
+          "wallMs": 3.9519000000000233,
+          "timerDelayMs": 2.9827999999999975
+        },
+        {
+          "wallMs": 3.8748999999999114,
+          "timerDelayMs": 2.904800000000023
+        },
+        {
+          "wallMs": 3.836599999999976,
+          "timerDelayMs": 2.859299999999962
+        },
+        {
+          "wallMs": 3.8640000000000327,
+          "timerDelayMs": 2.8894000000000233
+        },
+        {
+          "wallMs": 4.0919999999999845,
+          "timerDelayMs": 3.116200000000049
+        },
+        {
+          "wallMs": 4.101800000000026,
+          "timerDelayMs": 3.1254000000000133
+        },
+        {
+          "wallMs": 4.357599999999934,
+          "timerDelayMs": 3.387299999999982
+        },
+        {
+          "wallMs": 4.11970000000008,
+          "timerDelayMs": 3.1488999999999123
+        },
+        {
+          "wallMs": 3.8660999999999603,
+          "timerDelayMs": 2.896099999999933
+        },
+        {
+          "wallMs": 3.89670000000001,
+          "timerDelayMs": 2.923400000000015
+        },
+        {
+          "wallMs": 4.162399999999934,
+          "timerDelayMs": 3.1825000000000045
+        },
+        {
+          "wallMs": 4.048800000000028,
+          "timerDelayMs": 3.0733999999999924
+        },
+        {
+          "wallMs": 3.641899999999964,
+          "timerDelayMs": 2.6616000000000213
+        },
+        {
+          "wallMs": 3.9121000000000095,
+          "timerDelayMs": 2.9353999999999587
+        },
+        {
+          "wallMs": 4.244699999999966,
+          "timerDelayMs": 3.2683999999999287
+        },
+        {
+          "wallMs": 3.9493999999999687,
+          "timerDelayMs": 2.9728999999999814
+        },
+        {
+          "wallMs": 3.6141000000000076,
+          "timerDelayMs": 2.637399999999843
+        },
+        {
+          "wallMs": 3.9756999999999607,
+          "timerDelayMs": 2.9985999999998967
+        },
+        {
+          "wallMs": 3.6321000000000367,
+          "timerDelayMs": 2.6503000000000156
+        },
+        {
+          "wallMs": 4.098899999999958,
+          "timerDelayMs": 3.1222000000000207
+        },
+        {
+          "wallMs": 3.934600000000046,
+          "timerDelayMs": 2.998399999999947
+        },
+        {
+          "wallMs": 4.153600000000097,
+          "timerDelayMs": 3.1767999999999574
+        },
+        {
+          "wallMs": 3.8115999999999985,
+          "timerDelayMs": 2.8297999999999774
+        },
+        {
+          "wallMs": 3.7292999999999665,
+          "timerDelayMs": 2.7472999999999956
+        },
+        {
+          "wallMs": 3.758399999999938,
+          "timerDelayMs": 2.7825000000000273
+        },
+        {
+          "wallMs": 3.952600000000075,
+          "timerDelayMs": 2.9711999999999534
+        },
+        {
+          "wallMs": 3.84030000000007,
+          "timerDelayMs": 2.863499999999931
+        },
+        {
+          "wallMs": 4.188599999999951,
+          "timerDelayMs": 3.2062000000000808
+        },
+        {
+          "wallMs": 3.8658000000000357,
+          "timerDelayMs": 2.888900000000149
+        },
+        {
+          "wallMs": 4.127700000000004,
+          "timerDelayMs": 3.1506999999999152
+        },
+        {
+          "wallMs": 3.81899999999996,
+          "timerDelayMs": 2.8418000000001484
+        },
+        {
+          "wallMs": 3.7291999999999916,
+          "timerDelayMs": 2.751600000000053
+        },
+        {
+          "wallMs": 4.026200000000017,
+          "timerDelayMs": 3.05379999999991
+        },
+        {
+          "wallMs": 4.281299999999874,
+          "timerDelayMs": 3.3049000000000888
+        }
+      ],
+      "timerControlDelayMs": {
+        "count": 40,
+        "min": 13.005899999999997,
+        "p50": 14.485799999999983,
+        "p95": 14.511600000000044,
+        "max": 15.049099999999996,
+        "mean": 14.453159999999997,
+        "over100ms": 0
+      }
+    },
+    {
+      "sizeMiB": 1,
+      "kind": "json-write-only",
+      "samples": 40,
+      "warmups": 3,
+      "taskCount": 25,
+      "messagesPerTask": 40,
+      "textCharactersPerInitialMessage": 1024,
+      "mutations": "append 64 ASCII characters to newest task after each warmup/sample; initial text is 1024 characters / 1026 UTF-8 bytes, including U+2014 (code point 8212)",
+      "compactBytesBefore": 1091804,
+      "compactBytesAfter": 1094556,
+      "prettyBytesBefore": 1160350,
+      "wallMs": {
+        "count": 40,
+        "min": 1.4730999999999312,
+        "p50": 1.5258000000000038,
+        "p95": 1.7596999999999525,
+        "max": 2.019999999999982,
+        "mean": 1.576387500000004,
+        "over100ms": 0
+      },
+      "timerDelayMs": {
+        "count": 40,
+        "min": 0.49299999999993815,
+        "p50": 0.5495999999999412,
+        "p95": 0.7812999999999874,
+        "max": 1.0448000000000093,
+        "mean": 0.5979550000000075,
+        "over100ms": 0
+      },
+      "eventLoopMonitorMs": {
+        "resolution": 1,
+        "min": 0.04864,
+        "p50": 10.993663,
+        "p95": 11.911167,
+        "max": 15.523839
+      },
+      "memoryBytes": {
+        "baseline": {
+          "rss": 59465728,
+          "heapUsed": 7285280,
+          "external": 2243527,
+          "arrayBuffers": 143611
+        },
+        "peak": {
+          "rss": 66682880,
+          "heapUsed": 14285960,
+          "external": 2243567,
+          "arrayBuffers": 143611
+        },
+        "after": {
+          "rss": 61927424,
+          "heapUsed": 9476072,
+          "external": 2243567,
+          "arrayBuffers": 143611
+        }
+      },
+      "diskBytesBeforeClose": {
+        "state.json": 1163102
+      },
+      "records": [
+        {
+          "wallMs": 2.019999999999982,
+          "timerDelayMs": 1.0448000000000093
+        },
+        {
+          "wallMs": 1.7528999999999542,
+          "timerDelayMs": 0.7759999999999536
+        },
+        {
+          "wallMs": 1.7849999999999682,
+          "timerDelayMs": 0.8088999999999942
+        },
+        {
+          "wallMs": 1.6965000000000146,
+          "timerDelayMs": 0.7200000000000273
+        },
+        {
+          "wallMs": 1.7355999999999767,
+          "timerDelayMs": 0.7586999999999762
+        },
+        {
+          "wallMs": 1.6930999999999585,
+          "timerDelayMs": 0.7139999999999418
+        },
+        {
+          "wallMs": 1.6819000000000415,
+          "timerDelayMs": 0.7048999999999523
+        },
+        {
+          "wallMs": 1.7596999999999525,
+          "timerDelayMs": 0.7812999999999874
+        },
+        {
+          "wallMs": 1.5416999999999916,
+          "timerDelayMs": 0.5603999999999587
+        },
+        {
+          "wallMs": 1.6684000000000196,
+          "timerDelayMs": 0.6886000000000649
+        },
+        {
+          "wallMs": 1.507199999999898,
+          "timerDelayMs": 0.5263999999999669
+        },
+        {
+          "wallMs": 1.572400000000016,
+          "timerDelayMs": 0.5913000000000466
+        },
+        {
+          "wallMs": 1.5009000000000015,
+          "timerDelayMs": 0.5207000000000335
+        },
+        {
+          "wallMs": 1.505899999999997,
+          "timerDelayMs": 0.5274000000000569
+        },
+        {
+          "wallMs": 1.5386999999999489,
+          "timerDelayMs": 0.558400000000006
+        },
+        {
+          "wallMs": 1.5258000000000038,
+          "timerDelayMs": 0.5466000000000122
+        },
+        {
+          "wallMs": 1.4961000000000695,
+          "timerDelayMs": 0.5150999999999613
+        },
+        {
+          "wallMs": 1.6276000000000295,
+          "timerDelayMs": 0.657100000000014
+        },
+        {
+          "wallMs": 1.5258999999999787,
+          "timerDelayMs": 0.5495999999999412
+        },
+        {
+          "wallMs": 1.487799999999993,
+          "timerDelayMs": 0.511600000000044
+        },
+        {
+          "wallMs": 1.5425000000000182,
+          "timerDelayMs": 0.5656000000001313
+        },
+        {
+          "wallMs": 1.6948999999999614,
+          "timerDelayMs": 0.7148000000001957
+        },
+        {
+          "wallMs": 1.5173999999999523,
+          "timerDelayMs": 0.5368000000000848
+        },
+        {
+          "wallMs": 1.4908000000000357,
+          "timerDelayMs": 0.5098999999997886
+        },
+        {
+          "wallMs": 1.511600000000044,
+          "timerDelayMs": 0.5302000000001499
+        },
+        {
+          "wallMs": 1.4960999999998421,
+          "timerDelayMs": 0.5160000000000764
+        },
+        {
+          "wallMs": 1.508199999999988,
+          "timerDelayMs": 0.5609999999999218
+        },
+        {
+          "wallMs": 1.4781000000000404,
+          "timerDelayMs": 0.49870000000009895
+        },
+        {
+          "wallMs": 1.4859000000001288,
+          "timerDelayMs": 0.5040999999998803
+        },
+        {
+          "wallMs": 1.4990999999999985,
+          "timerDelayMs": 0.5180000000000291
+        },
+        {
+          "wallMs": 1.4892999999999574,
+          "timerDelayMs": 0.508199999999988
+        },
+        {
+          "wallMs": 1.4730999999999312,
+          "timerDelayMs": 0.49299999999993815
+        },
+        {
+          "wallMs": 1.5756000000001222,
+          "timerDelayMs": 0.5942999999999756
+        },
+        {
+          "wallMs": 1.4796000000001186,
+          "timerDelayMs": 0.49919999999997344
+        },
+        {
+          "wallMs": 1.5096999999998388,
+          "timerDelayMs": 0.5298000000000229
+        },
+        {
+          "wallMs": 1.5488000000000284,
+          "timerDelayMs": 0.5688999999999851
+        },
+        {
+          "wallMs": 1.574500000000171,
+          "timerDelayMs": 0.5930000000000746
+        },
+        {
+          "wallMs": 1.4760000000001128,
+          "timerDelayMs": 0.49350000000004
+        },
+        {
+          "wallMs": 1.5039999999999054,
+          "timerDelayMs": 0.5225000000000364
+        },
+        {
+          "wallMs": 1.5772000000001754,
+          "timerDelayMs": 0.5988999999999578
+        }
+      ],
+      "timerControlDelayMs": {
+        "count": 40,
+        "min": 13.398499999999999,
+        "p50": 14.484399999999994,
+        "p95": 14.525100000000009,
+        "max": 14.537000000000006,
+        "mean": 14.458412499999994,
+        "over100ms": 0
+      }
+    },
+    {
+      "sizeMiB": 1,
+      "kind": "sqlite",
+      "samples": 40,
+      "warmups": 3,
+      "taskCount": 25,
+      "messagesPerTask": 40,
+      "textCharactersPerInitialMessage": 1024,
+      "mutations": "append 64 ASCII characters to newest task after each warmup/sample; initial text is 1024 characters / 1026 UTF-8 bytes, including U+2014 (code point 8212)",
+      "compactBytesBefore": 1091804,
+      "compactBytesAfter": 1094556,
+      "prettyBytesBefore": 1160350,
+      "wallMs": {
+        "count": 40,
+        "min": 5.362699999999904,
+        "p50": 5.962500000000091,
+        "p95": 9.711500000000001,
+        "max": 13.380199999999945,
+        "mean": 6.830697499999999,
+        "over100ms": 0
+      },
+      "timerDelayMs": {
+        "count": 40,
+        "min": 4.383199999999988,
+        "p50": 4.982300000000009,
+        "p95": 8.748399999999947,
+        "max": 12.404199999999946,
+        "mean": 5.8559325,
+        "over100ms": 0
+      },
+      "eventLoopMonitorMs": {
+        "resolution": 1,
+        "min": 0.04864,
+        "p50": 8.822783,
+        "p95": 13.434879,
+        "max": 15.523839
+      },
+      "memoryBytes": {
+        "baseline": {
+          "rss": 61730816,
+          "heapUsed": 7312288,
+          "external": 2243625,
+          "arrayBuffers": 143611
+        },
+        "peak": {
+          "rss": 65474560,
+          "heapUsed": 9522136,
+          "external": 2243629,
+          "arrayBuffers": 143611
+        },
+        "after": {
+          "rss": 64315392,
+          "heapUsed": 9488280,
+          "external": 2243629,
+          "arrayBuffers": 143611
+        }
+      },
+      "diskBytesBeforeClose": {
+        "state.sqlite": 2195456,
+        "state.sqlite-shm": 32768,
+        "state.sqlite-wal": 4449632
+      },
+      "records": [
+        {
+          "wallMs": 13.380199999999945,
+          "timerDelayMs": 12.404199999999946
+        },
+        {
+          "wallMs": 6.451999999999998,
+          "timerDelayMs": 5.469499999999925
+        },
+        {
+          "wallMs": 5.672300000000064,
+          "timerDelayMs": 4.690299999999979
+        },
+        {
+          "wallMs": 5.6381000000000085,
+          "timerDelayMs": 4.661199999999894
+        },
+        {
+          "wallMs": 9.15280000000007,
+          "timerDelayMs": 8.173999999999978
+        },
+        {
+          "wallMs": 6.210799999999949,
+          "timerDelayMs": 5.236099999999965
+        },
+        {
+          "wallMs": 5.389099999999985,
+          "timerDelayMs": 4.407600000000002
+        },
+        {
+          "wallMs": 5.407500000000027,
+          "timerDelayMs": 4.425299999999993
+        },
+        {
+          "wallMs": 9.594499999999925,
+          "timerDelayMs": 8.621999999999957
+        },
+        {
+          "wallMs": 5.962500000000091,
+          "timerDelayMs": 4.982300000000009
+        },
+        {
+          "wallMs": 5.901200000000017,
+          "timerDelayMs": 4.919899999999984
+        },
+        {
+          "wallMs": 5.675200000000018,
+          "timerDelayMs": 4.699399999999969
+        },
+        {
+          "wallMs": 9.711500000000001,
+          "timerDelayMs": 8.748399999999947
+        },
+        {
+          "wallMs": 6.462500000000091,
+          "timerDelayMs": 5.484800000000064
+        },
+        {
+          "wallMs": 5.362699999999904,
+          "timerDelayMs": 4.383199999999988
+        },
+        {
+          "wallMs": 5.363500000000045,
+          "timerDelayMs": 4.383799999999951
+        },
+        {
+          "wallMs": 9.476800000000026,
+          "timerDelayMs": 8.504100000000108
+        },
+        {
+          "wallMs": 6.147399999999948,
+          "timerDelayMs": 5.179499999999962
+        },
+        {
+          "wallMs": 5.488799999999969,
+          "timerDelayMs": 4.5154
+        },
+        {
+          "wallMs": 5.761199999999917,
+          "timerDelayMs": 4.788600000000088
+        },
+        {
+          "wallMs": 9.329299999999876,
+          "timerDelayMs": 8.360799999999927
+        },
+        {
+          "wallMs": 5.967600000000175,
+          "timerDelayMs": 4.988500000000158
+        },
+        {
+          "wallMs": 5.456199999999853,
+          "timerDelayMs": 4.475100000000111
+        },
+        {
+          "wallMs": 5.808500000000095,
+          "timerDelayMs": 4.832200000000057
+        },
+        {
+          "wallMs": 10.061899999999923,
+          "timerDelayMs": 9.095299999999952
+        },
+        {
+          "wallMs": 6.616500000000087,
+          "timerDelayMs": 5.647600000000011
+        },
+        {
+          "wallMs": 5.685199999999895,
+          "timerDelayMs": 4.747400000000198
+        },
+        {
+          "wallMs": 5.640700000000152,
+          "timerDelayMs": 4.667899999999918
+        },
+        {
+          "wallMs": 9.518100000000004,
+          "timerDelayMs": 8.546399999999949
+        },
+        {
+          "wallMs": 5.966299999999819,
+          "timerDelayMs": 4.988900000000058
+        },
+        {
+          "wallMs": 6.018400000000156,
+          "timerDelayMs": 5.054599999999937
+        },
+        {
+          "wallMs": 5.683899999999994,
+          "timerDelayMs": 4.715599999999995
+        },
+        {
+          "wallMs": 9.367999999999938,
+          "timerDelayMs": 8.395800000000008
+        },
+        {
+          "wallMs": 6.12259999999992,
+          "timerDelayMs": 5.142399999999952
+        },
+        {
+          "wallMs": 5.574800000000096,
+          "timerDelayMs": 4.598500000000058
+        },
+        {
+          "wallMs": 5.385099999999966,
+          "timerDelayMs": 4.404899999999998
+        },
+        {
+          "wallMs": 9.427200000000084,
+          "timerDelayMs": 8.449599999999919
+        },
+        {
+          "wallMs": 6.093299999999999,
+          "timerDelayMs": 5.113000000000056
+        },
+        {
+          "wallMs": 5.666299999999865,
+          "timerDelayMs": 4.685600000000022
+        },
+        {
+          "wallMs": 5.62740000000008,
+          "timerDelayMs": 4.647600000000011
+        }
+      ],
+      "timerControlDelayMs": {
+        "count": 40,
+        "min": 13.119,
+        "p50": 14.482999999999947,
+        "p95": 14.536600000000021,
+        "max": 14.979600000000005,
+        "mean": 14.457887499999995,
+        "over100ms": 0
+      },
+      "sqliteVersion": "3.53.1",
+      "sqlitePragmas": {
+        "journal_mode": "wal",
+        "synchronous": 2,
+        "page_size": 4096,
+        "wal_autocheckpoint": 1000
+      }
+    },
+    {
+      "sizeMiB": 1,
+      "kind": "sqlite-write-only",
+      "samples": 40,
+      "warmups": 3,
+      "taskCount": 25,
+      "messagesPerTask": 40,
+      "textCharactersPerInitialMessage": 1024,
+      "mutations": "append 64 ASCII characters to newest task after each warmup/sample; initial text is 1024 characters / 1026 UTF-8 bytes, including U+2014 (code point 8212)",
+      "compactBytesBefore": 1091804,
+      "compactBytesAfter": 1094556,
+      "prettyBytesBefore": 1160350,
+      "wallMs": {
+        "count": 40,
+        "min": 3.226099999999974,
+        "p50": 3.5139999999998963,
+        "p95": 7.059700000000021,
+        "max": 10.343399999999974,
+        "mean": 4.468392499999996,
+        "over100ms": 0
+      },
+      "timerDelayMs": {
+        "count": 40,
+        "min": 2.248199999999997,
+        "p50": 2.5454999999999472,
+        "p95": 6.08159999999998,
+        "max": 9.373099999999909,
+        "mean": 3.490710000000013,
+        "over100ms": 0
+      },
+      "eventLoopMonitorMs": {
+        "resolution": 1,
+        "min": 2.97984,
+        "p50": 9.191423,
+        "p95": 12.525567,
+        "max": 15.523839
+      },
+      "memoryBytes": {
+        "baseline": {
+          "rss": 61972480,
+          "heapUsed": 7307712,
+          "external": 2243589,
+          "arrayBuffers": 143611
+        },
+        "peak": {
+          "rss": 72167424,
+          "heapUsed": 13894056,
+          "external": 2243629,
+          "arrayBuffers": 143611
+        },
+        "after": {
+          "rss": 64479232,
+          "heapUsed": 9483816,
+          "external": 2243629,
+          "arrayBuffers": 143611
+        }
+      },
+      "diskBytesBeforeClose": {
+        "state.sqlite": 2195456,
+        "state.sqlite-shm": 32768,
+        "state.sqlite-wal": 4449632
+      },
+      "records": [
+        {
+          "wallMs": 10.343399999999974,
+          "timerDelayMs": 9.373099999999909
+        },
+        {
+          "wallMs": 4.10590000000002,
+          "timerDelayMs": 3.1277999999999793
+        },
+        {
+          "wallMs": 3.3180999999999585,
+          "timerDelayMs": 2.3414999999999964
+        },
+        {
+          "wallMs": 3.2719999999999345,
+          "timerDelayMs": 2.2928000000000566
+        },
+        {
+          "wallMs": 7.01909999999998,
+          "timerDelayMs": 6.043099999999981
+        },
+        {
+          "wallMs": 3.842200000000048,
+          "timerDelayMs": 2.8618999999999915
+        },
+        {
+          "wallMs": 3.297300000000064,
+          "timerDelayMs": 2.3174999999999955
+        },
+        {
+          "wallMs": 3.407600000000002,
+          "timerDelayMs": 2.4343999999999824
+        },
+        {
+          "wallMs": 7.020999999999958,
+          "timerDelayMs": 6.042500000000018
+        },
+        {
+          "wallMs": 3.900800000000004,
+          "timerDelayMs": 2.9214000000000624
+        },
+        {
+          "wallMs": 3.304300000000012,
+          "timerDelayMs": 2.324600000000032
+        },
+        {
+          "wallMs": 3.2486000000000104,
+          "timerDelayMs": 2.269800000000032
+        },
+        {
+          "wallMs": 7.041399999999953,
+          "timerDelayMs": 6.062999999999988
+        },
+        {
+          "wallMs": 3.836900000000014,
+          "timerDelayMs": 2.8572000000000344
+        },
+        {
+          "wallMs": 3.2410999999999603,
+          "timerDelayMs": 2.2613999999999805
+        },
+        {
+          "wallMs": 3.226099999999974,
+          "timerDelayMs": 2.248199999999997
+        },
+        {
+          "wallMs": 7.024900000000002,
+          "timerDelayMs": 6.046000000000049
+        },
+        {
+          "wallMs": 3.77049999999997,
+          "timerDelayMs": 2.7900000000000773
+        },
+        {
+          "wallMs": 3.2478000000000975,
+          "timerDelayMs": 2.27599999999984
+        },
+        {
+          "wallMs": 3.3268000000000484,
+          "timerDelayMs": 2.3483000000001084
+        },
+        {
+          "wallMs": 6.982299999999896,
+          "timerDelayMs": 6.003099999999904
+        },
+        {
+          "wallMs": 3.7883999999999105,
+          "timerDelayMs": 2.807199999999966
+        },
+        {
+          "wallMs": 3.376500000000078,
+          "timerDelayMs": 2.3962000000001353
+        },
+        {
+          "wallMs": 3.5139999999998963,
+          "timerDelayMs": 2.5454999999999472
+        },
+        {
+          "wallMs": 7.001099999999951,
+          "timerDelayMs": 6.026000000000067
+        },
+        {
+          "wallMs": 3.8021000000001095,
+          "timerDelayMs": 2.822300000000041
+        },
+        {
+          "wallMs": 3.3239999999998417,
+          "timerDelayMs": 2.374499999999898
+        },
+        {
+          "wallMs": 3.30580000000009,
+          "timerDelayMs": 2.325800000000072
+        },
+        {
+          "wallMs": 7.059700000000021,
+          "timerDelayMs": 6.08159999999998
+        },
+        {
+          "wallMs": 3.810600000000022,
+          "timerDelayMs": 2.8297000000000025
+        },
+        {
+          "wallMs": 3.2281000000000404,
+          "timerDelayMs": 2.248800000000074
+        },
+        {
+          "wallMs": 3.2657000000001517,
+          "timerDelayMs": 2.2852000000000317
+        },
+        {
+          "wallMs": 7.564599999999928,
+          "timerDelayMs": 6.587800000000016
+        },
+        {
+          "wallMs": 3.959100000000035,
+          "timerDelayMs": 2.9779000000000906
+        },
+        {
+          "wallMs": 3.286000000000058,
+          "timerDelayMs": 2.3057000000001153
+        },
+        {
+          "wallMs": 3.250400000000127,
+          "timerDelayMs": 2.270100000000184
+        },
+        {
+          "wallMs": 7.0055999999999585,
+          "timerDelayMs": 6.024799999999914
+        },
+        {
+          "wallMs": 3.8193999999998596,
+          "timerDelayMs": 2.838599999999815
+        },
+        {
+          "wallMs": 3.2522999999998774,
+          "timerDelayMs": 2.27170000000001
+        },
+        {
+          "wallMs": 3.3442000000000007,
+          "timerDelayMs": 2.365400000000136
+        }
+      ],
+      "timerControlDelayMs": {
+        "count": 40,
+        "min": 13.513999999999996,
+        "p50": 14.490199999999959,
+        "p95": 14.513100000000009,
+        "max": 14.53770000000003,
+        "mean": 14.461979999999997,
+        "over100ms": 0
+      },
+      "sqliteVersion": "3.53.1",
+      "sqlitePragmas": {
+        "journal_mode": "wal",
+        "synchronous": 2,
+        "page_size": 4096,
+        "wal_autocheckpoint": 1000
+      }
+    },
+    {
+      "sizeMiB": 10,
+      "kind": "serialize-compact",
+      "samples": 40,
+      "warmups": 3,
+      "taskCount": 240,
+      "messagesPerTask": 40,
+      "textCharactersPerInitialMessage": 1024,
+      "mutations": "append 64 ASCII characters to newest task after each warmup/sample; initial text is 1024 characters / 1026 UTF-8 bytes, including U+2014 (code point 8212)",
+      "compactBytesBefore": 10488949,
+      "compactBytesAfter": 10491701,
+      "prettyBytesBefore": 11145950,
+      "wallMs": {
+        "count": 40,
+        "min": 17.388900000000035,
+        "p50": 18.873000000000047,
+        "p95": 19.75319999999988,
+        "max": 23.00380000000007,
+        "mean": 18.76114500000002,
+        "over100ms": 0
+      },
+      "timerDelayMs": {
+        "count": 40,
+        "min": 16.442099999999982,
+        "p50": 17.926300000000083,
+        "p95": 18.79469999999992,
+        "max": 22.054200000000037,
+        "mean": 17.80564999999998,
+        "over100ms": 0
+      },
+      "eventLoopMonitorMs": {
+        "resolution": 1,
+        "min": 0.055296,
+        "p50": 15.499263,
+        "p95": 19.742719,
+        "max": 23.085055
+      },
+      "memoryBytes": {
+        "baseline": {
+          "rss": 99139584,
+          "heapUsed": 25947792,
+          "external": 2243527,
+          "arrayBuffers": 143611
+        },
+        "peak": {
+          "rss": 162349056,
+          "heapUsed": 89197208,
+          "external": 2243567,
+          "arrayBuffers": 143611
+        },
+        "after": {
+          "rss": 120532992,
+          "heapUsed": 46913608,
+          "external": 2243567,
+          "arrayBuffers": 143611
+        }
+      },
+      "diskBytesBeforeClose": {},
+      "records": [
+        {
+          "wallMs": 23.00380000000007,
+          "timerDelayMs": 22.054200000000037
+        },
+        {
+          "wallMs": 17.493299999999977,
+          "timerDelayMs": 16.533999999999992
+        },
+        {
+          "wallMs": 17.388900000000035,
+          "timerDelayMs": 16.442099999999982
+        },
+        {
+          "wallMs": 18.9135,
+          "timerDelayMs": 17.958599999999933
+        },
+        {
+          "wallMs": 17.54939999999999,
+          "timerDelayMs": 16.59999999999991
+        },
+        {
+          "wallMs": 17.773300000000063,
+          "timerDelayMs": 16.815600000000018
+        },
+        {
+          "wallMs": 18.772100000000023,
+          "timerDelayMs": 17.815699999999993
+        },
+        {
+          "wallMs": 17.57759999999996,
+          "timerDelayMs": 16.61839999999995
+        },
+        {
+          "wallMs": 17.738599999999906,
+          "timerDelayMs": 16.79169999999999
+        },
+        {
+          "wallMs": 18.925300000000107,
+          "timerDelayMs": 17.967399999999998
+        },
+        {
+          "wallMs": 17.676500000000033,
+          "timerDelayMs": 16.726400000000012
+        },
+        {
+          "wallMs": 17.673900000000003,
+          "timerDelayMs": 16.727100000000064
+        },
+        {
+          "wallMs": 19.34920000000011,
+          "timerDelayMs": 18.393800000000056
+        },
+        {
+          "wallMs": 18.336199999999963,
+          "timerDelayMs": 17.377500000000055
+        },
+        {
+          "wallMs": 18.355399999999918,
+          "timerDelayMs": 17.39580000000001
+        },
+        {
+          "wallMs": 18.72739999999999,
+          "timerDelayMs": 17.763599999999997
+        },
+        {
+          "wallMs": 18.406800000000203,
+          "timerDelayMs": 17.44049999999993
+        },
+        {
+          "wallMs": 18.873000000000047,
+          "timerDelayMs": 17.926300000000083
+        },
+        {
+          "wallMs": 18.99499999999989,
+          "timerDelayMs": 18.029399999999896
+        },
+        {
+          "wallMs": 19.22849999999994,
+          "timerDelayMs": 18.274399999999787
+        },
+        {
+          "wallMs": 19.31450000000018,
+          "timerDelayMs": 18.35669999999982
+        },
+        {
+          "wallMs": 19.16170000000011,
+          "timerDelayMs": 18.201099999999997
+        },
+        {
+          "wallMs": 19.079500000000053,
+          "timerDelayMs": 18.12149999999997
+        },
+        {
+          "wallMs": 18.948200000000043,
+          "timerDelayMs": 17.990499999999884
+        },
+        {
+          "wallMs": 19.75319999999988,
+          "timerDelayMs": 18.79469999999992
+        },
+        {
+          "wallMs": 19.66059999999993,
+          "timerDelayMs": 18.705099999999902
+        },
+        {
+          "wallMs": 19.18690000000015,
+          "timerDelayMs": 18.2666999999999
+        },
+        {
+          "wallMs": 18.925899999999956,
+          "timerDelayMs": 17.957200000000057
+        },
+        {
+          "wallMs": 19.58710000000019,
+          "timerDelayMs": 18.63220000000001
+        },
+        {
+          "wallMs": 19.65409999999997,
+          "timerDelayMs": 18.69990000000007
+        },
+        {
+          "wallMs": 19.38299999999981,
+          "timerDelayMs": 18.43159999999989
+        },
+        {
+          "wallMs": 19.553300000000036,
+          "timerDelayMs": 18.592399999999998
+        },
+        {
+          "wallMs": 19.311500000000024,
+          "timerDelayMs": 18.37110000000007
+        },
+        {
+          "wallMs": 21.17840000000001,
+          "timerDelayMs": 20.228400000000192
+        },
+        {
+          "wallMs": 18.2183,
+          "timerDelayMs": 17.26389999999992
+        },
+        {
+          "wallMs": 17.678899999999885,
+          "timerDelayMs": 16.71160000000009
+        },
+        {
+          "wallMs": 17.493200000000115,
+          "timerDelayMs": 16.52559999999994
+        },
+        {
+          "wallMs": 17.57420000000002,
+          "timerDelayMs": 16.6090999999999
+        },
+        {
+          "wallMs": 18.19489999999996,
+          "timerDelayMs": 17.24019999999996
+        },
+        {
+          "wallMs": 17.830700000000206,
+          "timerDelayMs": 16.874000000000024
+        }
+      ],
+      "timerControlDelayMs": {
+        "count": 40,
+        "min": 0,
+        "p50": 14.489000000000033,
+        "p95": 14.524400000000014,
+        "max": 14.536600000000021,
+        "mean": 13.712442500000005,
+        "over100ms": 0
+      }
+    },
+    {
+      "sizeMiB": 10,
+      "kind": "serialize-pretty",
+      "samples": 40,
+      "warmups": 3,
+      "taskCount": 240,
+      "messagesPerTask": 40,
+      "textCharactersPerInitialMessage": 1024,
+      "mutations": "append 64 ASCII characters to newest task after each warmup/sample; initial text is 1024 characters / 1026 UTF-8 bytes, including U+2014 (code point 8212)",
+      "compactBytesBefore": 10488949,
+      "compactBytesAfter": 10491701,
+      "prettyBytesBefore": 11145950,
+      "wallMs": {
+        "count": 40,
+        "min": 17.865699999999947,
+        "p50": 19.12149999999997,
+        "p95": 20.15599999999995,
+        "max": 27.625099999999975,
+        "mean": 19.33298000000002,
+        "over100ms": 0
+      },
+      "timerDelayMs": {
+        "count": 40,
+        "min": 16.90949999999998,
+        "p50": 18.170799999999872,
+        "p95": 19.200199999999995,
+        "max": 26.661799999999857,
+        "mean": 18.375214999999983,
+        "over100ms": 0
+      },
+      "eventLoopMonitorMs": {
+        "resolution": 1,
+        "min": 0.077824,
+        "p50": 12.943359,
+        "p95": 20.201471,
+        "max": 27.672575
+      },
+      "memoryBytes": {
+        "baseline": {
+          "rss": 99135488,
+          "heapUsed": 25945080,
+          "external": 2243527,
+          "arrayBuffers": 143611
+        },
+        "peak": {
+          "rss": 166178816,
+          "heapUsed": 93027704,
+          "external": 2243567,
+          "arrayBuffers": 143611
+        },
+        "after": {
+          "rss": 120360960,
+          "heapUsed": 46879560,
+          "external": 2243567,
+          "arrayBuffers": 143611
+        }
+      },
+      "diskBytesBeforeClose": {},
+      "records": [
+        {
+          "wallMs": 17.865699999999947,
+          "timerDelayMs": 16.90949999999998
+        },
+        {
+          "wallMs": 17.92990000000009,
+          "timerDelayMs": 16.969799999999964
+        },
+        {
+          "wallMs": 17.96650000000011,
+          "timerDelayMs": 17.014400000000023
+        },
+        {
+          "wallMs": 19.347000000000094,
+          "timerDelayMs": 18.386999999999944
+        },
+        {
+          "wallMs": 18.425700000000006,
+          "timerDelayMs": 17.473700000000008
+        },
+        {
+          "wallMs": 17.94150000000002,
+          "timerDelayMs": 16.986400000000003
+        },
+        {
+          "wallMs": 19.790300000000002,
+          "timerDelayMs": 18.83330000000001
+        },
+        {
+          "wallMs": 18.179700000000025,
+          "timerDelayMs": 17.22550000000001
+        },
+        {
+          "wallMs": 17.997299999999996,
+          "timerDelayMs": 17.046800000000076
+        },
+        {
+          "wallMs": 20.04410000000007,
+          "timerDelayMs": 19.089500000000044
+        },
+        {
+          "wallMs": 18.156600000000026,
+          "timerDelayMs": 17.20589999999993
+        },
+        {
+          "wallMs": 18.840799999999945,
+          "timerDelayMs": 17.88740000000007
+        },
+        {
+          "wallMs": 20.136099999999942,
+          "timerDelayMs": 19.1721
+        },
+        {
+          "wallMs": 19.12149999999997,
+          "timerDelayMs": 18.170799999999872
+        },
+        {
+          "wallMs": 19.02729999999997,
+          "timerDelayMs": 18.075900000000047
+        },
+        {
+          "wallMs": 20.399000000000115,
+          "timerDelayMs": 19.44119999999998
+        },
+        {
+          "wallMs": 19.51260000000002,
+          "timerDelayMs": 18.558099999999968
+        },
+        {
+          "wallMs": 19.752199999999903,
+          "timerDelayMs": 18.785500000000184
+        },
+        {
+          "wallMs": 19.80899999999997,
+          "timerDelayMs": 18.850200000000086
+        },
+        {
+          "wallMs": 20.10940000000005,
+          "timerDelayMs": 19.15339999999992
+        },
+        {
+          "wallMs": 19.60050000000001,
+          "timerDelayMs": 18.640099999999848
+        },
+        {
+          "wallMs": 20.11349999999993,
+          "timerDelayMs": 19.1563000000001
+        },
+        {
+          "wallMs": 19.99700000000007,
+          "timerDelayMs": 19.03819999999996
+        },
+        {
+          "wallMs": 19.63700000000017,
+          "timerDelayMs": 18.669999999999845
+        },
+        {
+          "wallMs": 19.614900000000034,
+          "timerDelayMs": 18.653500000000122
+        },
+        {
+          "wallMs": 20.15599999999995,
+          "timerDelayMs": 19.200199999999995
+        },
+        {
+          "wallMs": 19.751700000000028,
+          "timerDelayMs": 18.820500000000038
+        },
+        {
+          "wallMs": 20.10480000000007,
+          "timerDelayMs": 19.13480000000004
+        },
+        {
+          "wallMs": 19.55860000000007,
+          "timerDelayMs": 18.595199999999977
+        },
+        {
+          "wallMs": 27.625099999999975,
+          "timerDelayMs": 26.661799999999857
+        },
+        {
+          "wallMs": 18.702199999999948,
+          "timerDelayMs": 17.736599999999953
+        },
+        {
+          "wallMs": 18.751600000000053,
+          "timerDelayMs": 17.791600000000017
+        },
+        {
+          "wallMs": 18.50310000000013,
+          "timerDelayMs": 17.545899999999847
+        },
+        {
+          "wallMs": 18.474500000000035,
+          "timerDelayMs": 17.517699999999877
+        },
+        {
+          "wallMs": 18.588999999999942,
+          "timerDelayMs": 17.62110000000007
+        },
+        {
+          "wallMs": 18.6713000000002,
+          "timerDelayMs": 17.711000000000013
+        },
+        {
+          "wallMs": 18.32269999999994,
+          "timerDelayMs": 17.364599999999882
+        },
+        {
+          "wallMs": 18.676799999999957,
+          "timerDelayMs": 17.713600000000042
+        },
+        {
+          "wallMs": 18.788600000000088,
+          "timerDelayMs": 17.83269999999993
+        },
+        {
+          "wallMs": 19.32809999999995,
+          "timerDelayMs": 18.366799999999785
+        }
+      ],
+      "timerControlDelayMs": {
+        "count": 40,
+        "min": 0,
+        "p50": 14.479000000000042,
+        "p95": 14.51849999999996,
+        "max": 15.093999999999994,
+        "mean": 13.010739999999998,
+        "over100ms": 0
+      }
+    },
+    {
+      "sizeMiB": 10,
+      "kind": "json",
+      "samples": 40,
+      "warmups": 3,
+      "taskCount": 240,
+      "messagesPerTask": 40,
+      "textCharactersPerInitialMessage": 1024,
+      "mutations": "append 64 ASCII characters to newest task after each warmup/sample; initial text is 1024 characters / 1026 UTF-8 bytes, including U+2014 (code point 8212)",
+      "compactBytesBefore": 10488949,
+      "compactBytesAfter": 10491701,
+      "prettyBytesBefore": 11145950,
+      "wallMs": {
+        "count": 40,
+        "min": 28.253600000000006,
+        "p50": 29.27870000000007,
+        "p95": 30.47719999999981,
+        "max": 31.1099999999999,
+        "mean": 29.421670000000006,
+        "over100ms": 0
+      },
+      "timerDelayMs": {
+        "count": 40,
+        "min": 27.29209999999989,
+        "p50": 28.316100000000006,
+        "p95": 29.519399999999678,
+        "max": 30.150900000000092,
+        "mean": 28.46432749999999,
+        "over100ms": 0
+      },
+      "eventLoopMonitorMs": {
+        "resolution": 1,
+        "min": 0.053248,
+        "p50": 15.515647,
+        "p95": 45.219839,
+        "max": 46.661631
+      },
+      "memoryBytes": {
+        "baseline": {
+          "rss": 96600064,
+          "heapUsed": 25950704,
+          "external": 2243527,
+          "arrayBuffers": 143611
+        },
+        "peak": {
+          "rss": 119296000,
+          "heapUsed": 48236016,
+          "external": 2243567,
+          "arrayBuffers": 143611
+        },
+        "after": {
+          "rss": 117972992,
+          "heapUsed": 46934248,
+          "external": 2243567,
+          "arrayBuffers": 143611
+        }
+      },
+      "diskBytesBeforeClose": {
+        "state.json": 11148702
+      },
+      "records": [
+        {
+          "wallMs": 28.962999999999965,
+          "timerDelayMs": 28.009500000000003
+        },
+        {
+          "wallMs": 28.576999999999998,
+          "timerDelayMs": 27.615100000000098
+        },
+        {
+          "wallMs": 28.595100000000002,
+          "timerDelayMs": 27.637500000000045
+        },
+        {
+          "wallMs": 29.167299999999955,
+          "timerDelayMs": 28.20690000000002
+        },
+        {
+          "wallMs": 28.88689999999997,
+          "timerDelayMs": 27.92989999999986
+        },
+        {
+          "wallMs": 28.615999999999985,
+          "timerDelayMs": 27.65780000000018
+        },
+        {
+          "wallMs": 29.733600000000024,
+          "timerDelayMs": 28.774799999999914
+        },
+        {
+          "wallMs": 29.253799999999956,
+          "timerDelayMs": 28.297500000000127
+        },
+        {
+          "wallMs": 29.652199999999993,
+          "timerDelayMs": 28.700900000000047
+        },
+        {
+          "wallMs": 29.018100000000004,
+          "timerDelayMs": 28.060899999999947
+        },
+        {
+          "wallMs": 29.06880000000001,
+          "timerDelayMs": 28.116700000000037
+        },
+        {
+          "wallMs": 29.27870000000007,
+          "timerDelayMs": 28.316100000000006
+        },
+        {
+          "wallMs": 29.607899999999972,
+          "timerDelayMs": 28.650900000000092
+        },
+        {
+          "wallMs": 29.757000000000062,
+          "timerDelayMs": 28.798500000000104
+        },
+        {
+          "wallMs": 29.59900000000016,
+          "timerDelayMs": 28.642399999999952
+        },
+        {
+          "wallMs": 29.915300000000116,
+          "timerDelayMs": 28.960800000000063
+        },
+        {
+          "wallMs": 30.644600000000082,
+          "timerDelayMs": 29.685999999999922
+        },
+        {
+          "wallMs": 30.283300000000054,
+          "timerDelayMs": 29.323399999999992
+        },
+        {
+          "wallMs": 30.132299999999987,
+          "timerDelayMs": 29.175700000000006
+        },
+        {
+          "wallMs": 31.1099999999999,
+          "timerDelayMs": 30.150900000000092
+        },
+        {
+          "wallMs": 28.515499999999975,
+          "timerDelayMs": 27.554300000000012
+        },
+        {
+          "wallMs": 28.35660000000007,
+          "timerDelayMs": 27.38890000000015
+        },
+        {
+          "wallMs": 28.761199999999917,
+          "timerDelayMs": 27.804100000000062
+        },
+        {
+          "wallMs": 28.926699999999983,
+          "timerDelayMs": 27.97090000000003
+        },
+        {
+          "wallMs": 29.056100000000015,
+          "timerDelayMs": 28.101400000000012
+        },
+        {
+          "wallMs": 28.253600000000006,
+          "timerDelayMs": 27.29209999999989
+        },
+        {
+          "wallMs": 28.769700000000057,
+          "timerDelayMs": 27.846000000000004
+        },
+        {
+          "wallMs": 28.678499999999985,
+          "timerDelayMs": 27.715799999999945
+        },
+        {
+          "wallMs": 29.986400000000003,
+          "timerDelayMs": 29.026200000000017
+        },
+        {
+          "wallMs": 29.026499999999942,
+          "timerDelayMs": 28.067799999999806
+        },
+        {
+          "wallMs": 29.29989999999998,
+          "timerDelayMs": 28.347800000000007
+        },
+        {
+          "wallMs": 29.258299999999963,
+          "timerDelayMs": 28.29679999999985
+        },
+        {
+          "wallMs": 29.926600000000008,
+          "timerDelayMs": 28.965399999999818
+        },
+        {
+          "wallMs": 29.87079999999969,
+          "timerDelayMs": 28.908500000000004
+        },
+        {
+          "wallMs": 29.87429999999995,
+          "timerDelayMs": 28.920000000000073
+        },
+        {
+          "wallMs": 30.098900000000413,
+          "timerDelayMs": 29.142100000000028
+        },
+        {
+          "wallMs": 30.47719999999981,
+          "timerDelayMs": 29.519399999999678
+        },
+        {
+          "wallMs": 29.728999999999814,
+          "timerDelayMs": 28.769199999999728
+        },
+        {
+          "wallMs": 30.125100000000202,
+          "timerDelayMs": 29.16840000000002
+        },
+        {
+          "wallMs": 30.016000000000076,
+          "timerDelayMs": 29.05580000000009
+        }
+      ],
+      "timerControlDelayMs": {
+        "count": 40,
+        "min": 12.194400000000002,
+        "p50": 14.482700000000023,
+        "p95": 14.510999999999967,
+        "max": 14.523399999999981,
+        "mean": 14.426184999999998,
+        "over100ms": 0
+      }
+    },
+    {
+      "sizeMiB": 10,
+      "kind": "json-write-only",
+      "samples": 40,
+      "warmups": 3,
+      "taskCount": 240,
+      "messagesPerTask": 40,
+      "textCharactersPerInitialMessage": 1024,
+      "mutations": "append 64 ASCII characters to newest task after each warmup/sample; initial text is 1024 characters / 1026 UTF-8 bytes, including U+2014 (code point 8212)",
+      "compactBytesBefore": 10488949,
+      "compactBytesAfter": 10491701,
+      "prettyBytesBefore": 11145950,
+      "wallMs": {
+        "count": 40,
+        "min": 9.897000000000162,
+        "p50": 10.355399999999918,
+        "p95": 10.648699999999735,
+        "max": 10.877399999999852,
+        "mean": 10.35138499999997,
+        "over100ms": 0
+      },
+      "timerDelayMs": {
+        "count": 40,
+        "min": 8.948399999999992,
+        "p50": 9.410300000000007,
+        "p95": 9.698599999999715,
+        "max": 9.93100000000004,
+        "mean": 9.405542499999964,
+        "over100ms": 0
+      },
+      "eventLoopMonitorMs": {
+        "resolution": 1,
+        "min": 0.06656,
+        "p50": 16.031743,
+        "p95": 35.454975,
+        "max": 46.333951
+      },
+      "memoryBytes": {
+        "baseline": {
+          "rss": 99180544,
+          "heapUsed": 25952784,
+          "external": 2243527,
+          "arrayBuffers": 143611
+        },
+        "peak": {
+          "rss": 166240256,
+          "heapUsed": 92791896,
+          "external": 2243567,
+          "arrayBuffers": 143611
+        },
+        "after": {
+          "rss": 120373248,
+          "heapUsed": 46903152,
+          "external": 2243567,
+          "arrayBuffers": 143611
+        }
+      },
+      "diskBytesBeforeClose": {
+        "state.json": 11148702
+      },
+      "records": [
+        {
+          "wallMs": 10.393100000000004,
+          "timerDelayMs": 9.444400000000087
+        },
+        {
+          "wallMs": 9.991599999999949,
+          "timerDelayMs": 9.044599999999946
+        },
+        {
+          "wallMs": 10.314800000000105,
+          "timerDelayMs": 9.370800000000031
+        },
+        {
+          "wallMs": 10.177999999999997,
+          "timerDelayMs": 9.226599999999962
+        },
+        {
+          "wallMs": 10.407600000000002,
+          "timerDelayMs": 9.461900000000014
+        },
+        {
+          "wallMs": 10.171399999999949,
+          "timerDelayMs": 9.223900000000185
+        },
+        {
+          "wallMs": 10.205200000000104,
+          "timerDelayMs": 9.267000000000053
+        },
+        {
+          "wallMs": 10.355399999999918,
+          "timerDelayMs": 9.410300000000007
+        },
+        {
+          "wallMs": 10.30230000000006,
+          "timerDelayMs": 9.352899999999863
+        },
+        {
+          "wallMs": 10.197400000000016,
+          "timerDelayMs": 9.245699999999943
+        },
+        {
+          "wallMs": 10.221300000000156,
+          "timerDelayMs": 9.274099999999862
+        },
+        {
+          "wallMs": 10.018800000000056,
+          "timerDelayMs": 9.069700000000012
+        },
+        {
+          "wallMs": 10.39890000000014,
+          "timerDelayMs": 9.450000000000045
+        },
+        {
+          "wallMs": 9.897000000000162,
+          "timerDelayMs": 8.948399999999992
+        },
+        {
+          "wallMs": 10.405700000000024,
+          "timerDelayMs": 9.456099999999878
+        },
+        {
+          "wallMs": 10.09759999999983,
+          "timerDelayMs": 9.148800000000165
+        },
+        {
+          "wallMs": 10.277700000000095,
+          "timerDelayMs": 9.330899999999929
+        },
+        {
+          "wallMs": 10.291300000000092,
+          "timerDelayMs": 9.357999999999947
+        },
+        {
+          "wallMs": 10.544099999999844,
+          "timerDelayMs": 9.59739999999988
+        },
+        {
+          "wallMs": 10.41009999999983,
+          "timerDelayMs": 9.461999999999989
+        },
+        {
+          "wallMs": 10.66989999999987,
+          "timerDelayMs": 9.72460000000001
+        },
+        {
+          "wallMs": 10.49369999999999,
+          "timerDelayMs": 9.546600000000126
+        },
+        {
+          "wallMs": 10.370499999999993,
+          "timerDelayMs": 9.420899999999847
+        },
+        {
+          "wallMs": 10.587099999999964,
+          "timerDelayMs": 9.639499999999998
+        },
+        {
+          "wallMs": 10.379900000000134,
+          "timerDelayMs": 9.43360000000007
+        },
+        {
+          "wallMs": 10.600799999999936,
+          "timerDelayMs": 9.654199999999946
+        },
+        {
+          "wallMs": 10.505200000000059,
+          "timerDelayMs": 9.603099999999813
+        },
+        {
+          "wallMs": 10.496399999999994,
+          "timerDelayMs": 9.546899999999823
+        },
+        {
+          "wallMs": 10.520999999999958,
+          "timerDelayMs": 9.570999999999913
+        },
+        {
+          "wallMs": 10.648699999999735,
+          "timerDelayMs": 9.698599999999715
+        },
+        {
+          "wallMs": 10.242299999999886,
+          "timerDelayMs": 9.29300000000012
+        },
+        {
+          "wallMs": 10.22689999999966,
+          "timerDelayMs": 9.280399999999645
+        },
+        {
+          "wallMs": 10.384700000000066,
+          "timerDelayMs": 9.43809999999985
+        },
+        {
+          "wallMs": 10.877399999999852,
+          "timerDelayMs": 9.93100000000004
+        },
+        {
+          "wallMs": 10.51299999999992,
+          "timerDelayMs": 9.565699999999651
+        },
+        {
+          "wallMs": 10.158500000000004,
+          "timerDelayMs": 9.210599999999886
+        },
+        {
+          "wallMs": 10.329399999999623,
+          "timerDelayMs": 9.38169999999991
+        },
+        {
+          "wallMs": 10.546499999999924,
+          "timerDelayMs": 9.59940000000006
+        },
+        {
+          "wallMs": 10.31230000000005,
+          "timerDelayMs": 9.36660000000029
+        },
+        {
+          "wallMs": 10.111899999999878,
+          "timerDelayMs": 9.172700000000077
+        }
+      ],
+      "timerControlDelayMs": {
+        "count": 40,
+        "min": 12.537399999999991,
+        "p50": 14.486200000000053,
+        "p95": 14.514999999999986,
+        "max": 14.5197,
+        "mean": 14.437099999999997,
+        "over100ms": 0
+      }
+    },
+    {
+      "sizeMiB": 10,
+      "kind": "sqlite",
+      "samples": 40,
+      "warmups": 3,
+      "taskCount": 240,
+      "messagesPerTask": 40,
+      "textCharactersPerInitialMessage": 1024,
+      "mutations": "append 64 ASCII characters to newest task after each warmup/sample; initial text is 1024 characters / 1026 UTF-8 bytes, including U+2014 (code point 8212)",
+      "compactBytesBefore": 10488949,
+      "compactBytesAfter": 10491701,
+      "prettyBytesBefore": 11145950,
+      "wallMs": {
+        "count": 40,
+        "min": 66.68719999999985,
+        "p50": 72.26660000000038,
+        "p95": 81.5322000000001,
+        "max": 121.32330000000002,
+        "mean": 74.04258249999995,
+        "over100ms": 1
+      },
+      "timerDelayMs": {
+        "count": 40,
+        "min": 65.72289999999975,
+        "p50": 71.3128999999999,
+        "p95": 80.57259999999997,
+        "max": 120.36500000000024,
+        "mean": 73.08434000000001,
+        "over100ms": 1
+      },
+      "eventLoopMonitorMs": {
+        "resolution": 1,
+        "min": 0.060416,
+        "p50": 14.696447,
+        "p95": 80.871423,
+        "max": 121.438207
+      },
+      "memoryBytes": {
+        "baseline": {
+          "rss": 99094528,
+          "heapUsed": 25976472,
+          "external": 2243589,
+          "arrayBuffers": 143611
+        },
+        "peak": {
+          "rss": 131923968,
+          "heapUsed": 47166520,
+          "external": 2243629,
+          "arrayBuffers": 143611
+        },
+        "after": {
+          "rss": 120360960,
+          "heapUsed": 46944488,
+          "external": 2243629,
+          "arrayBuffers": 143611
+        }
+      },
+      "diskBytesBeforeClose": {
+        "state.sqlite": 21004288,
+        "state.sqlite-shm": 32768,
+        "state.sqlite-wal": 10580192
+      },
+      "records": [
+        {
+          "wallMs": 74.72899999999993,
+          "timerDelayMs": 73.77299999999991
+        },
+        {
+          "wallMs": 70.93509999999992,
+          "timerDelayMs": 69.97499999999991
+        },
+        {
+          "wallMs": 69.1117999999999,
+          "timerDelayMs": 68.16100000000006
+        },
+        {
+          "wallMs": 70.5184999999999,
+          "timerDelayMs": 69.56569999999988
+        },
+        {
+          "wallMs": 75.74060000000009,
+          "timerDelayMs": 74.78629999999998
+        },
+        {
+          "wallMs": 68.73710000000005,
+          "timerDelayMs": 67.77199999999993
+        },
+        {
+          "wallMs": 69.7795000000001,
+          "timerDelayMs": 68.83459999999991
+        },
+        {
+          "wallMs": 73.94219999999996,
+          "timerDelayMs": 72.9819
+        },
+        {
+          "wallMs": 71.90859999999998,
+          "timerDelayMs": 70.94560000000001
+        },
+        {
+          "wallMs": 67.43090000000007,
+          "timerDelayMs": 66.47430000000008
+        },
+        {
+          "wallMs": 69.11569999999983,
+          "timerDelayMs": 68.16110000000003
+        },
+        {
+          "wallMs": 73.35459999999989,
+          "timerDelayMs": 72.39229999999998
+        },
+        {
+          "wallMs": 73.63689999999997,
+          "timerDelayMs": 72.68579999999997
+        },
+        {
+          "wallMs": 67.37329999999997,
+          "timerDelayMs": 66.41310000000021
+        },
+        {
+          "wallMs": 68.68319999999994,
+          "timerDelayMs": 67.72290000000021
+        },
+        {
+          "wallMs": 74.6896999999999,
+          "timerDelayMs": 73.72659999999996
+        },
+        {
+          "wallMs": 70.3100999999997,
+          "timerDelayMs": 69.35159999999996
+        },
+        {
+          "wallMs": 68.20710000000008,
+          "timerDelayMs": 67.24299999999994
+        },
+        {
+          "wallMs": 67.97559999999976,
+          "timerDelayMs": 67.01560000000018
+        },
+        {
+          "wallMs": 68.94619999999986,
+          "timerDelayMs": 67.98860000000013
+        },
+        {
+          "wallMs": 71.66870000000017,
+          "timerDelayMs": 70.70620000000008
+        },
+        {
+          "wallMs": 66.68719999999985,
+          "timerDelayMs": 65.72289999999975
+        },
+        {
+          "wallMs": 121.32330000000002,
+          "timerDelayMs": 120.36500000000024
+        },
+        {
+          "wallMs": 74.37699999999995,
+          "timerDelayMs": 73.41510000000017
+        },
+        {
+          "wallMs": 74.53869999999961,
+          "timerDelayMs": 73.57700000000023
+        },
+        {
+          "wallMs": 66.96950000000015,
+          "timerDelayMs": 66.01350000000002
+        },
+        {
+          "wallMs": 71.48389999999972,
+          "timerDelayMs": 70.5652
+        },
+        {
+          "wallMs": 80.36580000000004,
+          "timerDelayMs": 79.4045000000001
+        },
+        {
+          "wallMs": 72.84190000000035,
+          "timerDelayMs": 71.87869999999975
+        },
+        {
+          "wallMs": 81.5322000000001,
+          "timerDelayMs": 80.57259999999997
+        },
+        {
+          "wallMs": 73.64850000000024,
+          "timerDelayMs": 72.6848
+        },
+        {
+          "wallMs": 80.78200000000015,
+          "timerDelayMs": 79.8168999999998
+        },
+        {
+          "wallMs": 78.39190000000008,
+          "timerDelayMs": 77.42790000000014
+        },
+        {
+          "wallMs": 72.26660000000038,
+          "timerDelayMs": 71.3128999999999
+        },
+        {
+          "wallMs": 86.7174,
+          "timerDelayMs": 85.75430000000006
+        },
+        {
+          "wallMs": 76.61920000000009,
+          "timerDelayMs": 75.66050000000041
+        },
+        {
+          "wallMs": 74.14619999999968,
+          "timerDelayMs": 73.18989999999985
+        },
+        {
+          "wallMs": 78.34929999999986,
+          "timerDelayMs": 77.38529999999992
+        },
+        {
+          "wallMs": 75.20739999999932,
+          "timerDelayMs": 74.2501000000002
+        },
+        {
+          "wallMs": 68.66089999999986,
+          "timerDelayMs": 67.70029999999952
+        }
+      ],
+      "timerControlDelayMs": {
+        "count": 40,
+        "min": 12.237400000000036,
+        "p50": 14.485099999999989,
+        "p95": 14.516300000000001,
+        "max": 14.526299999999992,
+        "mean": 14.425902500000007,
+        "over100ms": 0
+      },
+      "sqliteVersion": "3.53.1",
+      "sqlitePragmas": {
+        "journal_mode": "wal",
+        "synchronous": 2,
+        "page_size": 4096,
+        "wal_autocheckpoint": 1000
+      }
+    },
+    {
+      "sizeMiB": 10,
+      "kind": "sqlite-write-only",
+      "samples": 40,
+      "warmups": 3,
+      "taskCount": 240,
+      "messagesPerTask": 40,
+      "textCharactersPerInitialMessage": 1024,
+      "mutations": "append 64 ASCII characters to newest task after each warmup/sample; initial text is 1024 characters / 1026 UTF-8 bytes, including U+2014 (code point 8212)",
+      "compactBytesBefore": 10488949,
+      "compactBytesAfter": 10491701,
+      "prettyBytesBefore": 11145950,
+      "wallMs": {
+        "count": 40,
+        "min": 50.947400000000016,
+        "p50": 57.19219999999996,
+        "p95": 65.50940000000014,
+        "max": 136.00250000000005,
+        "mean": 58.74207999999995,
+        "over100ms": 1
+      },
+      "timerDelayMs": {
+        "count": 40,
+        "min": 50.00440000000003,
+        "p50": 56.24000000000024,
+        "p95": 64.55799999999999,
+        "max": 135.05229999999983,
+        "mean": 57.79550499999995,
+        "over100ms": 1
+      },
+      "eventLoopMonitorMs": {
+        "resolution": 1,
+        "min": 0.064,
+        "p50": 15.564799,
+        "p95": 83.623935,
+        "max": 153.747455
+      },
+      "memoryBytes": {
+        "baseline": {
+          "rss": 101883904,
+          "heapUsed": 25973176,
+          "external": 2243589,
+          "arrayBuffers": 143611
+        },
+        "peak": {
+          "rss": 196538368,
+          "heapUsed": 88839264,
+          "external": 2243629,
+          "arrayBuffers": 143611
+        },
+        "after": {
+          "rss": 124055552,
+          "heapUsed": 46909544,
+          "external": 2243629,
+          "arrayBuffers": 143611
+        }
+      },
+      "diskBytesBeforeClose": {
+        "state.sqlite": 21004288,
+        "state.sqlite-shm": 32768,
+        "state.sqlite-wal": 10580192
+      },
+      "records": [
+        {
+          "wallMs": 53.1413,
+          "timerDelayMs": 52.194099999999935
+        },
+        {
+          "wallMs": 57.17450000000008,
+          "timerDelayMs": 56.22990000000004
+        },
+        {
+          "wallMs": 53.03989999999999,
+          "timerDelayMs": 52.08959999999979
+        },
+        {
+          "wallMs": 50.947400000000016,
+          "timerDelayMs": 50.00440000000003
+        },
+        {
+          "wallMs": 53.481599999999844,
+          "timerDelayMs": 52.53639999999996
+        },
+        {
+          "wallMs": 59.6706999999999,
+          "timerDelayMs": 58.7183
+        },
+        {
+          "wallMs": 65.50940000000014,
+          "timerDelayMs": 64.55799999999999
+        },
+        {
+          "wallMs": 54.91159999999991,
+          "timerDelayMs": 53.9674
+        },
+        {
+          "wallMs": 57.673100000000204,
+          "timerDelayMs": 56.722699999999804
+        },
+        {
+          "wallMs": 61.19239999999991,
+          "timerDelayMs": 60.24559999999997
+        },
+        {
+          "wallMs": 52.58279999999991,
+          "timerDelayMs": 51.63409999999999
+        },
+        {
+          "wallMs": 56.598900000000185,
+          "timerDelayMs": 55.649799999999914
+        },
+        {
+          "wallMs": 63.02229999999986,
+          "timerDelayMs": 62.07119999999986
+        },
+        {
+          "wallMs": 51.73959999999988,
+          "timerDelayMs": 50.797000000000025
+        },
+        {
+          "wallMs": 59.281900000000405,
+          "timerDelayMs": 58.355299999999716
+        },
+        {
+          "wallMs": 54.56939999999986,
+          "timerDelayMs": 53.624399999999696
+        },
+        {
+          "wallMs": 58.78850000000011,
+          "timerDelayMs": 57.83860000000004
+        },
+        {
+          "wallMs": 53.00390000000016,
+          "timerDelayMs": 52.05439999999999
+        },
+        {
+          "wallMs": 57.28699999999981,
+          "timerDelayMs": 56.33829999999989
+        },
+        {
+          "wallMs": 61.35429999999997,
+          "timerDelayMs": 60.404599999999846
+        },
+        {
+          "wallMs": 54.29269999999997,
+          "timerDelayMs": 53.3436999999999
+        },
+        {
+          "wallMs": 52.32540000000017,
+          "timerDelayMs": 51.38100000000031
+        },
+        {
+          "wallMs": 57.677799999999934,
+          "timerDelayMs": 56.73090000000002
+        },
+        {
+          "wallMs": 54.53810000000021,
+          "timerDelayMs": 53.59220000000005
+        },
+        {
+          "wallMs": 57.19219999999996,
+          "timerDelayMs": 56.24000000000024
+        },
+        {
+          "wallMs": 59.24669999999969,
+          "timerDelayMs": 58.29639999999972
+        },
+        {
+          "wallMs": 58.60349999999971,
+          "timerDelayMs": 57.67669999999998
+        },
+        {
+          "wallMs": 52.409200000000055,
+          "timerDelayMs": 51.46279999999979
+        },
+        {
+          "wallMs": 136.00250000000005,
+          "timerDelayMs": 135.05229999999983
+        },
+        {
+          "wallMs": 52.58059999999978,
+          "timerDelayMs": 51.6284999999998
+        },
+        {
+          "wallMs": 58.554099999999835,
+          "timerDelayMs": 57.60809999999992
+        },
+        {
+          "wallMs": 57.58989999999994,
+          "timerDelayMs": 56.64420000000018
+        },
+        {
+          "wallMs": 65.91210000000001,
+          "timerDelayMs": 64.96000000000004
+        },
+        {
+          "wallMs": 57.55039999999963,
+          "timerDelayMs": 56.608200000000124
+        },
+        {
+          "wallMs": 53.89319999999998,
+          "timerDelayMs": 52.947299999999814
+        },
+        {
+          "wallMs": 59.11479999999983,
+          "timerDelayMs": 58.170700000000124
+        },
+        {
+          "wallMs": 55.04449999999997,
+          "timerDelayMs": 54.101300000000265
+        },
+        {
+          "wallMs": 62.38879999999972,
+          "timerDelayMs": 61.43329999999969
+        },
+        {
+          "wallMs": 52.27390000000014,
+          "timerDelayMs": 51.33050000000003
+        },
+        {
+          "wallMs": 57.52229999999963,
+          "timerDelayMs": 56.57799999999952
+        }
+      ],
+      "timerControlDelayMs": {
+        "count": 40,
+        "min": 12.673299999999983,
+        "p50": 14.485599999999977,
+        "p95": 14.53270000000009,
+        "max": 14.54570000000001,
+        "mean": 14.442460000000011,
+        "over100ms": 0
+      },
+      "sqliteVersion": "3.53.1",
+      "sqlitePragmas": {
+        "journal_mode": "wal",
+        "synchronous": 2,
+        "page_size": 4096,
+        "wal_autocheckpoint": 1000
+      }
+    },
+    {
+      "sizeMiB": 30,
+      "kind": "serialize-compact",
+      "samples": 40,
+      "warmups": 3,
+      "taskCount": 720,
+      "messagesPerTask": 40,
+      "textCharactersPerInitialMessage": 1024,
+      "mutations": "append 64 ASCII characters to newest task after each warmup/sample; initial text is 1024 characters / 1026 UTF-8 bytes, including U+2014 (code point 8212)",
+      "compactBytesBefore": 31475989,
+      "compactBytesAfter": 31478741,
+      "prettyBytesBefore": 33446750,
+      "wallMs": {
+        "count": 40,
+        "min": 44.94589999999994,
+        "p50": 49.295700000000124,
+        "p95": 52.72159999999985,
+        "max": 56.143299999999726,
+        "mean": 48.998699999999985,
+        "over100ms": 0
+      },
+      "timerDelayMs": {
+        "count": 40,
+        "min": 43.99319999999989,
+        "p50": 48.32999999999993,
+        "p95": 51.78760000000011,
+        "max": 55.18430000000035,
+        "mean": 48.04067,
+        "over100ms": 0
+      },
+      "eventLoopMonitorMs": {
+        "resolution": 1,
+        "min": 0.084992,
+        "p50": 15.507455,
+        "p95": 50.888703,
+        "max": 63.045631
+      },
+      "memoryBytes": {
+        "baseline": {
+          "rss": 204226560,
+          "heapUsed": 67570272,
+          "external": 2243527,
+          "arrayBuffers": 143611
+        },
+        "peak": {
+          "rss": 268443648,
+          "heapUsed": 130648504,
+          "external": 2243567,
+          "arrayBuffers": 143611
+        },
+        "after": {
+          "rss": 268447744,
+          "heapUsed": 130433456,
+          "external": 2243567,
+          "arrayBuffers": 143611
+        }
+      },
+      "diskBytesBeforeClose": {},
+      "records": [
+        {
+          "wallMs": 44.94589999999994,
+          "timerDelayMs": 43.99319999999989
+        },
+        {
+          "wallMs": 47.04449999999997,
+          "timerDelayMs": 46.088199999999915
+        },
+        {
+          "wallMs": 46.70620000000008,
+          "timerDelayMs": 45.744199999999864
+        },
+        {
+          "wallMs": 46.73029999999994,
+          "timerDelayMs": 45.77559999999994
+        },
+        {
+          "wallMs": 47.852499999999964,
+          "timerDelayMs": 46.89229999999998
+        },
+        {
+          "wallMs": 48.18080000000009,
+          "timerDelayMs": 47.21420000000012
+        },
+        {
+          "wallMs": 49.39889999999991,
+          "timerDelayMs": 48.44599999999991
+        },
+        {
+          "wallMs": 49.240200000000186,
+          "timerDelayMs": 48.28679999999986
+        },
+        {
+          "wallMs": 49.677400000000034,
+          "timerDelayMs": 48.72199999999998
+        },
+        {
+          "wallMs": 49.27399999999989,
+          "timerDelayMs": 48.317800000000034
+        },
+        {
+          "wallMs": 49.488000000000056,
+          "timerDelayMs": 48.52629999999999
+        },
+        {
+          "wallMs": 55.055500000000166,
+          "timerDelayMs": 54.09940000000006
+        },
+        {
+          "wallMs": 46.020500000000084,
+          "timerDelayMs": 45.05479999999989
+        },
+        {
+          "wallMs": 47.192800000000034,
+          "timerDelayMs": 46.23199999999997
+        },
+        {
+          "wallMs": 46.32640000000015,
+          "timerDelayMs": 45.371399999999994
+        },
+        {
+          "wallMs": 47.121599999999944,
+          "timerDelayMs": 46.158500000000004
+        },
+        {
+          "wallMs": 48.1733999999999,
+          "timerDelayMs": 47.21479999999997
+        },
+        {
+          "wallMs": 48.84860000000026,
+          "timerDelayMs": 47.888700000000426
+        },
+        {
+          "wallMs": 49.53670000000011,
+          "timerDelayMs": 48.57810000000018
+        },
+        {
+          "wallMs": 49.54729999999972,
+          "timerDelayMs": 48.591799999999694
+        },
+        {
+          "wallMs": 50.04740000000038,
+          "timerDelayMs": 49.09140000000025
+        },
+        {
+          "wallMs": 49.89820000000009,
+          "timerDelayMs": 48.93419999999969
+        },
+        {
+          "wallMs": 49.671800000000076,
+          "timerDelayMs": 48.709499999999935
+        },
+        {
+          "wallMs": 49.295700000000124,
+          "timerDelayMs": 48.32999999999993
+        },
+        {
+          "wallMs": 49.51290000000017,
+          "timerDelayMs": 48.55179999999973
+        },
+        {
+          "wallMs": 49.64850000000024,
+          "timerDelayMs": 48.677900000000136
+        },
+        {
+          "wallMs": 52.72159999999985,
+          "timerDelayMs": 51.78760000000011
+        },
+        {
+          "wallMs": 56.143299999999726,
+          "timerDelayMs": 55.18430000000035
+        },
+        {
+          "wallMs": 46.472699999999804,
+          "timerDelayMs": 45.516299999999774
+        },
+        {
+          "wallMs": 47.1284999999998,
+          "timerDelayMs": 46.165300000000116
+        },
+        {
+          "wallMs": 46.80510000000004,
+          "timerDelayMs": 45.852400000000216
+        },
+        {
+          "wallMs": 47.74589999999989,
+          "timerDelayMs": 46.79120000000012
+        },
+        {
+          "wallMs": 49.0636999999997,
+          "timerDelayMs": 48.102600000000166
+        },
+        {
+          "wallMs": 49.55319999999983,
+          "timerDelayMs": 48.59710000000041
+        },
+        {
+          "wallMs": 49.94680000000017,
+          "timerDelayMs": 48.99409999999989
+        },
+        {
+          "wallMs": 50.781499999999596,
+          "timerDelayMs": 49.82899999999972
+        },
+        {
+          "wallMs": 50.54939999999988,
+          "timerDelayMs": 49.5927999999999
+        },
+        {
+          "wallMs": 49.59979999999996,
+          "timerDelayMs": 48.63909999999987
+        },
+        {
+          "wallMs": 49.371999999999844,
+          "timerDelayMs": 48.41249999999991
+        },
+        {
+          "wallMs": 49.6284999999998,
+          "timerDelayMs": 48.671600000000126
+        }
+      ],
+      "timerControlDelayMs": {
+        "count": 40,
+        "min": 0,
+        "p50": 14.482099999999946,
+        "p95": 14.513899999999921,
+        "max": 14.517600000000016,
+        "mean": 13.967739999999992,
+        "over100ms": 0
+      }
+    },
+    {
+      "sizeMiB": 30,
+      "kind": "serialize-pretty",
+      "samples": 40,
+      "warmups": 3,
+      "taskCount": 720,
+      "messagesPerTask": 40,
+      "textCharactersPerInitialMessage": 1024,
+      "mutations": "append 64 ASCII characters to newest task after each warmup/sample; initial text is 1024 characters / 1026 UTF-8 bytes, including U+2014 (code point 8212)",
+      "compactBytesBefore": 31475989,
+      "compactBytesAfter": 31478741,
+      "prettyBytesBefore": 33446750,
+      "wallMs": {
+        "count": 40,
+        "min": 48.30090000000018,
+        "p50": 51.834299999999985,
+        "p95": 54.07479999999987,
+        "max": 55.83279999999968,
+        "mean": 51.34300750000002,
+        "over100ms": 0
+      },
+      "timerDelayMs": {
+        "count": 40,
+        "min": 47.34130000000005,
+        "p50": 50.87989999999991,
+        "p95": 53.116599999999835,
+        "max": 54.908500000000004,
+        "mean": 50.38879749999997,
+        "over100ms": 0
+      },
+      "eventLoopMonitorMs": {
+        "resolution": 1,
+        "min": 0.057344,
+        "p50": 13.680639,
+        "p95": 53.346303,
+        "max": 55.934975
+      },
+      "memoryBytes": {
+        "baseline": {
+          "rss": 204840960,
+          "heapUsed": 67570424,
+          "external": 2243527,
+          "arrayBuffers": 143611
+        },
+        "peak": {
+          "rss": 272867328,
+          "heapUsed": 134621632,
+          "external": 2243567,
+          "arrayBuffers": 143611
+        },
+        "after": {
+          "rss": 267968512,
+          "heapUsed": 130402576,
+          "external": 2243567,
+          "arrayBuffers": 143611
+        }
+      },
+      "diskBytesBeforeClose": {},
+      "records": [
+        {
+          "wallMs": 54.07479999999987,
+          "timerDelayMs": 53.116599999999835
+        },
+        {
+          "wallMs": 48.30090000000018,
+          "timerDelayMs": 47.34130000000005
+        },
+        {
+          "wallMs": 49.49610000000007,
+          "timerDelayMs": 48.53670000000011
+        },
+        {
+          "wallMs": 48.850599999999986,
+          "timerDelayMs": 47.895699999999806
+        },
+        {
+          "wallMs": 50.03909999999996,
+          "timerDelayMs": 49.081699999999955
+        },
+        {
+          "wallMs": 50.525300000000016,
+          "timerDelayMs": 49.572400000000016
+        },
+        {
+          "wallMs": 51.85140000000001,
+          "timerDelayMs": 50.89929999999981
+        },
+        {
+          "wallMs": 51.65229999999997,
+          "timerDelayMs": 50.697099999999864
+        },
+        {
+          "wallMs": 52.2340999999999,
+          "timerDelayMs": 51.28369999999995
+        },
+        {
+          "wallMs": 53.98049999999989,
+          "timerDelayMs": 53.028999999999996
+        },
+        {
+          "wallMs": 52.52209999999991,
+          "timerDelayMs": 51.568899999999985
+        },
+        {
+          "wallMs": 52.59009999999989,
+          "timerDelayMs": 51.63310000000001
+        },
+        {
+          "wallMs": 52.06770000000006,
+          "timerDelayMs": 51.113399999999956
+        },
+        {
+          "wallMs": 52.280700000000024,
+          "timerDelayMs": 51.331100000000106
+        },
+        {
+          "wallMs": 52.16640000000007,
+          "timerDelayMs": 51.20789999999988
+        },
+        {
+          "wallMs": 52.37880000000018,
+          "timerDelayMs": 51.42309999999998
+        },
+        {
+          "wallMs": 54.96450000000027,
+          "timerDelayMs": 54.02830000000017
+        },
+        {
+          "wallMs": 48.5616,
+          "timerDelayMs": 47.59949999999981
+        },
+        {
+          "wallMs": 48.84900000000016,
+          "timerDelayMs": 47.894900000000234
+        },
+        {
+          "wallMs": 49.64390000000003,
+          "timerDelayMs": 48.689000000000306
+        },
+        {
+          "wallMs": 49.43060000000014,
+          "timerDelayMs": 48.47240000000011
+        },
+        {
+          "wallMs": 50.41040000000021,
+          "timerDelayMs": 49.45040000000017
+        },
+        {
+          "wallMs": 51.10369999999966,
+          "timerDelayMs": 50.148099999999886
+        },
+        {
+          "wallMs": 51.834299999999985,
+          "timerDelayMs": 50.87989999999991
+        },
+        {
+          "wallMs": 52.02109999999993,
+          "timerDelayMs": 51.065399999999954
+        },
+        {
+          "wallMs": 52.41959999999972,
+          "timerDelayMs": 51.46399999999994
+        },
+        {
+          "wallMs": 53.24090000000024,
+          "timerDelayMs": 52.32789999999977
+        },
+        {
+          "wallMs": 52.21010000000024,
+          "timerDelayMs": 51.25729999999976
+        },
+        {
+          "wallMs": 52.20690000000013,
+          "timerDelayMs": 51.246000000000095
+        },
+        {
+          "wallMs": 52.72470000000021,
+          "timerDelayMs": 51.76980000000003
+        },
+        {
+          "wallMs": 52.13389999999981,
+          "timerDelayMs": 51.173699999999826
+        },
+        {
+          "wallMs": 51.95510000000013,
+          "timerDelayMs": 50.99319999999989
+        },
+        {
+          "wallMs": 55.83279999999968,
+          "timerDelayMs": 54.908500000000004
+        },
+        {
+          "wallMs": 49.18159999999989,
+          "timerDelayMs": 48.2197000000001
+        },
+        {
+          "wallMs": 48.91390000000001,
+          "timerDelayMs": 47.95649999999978
+        },
+        {
+          "wallMs": 49.24209999999994,
+          "timerDelayMs": 48.28099999999995
+        },
+        {
+          "wallMs": 48.89980000000014,
+          "timerDelayMs": 47.93280000000004
+        },
+        {
+          "wallMs": 50.8407000000002,
+          "timerDelayMs": 49.88329999999996
+        },
+        {
+          "wallMs": 50.90779999999995,
+          "timerDelayMs": 49.964300000000094
+        },
+        {
+          "wallMs": 51.18040000000019,
+          "timerDelayMs": 50.21499999999969
+        }
+      ],
+      "timerControlDelayMs": {
+        "count": 40,
+        "min": 8.379800000000046,
+        "p50": 14.491599999999949,
+        "p95": 14.535799999999995,
+        "max": 14.73109999999997,
+        "mean": 14.328707500000004,
+        "over100ms": 0
+      }
+    },
+    {
+      "sizeMiB": 30,
+      "kind": "json",
+      "samples": 40,
+      "warmups": 3,
+      "taskCount": 720,
+      "messagesPerTask": 40,
+      "textCharactersPerInitialMessage": 1024,
+      "mutations": "append 64 ASCII characters to newest task after each warmup/sample; initial text is 1024 characters / 1026 UTF-8 bytes, including U+2014 (code point 8212)",
+      "compactBytesBefore": 31475989,
+      "compactBytesAfter": 31478741,
+      "prettyBytesBefore": 33446750,
+      "wallMs": {
+        "count": 40,
+        "min": 83.91240000000016,
+        "p50": 91.91190000000006,
+        "p95": 98.61929999999984,
+        "max": 114.31359999999995,
+        "mean": 92.185485,
+        "over100ms": 2
+      },
+      "timerDelayMs": {
+        "count": 40,
+        "min": 82.9529,
+        "p50": 90.97029999999995,
+        "p95": 97.65459999999985,
+        "max": 113.35450000000037,
+        "mean": 91.23113500000004,
+        "over100ms": 2
+      },
+      "eventLoopMonitorMs": {
+        "resolution": 1,
+        "min": 0.054784,
+        "p50": 15.359999,
+        "p95": 98.697215,
+        "max": 114.425855
+      },
+      "memoryBytes": {
+        "baseline": {
+          "rss": 204922880,
+          "heapUsed": 67575832,
+          "external": 2243527,
+          "arrayBuffers": 143611
+        },
+        "peak": {
+          "rss": 272949248,
+          "heapUsed": 134385888,
+          "external": 2243567,
+          "arrayBuffers": 143611
+        },
+        "after": {
+          "rss": 268152832,
+          "heapUsed": 130456208,
+          "external": 2243567,
+          "arrayBuffers": 143611
+        }
+      },
+      "diskBytesBeforeClose": {
+        "state.json": 33449502
+      },
+      "records": [
+        {
+          "wallMs": 85.80830000000014,
+          "timerDelayMs": 84.85030000000006
+        },
+        {
+          "wallMs": 85.97899999999981,
+          "timerDelayMs": 85.02140000000009
+        },
+        {
+          "wallMs": 87.87339999999995,
+          "timerDelayMs": 86.92070000000012
+        },
+        {
+          "wallMs": 83.91240000000016,
+          "timerDelayMs": 82.9529
+        },
+        {
+          "wallMs": 85.26729999999998,
+          "timerDelayMs": 84.3105999999998
+        },
+        {
+          "wallMs": 84.38200000000006,
+          "timerDelayMs": 83.4237999999998
+        },
+        {
+          "wallMs": 85.89689999999996,
+          "timerDelayMs": 84.9362000000001
+        },
+        {
+          "wallMs": 97.90750000000003,
+          "timerDelayMs": 96.95699999999988
+        },
+        {
+          "wallMs": 93.4335000000001,
+          "timerDelayMs": 92.47910000000002
+        },
+        {
+          "wallMs": 93.06750000000011,
+          "timerDelayMs": 92.10950000000025
+        },
+        {
+          "wallMs": 114.31359999999995,
+          "timerDelayMs": 113.35450000000037
+        },
+        {
+          "wallMs": 94.34700000000021,
+          "timerDelayMs": 93.38720000000012
+        },
+        {
+          "wallMs": 96.55200000000013,
+          "timerDelayMs": 95.60500000000002
+        },
+        {
+          "wallMs": 88.79240000000027,
+          "timerDelayMs": 87.8424
+        },
+        {
+          "wallMs": 89.26179999999977,
+          "timerDelayMs": 88.3068000000003
+        },
+        {
+          "wallMs": 88.7802999999999,
+          "timerDelayMs": 87.81960000000026
+        },
+        {
+          "wallMs": 90.39930000000004,
+          "timerDelayMs": 89.44730000000027
+        },
+        {
+          "wallMs": 94.01560000000018,
+          "timerDelayMs": 93.0594000000001
+        },
+        {
+          "wallMs": 91.91190000000006,
+          "timerDelayMs": 90.97029999999995
+        },
+        {
+          "wallMs": 93.97859999999991,
+          "timerDelayMs": 93.02410000000009
+        },
+        {
+          "wallMs": 94.69039999999995,
+          "timerDelayMs": 93.73090000000002
+        },
+        {
+          "wallMs": 103.2150999999999,
+          "timerDelayMs": 102.26270000000022
+        },
+        {
+          "wallMs": 98.61929999999984,
+          "timerDelayMs": 97.65459999999985
+        },
+        {
+          "wallMs": 88.58260000000018,
+          "timerDelayMs": 87.6255000000001
+        },
+        {
+          "wallMs": 88.3440999999998,
+          "timerDelayMs": 87.38639999999987
+        },
+        {
+          "wallMs": 90.9376000000002,
+          "timerDelayMs": 89.98709999999983
+        },
+        {
+          "wallMs": 91.46270000000004,
+          "timerDelayMs": 90.56669999999986
+        },
+        {
+          "wallMs": 92.77599999999984,
+          "timerDelayMs": 91.8137999999999
+        },
+        {
+          "wallMs": 94.36159999999973,
+          "timerDelayMs": 93.40090000000009
+        },
+        {
+          "wallMs": 93.52139999999963,
+          "timerDelayMs": 92.5561000000007
+        },
+        {
+          "wallMs": 92.7523999999994,
+          "timerDelayMs": 91.79129999999986
+        },
+        {
+          "wallMs": 96.96699999999964,
+          "timerDelayMs": 96.04340000000047
+        },
+        {
+          "wallMs": 88.77900000000045,
+          "timerDelayMs": 87.82579999999962
+        },
+        {
+          "wallMs": 87.9994000000006,
+          "timerDelayMs": 87.04019999999946
+        },
+        {
+          "wallMs": 90.6253000000006,
+          "timerDelayMs": 89.66039999999975
+        },
+        {
+          "wallMs": 91.42439999999988,
+          "timerDelayMs": 90.46489999999994
+        },
+        {
+          "wallMs": 93.30209999999988,
+          "timerDelayMs": 92.34370000000035
+        },
+        {
+          "wallMs": 93.73509999999987,
+          "timerDelayMs": 92.77310000000034
+        },
+        {
+          "wallMs": 93.63529999999992,
+          "timerDelayMs": 92.68069999999989
+        },
+        {
+          "wallMs": 95.80829999999969,
+          "timerDelayMs": 94.85909999999967
+        }
+      ],
+      "timerControlDelayMs": {
+        "count": 40,
+        "min": 0,
+        "p50": 14.482999999999947,
+        "p95": 14.527400000000057,
+        "max": 14.944899999999961,
+        "mean": 14.035710000000009,
+        "over100ms": 0
+      }
+    },
+    {
+      "sizeMiB": 30,
+      "kind": "json-write-only",
+      "samples": 40,
+      "warmups": 3,
+      "taskCount": 720,
+      "messagesPerTask": 40,
+      "textCharactersPerInitialMessage": 1024,
+      "mutations": "append 64 ASCII characters to newest task after each warmup/sample; initial text is 1024 characters / 1026 UTF-8 bytes, including U+2014 (code point 8212)",
+      "compactBytesBefore": 31475989,
+      "compactBytesAfter": 31478741,
+      "prettyBytesBefore": 33446750,
+      "wallMs": {
+        "count": 40,
+        "min": 34.70939999999973,
+        "p50": 36.30799999999999,
+        "p95": 40.26819999999998,
+        "max": 41.235499999999774,
+        "mean": 36.891272499999985,
+        "over100ms": 0
+      },
+      "timerDelayMs": {
+        "count": 40,
+        "min": 33.766200000000026,
+        "p50": 35.36839999999984,
+        "p95": 39.32569999999987,
+        "max": 40.32269999999971,
+        "mean": 35.949160000000006,
+        "over100ms": 0
+      },
+      "eventLoopMonitorMs": {
+        "resolution": 1,
+        "min": 0.062464,
+        "p50": 15.507455,
+        "p95": 90.505215,
+        "max": 93.388799
+      },
+      "memoryBytes": {
+        "baseline": {
+          "rss": 203575296,
+          "heapUsed": 67586000,
+          "external": 2243527,
+          "arrayBuffers": 143611
+        },
+        "peak": {
+          "rss": 271720448,
+          "heapUsed": 134413080,
+          "external": 2243567,
+          "arrayBuffers": 143611
+        },
+        "after": {
+          "rss": 266719232,
+          "heapUsed": 130466232,
+          "external": 2243567,
+          "arrayBuffers": 143611
+        }
+      },
+      "diskBytesBeforeClose": {
+        "state.json": 33449502
+      },
+      "records": [
+        {
+          "wallMs": 40.26819999999998,
+          "timerDelayMs": 39.32569999999987
+        },
+        {
+          "wallMs": 40.19849999999997,
+          "timerDelayMs": 39.25489999999991
+        },
+        {
+          "wallMs": 39.712600000000066,
+          "timerDelayMs": 38.769399999999905
+        },
+        {
+          "wallMs": 40.3592000000001,
+          "timerDelayMs": 39.41579999999999
+        },
+        {
+          "wallMs": 39.90059999999994,
+          "timerDelayMs": 38.95640000000003
+        },
+        {
+          "wallMs": 36.48070000000007,
+          "timerDelayMs": 35.52839999999992
+        },
+        {
+          "wallMs": 39.73889999999983,
+          "timerDelayMs": 38.79549999999995
+        },
+        {
+          "wallMs": 34.843700000000126,
+          "timerDelayMs": 33.898299999999836
+        },
+        {
+          "wallMs": 38.785899999999856,
+          "timerDelayMs": 37.8424
+        },
+        {
+          "wallMs": 36.76240000000007,
+          "timerDelayMs": 35.842099999999846
+        },
+        {
+          "wallMs": 34.73590000000013,
+          "timerDelayMs": 33.7850999999996
+        },
+        {
+          "wallMs": 35.42059999999992,
+          "timerDelayMs": 34.47699999999986
+        },
+        {
+          "wallMs": 36.11979999999994,
+          "timerDelayMs": 35.17880000000014
+        },
+        {
+          "wallMs": 36.258600000000115,
+          "timerDelayMs": 35.309400000000096
+        },
+        {
+          "wallMs": 36.054699999999684,
+          "timerDelayMs": 35.103000000000065
+        },
+        {
+          "wallMs": 36.16940000000022,
+          "timerDelayMs": 35.23670000000038
+        },
+        {
+          "wallMs": 35.96720000000005,
+          "timerDelayMs": 35.02370000000019
+        },
+        {
+          "wallMs": 36.1891999999998,
+          "timerDelayMs": 35.24440000000004
+        },
+        {
+          "wallMs": 37.02610000000004,
+          "timerDelayMs": 36.08140000000003
+        },
+        {
+          "wallMs": 36.30799999999999,
+          "timerDelayMs": 35.36839999999984
+        },
+        {
+          "wallMs": 36.8421000000003,
+          "timerDelayMs": 35.9064000000003
+        },
+        {
+          "wallMs": 35.45040000000017,
+          "timerDelayMs": 34.4998999999998
+        },
+        {
+          "wallMs": 37.32099999999991,
+          "timerDelayMs": 36.37930000000006
+        },
+        {
+          "wallMs": 35.478399999999965,
+          "timerDelayMs": 34.53650000000016
+        },
+        {
+          "wallMs": 36.33179999999993,
+          "timerDelayMs": 35.38850000000002
+        },
+        {
+          "wallMs": 36.334699999999884,
+          "timerDelayMs": 35.40020000000004
+        },
+        {
+          "wallMs": 36.37039999999979,
+          "timerDelayMs": 35.465200000000095
+        },
+        {
+          "wallMs": 36.51449999999977,
+          "timerDelayMs": 35.572400000000016
+        },
+        {
+          "wallMs": 36.38090000000011,
+          "timerDelayMs": 35.42900000000009
+        },
+        {
+          "wallMs": 36.83249999999998,
+          "timerDelayMs": 35.88329999999996
+        },
+        {
+          "wallMs": 41.235499999999774,
+          "timerDelayMs": 40.32269999999971
+        },
+        {
+          "wallMs": 35.76209999999992,
+          "timerDelayMs": 34.812299999999595
+        },
+        {
+          "wallMs": 34.70939999999973,
+          "timerDelayMs": 33.766200000000026
+        },
+        {
+          "wallMs": 35.923399999999674,
+          "timerDelayMs": 34.98189999999977
+        },
+        {
+          "wallMs": 36.00720000000001,
+          "timerDelayMs": 35.056000000000495
+        },
+        {
+          "wallMs": 36.59609999999975,
+          "timerDelayMs": 35.64649999999983
+        },
+        {
+          "wallMs": 36.121900000000096,
+          "timerDelayMs": 35.17920000000049
+        },
+        {
+          "wallMs": 35.95820000000003,
+          "timerDelayMs": 35.01299999999992
+        },
+        {
+          "wallMs": 35.90270000000055,
+          "timerDelayMs": 34.95970000000034
+        },
+        {
+          "wallMs": 36.277500000000146,
+          "timerDelayMs": 35.33140000000003
+        }
+      ],
+      "timerControlDelayMs": {
+        "count": 40,
+        "min": 8.49129999999991,
+        "p50": 14.48109999999997,
+        "p95": 14.516899999999964,
+        "max": 14.526700000000005,
+        "mean": 14.331520000000001,
+        "over100ms": 0
+      }
+    },
+    {
+      "sizeMiB": 30,
+      "kind": "sqlite",
+      "samples": 40,
+      "warmups": 3,
+      "taskCount": 720,
+      "messagesPerTask": 40,
+      "textCharactersPerInitialMessage": 1024,
+      "mutations": "append 64 ASCII characters to newest task after each warmup/sample; initial text is 1024 characters / 1026 UTF-8 bytes, including U+2014 (code point 8212)",
+      "compactBytesBefore": 31475989,
+      "compactBytesAfter": 31478741,
+      "prettyBytesBefore": 33446750,
+      "wallMs": {
+        "count": 40,
+        "min": 188.71259999999984,
+        "p50": 208.69150000000081,
+        "p95": 223.01900000000023,
+        "max": 258.11799999999994,
+        "mean": 211.31886000000003,
+        "over100ms": 40
+      },
+      "timerDelayMs": {
+        "count": 40,
+        "min": 187.74970000000008,
+        "p50": 207.73370000000068,
+        "p95": 222.0650999999998,
+        "max": 257.1561999999999,
+        "mean": 210.36018750000002,
+        "over100ms": 40
+      },
+      "eventLoopMonitorMs": {
+        "resolution": 1,
+        "min": 0.059904,
+        "p50": 15.507455,
+        "p95": 216.924159,
+        "max": 258.211839
+      },
+      "memoryBytes": {
+        "baseline": {
+          "rss": 206708736,
+          "heapUsed": 67601344,
+          "external": 2243589,
+          "arrayBuffers": 143611
+        },
+        "peak": {
+          "rss": 302477312,
+          "heapUsed": 130673272,
+          "external": 2243629,
+          "arrayBuffers": 143611
+        },
+        "after": {
+          "rss": 270934016,
+          "heapUsed": 130467736,
+          "external": 2243629,
+          "arrayBuffers": 143611
+        }
+      },
+      "diskBytesBeforeClose": {
+        "state.sqlite": 63021056,
+        "state.sqlite-shm": 65536,
+        "state.sqlite-wal": 31732272
+      },
+      "records": [
+        {
+          "wallMs": 188.71259999999984,
+          "timerDelayMs": 187.74970000000008
+        },
+        {
+          "wallMs": 258.11799999999994,
+          "timerDelayMs": 257.1561999999999
+        },
+        {
+          "wallMs": 208.26160000000004,
+          "timerDelayMs": 207.3032000000003
+        },
+        {
+          "wallMs": 205.6010000000001,
+          "timerDelayMs": 204.63639999999987
+        },
+        {
+          "wallMs": 211.32709999999997,
+          "timerDelayMs": 210.36580000000004
+        },
+        {
+          "wallMs": 206.86020000000008,
+          "timerDelayMs": 205.89750000000004
+        },
+        {
+          "wallMs": 210.76500000000033,
+          "timerDelayMs": 209.80269999999973
+        },
+        {
+          "wallMs": 216.7836000000002,
+          "timerDelayMs": 215.82459999999992
+        },
+        {
+          "wallMs": 205.30949999999984,
+          "timerDelayMs": 204.35170000000016
+        },
+        {
+          "wallMs": 213.3739999999998,
+          "timerDelayMs": 212.41760000000022
+        },
+        {
+          "wallMs": 209.8997999999997,
+          "timerDelayMs": 208.93669999999975
+        },
+        {
+          "wallMs": 213.8226999999997,
+          "timerDelayMs": 212.86259999999993
+        },
+        {
+          "wallMs": 204.41709999999966,
+          "timerDelayMs": 203.45339999999987
+        },
+        {
+          "wallMs": 203.01280000000042,
+          "timerDelayMs": 202.0515000000005
+        },
+        {
+          "wallMs": 202.2568999999994,
+          "timerDelayMs": 201.30489999999918
+        },
+        {
+          "wallMs": 212.38760000000002,
+          "timerDelayMs": 211.4318999999996
+        },
+        {
+          "wallMs": 209.88580000000002,
+          "timerDelayMs": 208.92380000000048
+        },
+        {
+          "wallMs": 205.33219999999983,
+          "timerDelayMs": 204.3690999999999
+        },
+        {
+          "wallMs": 212.04230000000007,
+          "timerDelayMs": 211.08539999999994
+        },
+        {
+          "wallMs": 216.52189999999973,
+          "timerDelayMs": 215.5637999999999
+        },
+        {
+          "wallMs": 208.85069999999996,
+          "timerDelayMs": 207.89850000000024
+        },
+        {
+          "wallMs": 206.77149999999983,
+          "timerDelayMs": 205.8094999999994
+        },
+        {
+          "wallMs": 211.30249999999978,
+          "timerDelayMs": 210.34509999999955
+        },
+        {
+          "wallMs": 215.55029999999988,
+          "timerDelayMs": 214.59110000000055
+        },
+        {
+          "wallMs": 247.6293000000005,
+          "timerDelayMs": 246.66699999999946
+        },
+        {
+          "wallMs": 213.79629999999997,
+          "timerDelayMs": 212.83370000000014
+        },
+        {
+          "wallMs": 211.02700000000004,
+          "timerDelayMs": 210.08920000000035
+        },
+        {
+          "wallMs": 223.01900000000023,
+          "timerDelayMs": 222.0650999999998
+        },
+        {
+          "wallMs": 206.35909999999967,
+          "timerDelayMs": 205.40249999999924
+        },
+        {
+          "wallMs": 222.3135999999995,
+          "timerDelayMs": 221.34950000000026
+        },
+        {
+          "wallMs": 207.14510000000064,
+          "timerDelayMs": 206.1819999999998
+        },
+        {
+          "wallMs": 208.69150000000081,
+          "timerDelayMs": 207.73370000000068
+        },
+        {
+          "wallMs": 207.50920000000042,
+          "timerDelayMs": 206.57120000000032
+        },
+        {
+          "wallMs": 205.57380000000012,
+          "timerDelayMs": 204.61369999999988
+        },
+        {
+          "wallMs": 214.52219999999943,
+          "timerDelayMs": 213.5589
+        },
+        {
+          "wallMs": 206.77530000000115,
+          "timerDelayMs": 205.81059999999889
+        },
+        {
+          "wallMs": 207.78540000000066,
+          "timerDelayMs": 206.82710000000043
+        },
+        {
+          "wallMs": 201.17079999999987,
+          "timerDelayMs": 200.21670000000086
+        },
+        {
+          "wallMs": 207.01839999999902,
+          "timerDelayMs": 206.0582000000013
+        },
+        {
+          "wallMs": 205.2517000000007,
+          "timerDelayMs": 204.29570000000058
+        }
+      ],
+      "timerControlDelayMs": {
+        "count": 40,
+        "min": 0,
+        "p50": 14.48070000000007,
+        "p95": 14.502099999999928,
+        "max": 14.529700000000048,
+        "mean": 13.297217499999993,
+        "over100ms": 0
+      },
+      "sqliteVersion": "3.53.1",
+      "sqlitePragmas": {
+        "journal_mode": "wal",
+        "synchronous": 2,
+        "page_size": 4096,
+        "wal_autocheckpoint": 1000
+      }
+    },
+    {
+      "sizeMiB": 30,
+      "kind": "sqlite-write-only",
+      "samples": 40,
+      "warmups": 3,
+      "taskCount": 720,
+      "messagesPerTask": 40,
+      "textCharactersPerInitialMessage": 1024,
+      "mutations": "append 64 ASCII characters to newest task after each warmup/sample; initial text is 1024 characters / 1026 UTF-8 bytes, including U+2014 (code point 8212)",
+      "compactBytesBefore": 31475989,
+      "compactBytesAfter": 31478741,
+      "prettyBytesBefore": 33446750,
+      "wallMs": {
+        "count": 40,
+        "min": 139.72169999999983,
+        "p50": 153.53290000000015,
+        "p95": 167.01780000000008,
+        "max": 286.34230000000025,
+        "mean": 155.63336499999988,
+        "over100ms": 40
+      },
+      "timerDelayMs": {
+        "count": 40,
+        "min": 138.77199999999993,
+        "p50": 152.58390000000145,
+        "p95": 166.07450000000017,
+        "max": 285.39609999999993,
+        "mean": 154.68859750000004,
+        "over100ms": 40
+      },
+      "eventLoopMonitorMs": {
+        "resolution": 1,
+        "min": 0.063488,
+        "p50": 15.441919,
+        "p95": 217.317375,
+        "max": 336.068607
+      },
+      "memoryBytes": {
+        "baseline": {
+          "rss": 207343616,
+          "heapUsed": 67598616,
+          "external": 2243589,
+          "arrayBuffers": 143611
+        },
+        "peak": {
+          "rss": 303099904,
+          "heapUsed": 130888680,
+          "external": 2243629,
+          "arrayBuffers": 143611
+        },
+        "after": {
+          "rss": 271560704,
+          "heapUsed": 130432824,
+          "external": 2243629,
+          "arrayBuffers": 143611
+        }
+      },
+      "diskBytesBeforeClose": {
+        "state.sqlite": 63021056,
+        "state.sqlite-shm": 65536,
+        "state.sqlite-wal": 31732272
+      },
+      "records": [
+        {
+          "wallMs": 141.04559999999992,
+          "timerDelayMs": 140.09539999999993
+        },
+        {
+          "wallMs": 139.72169999999983,
+          "timerDelayMs": 138.77199999999993
+        },
+        {
+          "wallMs": 139.75310000000013,
+          "timerDelayMs": 138.8039000000001
+        },
+        {
+          "wallMs": 140.95789999999988,
+          "timerDelayMs": 140.02050000000008
+        },
+        {
+          "wallMs": 142.26600000000008,
+          "timerDelayMs": 141.31849999999986
+        },
+        {
+          "wallMs": 156.11340000000018,
+          "timerDelayMs": 155.16460000000006
+        },
+        {
+          "wallMs": 154.16710000000012,
+          "timerDelayMs": 153.22040000000015
+        },
+        {
+          "wallMs": 153.58770000000004,
+          "timerDelayMs": 152.64319999999998
+        },
+        {
+          "wallMs": 143.33579999999984,
+          "timerDelayMs": 142.39259999999967
+        },
+        {
+          "wallMs": 143.3132999999998,
+          "timerDelayMs": 142.36670000000004
+        },
+        {
+          "wallMs": 155.69870000000037,
+          "timerDelayMs": 154.75840000000017
+        },
+        {
+          "wallMs": 155.01220000000012,
+          "timerDelayMs": 154.0698000000002
+        },
+        {
+          "wallMs": 167.01780000000008,
+          "timerDelayMs": 166.07450000000017
+        },
+        {
+          "wallMs": 153.58520000000044,
+          "timerDelayMs": 152.63780000000042
+        },
+        {
+          "wallMs": 153.65689999999995,
+          "timerDelayMs": 152.7475999999997
+        },
+        {
+          "wallMs": 145.8792999999996,
+          "timerDelayMs": 144.9314999999997
+        },
+        {
+          "wallMs": 150.53200000000015,
+          "timerDelayMs": 149.58370000000014
+        },
+        {
+          "wallMs": 152.14969999999994,
+          "timerDelayMs": 151.20159999999942
+        },
+        {
+          "wallMs": 153.92469999999958,
+          "timerDelayMs": 152.97720000000027
+        },
+        {
+          "wallMs": 159.70920000000024,
+          "timerDelayMs": 158.75990000000002
+        },
+        {
+          "wallMs": 151.96659999999974,
+          "timerDelayMs": 151.02390000000014
+        },
+        {
+          "wallMs": 150.55090000000018,
+          "timerDelayMs": 149.59940000000006
+        },
+        {
+          "wallMs": 153.84810000000016,
+          "timerDelayMs": 152.89800000000014
+        },
+        {
+          "wallMs": 286.34230000000025,
+          "timerDelayMs": 285.39609999999993
+        },
+        {
+          "wallMs": 152.89460000000054,
+          "timerDelayMs": 151.9452000000001
+        },
+        {
+          "wallMs": 154.4957999999997,
+          "timerDelayMs": 153.55009999999947
+        },
+        {
+          "wallMs": 152.19660000000022,
+          "timerDelayMs": 151.27940000000035
+        },
+        {
+          "wallMs": 167.07449999999972,
+          "timerDelayMs": 166.1250999999993
+        },
+        {
+          "wallMs": 158.53399999999965,
+          "timerDelayMs": 157.58519999999953
+        },
+        {
+          "wallMs": 151.42109999999957,
+          "timerDelayMs": 150.47140000000036
+        },
+        {
+          "wallMs": 162.79879999999957,
+          "timerDelayMs": 161.85170000000016
+        },
+        {
+          "wallMs": 156.54509999999937,
+          "timerDelayMs": 155.60300000000097
+        },
+        {
+          "wallMs": 147.17489999999998,
+          "timerDelayMs": 146.22329999999965
+        },
+        {
+          "wallMs": 153.17569999999978,
+          "timerDelayMs": 152.2523000000001
+        },
+        {
+          "wallMs": 153.53290000000015,
+          "timerDelayMs": 152.58390000000145
+        },
+        {
+          "wallMs": 156.42769999999837,
+          "timerDelayMs": 155.47860000000037
+        },
+        {
+          "wallMs": 156.84180000000015,
+          "timerDelayMs": 155.89149999999972
+        },
+        {
+          "wallMs": 156.67249999999876,
+          "timerDelayMs": 155.72609999999986
+        },
+        {
+          "wallMs": 151.76289999999972,
+          "timerDelayMs": 150.8173999999999
+        },
+        {
+          "wallMs": 149.65049999999974,
+          "timerDelayMs": 148.70249999999942
+        }
+      ],
+      "timerControlDelayMs": {
+        "count": 40,
+        "min": 0,
+        "p50": 14.48070000000007,
+        "p95": 14.510299999999916,
+        "max": 14.533000000000015,
+        "mean": 13.230677500000018,
+        "over100ms": 0
+      },
+      "sqliteVersion": "3.53.1",
+      "sqlitePragmas": {
+        "journal_mode": "wal",
+        "synchronous": 2,
+        "page_size": 4096,
+        "wal_autocheckpoint": 1000
+      }
+    }
+  ],
+  "hub": [
+    {
+      "sizeMiB": 10,
+      "kind": "json",
+      "mode": "continuous-stream",
+      "durationMs": 6309.3787,
+      "inputCount": 159,
+      "taskEventCount": 79,
+      "eventTimesMs": [
+        93.71289999999999,
+        155.4031,
+        217.4095,
+        279.4202,
+        341.4035,
+        403.44820000000004,
+        465.43100000000004,
+        527.4648000000001,
+        589.4486,
+        651.4468,
+        713.4628,
+        775.4825000000001,
+        837.4989,
+        899.4830000000001,
+        961.5029999999999,
+        1023.3141,
+        1085.3501,
+        1162.8813,
+        1224.8836000000001,
+        1286.9004,
+        1348.8943,
+        1410.895,
+        1472.9189000000001,
+        1534.9742,
+        1596.9749,
+        1658.9445,
+        1720.9815,
+        1783.0169,
+        1844.9950000000001,
+        1907.0544,
+        1969.0449,
+        2031.0595999999998,
+        2110.2081,
+        2170.6582,
+        2263.6151,
+        2325.6180999999997,
+        2387.6407,
+        2449.6137999999996,
+        2511.6382,
+        2573.6468999999997,
+        2635.6474,
+        2697.6668,
+        2759.7131999999997,
+        2821.7205999999996,
+        2883.6911,
+        2945.7066,
+        3007.761,
+        3069.7255999999998,
+        3148.7001999999998,
+        3209.2382,
+        3271.2414,
+        3333.2313,
+        3395.2495,
+        3457.2567999999997,
+        3519.2745999999997,
+        3581.2832,
+        3643.2776999999996,
+        3705.8289,
+        3767.8813,
+        3829.8743999999997,
+        3891.8907,
+        3953.8505999999998,
+        4015.8818999999994,
+        4077.8711999999996,
+        4139.9396,
+        4201.9583,
+        4279.4508,
+        4341.4536,
+        4403.3291,
+        4465.3169,
+        4527.3467,
+        4589.3683,
+        4651.3731,
+        4713.383,
+        4775.3825,
+        4837.3543,
+        4899.3006,
+        4961.0064999999995,
+        5023.0246
+      ],
+      "writes": [
+        {
+          "atMs": 1039.1326000000001,
+          "wallMs": 31.78099999999995,
+          "success": true
+        },
+        {
+          "atMs": 2077.5557,
+          "wallMs": 32.59909999999991,
+          "success": true
+        },
+        {
+          "atMs": 3116.2774,
+          "wallMs": 32.36919999999964,
+          "success": true
+        },
+        {
+          "atMs": 4155.5058,
+          "wallMs": 31.46640000000025,
+          "success": true
+        },
+        {
+          "atMs": 5193.3839,
+          "wallMs": 32.13389999999981,
+          "success": true
+        }
+      ],
+      "writeWallMs": {
+        "count": 5,
+        "min": 31.46640000000025,
+        "p50": 32.13389999999981,
+        "p95": 32.59909999999991,
+        "max": 32.59909999999991,
+        "mean": 32.06991999999991,
+        "over100ms": 0
+      },
+      "saveIntervalMs": {
+        "count": 4,
+        "min": 1037.8781,
+        "p50": 1038.4230999999997,
+        "p95": 1039.2284,
+        "max": 1039.2284,
+        "mean": 1038.562825,
+        "over100ms": 4
+      },
+      "heartbeatDelayMs": {
+        "count": 402,
+        "min": 3.5290999999999997,
+        "p50": 10.5016999999998,
+        "p95": 10.58140000000003,
+        "max": 27.732899999999972,
+        "mean": 10.675741293532338,
+        "over100ms": 0
+      },
+      "errors": [],
+      "latestFixtureTextPersisted": true,
+      "providerRequests": 0,
+      "memoryBytes": {
+        "rss": 132587520,
+        "heapUsed": 70099920,
+        "external": 2243527,
+        "arrayBuffers": 143611
+      },
+      "shutdownWrites": [
+        {
+          "atMs": 6337.8724999999995,
+          "wallMs": 30.785899999999856,
+          "success": true
+        }
+      ]
+    },
+    {
+      "sizeMiB": 10,
+      "kind": "json",
+      "mode": "forced-store-failure-idle-backoff",
+      "durationMs": 7391.6988,
+      "inputCount": 0,
+      "taskEventCount": 1,
+      "eventTimesMs": [
+        72.1799
+      ],
+      "writes": [
+        {
+          "atMs": 258.2568,
+          "wallMs": 26.31469999999996,
+          "success": false
+        },
+        {
+          "atMs": 1298.0047000000002,
+          "wallMs": 26.80099999999993,
+          "success": false
+        },
+        {
+          "atMs": 3329.156,
+          "wallMs": 28.252500000000055,
+          "success": false
+        },
+        {
+          "atMs": 7362.4306,
+          "wallMs": 29.17579999999998,
+          "success": true
+        }
+      ],
+      "writeWallMs": {
+        "count": 4,
+        "min": 26.31469999999996,
+        "p50": 26.80099999999993,
+        "p95": 29.17579999999998,
+        "max": 29.17579999999998,
+        "mean": 27.63599999999998,
+        "over100ms": 0
+      },
+      "saveIntervalMs": {
+        "count": 3,
+        "min": 1039.7479000000003,
+        "p50": 2031.1512999999998,
+        "p95": 4033.2745999999997,
+        "max": 4033.2745999999997,
+        "mean": 2368.057933333333,
+        "over100ms": 3
+      },
+      "heartbeatDelayMs": {
+        "count": 471,
+        "min": 7.621899999999641,
+        "p50": 10.504500000000007,
+        "p95": 10.587999999999965,
+        "max": 37.461900000000014,
+        "mean": 10.67703864118896,
+        "over100ms": 0
+      },
+      "errors": [
+        {
+          "atMs": 284.6435
+        }
+      ],
+      "latestFixtureTextPersisted": true,
+      "providerRequests": 0,
+      "memoryBytes": {
+        "rss": 132317184,
+        "heapUsed": 69999992,
+        "external": 2243527,
+        "arrayBuffers": 143611
+      },
+      "shutdownWrites": [
+        {
+          "atMs": 7418.2019,
+          "wallMs": 28.65650000000005,
+          "success": true
+        }
+      ]
+    },
+    {
+      "sizeMiB": 10,
+      "kind": "sqlite",
+      "mode": "continuous-stream",
+      "durationMs": 6316.064700000001,
+      "inputCount": 153,
+      "taskEventCount": 76,
+      "eventTimesMs": [
+        99.92859999999999,
+        161.83889999999997,
+        223.8453,
+        285.8421,
+        347.8752,
+        409.8916,
+        472.0813,
+        533.9429,
+        595.9448,
+        657.9389000000001,
+        719.9449999999999,
+        781.9386,
+        843.952,
+        905.9547,
+        967.9764,
+        1029.9966,
+        1126.6594,
+        1216.0274,
+        1278.0457999999999,
+        1340.0427,
+        1402.0377999999998,
+        1464.0359999999998,
+        1526.0415,
+        1588.0499,
+        1650.0506,
+        1712.061,
+        1774.0807,
+        1836.0889,
+        1898.098,
+        1960.1063,
+        2022.1055999999999,
+        2084.1702,
+        2206.6231,
+        2270.176,
+        2332.1562,
+        2394.1734,
+        2456.1717,
+        2518.171,
+        2580.2057999999997,
+        2642.2042,
+        2704.1855,
+        2766.2138999999997,
+        2828.2192999999997,
+        2890.2567,
+        2952.2632,
+        3014.2652,
+        3076.2534,
+        3138.1159,
+        3200.1244,
+        3290.6857999999997,
+        3386.1307,
+        3448.2655,
+        3510.2592,
+        3572.2551,
+        3634.2893,
+        3696.2969,
+        3758.2885,
+        3820.3182,
+        3882.3102,
+        3944.2925999999998,
+        4006.3008999999997,
+        4068.3570999999997,
+        4130.3733,
+        4192.3589,
+        4254.3873,
+        4382.153200000001,
+        4440.1723,
+        4533.1596,
+        4595.1705,
+        4657.167200000001,
+        4719.1715,
+        4781.1682,
+        4843.2038,
+        4905.245400000001,
+        4967.2210000000005,
+        5029.262000000001
+      ],
+      "writes": [
+        {
+          "atMs": 1045.6992,
+          "wallMs": 80.84669999999983,
+          "success": true
+        },
+        {
+          "atMs": 2130.7362,
+          "wallMs": 75.83120000000008,
+          "success": true
+        },
+        {
+          "atMs": 3215.6169,
+          "wallMs": 74.9364999999998,
+          "success": true
+        },
+        {
+          "atMs": 4300.936100000001,
+          "wallMs": 81.17479999999978,
+          "success": true
+        },
+        {
+          "atMs": 5262.026000000001,
+          "wallMs": 74.3701000000001,
+          "success": true
+        }
+      ],
+      "writeWallMs": {
+        "count": 5,
+        "min": 74.3701000000001,
+        "p50": 75.83120000000008,
+        "p95": 81.17479999999978,
+        "max": 81.17479999999978,
+        "mean": 77.43185999999992,
+        "over100ms": 0
+      },
+      "saveIntervalMs": {
+        "count": 4,
+        "min": 961.0899,
+        "p50": 1084.8807000000002,
+        "p95": 1085.3192000000008,
+        "max": 1085.3192000000008,
+        "mean": 1054.0817000000002,
+        "over100ms": 4
+      },
+      "heartbeatDelayMs": {
+        "count": 386,
+        "min": 6.43119999999999,
+        "p50": 10.50189999999975,
+        "p95": 10.610099999999989,
+        "max": 85.03809999999976,
+        "mean": 11.343357772020726,
+        "over100ms": 0
+      },
+      "errors": [],
+      "latestFixtureTextPersisted": true,
+      "providerRequests": 0,
+      "memoryBytes": {
+        "rss": 133447680,
+        "heapUsed": 68808384,
+        "external": 2243589,
+        "arrayBuffers": 143611
+      },
+      "shutdownWrites": [
+        {
+          "atMs": 6343.2775,
+          "wallMs": 32.87049999999999,
+          "success": true
+        }
+      ]
+    },
+    {
+      "sizeMiB": 10,
+      "kind": "sqlite",
+      "mode": "forced-store-failure-idle-backoff",
+      "durationMs": 7447.2982,
+      "inputCount": 0,
+      "taskEventCount": 1,
+      "eventTimesMs": [
+        66.6856
+      ],
+      "writes": [
+        {
+          "atMs": 268.3336,
+          "wallMs": 24.899,
+          "success": false
+        },
+        {
+          "atMs": 1306.4471,
+          "wallMs": 26.739199999999983,
+          "success": false
+        },
+        {
+          "atMs": 3337.2549,
+          "wallMs": 24.60050000000001,
+          "success": false
+        },
+        {
+          "atMs": 7368.3911,
+          "wallMs": 78.81760000000031,
+          "success": true
+        }
+      ],
+      "writeWallMs": {
+        "count": 4,
+        "min": 24.60050000000001,
+        "p50": 24.899,
+        "p95": 78.81760000000031,
+        "max": 78.81760000000031,
+        "mean": 38.764075000000076,
+        "over100ms": 0
+      },
+      "saveIntervalMs": {
+        "count": 3,
+        "min": 1038.1135000000002,
+        "p50": 2030.8077999999998,
+        "p95": 4031.1362,
+        "max": 4031.1362,
+        "mean": 2366.6858333333334,
+        "over100ms": 3
+      },
+      "heartbeatDelayMs": {
+        "count": 472,
+        "min": 0.7882000000000176,
+        "p50": 10.5016999999998,
+        "p95": 10.562599999999748,
+        "max": 73.89869999999974,
+        "mean": 10.762681991525422,
+        "over100ms": 0
+      },
+      "errors": [
+        {
+          "atMs": 293.3031
+        }
+      ],
+      "latestFixtureTextPersisted": true,
+      "providerRequests": 0,
+      "memoryBytes": {
+        "rss": 133771264,
+        "heapUsed": 68716144,
+        "external": 2243589,
+        "arrayBuffers": 143611
+      },
+      "shutdownWrites": [
+        {
+          "atMs": 7472.274,
+          "wallMs": 32.14930000000004,
+          "success": true
+        }
+      ]
+    },
+    {
+      "sizeMiB": 30,
+      "kind": "json",
+      "mode": "continuous-stream",
+      "durationMs": 6310.5689,
+      "inputCount": 151,
+      "taskEventCount": 76,
+      "eventTimesMs": [
+        92.25990000000002,
+        154.19259999999997,
+        215.88099999999997,
+        277.8933,
+        339.89430000000004,
+        401.8641,
+        463.92920000000004,
+        525.9483,
+        587.9903,
+        650.0693,
+        712.05,
+        774.0542,
+        836.1021,
+        898.1274,
+        960.1673999999999,
+        1022.1642,
+        1128.3688000000002,
+        1223.6936,
+        1285.6959000000002,
+        1347.7620000000002,
+        1409.7612,
+        1471.772,
+        1533.7475,
+        1595.77,
+        1657.8462,
+        1719.7858,
+        1781.7757000000001,
+        1843.8058999999998,
+        1906.2939999999999,
+        1968.3554999999997,
+        2030.3402999999998,
+        2092.4147,
+        2231.9330999999997,
+        2293.9166,
+        2355.9483999999998,
+        2417.9293,
+        2479.9874999999997,
+        2541.9298,
+        2603.9267,
+        2665.8713,
+        2727.9362,
+        2789.9398,
+        2852.5115,
+        2914.5492,
+        2976.5431,
+        3038.511,
+        3100.5101999999997,
+        3162.5036999999998,
+        3224.5634999999997,
+        3333.0690999999997,
+        3426.1138,
+        3488.1755,
+        3550.1679999999997,
+        3612.2565,
+        3674.2451,
+        3736.2475999999997,
+        3798.2428999999997,
+        3860.2558999999997,
+        3922.3097,
+        3984.2841,
+        4046.2608,
+        4108.2964,
+        4170.281199999999,
+        4232.3069,
+        4294.3088,
+        4431.7011,
+        4495.846,
+        4557.8577,
+        4619.8544,
+        4681.8319,
+        4743.8676,
+        4805.8701,
+        4867.8823,
+        4930.376,
+        4992.3907,
+        5054.9776
+      ],
+      "writes": [
+        {
+          "atMs": 1037.8357,
+          "wallMs": 90.41609999999991,
+          "success": true
+        },
+        {
+          "atMs": 2138.9411,
+          "wallMs": 92.37879999999996,
+          "success": true
+        },
+        {
+          "atMs": 3240.1119,
+          "wallMs": 92.86400000000003,
+          "success": true
+        },
+        {
+          "atMs": 4340.8703,
+          "wallMs": 90.78390000000036,
+          "success": true
+        },
+        {
+          "atMs": 5256.5736,
+          "wallMs": 88.0586000000003,
+          "success": true
+        }
+      ],
+      "writeWallMs": {
+        "count": 5,
+        "min": 88.0586000000003,
+        "p50": 90.78390000000036,
+        "p95": 92.86400000000003,
+        "max": 92.86400000000003,
+        "mean": 90.90028000000011,
+        "over100ms": 0
+      },
+      "saveIntervalMs": {
+        "count": 4,
+        "min": 915.7033000000001,
+        "p50": 1100.7583999999997,
+        "p95": 1101.1707999999999,
+        "max": 1101.1707999999999,
+        "mean": 1054.684475,
+        "over100ms": 4
+      },
+      "heartbeatDelayMs": {
+        "count": 380,
+        "min": 0.04599999999999227,
+        "p50": 10.505799999999908,
+        "p95": 10.636199999999974,
+        "max": 102.94930000000022,
+        "mean": 11.586173157894736,
+        "over100ms": 1
+      },
+      "errors": [],
+      "latestFixtureTextPersisted": true,
+      "providerRequests": 0,
+      "memoryBytes": {
+        "rss": 290316288,
+        "heapUsed": 199052960,
+        "external": 2243527,
+        "arrayBuffers": 143611
+      },
+      "shutdownWrites": [
+        {
+          "atMs": 6378.8843,
+          "wallMs": 85.76010000000042,
+          "success": true
+        }
+      ]
+    },
+    {
+      "sizeMiB": 30,
+      "kind": "json",
+      "mode": "forced-store-failure-idle-backoff",
+      "durationMs": 7593.6357,
+      "inputCount": 0,
+      "taskEventCount": 1,
+      "eventTimesMs": [
+        64.68520000000001
+      ],
+      "writes": [
+        {
+          "atMs": 266.30060000000003,
+          "wallMs": 74.45399999999995,
+          "success": false
+        },
+        {
+          "atMs": 1351.0736000000002,
+          "wallMs": 74.07309999999984,
+          "success": false
+        },
+        {
+          "atMs": 3428.1821,
+          "wallMs": 73.27610000000004,
+          "success": false
+        },
+        {
+          "atMs": 7506.0554,
+          "wallMs": 87.48679999999968,
+          "success": true
+        }
+      ],
+      "writeWallMs": {
+        "count": 4,
+        "min": 73.27610000000004,
+        "p50": 74.07309999999984,
+        "p95": 87.48679999999968,
+        "max": 87.48679999999968,
+        "mean": 77.32249999999988,
+        "over100ms": 0
+      },
+      "saveIntervalMs": {
+        "count": 3,
+        "min": 1084.7730000000001,
+        "p50": 2077.1085,
+        "p95": 4077.8733,
+        "max": 4077.8733,
+        "mean": 2413.2516,
+        "over100ms": 3
+      },
+      "heartbeatDelayMs": {
+        "count": 473,
+        "min": 0.10409999999998831,
+        "p50": 10.503099999999904,
+        "p95": 10.559599999999989,
+        "max": 84.7346,
+        "mean": 11.038073784355179,
+        "over100ms": 0
+      },
+      "errors": [
+        {
+          "atMs": 340.82720000000006
+        }
+      ],
+      "latestFixtureTextPersisted": true,
+      "providerRequests": 0,
+      "memoryBytes": {
+        "rss": 289308672,
+        "heapUsed": 198976240,
+        "external": 2243527,
+        "arrayBuffers": 143611
+      },
+      "shutdownWrites": [
+        {
+          "atMs": 7658.9979,
+          "wallMs": 84.52759999999944,
+          "success": true
+        }
+      ]
+    },
+    {
+      "sizeMiB": 30,
+      "kind": "sqlite",
+      "mode": "continuous-stream",
+      "durationMs": 6316.0487,
+      "inputCount": 137,
+      "taskEventCount": 68,
+      "eventTimesMs": [
+        99.90719999999999,
+        161.75870000000003,
+        223.7797,
+        285.81340000000006,
+        347.7938,
+        409.79220000000004,
+        471.78839999999997,
+        533.8051,
+        595.8516999999999,
+        657.8163999999999,
+        719.8225,
+        781.8118,
+        843.8264999999999,
+        905.8679999999999,
+        967.8634999999999,
+        1029.8817999999999,
+        1245.2641999999998,
+        1339.9574,
+        1402.062,
+        1463.9081999999999,
+        1525.9321,
+        1587.9750999999999,
+        1649.9868999999999,
+        1712.0094,
+        1774.0093000000002,
+        1836.0787,
+        1898.0746,
+        1960.0850999999998,
+        2022.0629,
+        2084.1011,
+        2146.0915,
+        2208.1077999999998,
+        2450.8066,
+        2502.4022999999997,
+        2595.4542,
+        2657.5006,
+        2719.47,
+        2781.4764,
+        2843.4681,
+        2905.4681,
+        2967.4782999999998,
+        3029.4802,
+        3091.5407,
+        3153.5978,
+        3215.6005999999998,
+        3277.6117,
+        3339.628,
+        3401.632,
+        3661.9393,
+        3711.7269,
+        3789.2335,
+        3851.2355999999995,
+        3913.3232000000003,
+        3975.3167,
+        4037.3096,
+        4099.3136,
+        4161.3315,
+        4223.338100000001,
+        4285.218000000001,
+        4347.236800000001,
+        4409.269,
+        4471.250400000001,
+        4533.2816,
+        4595.339300000001,
+        4657.337600000001,
+        4874.3698,
+        4967.338900000001,
+        5029.3521
+      ],
+      "writes": [
+        {
+          "atMs": 1045.5729999999999,
+          "wallMs": 199.58339999999998,
+          "success": true
+        },
+        {
+          "atMs": 2254.6709,
+          "wallMs": 196.0884000000001,
+          "success": true
+        },
+        {
+          "atMs": 3463.6502,
+          "wallMs": 198.2565999999997,
+          "success": true
+        },
+        {
+          "atMs": 4672.8552,
+          "wallMs": 196.78220000000056,
+          "success": true
+        },
+        {
+          "atMs": 5262.040800000001,
+          "wallMs": 206.58379999999943,
+          "success": true
+        }
+      ],
+      "writeWallMs": {
+        "count": 5,
+        "min": 196.0884000000001,
+        "p50": 198.2565999999997,
+        "p95": 206.58379999999943,
+        "max": 206.58379999999943,
+        "mean": 199.45887999999997,
+        "over100ms": 5
+      },
+      "saveIntervalMs": {
+        "count": 4,
+        "min": 589.1856000000007,
+        "p50": 1208.9793,
+        "p95": 1209.205,
+        "max": 1209.205,
+        "mean": 1054.11695,
+        "over100ms": 4
+      },
+      "heartbeatDelayMs": {
+        "count": 346,
+        "min": 0,
+        "p50": 10.503399999999601,
+        "p95": 10.605999999999995,
+        "max": 217.1908000000003,
+        "mean": 13.232494797687863,
+        "over100ms": 5
+      },
+      "errors": [],
+      "latestFixtureTextPersisted": true,
+      "providerRequests": 0,
+      "memoryBytes": {
+        "rss": 288874496,
+        "heapUsed": 195150192,
+        "external": 2243589,
+        "arrayBuffers": 143611
+      },
+      "shutdownWrites": [
+        {
+          "atMs": 6380.4236,
+          "wallMs": 85.30839999999989,
+          "success": true
+        }
+      ]
+    },
+    {
+      "sizeMiB": 30,
+      "kind": "sqlite",
+      "mode": "forced-store-failure-idle-backoff",
+      "durationMs": 7697.567,
+      "inputCount": 0,
+      "taskEventCount": 1,
+      "eventTimesMs": [
+        71.44510000000002
+      ],
+      "writes": [
+        {
+          "atMs": 273.05460000000005,
+          "wallMs": 70.01059999999995,
+          "success": false
+        },
+        {
+          "atMs": 1342.5798,
+          "wallMs": 70.82179999999994,
+          "success": false
+        },
+        {
+          "atMs": 3420.3691,
+          "wallMs": 71.44529999999986,
+          "success": false
+        },
+        {
+          "atMs": 7498.8322,
+          "wallMs": 198.65009999999984,
+          "success": true
+        }
+      ],
+      "writeWallMs": {
+        "count": 4,
+        "min": 70.01059999999995,
+        "p50": 70.82179999999994,
+        "p95": 198.65009999999984,
+        "max": 198.65009999999984,
+        "mean": 102.7319499999999,
+        "over100ms": 1
+      },
+      "saveIntervalMs": {
+        "count": 3,
+        "min": 1069.5252,
+        "p50": 2077.7893,
+        "p95": 4078.4631,
+        "max": 4078.4631,
+        "mean": 2408.592533333333,
+        "over100ms": 3
+      },
+      "heartbeatDelayMs": {
+        "count": 473,
+        "min": 0.8899999999999864,
+        "p50": 10.500299999999697,
+        "p95": 10.567000000000007,
+        "max": 193.73130000000037,
+        "mean": 11.258064693446087,
+        "over100ms": 1
+      },
+      "errors": [
+        {
+          "atMs": 343.13620000000003
+        }
+      ],
+      "latestFixtureTextPersisted": true,
+      "providerRequests": 0,
+      "memoryBytes": {
+        "rss": 288964608,
+        "heapUsed": 195070096,
+        "external": 2243589,
+        "arrayBuffers": 143611
+      },
+      "shutdownWrites": [
+        {
+          "atMs": 7755.4828,
+          "wallMs": 85.21500000000015,
+          "success": true
+        }
+      ]
+    },
+    {
+      "sizeMiB": 10,
+      "kind": "noop-control",
+      "mode": "continuous-stream",
+      "durationMs": 6314.4299,
+      "inputCount": 161,
+      "taskEventCount": 81,
+      "eventTimesMs": [
+        99.14800000000001,
+        161.08839999999998,
+        223.101,
+        285.14209999999997,
+        347.1742,
+        408.6802,
+        470.74399999999997,
+        532.6968,
+        594.6769,
+        656.6840000000001,
+        718.668,
+        780.6978,
+        842.6733,
+        904.6971000000001,
+        966.6996,
+        1028.7077,
+        1090.7343999999998,
+        1152.7463,
+        1214.7582,
+        1276.7729,
+        1338.787,
+        1400.7853,
+        1462.7846,
+        1524.812,
+        1586.85,
+        1648.8417,
+        1710.8196,
+        1772.8996,
+        1834.9024,
+        1896.9432,
+        1958.9081999999999,
+        2020.9995000000001,
+        2082.7747,
+        2144.7812000000004,
+        2206.8065,
+        2268.8108,
+        2330.8305,
+        2392.2804,
+        2454.3211,
+        2516.3734,
+        2578.3655000000003,
+        2640.4128,
+        2702.4371,
+        2764.4371,
+        2826.5094000000004,
+        2888.6007,
+        2950.5786000000003,
+        3012.5621,
+        3074.5675,
+        3136.5624000000003,
+        3198.5864,
+        3260.6028,
+        3322.6097,
+        3384.6222000000002,
+        3446.6949,
+        3508.7063000000003,
+        3570.6899000000003,
+        3632.6952,
+        3694.6945,
+        3757.2331000000004,
+        3819.268,
+        3881.239,
+        3943.2175,
+        4005.2545,
+        4066.9962,
+        4128.9779,
+        4191.0089,
+        4253.0404,
+        4315.0190999999995,
+        4377.0389,
+        4439.1131,
+        4501.084199999999,
+        4563.125999999999,
+        4625.1361,
+        4687.134999999999,
+        4749.1712,
+        4811.1853,
+        4873.1722,
+        4935.169,
+        4997.2528999999995,
+        5059.1924
+      ],
+      "writes": [
+        {
+          "atMs": 1044.4306,
+          "wallMs": 0.0079000000000633,
+          "success": true
+        },
+        {
+          "atMs": 2067.3182,
+          "wallMs": 0.003499999999803549,
+          "success": true
+        },
+        {
+          "atMs": 3090.0995000000003,
+          "wallMs": 0.0027000000000043656,
+          "success": true
+        },
+        {
+          "atMs": 4113.5534,
+          "wallMs": 0.005699999999706051,
+          "success": true
+        },
+        {
+          "atMs": 5136.724499999999,
+          "wallMs": 0.003500000000713044,
+          "success": true
+        }
+      ],
+      "writeWallMs": {
+        "count": 5,
+        "min": 0.0027000000000043656,
+        "p50": 0.003500000000713044,
+        "p95": 0.0079000000000633,
+        "max": 0.0079000000000633,
+        "mean": 0.004660000000058062,
+        "over100ms": 0
+      },
+      "saveIntervalMs": {
+        "count": 4,
+        "min": 1022.7813000000001,
+        "p50": 1022.8876000000002,
+        "p95": 1023.4538999999995,
+        "max": 1023.4538999999995,
+        "mean": 1023.0734749999999,
+        "over100ms": 4
+      },
+      "heartbeatDelayMs": {
+        "count": 407,
+        "min": 9.246200000000002,
+        "p50": 10.499800000000505,
+        "p95": 10.577999999999975,
+        "max": 11.003400000000056,
+        "mean": 10.496072481572481,
+        "over100ms": 0
+      },
+      "errors": [],
+      "latestFixtureTextPersisted": false,
+      "providerRequests": 0,
+      "memoryBytes": {
+        "rss": 116117504,
+        "heapUsed": 47794456,
+        "external": 2243527,
+        "arrayBuffers": 143611
+      },
+      "shutdownWrites": [
+        {
+          "atMs": 6344.5767,
+          "wallMs": 0.002500000000509317,
+          "success": true
+        }
+      ]
+    },
+    {
+      "sizeMiB": 30,
+      "kind": "noop-control",
+      "mode": "continuous-stream",
+      "durationMs": 6314.6481,
+      "inputCount": 161,
+      "taskEventCount": 81,
+      "eventTimesMs": [
+        97.56200000000001,
+        159.5229,
+        221.49309999999997,
+        283.4782,
+        345.50809999999996,
+        407.51460000000003,
+        469.55760000000004,
+        531.548,
+        593.5645,
+        655.5698,
+        717.5853999999999,
+        779.6560999999999,
+        841.7819,
+        903.8007,
+        965.8427999999999,
+        1027.8127,
+        1089.8339999999998,
+        1151.857,
+        1213.8633,
+        1275.8887,
+        1337.8958,
+        1399.8716,
+        1461.8757,
+        1524.0266,
+        1586.1001999999999,
+        1648.0893999999998,
+        1710.0969,
+        1772.104,
+        1834.0922,
+        1896.1054,
+        1958.1237,
+        2020.1374,
+        2082.1198,
+        2144.1093,
+        2206.1302,
+        2268.1558999999997,
+        2330.2613,
+        2392.2587,
+        2454.2590999999998,
+        2516.2485,
+        2578.2655999999997,
+        2640.255,
+        2702.2826,
+        2764.3006,
+        2826.3062999999997,
+        2888.3265,
+        2950.2862,
+        3012.2893,
+        3074.3835,
+        3136.3894,
+        3198.4271,
+        3260.4222999999997,
+        3322.4417,
+        3384.4377,
+        3446.4512999999997,
+        3508.494,
+        3570.4962,
+        3632.5407,
+        3694.4975,
+        3756.5117,
+        3818.6141,
+        3880.6556,
+        3942.6419,
+        4004.6496,
+        4066.6536,
+        4128.6215,
+        4190.6704,
+        4252.658,
+        4314.680200000001,
+        4376.6939,
+        4438.701400000001,
+        4500.748600000001,
+        4562.8283,
+        4624.8383,
+        4686.866400000001,
+        4748.8433,
+        4810.8811000000005,
+        4872.8894,
+        4934.9224,
+        4996.9583,
+        5058.932000000001
+      ],
+      "writes": [
+        {
+          "atMs": 1043.5298,
+          "wallMs": 0.008699999999862484,
+          "success": true
+        },
+        {
+          "atMs": 2066.6666,
+          "wallMs": 0.003200000000106229,
+          "success": true
+        },
+        {
+          "atMs": 3089.9074,
+          "wallMs": 0.0027000000000043656,
+          "success": true
+        },
+        {
+          "atMs": 4113.1714,
+          "wallMs": 0.0034000000005107722,
+          "success": true
+        },
+        {
+          "atMs": 5136.4722,
+          "wallMs": 0.003200000000106229,
+          "success": true
+        }
+      ],
+      "writeWallMs": {
+        "count": 5,
+        "min": 0.0027000000000043656,
+        "p50": 0.003200000000106229,
+        "p95": 0.008699999999862484,
+        "max": 0.008699999999862484,
+        "mean": 0.004240000000118016,
+        "over100ms": 0
+      },
+      "saveIntervalMs": {
+        "count": 4,
+        "min": 1023.1368,
+        "p50": 1023.2408,
+        "p95": 1023.3008,
+        "max": 1023.3008,
+        "mean": 1023.2356,
+        "over100ms": 4
+      },
+      "heartbeatDelayMs": {
+        "count": 408,
+        "min": 0.0069000000000016826,
+        "p50": 10.502100000000155,
+        "p95": 10.581099999999992,
+        "max": 10.67900000000003,
+        "mean": 10.458415441176472,
+        "over100ms": 0
+      },
+      "errors": [],
+      "latestFixtureTextPersisted": false,
+      "providerRequests": 0,
+      "memoryBytes": {
+        "rss": 296771584,
+        "heapUsed": 199674832,
+        "external": 2243527,
+        "arrayBuffers": 143611
+      },
+      "shutdownWrites": [
+        {
+          "atMs": 6383.6646,
+          "wallMs": 0.0033000000003085006,
+          "success": true
+        }
+      ]
+    }
+  ],
+  "sourceBaseline": "5b70fb2",
+  "scope": "Synthetic disposable fixtures only; no production profile/provider reads or execution. Store/stream matrix preceded the focused successful-checkpoint timer cancellation; no core changes.",
+  "noOpSqlTrial": {
+    "synthetic": true,
+    "sizeBytes": 31475989,
+    "samples": 40,
+    "reports": [
+      {
+        "mode": "current",
+        "wallMs": {
+          "count": 40,
+          "min": 87.4088999999999,
+          "p50": 89.65380000000005,
+          "p95": 92.24319999999989,
+          "max": 100.03749999999991,
+          "mean": 89.98813749999998,
+          "over100ms": 1
+        },
+        "sqliteTotalChanges": 41
+      },
+      {
+        "mode": "conditional",
+        "wallMs": {
+          "count": 40,
+          "min": 85.48620000000028,
+          "p50": 88.91640000000007,
+          "p95": 90.89400000000023,
+          "max": 100.84970000000067,
+          "mean": 89.16268749999999,
+          "over100ms": 1
+        },
+        "sqliteTotalChanges": 1
+      }
+    ]
+  },
+  "duplicateCheckpoint": {
+    "before": {
+      "synthetic": true,
+      "compactBytes": 31476108,
+      "writesBeforeClose": [
+        {
+          "atMs": 7.917599999999993,
+          "wallMs": 195.56459999999993
+        },
+        {
+          "atMs": 263.6159,
+          "wallMs": 84.42239999999993
+        }
+      ],
+      "identicalPendingCheckpoint": true
+    },
+    "after": {
+      "synthetic": true,
+      "compactBytes": 31476108,
+      "writesBeforeClose": [
+        {
+          "atMs": 8.147600000000011,
+          "wallMs": 199.44799999999998
+        }
+      ],
+      "latestPersisted": true
+    },
+    "interpretation": "Successful explicit checkpoint now cancels pending persistence timers; later mutations rearm normally, failed persistence retains pending saves/retry. No store schema or provider dispatch changes."
+  },
+  "verification": {
+    "focused93Passed": true,
+    "fullSuite": {
+      "tests": 380,
+      "passed": 380,
+      "failed": 0,
+      "log": "reviews/sunny-persistence-full-tests.log"
+    },
+    "productionDiff": "desktop/hub.cjs successful persist clears pending saveTimer and checkpointTimer after store.save succeeds",
+    "limitations": [
+      "Synthetic warm-cache host measurements, not production workload/crash evidence",
+      "No exclusive machine/disk isolation; forty samples per case estimate p95",
+      "Timer control p95 around14.5ms reflects Windows scheduling; direct wall times and maxima identify large stalls",
+      "Process memory sampled after operations may miss transient allocation peaks",
+      "No worker/database/schema/PRAGMA weakening or transcript truncation implemented"
+    ]
+  },
+  "fixtureSourceValidation": {
+    "benchmarkRerun": false,
+    "nonAsciiCodepoints": [
+      8212
+    ],
+    "initialMessageCharacters": 1024,
+    "initialMessageUtf8Bytes": 1026,
+    "validation": [
+      {
+        "sizeMiB": 1,
+        "currentCompactBytes": 1091804,
+        "recordedCompactBytes": 1091804,
+        "taskCount": 25
+      },
+      {
+        "sizeMiB": 10,
+        "currentCompactBytes": 10488949,
+        "recordedCompactBytes": 10488949,
+        "taskCount": 240
+      },
+      {
+        "sizeMiB": 30,
+        "currentCompactBytes": 31475989,
+        "recordedCompactBytes": 31475989,
+        "taskCount": 720
+      }
+    ],
+    "note": "Node byte/code-point inspection of the current generator matches all recorded fixture sizes. The separator is U+2014, not ASCII hyphen-minus; only metadata clarity changed."
+  }
+}

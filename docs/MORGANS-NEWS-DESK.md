@@ -1,6 +1,6 @@
 # Big News Morgans — flying blimp
 
-Status: implemented in 0.9.0 as a blimp and imported briefing workspace. Interactive Chrome capture/import is supported; unattended collection is not implemented or scheduled. Automatic Robin/Nami routing and live source connections below remain design directions.
+Status: implemented as a blimp and imported briefing workspace. On 2026-09-29 the captain switched the recurring collector from Grok Bot to ChatGPT. A daily 8:35 a.m. and Friday 4:35 p.m. local ChatGPT heartbeat are active. ChatGPT can read the signed-in Chrome X For you feed in the current session, and the first new ChatGPT capture was prepared from a bounded sample plus official AI sources. Sunny's local inbox import is described in [the dated decision](decisions/2026-09-29-morgans-chatgpt-import.md). Automatic Robin/Nami routing and a direct live source connection remain design directions.
 
 ## Confirmed presentation and browser
 
@@ -14,7 +14,7 @@ Turn news and opportunities into a short, sourced briefing relevant to Quintin's
 
 ## Sources and access
 
-- Personal X and LinkedIn feeds: first verify access in the user's chosen signed-in browser. A browser session is distinct from an unattended integration inside Sunny. Mark partial captures and unavailable sources explicitly.
+- Personal X and LinkedIn feeds: first verify access in the user's chosen signed-in browser. The current ChatGPT session verified signed-in Chrome X For you on 2026-09-29. A browser session is distinct from an unattended integration inside Sunny. Scheduled runs must mark partial captures and unavailable sources explicitly.
 - X's official home timeline requires an approved application and user authentication. It is reverse chronological, so it must not be presented as an exact copy of the For You feed.
 - LinkedIn's standard self-service permissions do not provide home-feed reading. No direct LinkedIn or X connector is currently available in this Codex session.
 - Public inputs: selected official product updates, repository releases, engineering articles, company career pages and public job listings. Feed sources and project interests should be editable.
@@ -35,7 +35,7 @@ Morgans gathers signals. Robin verifies claims. Nami helps prioritize. A user-se
 
 ## Runtime and cost
 
-Start with an on-demand briefing. Cache sources, deduplicate before model calls, cap the number of items per brief and show whether results are fresh, partial or unavailable. Background collection and cadence should be configured only after a working source connection and user preference are established. Do not describe browser-only reads as an always-on feed integration.
+Daily and weekly ChatGPT tasks collect bounded briefings from Chrome and official sources. The local Sunny app watches the configured workspace inbox and Downloads while open and scans again on launch. Its import time proves only that a valid file reached Morgans; it does not prove a scheduled feed scan succeeded. Each run must identify source access and write failures. No automatic applications or outreach are authorized.
 
 ## Missing input
 

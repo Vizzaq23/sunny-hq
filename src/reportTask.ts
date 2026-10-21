@@ -1,7 +1,7 @@
 import type {Task} from './shared';
 
 // A retry retains the original report packet, but its result belongs to the replacement.
-export function resolveReportTask(tasks:Task[],original:Task|undefined):Task|undefined{
+export function resolveReportTask<T extends Pick<Task,'id'|'projectId'|'crewId'|'retryTaskId'|'recoveryOfTaskId'>>(tasks:T[],original:T|undefined):T|undefined{
  if(!original)return undefined;
  let current=tasks.find(task=>task.id===original.id)??original;
  const visited=new Set<string>();

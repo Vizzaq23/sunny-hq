@@ -1,0 +1,35 @@
+const fs=require('node:fs'),path=require('node:path'),{DatabaseSync,backup}=require('node:sqlite'),{createHash,randomUUID}=require('node:crypto');
+const {captureProfile,sealProfileSnapshot}=require('./profile-snapshot.cjs'),{encodeProfile}=require('./profile-json.cjs'),{inspectMissionProfile}=require('./mission-profile.cjs');
+const SQL={meta:'CREATE TABLE profile_meta(id INTEGER PRIMARY KEY CHECK(id=1),format_version INTEGER,generation INTEGER,state_sha256 TEXT,layout TEXT)',fragments:'CREATE TABLE profile_fragments(id TEXT PRIMARY KEY,value TEXT NOT NULL)',view:"CREATE VIEW state AS SELECT 1 AS id,(SELECT group_concat(value,'') FROM (SELECT f.value AS value FROM json_each(m.layout) AS j JOIN profile_fragments AS f ON f.id=j.value ORDER BY CAST(j.key AS INTEGER))) AS value FROM profile_meta AS m WHERE m.id=1"};
+const sha=bytes=>createHash('sha256').update(bytes).digest('hex'),validSha=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
+function validateProfile(value){if(!['empty','v1-upgrade','v2-upgrade','v3'].includes(inspectMissionProfile(value).mode))throw Error('Unsupported saved profile; preserve its database');}
+function definition(db,name){return db.prepare('SELECT type,sql FROM sqlite_master WHERE name=?').get(name);}
+function readProfile(db){
+ const state=definition(db,'state'),meta=definition(db,'profile_meta'),fragments=definition(db,'profile_fragments');
+ if(!meta&&!fragments){if(state&&state.type!=='table')throw Error('Unrecognized state schema');const raw=state?db.prepare('SELECT value FROM state WHERE id=1').get()?.value:undefined,value=raw===undefined?{}:JSON.parse(raw);validateProfile(value);return {format:'legacy',raw,value,generation:0};}
+ if(meta?.sql!==SQL.meta||fragments?.sql!==SQL.fragments||state?.sql!==SQL.view)throw Error('Unrecognized fragment schema');
+ const rows=db.prepare('SELECT * FROM profile_meta').all(),m=rows[0];if(rows.length!==1||m.id!==1||m.format_version!==1||!Number.isSafeInteger(m.generation)||m.generation<0||!validSha(m.state_sha256))throw Error('Unsupported fragment metadata');
+ const layout=JSON.parse(m.layout);if(!Array.isArray(layout)||!layout.length||layout.some(id=>!validSha(id)))throw Error('Invalid fragment layout');const all=db.prepare('SELECT id,value FROM profile_fragments').all(),map=new Map();for(const f of all){if(typeof f.value!=='string'||Buffer.byteLength(f.value)>65536||sha(Buffer.from(f.value))!==f.id)throw Error('Corrupt profile fragment');map.set(f.id,f.value);}if(new Set(layout).size!==map.size||layout.some(id=>!map.has(id)))throw Error('Missing or unreachable profile fragment');const hash=createHash('sha256');for(const id of layout)hash.update(map.get(id));if(hash.digest('hex')!==m.state_sha256)throw Error('Profile digest mismatch');const raw=db.prepare('SELECT value FROM state WHERE id=1').get().value;if(sha(Buffer.from(raw))!==m.state_sha256)throw Error('Compatibility view mismatch');const value=JSON.parse(raw);validateProfile(value);return {format:'fragments',raw,value,generation:m.generation,stateSha256:m.state_sha256};
+}
+async function makeBackup(db,backupDir,expected){
+ fs.mkdirSync(backupDir,{recursive:true});if(!fs.lstatSync(backupDir).isDirectory()||fs.lstatSync(backupDir).isSymbolicLink())throw Error('Invalid backup directory');const file=path.join(fs.realpathSync(backupDir),'pre-fragments-'+Date.now()+'-'+randomUUID()+'.sqlite');await backup(db,file);const copy=new DatabaseSync(file,{readOnly:true});try{if(readProfile(copy).raw!==expected.raw)throw Error('Migration backup state mismatch');}finally{copy.close();}const receipt={path:file,sha256:sha(fs.readFileSync(file)),sourceFormat:expected.format};const fd=fs.openSync(file+'.receipt.json','wx',0o600);try{fs.writeFileSync(fd,JSON.stringify(receipt));fs.fsyncSync(fd);}finally{fs.closeSync(fd);}return receipt;
+}
+async function openFragmentStore({file,backupDir}){
+ if(!path.isAbsolute(file)||!path.isAbsolute(backupDir))throw Error('Absolute profile and backup paths required');let initial={format:'legacy',value:{},raw:undefined,generation:0};
+ if(fs.existsSync(file)){const reader=new DatabaseSync(file,{readOnly:true});try{initial=readProfile(reader);if(initial.format==='legacy')await makeBackup(reader,backupDir,initial);}finally{reader.close();}}
+ fs.mkdirSync(path.dirname(file),{recursive:true});const db=new DatabaseSync(file);let current=sealProfileSnapshot(captureProfile(initial.value)),encoding=encodeProfile(current),generation=initial.generation,closed=false,pending=false;
+ try{
+  db.exec('PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL');const durability={journalMode:db.prepare('PRAGMA journal_mode').get().journal_mode,synchronous:db.prepare('PRAGMA synchronous').get().synchronous};if(durability.journalMode!=='wal'||durability.synchronous!==2)throw Error('WAL/FULL required');
+  function write(candidateEncoding,nextGeneration,known=new Set()){
+   const insert=db.prepare('INSERT INTO profile_fragments(id,value) VALUES(?,?) ON CONFLICT(id) DO NOTHING');for(const f of candidateEncoding.fragments)if(!known.has(f.id))insert.run(f.id,f.bytes.toString('utf8'));const layout=JSON.stringify(candidateEncoding.layout);db.prepare('INSERT INTO profile_meta VALUES(1,1,?,?,?) ON CONFLICT(id) DO UPDATE SET generation=excluded.generation,state_sha256=excluded.state_sha256,layout=excluded.layout').run(nextGeneration,candidateEncoding.stateSha256,layout);db.prepare('DELETE FROM profile_fragments WHERE id NOT IN (SELECT value FROM json_each(?))').run(layout);
+  }
+  if(initial.format==='legacy'){
+   db.exec('BEGIN IMMEDIATE');try{if(readProfile(db).raw!==initial.raw)throw Error('Profile changed after backup');db.exec(SQL.meta);db.exec(SQL.fragments);write(encoding,generation);if(definition(db,'state'))db.exec('DROP TABLE state');db.exec(SQL.view);if(db.prepare('SELECT value FROM state WHERE id=1').get().value!==JSON.stringify(initial.value))throw Error('Migration byte mismatch');db.exec('COMMIT');}catch(error){db.exec('ROLLBACK');throw error;}
+  }else if(readProfile(db).stateSha256!==initial.stateSha256)throw Error('Profile changed during open');
+  return {durability,get generation(){return generation;},load:()=>captureProfile(current),prepare(candidate){
+   if(closed||pending)throw Error('Profile store closed or preparation pending');validateProfile(candidate);const next=encodeProfile(candidate,encoding),expected=generation;pending=true;let consumed=false;
+   return {stateSha256:next.stateSha256,commit(){if(closed||consumed)throw Error('Consumed profile preparation');consumed=true;db.exec('BEGIN IMMEDIATE');try{const m=db.prepare('SELECT generation,state_sha256 FROM profile_meta WHERE id=1').get();if(m.generation!==expected||m.state_sha256!==encoding.stateSha256)throw Error('Profile generation changed');write(next,expected+1,new Set(encoding.layout));db.exec('COMMIT');current=candidate;encoding=next;generation=expected+1;}catch(error){db.exec('ROLLBACK');throw error;}finally{pending=false;}}};
+  },close(){if(!closed){closed=true;db.close();}}};
+ }catch(error){db.close();throw error;}
+}
+module.exports={openFragmentStore,readProfile};

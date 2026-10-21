@@ -81,3 +81,74 @@ Robin remains the librarian. The captain selects an existing Obsidian note and p
 ## Project document shelf (2026-09-22)
 
 Project quarters contain collapsible Project charts below the health log. The captain explicitly browses root/docs Markdown files and selects a read-only source preview. File content is never treated as mission evidence or an instruction to act. This adds useful project information without changing the immediate stop/approval controls.
+
+## Fifteen direct scene destinations — 2026-10-05
+
+Island and project quarters expose a keyboard-focusable roster of ten core crew,
+four residents and Morgans. Crew buttons open the existing conversation path;
+Morgans opens the news blimp's read-only briefings. Inspect controls open the exact
+selected crew task without waiting for travel. Reporter access remains excluded
+from task-capable crew. Resident districts remain saved choices.
+
+The read-only scene projection now follows the selected supervised run's current
+assignment, retains historical selections, suppresses ambiguous assignments and
+checks worker ancestry against an explicit mission attempt. Run stop, recovery,
+waiting, block and ready states cannot borrow a working task's animation. A
+review stage or exact selected review-capability assignment uses a still pose,
+including ordinary run children without a workflow stage. A creative-reviewer
+using creative/design capability remains authored work; review phase alone never
+relabels an author as a reviewer. Scene pause changes presentation only; task and
+run authority continue updating. Decorative room illustrations remain static;
+only existing measured Franky/quarters/deck geometry is reused. No new world,
+game, provider, persistence schema, dependency or artwork is introduced.
+Existing-task resident conversations intentionally omit room art because only
+the ten core crew have admitted room illustrations; resident identity and work
+controls remain available without an invalid `assets/undefined` image request.
+
+Native state/reduced-motion captures, keyboard journeys, 200% text and exact
+package proof are pending while host crash/hang diagnosis is open. Source checks
+do not admit installed rollout or waive the Stage A performance gate.
+
+The captain leads a living digital crew from Sunny HQ. Projects are destinations, meaningful objectives are missions, and durable evidence belongs in the logbook. The One Piece-inspired premise is permanent; real work and clear controls determine what happens underneath it.
+
+
+## Franky's honest one-room pilot — 2026-10-01
+
+The selected persisted work context can open Franky's shipwright workshop while keeping the captain log opaque and directly accessible. The shared mission projection follows the exact selected mission/attempt/task and structured stage owner. A newer unrelated assignment cannot replace it; approval and unknown state stop purposeful work. Nami planning, Usopp validation and Zoro review remain their own stages with Franky still. Missing/conflicting selections stay unavailable. A finished provider turn remains ready for captain review; only a modern captain receipt bound to the selected result represents accepted work.
+
+The one room reuses the existing uncropped3:2 illustration and existing Franky atlas; root-reviewed measured floor anchors/route and in-memory padded silhouette extraction are recorded in the art bible and ARTWORK.md. Franky holds a wrench beside the bench without a fabricated tabletop strike. Inspect work, input/approval and Stop work remain direct controls. Pause visuals calls no interrupt. System/Sunny reduced motion removes travel, frame loops and the acceptance glow. The room and companion compete through one backend durable first-claim command for a brief live-acceptance cue; mount/reload/history never manufactures a reward. The captain log displays the receipt without consuming its cue.
+
+Automatic crew victory on a finished provider turn has been removed. Captain-requested/timed deck scenes remain explicitly labelled ambient entertainment and cannot alter mission state. This isolated source pilot remains subject to native visual/truth review and the independent performance promotion gates; it does not replace the installed app or claim packaged rollout.
+
+## Immersive interface refresh — 2026-10-16
+
+The captain approved a whole-interface refresh with larger existing world art and stronger nautical navigation. `src/voyage-ui.css` supplies the shared parchment, deep-teal and brass presentation across Home, projects, crew, missions, inbox, library, tools, settings, Morgans and the workbench. Destination headers reuse the existing ship, project quarters and specialist room illustrations. The ship's existing 3:2 deck and actor anchors are unchanged; it opens by default above 640 px and retains its disclosure control.
+
+Captain's log is now a native expandable dock below the main workspace, with an attention count derived from the existing work-entry projection, including missions awaiting review. This replaces the prior narrow/short-window layout that placed the full log above every destination. The main workspace has a skip link. The compact navigation closes with Escape, returns focus, cycles focus while open, and removes hidden links from keyboard access. Sidebar identity and Settings stay anchored while destinations scroll.
+
+Browser preview checks covered all eleven navigation destinations at 1280x720 and 390x844, plus the empty workbench, menu focus and logbook keyboard activation. These checks use the explicitly labelled browser preview and do not establish connected-provider behavior. Desktop working/blocked/reduced-motion screenshots and the native fixture workflow are pending: the captain requested no desktop interaction while gaming. See [UI evidence](evidence/ui-revamp-2026-10-16.json). Installation remains subject to the separate integration gates.
+
+## Command deck and room separation — 2026-10-16
+
+Supersedes the earlier beige presentation pass. The main Sunny screen keeps the existing animated ship beside a selected-crew inspector, with Station, Activity and Run controls panels. Horizontal navigation frames the world and a compact crew dock sits beneath it. The newest saved work update remains visible under the ship and opens the bounded activity feed. An indexed crew roster uses the same `crewSceneProjection` as the ship, including run-stop, uncertainty, selected-attempt and persistence gates. Filters reveal working and attention states without hiding direct mission and run controls. Ambient crew life is explicitly distinguished from work. The feed is bounded to twelve records and respects selected project/run; it never creates work.
+
+The helm shell uses deep sea teal, sail cream and brass, with restrained green for actual working state. A room has its own illustration panel beside the workbench conversation; chat no longer uses the art as a background. Franky's animated workshop keeps the 3:2 canvas and actor geometry, with status and controls alongside at wide widths and below on narrow screens. No new renderer framework, shader dependency, provider or persistence contract was introduced. Existing reduced motion and pause controls remain authoritative for visuals.
+
+Evidence: `docs/evidence/ui-revamp-2026-10-16.json`. The hidden native workflow passed, including a streamed-snapshot consistency check and ten room-art visibility checks. Exact-package performance/journey acceptance and installed-app rollout remain separate gates. The browser's synthetic fixtures are visual checks, not evidence of a real provider run.
+
+## Interactive motion refinement — 2026-10-17
+React 19, TypeScript and Vite remain the renderer foundation. Motion 14.3.0 supplies interruptible shared selection markers and crew layout transitions, with a pinned dependency/lockfile. Panel entrances use short opacity/position transitions; buttons have restrained hover/press feedback. The saved activity feed keeps a static timeline hierarchy. No task state, authority or progress is synthesized.
+
+The sea uses two low-opacity CSS layers with a direct Pause/Resume sea motion control; it is decorative and does not move the ship artwork or its actor geometry. Both the Sunny setting and live OS reduced-motion changes suppress movement. The native regression exposed a non-reactive library preference hook; a matchMedia change listener now updates immediately. No WebGL shader, network service or new art asset is needed. Existing workbench lifecycle and input state are retained outside the selected inspector content.
+
+Reference: Motion's official React accessibility and layout documentation (`https://motion.dev/docs/react-accessibility`). Verification evidence: `.sunny-dev/ui-revamp/motion-build-3.log`, `motion-focused-tests.log`, and `workflow-motion-3/result.json`. The failed earlier native preference check is retained at `workflow-motion-2/result.json` rather than erased. Browser keyboard activation, sea pause and 390px horizontal-overflow checks passed. Source verification of this motion refinement does not resolve the previously recorded package latency/journey failures.
+
+## Distinct crew workstations — 2026-10-17
+
+The crew rooms now share only their navigation and evidence rules. Luffy has an objective sheet and crew roster; Zoro a review ledger; Nami a continuous criteria route; Usopp a test bench; Sanji a service ticket; Chopper a diagnostic observation; Robin a reading desk; Franky a build console; Brook a composition sheet; and Jinbe an operations watch. These are read-only projections of the selected conversation, project, mission attempt and run. Historical tasks cannot borrow a newer attempt's artifacts or review decision. Criteria are requirements, not a completion meter. Saved replies are not captain acceptance.
+
+The latest saved task update opens the room's activity panel. Draft starting points append to the unsent composer without launching work. Room/conversation and conversation-focus layouts preserve the mounted editor, transcript and draft. Tool shortcuts use the existing dirty-buffer guard and execution identity. The illustration can expand independently of chat. Tablet rooms place art and station content side by side; narrow layouts stack them with readable controls.
+
+Original CSS ambience gives each room a different quiet texture (light, chart rings, steam, dust, leaves, resonance or water). It has an explicit pause control and stops for either reduced-motion preference, page hiding or conversation-focus mode. Motion supplies only a short panel entrance. No new provider, persistence schema, renderer framework, asset, shader dependency or progress simulation was introduced.
+
+The captain and watch stations include a crew relay when their selected task belongs to a recorded run. Nodes show recorded assignment objectives and explicit predecessor IDs; visual adjacency never invents dependencies. A pulse means the existing run projection currently confirms work, not a progress percentage. Pending approvals, uncertain effects, pause/stop and storage recovery suppress that pulse. Inspect actions use the workbench's existing dirty-editor guard.

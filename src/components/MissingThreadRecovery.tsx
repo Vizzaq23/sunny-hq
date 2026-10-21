@@ -1,5 +1,5 @@
 import {useRef,useState} from 'react';
-import type {Task} from '../shared';
+import type {TaskSummary as Task} from '../shared';
 import './missing-thread-recovery.css';
 
 export function MissingThreadRecovery({task,invoke,disabled=false}:{task:Task;invoke:<T=unknown>(action:string,args?:unknown)=>Promise<T>;disabled?:boolean}){

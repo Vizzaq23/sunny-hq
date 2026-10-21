@@ -17,3 +17,4 @@ import './quarters.css';
 import './room-stations.css';
 
 import './work-navigation.css';
+import './frontend-system.css';

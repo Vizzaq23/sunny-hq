@@ -1,0 +1,813 @@
+{
+  "date": "2026-10-17",
+  "sourceCommit": "ea90831d031073fee9963d248bbe659a60f2bca3",
+  "scope": "Original reliability branch; separate from newer UI and installed candidates",
+  "cleanCheckout": {
+    "path": ".sunny-dev/reliability-clean-20261017",
+    "npmCi": "passed; existing 9 moderate/3 high audit findings",
+    "tests": {
+      "total": 417,
+      "passed": 417,
+      "failed": 0,
+      "skipped": 0
+    },
+    "build": "passed; large Vite bundle warning",
+    "logs": [
+      {
+        "path": ".sunny-dev/reliability-clean-ci-20261017.log",
+        "sha256": "b722d4cb562378aeb0bfdc956c7ed565e93c9375eaa83ecf93fb626be1c407a1"
+      },
+      {
+        "path": ".sunny-dev/reliability-clean-tests-20261017.log",
+        "sha256": "6f4f1e8c9948001461ad6e031278aab560ac3fd0678b9a8e053e7d780a08fae3"
+      },
+      {
+        "path": ".sunny-dev/reliability-clean-build-20261017.log",
+        "sha256": "a8151379051093c7e42eb390dc6076c6966e7786317a73bc4fbf491b6e458e77"
+      }
+    ]
+  },
+  "workerRecovery": {
+    "startedAt": "2026-10-17T05:07:27.009Z",
+    "provider": "installed Codex app-server",
+    "interruption": "abrupt provider process exit",
+    "scope": "synthetic isolated local projects",
+    "root": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-live-recovery-izaWER",
+    "trials": [
+      {
+        "trial": 1,
+        "steps": [
+          {
+            "name": "connected",
+            "time": "2026-10-17T05:07:28.278Z"
+          },
+          {
+            "name": "worker-started",
+            "time": "2026-10-17T05:07:30.670Z",
+            "taskId": "3932a049-6a0c-4e4e-b449-96a68b4ace43"
+          },
+          {
+            "name": "checkpoint-written",
+            "time": "2026-10-17T05:07:37.650Z",
+            "taskId": "3932a049-6a0c-4e4e-b449-96a68b4ace43",
+            "checkpointHash": "b3c35abb41ecf54ca1cf66470a15a2313820fef89230346300230c9039e84b05"
+          },
+          {
+            "name": "provider-crashed",
+            "time": "2026-10-17T05:07:37.805Z",
+            "taskId": "3932a049-6a0c-4e4e-b449-96a68b4ace43",
+            "status": "unknown",
+            "providerPid": 62096
+          },
+          {
+            "name": "restart-reconciled",
+            "time": "2026-10-17T05:07:38.655Z",
+            "taskId": "3932a049-6a0c-4e4e-b449-96a68b4ace43",
+            "status": "interrupted"
+          },
+          {
+            "name": "same-task-recovered",
+            "time": "2026-10-17T05:07:54.632Z",
+            "taskId": "3932a049-6a0c-4e4e-b449-96a68b4ace43",
+            "reportHash": "27d24bbf624b8f5284aa26e5cf9beaeaa17a26eb1702964dec7903e7727b33f1",
+            "duplicateTasks": 0,
+            "approvals": 0
+          },
+          {
+            "name": "reviewed-save-survived-restart",
+            "time": "2026-10-17T05:07:54.655Z",
+            "taskId": "3932a049-6a0c-4e4e-b449-96a68b4ace43",
+            "saveId": "4148c468-b3ad-44f9-b49d-746ab2274a47",
+            "notePath": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-live-recovery-izaWER\\trial-1\\vault\\00 Inbox\\Sunny-4148c468-b3ad-44f9-b49d-746ab2274a47.md"
+          },
+          {
+            "name": "request-failure-visible",
+            "time": "2026-10-17T05:07:57.278Z",
+            "taskId": "907f57f3-cc27-4998-b191-cf6448885a36",
+            "error": "Injected pre-submit request failure",
+            "status": "failed"
+          },
+          {
+            "name": "failed-request-recovered",
+            "time": "2026-10-17T05:08:04.822Z",
+            "taskId": "670bce5f-af97-4fe8-8c85-a608164a2c9d",
+            "duplicateTasks": 0,
+            "approvals": 0
+          }
+        ],
+        "passed": true,
+        "lastSuccessfulStep": "failed-request-recovered",
+        "interruptedTaskId": "3932a049-6a0c-4e4e-b449-96a68b4ace43",
+        "model": "gpt-6.1-sol",
+        "failedRequestTaskId": "907f57f3-cc27-4998-b191-cf6448885a36"
+      },
+      {
+        "trial": 2,
+        "steps": [
+          {
+            "name": "connected",
+            "time": "2026-10-17T05:08:05.660Z"
+          },
+          {
+            "name": "worker-started",
+            "time": "2026-10-17T05:08:07.911Z",
+            "taskId": "d588e3ce-144c-4191-90b0-873d4eb5b5a3"
+          },
+          {
+            "name": "checkpoint-written",
+            "time": "2026-10-17T05:08:16.126Z",
+            "taskId": "d588e3ce-144c-4191-90b0-873d4eb5b5a3",
+            "checkpointHash": "cfba72c305234a3119b9e224b92dcddb01e75be8d46a52262fab90522f477722"
+          },
+          {
+            "name": "provider-crashed",
+            "time": "2026-10-17T05:08:17.038Z",
+            "taskId": "d588e3ce-144c-4191-90b0-873d4eb5b5a3",
+            "status": "unknown",
+            "providerPid": 61152
+          },
+          {
+            "name": "restart-reconciled",
+            "time": "2026-10-17T05:08:19.409Z",
+            "taskId": "d588e3ce-144c-4191-90b0-873d4eb5b5a3",
+            "status": "interrupted"
+          },
+          {
+            "name": "same-task-recovered",
+            "time": "2026-10-17T05:08:38.018Z",
+            "taskId": "d588e3ce-144c-4191-90b0-873d4eb5b5a3",
+            "reportHash": "ac469f4495d32f6b4b80ddcd977e4b6b7c32d3938e7ffac455e50c69daf353a2",
+            "duplicateTasks": 0,
+            "approvals": 0
+          },
+          {
+            "name": "reviewed-save-survived-restart",
+            "time": "2026-10-17T05:08:38.469Z",
+            "taskId": "d588e3ce-144c-4191-90b0-873d4eb5b5a3",
+            "saveId": "787c8a70-e6ef-463b-9dde-115cc3152fad",
+            "notePath": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-live-recovery-izaWER\\trial-2\\vault\\00 Inbox\\Sunny-787c8a70-e6ef-463b-9dde-115cc3152fad.md"
+          },
+          {
+            "name": "request-failure-visible",
+            "time": "2026-10-17T05:08:44.376Z",
+            "taskId": "8b177df1-39d6-4aee-bd8f-b3779ddf959f",
+            "error": "Injected pre-submit request failure",
+            "status": "failed"
+          },
+          {
+            "name": "failed-request-recovered",
+            "time": "2026-10-17T05:08:53.931Z",
+            "taskId": "4117acb4-7c6b-42b5-9a1a-befa0b05fbf5",
+            "duplicateTasks": 0,
+            "approvals": 0
+          }
+        ],
+        "passed": true,
+        "lastSuccessfulStep": "failed-request-recovered",
+        "interruptedTaskId": "d588e3ce-144c-4191-90b0-873d4eb5b5a3",
+        "model": "gpt-6.1-sol",
+        "failedRequestTaskId": "8b177df1-39d6-4aee-bd8f-b3779ddf959f"
+      },
+      {
+        "trial": 3,
+        "steps": [
+          {
+            "name": "connected",
+            "time": "2026-10-17T05:08:54.954Z"
+          },
+          {
+            "name": "worker-started",
+            "time": "2026-10-17T05:08:56.756Z",
+            "taskId": "e8f52e98-d193-4b1a-a937-9029675b53b0"
+          },
+          {
+            "name": "checkpoint-written",
+            "time": "2026-10-17T05:09:03.113Z",
+            "taskId": "e8f52e98-d193-4b1a-a937-9029675b53b0",
+            "checkpointHash": "77f50c83c4d54bfcb168798a5fc988de7a3af72aeed130afc3bd32751c3d6ffb"
+          },
+          {
+            "name": "provider-crashed",
+            "time": "2026-10-17T05:09:03.271Z",
+            "taskId": "e8f52e98-d193-4b1a-a937-9029675b53b0",
+            "status": "unknown",
+            "providerPid": 45956
+          },
+          {
+            "name": "restart-reconciled",
+            "time": "2026-10-17T05:09:04.179Z",
+            "taskId": "e8f52e98-d193-4b1a-a937-9029675b53b0",
+            "status": "interrupted"
+          },
+          {
+            "name": "same-task-recovered",
+            "time": "2026-10-17T05:09:18.893Z",
+            "taskId": "e8f52e98-d193-4b1a-a937-9029675b53b0",
+            "reportHash": "f985dd85b76bf7570a8537e0c4c463d6fd77a4b094341966d3b40a0dd75f4203",
+            "duplicateTasks": 0,
+            "approvals": 0
+          },
+          {
+            "name": "reviewed-save-survived-restart",
+            "time": "2026-10-17T05:09:18.923Z",
+            "taskId": "e8f52e98-d193-4b1a-a937-9029675b53b0",
+            "saveId": "f469e832-b637-4045-a901-5d20587d17d7",
+            "notePath": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-live-recovery-izaWER\\trial-3\\vault\\00 Inbox\\Sunny-f469e832-b637-4045-a901-5d20587d17d7.md"
+          },
+          {
+            "name": "request-failure-visible",
+            "time": "2026-10-17T05:09:23.107Z",
+            "taskId": "9fd28937-7113-4e27-98cf-b233d7580d5f",
+            "error": "Injected pre-submit request failure",
+            "status": "failed"
+          },
+          {
+            "name": "failed-request-recovered",
+            "time": "2026-10-17T05:09:35.235Z",
+            "taskId": "7126e606-f84b-4836-9ce5-2886de8702df",
+            "duplicateTasks": 0,
+            "approvals": 0
+          }
+        ],
+        "passed": true,
+        "lastSuccessfulStep": "failed-request-recovered",
+        "interruptedTaskId": "e8f52e98-d193-4b1a-a937-9029675b53b0",
+        "model": "gpt-6.1-sol",
+        "failedRequestTaskId": "9fd28937-7113-4e27-98cf-b233d7580d5f"
+      }
+    ],
+    "passed": true,
+    "finishedAt": "2026-10-17T05:09:35.239Z"
+  },
+  "preservedPackageSave": {
+    "passed": true,
+    "packageRoot": "C:\\Users\\Quintin\\Documents\\GitHub\\sunny-hq\\.sunny-dev\\reliability-package-2026-10-12\\win-unpacked",
+    "asarSha256": "1517070cb7bd7875fd101fb57f8ff642a45d0644d1b983717c5a11c84054ad90",
+    "saveId": "6c4de805-b6da-4271-bb66-2c6f1a019981",
+    "notePath": "C:\\Users\\Quintin\\Documents\\GitHub\\sunny-hq\\.sunny-dev\\package-receipt-20261017\\vault\\00 Inbox\\Sunny-6c4de805-b6da-4271-bb66-2c6f1a019981.md",
+    "receipt": {
+      "id": "6c4de805-b6da-4271-bb66-2c6f1a019981",
+      "path": "C:\\Users\\Quintin\\Documents\\GitHub\\sunny-hq\\.sunny-dev\\package-receipt-20261017\\vault\\00 Inbox\\Sunny-6c4de805-b6da-4271-bb66-2c6f1a019981.md",
+      "sha256": "6ebf2fa06bf31cba3eef7e23817867ef16ff93cf2b17e33c888c61415027614b",
+      "bytes": 193,
+      "verifiedAt": 1792213761381
+    },
+    "providerCalls": 0,
+    "rendererExit": {
+      "reason": "crashed",
+      "exitCode": 2
+    },
+    "hidden": true,
+    "checks": [
+      "SQLite process restart",
+      "exact receipt and backup",
+      "uncertain task reservation",
+      "visible saved and needs recovery",
+      "conflict recovery without duplicate",
+      "renderer crash and reload"
+    ]
+  },
+  "cleanPackageSave": {
+    "passed": true,
+    "packageRoot": "C:\\Users\\Quintin\\Documents\\GitHub\\sunny-hq\\.sunny-dev\\reliability-clean-package-20261017\\win-unpacked",
+    "asarSha256": "ee5052ff774220a6f269ad5f83084ad12f52f97a4f652a472e61119bb74a7d4e",
+    "saveId": "d8ff3ef3-c0b3-40bb-99df-7ccee7cc2088",
+    "notePath": "C:\\Users\\Quintin\\Documents\\GitHub\\sunny-hq\\.sunny-dev\\clean-package-receipt-20261017\\vault\\00 Inbox\\Sunny-d8ff3ef3-c0b3-40bb-99df-7ccee7cc2088.md",
+    "receipt": {
+      "id": "d8ff3ef3-c0b3-40bb-99df-7ccee7cc2088",
+      "path": "C:\\Users\\Quintin\\Documents\\GitHub\\sunny-hq\\.sunny-dev\\clean-package-receipt-20261017\\vault\\00 Inbox\\Sunny-d8ff3ef3-c0b3-40bb-99df-7ccee7cc2088.md",
+      "sha256": "1d585bbc360d3530037ffc5ad8e7e22a97d8284172e8d7e830f8283aee56ff5a",
+      "bytes": 193,
+      "verifiedAt": 1792214190805
+    },
+    "providerCalls": 0,
+    "rendererExit": {
+      "reason": "crashed",
+      "exitCode": 2
+    },
+    "hidden": true,
+    "checks": [
+      "SQLite process restart",
+      "exact receipt and backup",
+      "uncertain task reservation",
+      "visible saved and needs recovery",
+      "conflict recovery without duplicate",
+      "renderer crash and reload"
+    ]
+  },
+  "workflow": {
+    "passed": true,
+    "hidden": true
+  },
+  "missionFixture": {
+    "passed": true,
+    "output": "C:\\Users\\Quintin\\Documents\\GitHub\\sunny-hq\\.sunny-dev\\mission-check\\1792214492885",
+    "runtime": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-mission-SMKn3q",
+    "imageInput": "synthetic-fixture",
+    "motionCheck": false,
+    "coordinated": false,
+    "mergeBound": false,
+    "mergeViaUi": false,
+    "checks": [
+      "missing-thread-confirmation",
+      "uncertain-check-confirmation",
+      "unknown-failed-attention-projection",
+      "illustrated-room-full-and-narrow",
+      "enter-project-room",
+      "keyboard-movement",
+      "open-room-board",
+      "create",
+      "prepare-real-branch",
+      "launch-through-hub",
+      "await-review",
+      "real-npm-check",
+      "fixture-pr-evidence",
+      "fixture-deployment-observation",
+      "post-acceptance-deployment-refresh",
+      "criteria-gate",
+      "written-deliverable-preview",
+      "native-image-deliverable-preview",
+      "explicit-acceptance",
+      "signal-acknowledgment",
+      "unseen-filter",
+      "signal-mission-navigation",
+      "persist",
+      "reload"
+    ]
+  },
+  "reportJourneys": [
+    {
+      "status": "failed: crew used broken npm shim",
+      "log": {
+        "path": ".sunny-dev/report-resume-20261017.log",
+        "sha256": "21ae24132d63c03a71e6f6acd4c2eccd6404ad8df2aaee2afa7c1f79bb816529"
+      },
+      "root": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-live-report-8RaXC0",
+      "startedAt": "2026-10-17T05:10:34.423Z",
+      "provider": "installed Codex app-server",
+      "reviewActor": "test harness simulating captain decisions",
+      "trials": [
+        {
+          "trial": 1,
+          "steps": [
+            {
+              "name": "coordinator-started",
+              "time": "2026-10-17T05:10:38.312Z",
+              "taskId": "35bbc071-09da-449a-a963-b7094d6cc87d",
+              "attemptId": "d6af54a7-c9d1-4d73-951b-d9eef84f2664",
+              "model": "gpt-6.1-sol"
+            }
+          ],
+          "passed": false,
+          "missionId": "ad7ca0b4-8544-499a-8464-4776fc4c99f2",
+          "lastSuccessfulStep": "coordinator-started",
+          "failure": {
+            "stage": "coordinator-started",
+            "missionId": "ad7ca0b4-8544-499a-8464-4776fc4c99f2",
+            "error": "Coordinator did not recommend acceptance; retain for captain review"
+          }
+        }
+      ],
+      "passed": false
+    },
+    {
+      "status": "interrupted during revised attempt validation; no completion receipt",
+      "log": {
+        "path": ".sunny-dev/report-direct-npm-20261017.log",
+        "sha256": "d47bb471a725a597bf582f92c168b0a3adfe89beeb22907585654a117e60aa3e"
+      },
+      "root": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-live-report-Sjlda0",
+      "startedAt": "2026-10-17T05:13:29.658Z",
+      "provider": "installed Codex app-server",
+      "reviewActor": "test harness simulating captain decisions",
+      "trials": [
+        {
+          "trial": 1,
+          "steps": [
+            {
+              "name": "coordinator-started",
+              "time": "2026-10-17T05:13:34.577Z",
+              "taskId": "073a38be-b865-42f1-8a37-20d1b6cbda2a",
+              "attemptId": "085ab407-f1fa-4e32-86b8-7c6e3375ea40",
+              "model": "gpt-6.1-sol"
+            },
+            {
+              "name": "report-inspected",
+              "time": "2026-10-17T05:15:42.878Z",
+              "taskId": "073a38be-b865-42f1-8a37-20d1b6cbda2a",
+              "attemptId": "085ab407-f1fa-4e32-86b8-7c6e3375ea40",
+              "reportHash": "de548bd69aef59f7b7b57a60f1ced713819a65ea2dc028396383c11bfb46f580",
+              "stages": [
+                {
+                  "id": "plan",
+                  "taskId": "c5638aaa-6dfd-40b5-9684-2952b5d782bd",
+                  "status": "complete",
+                  "resultMessageId": "msg_05cb2c452f157881016ad304160e588193a0b0aca46dba0806"
+                },
+                {
+                  "id": "work",
+                  "taskId": "7809a5c2-6612-480f-941c-71495892b641",
+                  "status": "complete",
+                  "resultMessageId": "msg_0d3d227d6d849a99016ad30443b4448193944700585a719631"
+                },
+                {
+                  "id": "validate",
+                  "taskId": "c9d86992-593a-44f7-a25d-c571770762e7",
+                  "status": "complete",
+                  "resultMessageId": "msg_09eab338abd15349016ad304595bdc8193b81a9d806eb145c6"
+                },
+                {
+                  "id": "review",
+                  "taskId": "a83d5840-01ae-4f1c-8c9e-77fa995587e0",
+                  "status": "complete",
+                  "resultMessageId": "msg_0c9e85b9a771364a016ad30476178c81949f4d436f5e5bb652"
+                }
+              ],
+              "recommendation": "Recommendation: accept\n\nAll criteria met: all five exact source values and `facts.json` citations included; required headings present; 33 words. Only `report.md` changed. Original npm test passed: exit `0`, `Report facts verified`. Zoro found no issues. No remaining blockers.\n\nAll four stages returned inspectable results:\n\n- Nami: `c5638aaa-6dfd-40b5-9684-2952b5d782bd`\n- Robin: `7809a5c2-6612-480f-941c-71495892b641`\n- Usopp: `c9d86992-593a-44f7-a25d-c571770762e7`\n- Zoro: `a83d5840-01ae-4f1c-8c9e-77fa995587e0`\n\nReport: [report.md](/C:/Users/Quintin/AppData/Local/Temp/sunny-live-report-Sjlda0/trial-1/project/report.md)\n\nThis is my recommendation; human acceptance remains yours."
+            },
+            {
+              "name": "changes-requested",
+              "time": "2026-10-17T05:15:42.881Z",
+              "attemptId": "085ab407-f1fa-4e32-86b8-7c6e3375ea40",
+              "note": "Add a standalone final line to report.md, separated by a newline from all other text: Follow-up: captain review remains required. Keep every existing source fact and cite facts.json."
+            },
+            {
+              "name": "review-decision-survived-restart",
+              "time": "2026-10-17T05:15:42.888Z"
+            },
+            {
+              "name": "coordinator-started",
+              "time": "2026-10-17T05:15:45.354Z",
+              "taskId": "0b89713a-5d3a-4094-ab7b-4035e8f35d8f",
+              "attemptId": "4aff748d-2460-41d5-8337-036906228a06",
+              "model": "gpt-6.1-sol"
+            }
+          ],
+          "passed": false,
+          "missionId": "a8948222-b0d7-4ab6-9a8c-52eb738c4c85",
+          "lastSuccessfulStep": "coordinator-started"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "status": "environment setup failed: Git loose-object permission denied before Hub/task creation",
+      "log": {
+        "path": ".sunny-dev/report-final-20261017.log",
+        "sha256": "6a1c0befdcb985c6762fc992e59672d04c8050f17db15aff617081533bf4079a"
+      },
+      "root": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-live-report-N4QbiY",
+      "startedAt": "2026-10-17T05:21:46.770Z",
+      "provider": "installed Codex app-server",
+      "reviewActor": "test harness simulating captain decisions",
+      "trials": [],
+      "passed": false
+    },
+    {
+      "status": "passed",
+      "log": {
+        "path": ".sunny-dev/report-verified-20261017.log",
+        "sha256": "746a426fe3224ab66343f96a5766a11cd5623c8de80462805fffda409ba6f9ab"
+      },
+      "root": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-live-report-ZnuDCd",
+      "startedAt": "2026-10-17T05:22:23.567Z",
+      "provider": "installed Codex app-server",
+      "reviewActor": "test harness simulating captain decisions",
+      "trials": [
+        {
+          "trial": 1,
+          "steps": [
+            {
+              "name": "coordinator-started",
+              "time": "2026-10-17T05:22:26.720Z",
+              "taskId": "bac1c9a0-d90e-4425-bbb3-4c0262176909",
+              "attemptId": "c4b438a4-f886-48e0-9319-54c2b1bbfc52",
+              "model": "gpt-6.1-sol"
+            },
+            {
+              "name": "report-inspected",
+              "time": "2026-10-17T05:24:16.180Z",
+              "taskId": "bac1c9a0-d90e-4425-bbb3-4c0262176909",
+              "attemptId": "c4b438a4-f886-48e0-9319-54c2b1bbfc52",
+              "reportHash": "75cff87c1f0c92b9ca7e7c63bef9c3d0a015b267e3f8caff0c29e4fafa650b28",
+              "stages": [
+                {
+                  "id": "plan",
+                  "taskId": "450c96e9-73cc-4ee8-89f2-78485a21bbf1",
+                  "status": "complete",
+                  "resultMessageId": "msg_07196165c78f2f30016ad3062564c4819599ccaa6eeb97c516"
+                },
+                {
+                  "id": "work",
+                  "taskId": "129f2ab6-2466-4de9-af6f-500c57aa55f2",
+                  "status": "complete",
+                  "resultMessageId": "msg_054e469f1111915c016ad3064222648197bb2527f9f5e06331"
+                },
+                {
+                  "id": "validate",
+                  "taskId": "3cbda8e2-41cd-48e0-ac78-d0cd7deb49c1",
+                  "status": "complete",
+                  "resultMessageId": "msg_06afcf4fb25daef1016ad306576bf8819596b0cd7c482f7b58"
+                },
+                {
+                  "id": "review",
+                  "taskId": "f6ce5c17-ea41-4aa4-88e7-83a3496a8f92",
+                  "status": "complete",
+                  "resultMessageId": "msg_0e73bbdc65ed96c0016ad30674d1d48197bdba0ee45e882f2d"
+                }
+              ],
+              "recommendation": "Recommendation: accept\n\nReport: [report.md](/C:/Users/Quintin/AppData/Local/Temp/sunny-live-report-ZnuDCd/trial-1/project/report.md)\n\nAll four stages returned inspectable results:\n\n- Nami: `450c96e9-73cc-4ee8-89f2-78485a21bbf1`\n- Robin: `129f2ab6-2466-4de9-af6f-500c57aa55f2`\n- Usopp: `3cbda8e2-41cd-48e0-ac78-d0cd7deb49c1`\n- Zoro: `f6ce5c17-ea41-4aa4-88e7-83a3496a8f92`\n\nAcceptance evidence:\n\n- All five exact source values and facts.json citations verified; required headings present; 30 words.\n- Only report.md changed. Original npm test passed, exit 0: `Report facts verified`. Zoro independently reran it successfully.\n- Planning, writing, validation, and review completed sequentially.\n\nNo remaining blockers. This is Luffy’s recommendation, not human acceptance."
+            },
+            {
+              "name": "changes-requested",
+              "time": "2026-10-17T05:24:16.182Z",
+              "attemptId": "c4b438a4-f886-48e0-9319-54c2b1bbfc52",
+              "note": "Add a standalone final line to report.md, separated by a newline from all other text: Follow-up: captain review remains required. Keep every existing source fact and cite facts.json."
+            },
+            {
+              "name": "review-decision-survived-restart",
+              "time": "2026-10-17T05:24:16.187Z"
+            },
+            {
+              "name": "coordinator-started",
+              "time": "2026-10-17T05:24:17.769Z",
+              "taskId": "7f7b629c-e594-4096-a122-4b306af9365e",
+              "attemptId": "9405df2c-7773-461b-97b4-bb838c3addd7",
+              "model": "gpt-6.1-sol"
+            },
+            {
+              "name": "report-inspected",
+              "time": "2026-10-17T05:27:18.487Z",
+              "taskId": "7f7b629c-e594-4096-a122-4b306af9365e",
+              "attemptId": "9405df2c-7773-461b-97b4-bb838c3addd7",
+              "reportHash": "4e467d63c40dba1702e69adb20bfd7f24ad7d646ef0381a23fc87d6a8487a057",
+              "stages": [
+                {
+                  "id": "plan",
+                  "taskId": "19f30532-0be0-4c13-99b3-dc9751c95a58",
+                  "status": "complete",
+                  "resultMessageId": "msg_0b78f7eeb9327640016ad306ec374481968ec2b6e8cf098767"
+                },
+                {
+                  "id": "work",
+                  "taskId": "fb984165-7e7a-4c6f-9210-73db49b208bb",
+                  "status": "complete",
+                  "resultMessageId": "msg_0a1acb927e563a0f016ad30701c8fc8193b418242f3744f53a"
+                },
+                {
+                  "id": "validate",
+                  "taskId": "10a1c528-98c1-4597-b946-23e61ac1f815",
+                  "status": "complete",
+                  "resultMessageId": "msg_001f2784da454b78016ad30718a2fc819785253102f1c3100e"
+                },
+                {
+                  "id": "review",
+                  "taskId": "823ef929-400e-4a6d-a0a1-4bad58f02ad1",
+                  "status": "complete",
+                  "resultMessageId": "msg_05859e8c3c024d52016ad3072cd6f0819388e7df40f3a9b0e0"
+                }
+              ],
+              "recommendation": "Recommendation: accept\n\nReport: [report.md](/C:/Users/Quintin/AppData/Local/Temp/sunny-live-report-ZnuDCd/trial-1/project/report.md)\n\nAll four stages completed sequentially:\n\n- Nami: `19f30532-0be0-4c13-99b3-dc9751c95a58`\n- Robin: `fb984165-7e7a-4c6f-9210-73db49b208bb`\n- Usopp: `10a1c528-98c1-4597-b946-23e61ac1f815`\n- Zoro: `823ef929-400e-4a6d-a0a1-4bad58f02ad1`\n\nEvidence: All five exact source values, `facts.json` citation, required headings, and under-500-word limit verified. The exact standalone final line is present. Only `report.md` changed. Usopp ran the prescribed original npm test: exit **0**, `Report facts verified`. Zoro found no blockers.\n\nCaptain review remains required; this is my recommendation, not human acceptance."
+            },
+            {
+              "name": "accepted-and-saved-after-restart",
+              "time": "2026-10-17T05:27:18.977Z",
+              "acceptedAttemptId": "9405df2c-7773-461b-97b4-bb838c3addd7",
+              "saveId": "78d5c5aa-e893-4109-9fbe-1e0dc1441f5b",
+              "notePath": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-live-report-ZnuDCd\\trial-1\\vault\\00 Inbox\\Sunny-78d5c5aa-e893-4109-9fbe-1e0dc1441f5b.md"
+            }
+          ],
+          "passed": true,
+          "missionId": "ecb36dfc-bc0d-4981-b854-702f816e6fa2",
+          "lastSuccessfulStep": "accepted-and-saved-after-restart"
+        },
+        {
+          "trial": 2,
+          "steps": [
+            {
+              "name": "coordinator-started",
+              "time": "2026-10-17T05:27:22.374Z",
+              "taskId": "9a18b592-f2d6-4b7b-a89f-700bc5f91a7f",
+              "attemptId": "601cc19b-180f-49ab-afa8-4320dca72fd1",
+              "model": "gpt-6.1-sol"
+            },
+            {
+              "name": "report-inspected",
+              "time": "2026-10-17T05:29:06.062Z",
+              "taskId": "9a18b592-f2d6-4b7b-a89f-700bc5f91a7f",
+              "attemptId": "601cc19b-180f-49ab-afa8-4320dca72fd1",
+              "reportHash": "824b773cb2eb2ff17e737f0b6c25023fbdd8bf3734a5fb1e149d850e761321f2",
+              "stages": [
+                {
+                  "id": "plan",
+                  "taskId": "83015e54-32ad-43d0-ab99-93c7a5539730",
+                  "status": "complete",
+                  "resultMessageId": "msg_0670d0aac24928a2016ad3074981ac8197b6fad7ec16d79fcb"
+                },
+                {
+                  "id": "work",
+                  "taskId": "b5d0d120-6d21-4c39-aea6-7792bc97d750",
+                  "status": "complete",
+                  "resultMessageId": "msg_0195fe6b2e788cdf016ad3075feeac81959efc305b6891d27e"
+                },
+                {
+                  "id": "validate",
+                  "taskId": "857f59ad-4055-44c5-b47e-253528387b0b",
+                  "status": "complete",
+                  "resultMessageId": "msg_0f97e37826598bcf016ad3077a5d308193b8de75ef0cce8d12"
+                },
+                {
+                  "id": "review",
+                  "taskId": "7000e198-e4ba-442b-849f-d4438a38d6f2",
+                  "status": "complete",
+                  "resultMessageId": "msg_041a0fa23c2e7d5a016ad3079b3ac88194a509ec7ea7359023"
+                }
+              ],
+              "recommendation": "Recommendation: accept\n\nReport: [report.md](C:/Users/Quintin/AppData/Local/Temp/sunny-live-report-ZnuDCd/trial-2/project/report.md)\n\n- All five exact source values included; `facts.json` cited; required headings present; 32 words.\n- Only `report.md` changed. Original npm test passed with exit 0: `Report facts verified`.\n- All four stages returned inspectable results; Zoro found no issues. No blockers. Human acceptance remains yours.\n\nTask IDs:\n\n- Nami: `83015e54-32ad-43d0-ab99-93c7a5539730`\n- Robin: `b5d0d120-6d21-4c39-aea6-7792bc97d750`\n- Usopp: `857f59ad-4055-44c5-b47e-253528387b0b`\n- Zoro: `7000e198-e4ba-442b-849f-d4438a38d6f2`"
+            },
+            {
+              "name": "changes-requested",
+              "time": "2026-10-17T05:29:06.065Z",
+              "attemptId": "601cc19b-180f-49ab-afa8-4320dca72fd1",
+              "note": "Add a standalone final line to report.md, separated by a newline from all other text: Follow-up: captain review remains required. Keep every existing source fact and cite facts.json."
+            },
+            {
+              "name": "review-decision-survived-restart",
+              "time": "2026-10-17T05:29:06.068Z"
+            },
+            {
+              "name": "coordinator-started",
+              "time": "2026-10-17T05:29:08.899Z",
+              "taskId": "ae73c608-504a-4e7e-bff3-c77bfa29ae5a",
+              "attemptId": "4e6173b8-304c-45ff-b175-e62054272c98",
+              "model": "gpt-6.1-sol"
+            },
+            {
+              "name": "report-inspected",
+              "time": "2026-10-17T05:30:35.320Z",
+              "taskId": "ae73c608-504a-4e7e-bff3-c77bfa29ae5a",
+              "attemptId": "4e6173b8-304c-45ff-b175-e62054272c98",
+              "reportHash": "fab5a087337a3d865f72cd19fcfc0ca40f10a89ba9441c30560fa582aa49d68f",
+              "stages": [
+                {
+                  "id": "plan",
+                  "taskId": "3fc52576-dee9-4dac-81f9-6161ea695479",
+                  "status": "complete",
+                  "resultMessageId": "msg_0e8788f0235a22bd016ad307b88c4481939852ae03f2417dfb"
+                },
+                {
+                  "id": "work",
+                  "taskId": "785f2c40-fe40-4da0-9d5e-e00cca8abf23",
+                  "status": "complete",
+                  "resultMessageId": "msg_00fcb31fc9770148016ad307ca61ac8190ae71d407231442e0"
+                },
+                {
+                  "id": "validate",
+                  "taskId": "f141b546-61fe-4ff8-a4cb-efad3f66508f",
+                  "status": "complete",
+                  "resultMessageId": "msg_0a7fbebedc9e0294016ad307dfe92c819483caa046712bbb9e"
+                },
+                {
+                  "id": "review",
+                  "taskId": "50968a24-d7c7-448c-b67e-8936864076ca",
+                  "status": "complete",
+                  "resultMessageId": "msg_0e51ad34e96ae8d0016ad307f3e9c08190891f540e2cf4c9cb"
+                }
+              ],
+              "recommendation": "Recommendation: accept\n\nReport: [report.md](C:/Users/Quintin/AppData/Local/Temp/sunny-live-report-ZnuDCd/trial-2/project/report.md)\n\n- All five exact source values preserved, `facts.json` cited, required headings present; 37 words.\n- Exact standalone final line added: `Follow-up: captain review remains required.`\n- Only `report.md` changed. Original npm test passed: exit 0, `Report facts verified`.\n- All four stages completed; Zoro found no issues. No blockers. Captain review remains required.\n\nTask IDs:\n\n- Nami: `3fc52576-dee9-4dac-81f9-6161ea695479`\n- Robin: `785f2c40-fe40-4da0-9d5e-e00cca8abf23`\n- Usopp: `f141b546-61fe-4ff8-a4cb-efad3f66508f`\n- Zoro: `50968a24-d7c7-448c-b67e-8936864076ca`"
+            },
+            {
+              "name": "accepted-and-saved-after-restart",
+              "time": "2026-10-17T05:30:35.722Z",
+              "acceptedAttemptId": "4e6173b8-304c-45ff-b175-e62054272c98",
+              "saveId": "05c70f2f-19e4-4173-91bd-41ff686f1bf9",
+              "notePath": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-live-report-ZnuDCd\\trial-2\\vault\\00 Inbox\\Sunny-05c70f2f-19e4-4173-91bd-41ff686f1bf9.md"
+            }
+          ],
+          "passed": true,
+          "missionId": "b761ed1e-ea74-4bc0-bd77-d4247f2bb2d6",
+          "lastSuccessfulStep": "accepted-and-saved-after-restart"
+        },
+        {
+          "trial": 3,
+          "steps": [
+            {
+              "name": "coordinator-started",
+              "time": "2026-10-17T05:30:38.785Z",
+              "taskId": "cdddc6f6-d548-4489-a81c-a3369a1e5b02",
+              "attemptId": "5519b83e-0ac3-4c07-b822-3063a18d7f1f",
+              "model": "gpt-6.1-sol"
+            },
+            {
+              "name": "report-inspected",
+              "time": "2026-10-17T05:32:14.841Z",
+              "taskId": "cdddc6f6-d548-4489-a81c-a3369a1e5b02",
+              "attemptId": "5519b83e-0ac3-4c07-b822-3063a18d7f1f",
+              "reportHash": "eaebe387a2a5271a7ffe53030c405ade62093df4ad3e047219e78ab0169052eb",
+              "stages": [
+                {
+                  "id": "plan",
+                  "taskId": "2961f872-1016-4df6-85b7-bab5e9356752",
+                  "status": "complete",
+                  "resultMessageId": "msg_0b1cfd7a4ce30f67016ad30816b4508194baf187f964477f7c"
+                },
+                {
+                  "id": "work",
+                  "taskId": "2cd6b220-7521-4a51-8fd1-a82a48542ad9",
+                  "status": "complete",
+                  "resultMessageId": "msg_006c8c97ea6cdbf3016ad30829970081969deff3d4d347a6ec"
+                },
+                {
+                  "id": "validate",
+                  "taskId": "d0c8ce72-b7d7-4d26-b60d-649616dd9e98",
+                  "status": "complete",
+                  "resultMessageId": "msg_0d4151fab71415cf016ad3083e4c0c81939a88922a344ddac2"
+                },
+                {
+                  "id": "review",
+                  "taskId": "da7122c5-d810-4d45-aa1c-e193cbd91285",
+                  "status": "complete",
+                  "resultMessageId": "msg_0ac04a8167c026d8016ad30855ffa4819698b313bb7af3187f"
+                }
+              ],
+              "recommendation": "Recommendation: accept\n\nReport: [report.md](C:/Users/Quintin/AppData/Local/Temp/sunny-live-report-ZnuDCd/trial-3/project/report.md)\n\n- All five exact source values included; `facts.json` cited; required headings present; under 500 words.\n- Only `report.md` changed. Original npm test passed: `Report facts verified`, exit 0. Zoro found no issues.\n- All four stages returned inspectable results:\n  - Nami: `2961f872-1016-4df6-85b7-bab5e9356752`\n  - Robin: `2cd6b220-7521-4a51-8fd1-a82a48542ad9`\n  - Usopp: `d0c8ce72-b7d7-4d26-b60d-649616dd9e98`\n  - Zoro: `da7122c5-d810-4d45-aa1c-e193cbd91285`\n\nNo remaining blockers. Word counts differed between reviewers, but both were below 500. This is my recommendation, not human acceptance."
+            },
+            {
+              "name": "changes-requested",
+              "time": "2026-10-17T05:32:14.842Z",
+              "attemptId": "5519b83e-0ac3-4c07-b822-3063a18d7f1f",
+              "note": "Add a standalone final line to report.md, separated by a newline from all other text: Follow-up: captain review remains required. Keep every existing source fact and cite facts.json."
+            },
+            {
+              "name": "review-decision-survived-restart",
+              "time": "2026-10-17T05:32:14.846Z"
+            },
+            {
+              "name": "coordinator-started",
+              "time": "2026-10-17T05:32:17.351Z",
+              "taskId": "be8e5033-fef4-40cc-b340-3a4bc18152e8",
+              "attemptId": "1d044d6a-1593-4b14-86b1-be83c766568f",
+              "model": "gpt-6.1-sol"
+            },
+            {
+              "name": "report-inspected",
+              "time": "2026-10-17T05:34:19.125Z",
+              "taskId": "be8e5033-fef4-40cc-b340-3a4bc18152e8",
+              "attemptId": "1d044d6a-1593-4b14-86b1-be83c766568f",
+              "reportHash": "263484980d51817f8399294a0ea539b7a4ce79fb1a8850b5ce4a53c17e1e6d9a",
+              "stages": [
+                {
+                  "id": "plan",
+                  "taskId": "c827b93e-e5c0-44d2-be31-9658b4ba6d4d",
+                  "status": "complete",
+                  "resultMessageId": "msg_06f2929f3bd147e8016ad30873bc2c8190ad888a94475a2ed7"
+                },
+                {
+                  "id": "work",
+                  "taskId": "6384515d-cffd-4b3d-a0a4-af1afd0086f7",
+                  "status": "complete",
+                  "resultMessageId": "msg_0355e66751a202fc016ad30891419c8194b956c83d3007d4f2"
+                },
+                {
+                  "id": "validate",
+                  "taskId": "100efa71-4592-4086-a922-c51d8924181a",
+                  "status": "complete",
+                  "resultMessageId": "msg_0f5c4f3f3e3d544b016ad308a568cc819380f0bd0217c33f3b"
+                },
+                {
+                  "id": "review",
+                  "taskId": "a9a24de0-f4b1-4b4b-a917-2e5e28664338",
+                  "status": "complete",
+                  "resultMessageId": "msg_080f8388daa81633016ad308ccee2c819381142af1012debe2"
+                }
+              ],
+              "recommendation": "Recommendation: accept\n\nReport: [report.md](C:/Users/Quintin/AppData/Local/Temp/sunny-live-report-ZnuDCd/trial-3/project/report.md)\n\n- All five exact source values retained; `facts.json` cited; required headings present; 60 words.\n- Required follow-up is the standalone final line, preceded by a blank line.\n- Only `report.md` changed (untracked). Original npm test passed: `Report facts verified`, exit 0.\n- All four stages returned inspectable results:\n  - Nami: `c827b93e-e5c0-44d2-be31-9658b4ba6d4d`\n  - Robin: `6384515d-cffd-4b3d-a0a4-af1afd0086f7`\n  - Usopp: `100efa71-4592-4086-a922-c51d8924181a`\n  - Zoro: `a9a24de0-f4b1-4b4b-a917-2e5e28664338`\n\nZoro flagged the trailing newline. I consider it compliant: it adds no other text and preserves the final standalone line. No remaining blockers; captain review remains required."
+            },
+            {
+              "name": "accepted-and-saved-after-restart",
+              "time": "2026-10-17T05:34:19.615Z",
+              "acceptedAttemptId": "1d044d6a-1593-4b14-86b1-be83c766568f",
+              "saveId": "07de6fa1-3fce-4682-8a52-3639faff242d",
+              "notePath": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-live-report-ZnuDCd\\trial-3\\vault\\00 Inbox\\Sunny-07de6fa1-3fce-4682-8a52-3639faff242d.md"
+            }
+          ],
+          "passed": true,
+          "missionId": "9f06b4fb-982c-47a6-898e-caffa2af5349",
+          "lastSuccessfulStep": "accepted-and-saved-after-restart"
+        }
+      ],
+      "passed": true,
+      "finishedAt": "2026-10-17T05:34:19.619Z"
+    }
+  ],
+  "historical": {
+    "workerCrash": "October 13 run interrupted during trial 2 after restart reconciliation; no final pass",
+    "packagedSmoke": "October 13 composite smoke stopped after SUNNY_COMPANION; no final receipt",
+    "strictReport": "October 13 strict run interrupted during trial 1 review; no final pass"
+  },
+  "limitations": [
+    "No daily app, shortcut, or normal profile changed",
+    "Packaged fixture uses actual packaged modules/preload/renderer but a controlled IPC harness; does not certify production main startup or recovery dialog",
+    "Automated report acceptance is a test-harness decision, not human acceptance"
+  ]
+}

@@ -33,6 +33,8 @@ app.whenReady().then(async()=>{
   if(action==='mission:prepareMerge')return hub.merger.act(args,'prepare');
   if(action==='mission:recheckMerge')return hub.merger.act(args,'recheck');
   if(action==='dialog:openExternal'){openedUrls.push(args);return null;}
+  if(action==='mission:editPr')return hub.publication.act(args,'edit');
+  if(action==='mission:checks')return hub.missionCheckCapabilities(args);
   if(action==='mission:preparePr')return hub.publication.act(args,'prepare');
   if(action==='mission:publishPr')return hub.publication.act(args,'publish');
   if(action==='mission:create')return hub.createMission(args);

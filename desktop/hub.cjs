@@ -1,3 +1,4 @@
+const {CheckPreflightError}=require('./mission-evidence.cjs');
 const {AsyncLocalStorage}=require('node:async_hooks');const {EventEmitter}=require('node:events');const {randomUUID}=require('node:crypto');const path=require('node:path');
 const {CodexClient}=require('./codex.cjs');const {Growth}=require('./growth.cjs');const {CrewChat}=require('./crew-chat.cjs');const {TaskGate,deriveStatus}=require('./core.cjs');
 const {selectExecution,routingContext}=require('./model-routing.cjs');
@@ -357,6 +358,12 @@ class Hub extends EventEmitter {
    });
   }finally{if(!this.authorityQueue.uncertain&&!this.missionBook.get(mission.id).pendingAcceptance){this.gate.release(lock);this.missionActions.delete(mission.id);}}
  }
+ async missionCheckCapabilities(input){
+  if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(key=>key!=='missionId')||typeof input.missionId!=='string'||!input.missionId.trim()||input.missionId.length>200)throw Error('Invalid mission command.');
+  const mission=this.missionBook.get(input.missionId),project=this.missionProject(mission);
+  if(project.executionWorkspace)await this.assertExecutionProject(project);
+  return require('./mission-evidence.cjs').availableChecks(project.path);
+ }
  collectMissionEvidence(input){return this.trackOwnedOperation(()=>this.collectMissionEvidenceOwned(input));}
  async collectMissionEvidenceOwned(input){
   this.validateMissionAction(input,['missionId','revision','script','prNumber','filePath','deployment','imagePath','provenance']);
@@ -373,6 +380,7 @@ class Hub extends EventEmitter {
   const mission=this.missionBook.get(input.missionId);this.missionBook.check(mission,input.revision);
   if(mission.status!=='WAITING_FOR_REVIEW'&&!(input.deployment===true&&mission.status==='COMPLETE'))throw Error('Finish the crew attempt before collecting review evidence.');
   const project=this.missionProject(mission),lock='mission-evidence:'+mission.id,attemptId=mission.activeAttemptId;if(project.executionWorkspace)await this.assertExecutionProject(project);
+  if(input.script)require('./mission-evidence.cjs').assertCheckAvailable(project.path,input.script);
   assertManualCheck();this.gate.acquire(lock,project.path,{projectId:project.id,runId:mission.runId,integrating:true});this.missionActions.add(mission.id);if(input.script)this.checkRuns.add(mission.id);
   let effectStarted=false;
   try{
@@ -389,7 +397,7 @@ class Hub extends EventEmitter {
     if(input.script)current.checkExecution=undefined;
     book.record(current,evidence.kind==='check'?(evidence.status==='passed'?'TEST_PASSED':'TEST_FAILED'):evidence.kind==='pull-request'?'PR_UPDATED':['deliverable','image'].includes(evidence.kind)?'DELIVERABLE_ATTACHED':evidence.kind==='deployment'?'DEPLOYMENT_INSPECTED':'GIT_INSPECTED',{artifactId:artifact.id});return artifact;
    },'reservation-release');
-  }catch(error){if(!(this.closed||this.quiescing)&&!storageUncertain(error))await this.missionMutation(book=>{const current=book.get(mission.id);if(error===manualDenial&&!callbackAdmitted){if(ownedCheckIntent&&same(current.checkExecution,ownedCheckIntent)&&![...(this.missionCheckControllers||new Map()).values()].some(c=>c.reservationId===lock&&(c.id!==ownedCheckIntent.id||c.state!=='pending'||c.exited)))delete current.checkExecution;}else if(input.script&&effectStarted&&!error.uncertain&&!error.persistence&&current.checkExecution){current.artifacts.push({id:randomUUID(),kind:'check',attemptId,projectId:project.id,producer:'sunny-local-verifier',script:input.script,command:'npm run '+input.script,status:'failed',exitCode:null,recordedAt:Date.now()});delete current.checkExecution;}book.record(current,'EVIDENCE_FAILED',{message:String(error.message).slice(0,1000),uncertain:Boolean(error.persistence&&effectStarted)});});throw error;}
+  }catch(error){const notStarted=error instanceof CheckPreflightError&&!callbackAdmitted;if(!(this.closed||this.quiescing)&&!storageUncertain(error))await this.missionMutation(book=>{const current=book.get(mission.id);if((error===manualDenial||notStarted)&&!callbackAdmitted){if(ownedCheckIntent&&same(current.checkExecution,ownedCheckIntent)&&![...(this.missionCheckControllers||new Map()).values()].some(c=>c.reservationId===lock&&(c.id!==ownedCheckIntent.id||c.state!=='pending'||c.exited)))delete current.checkExecution;}else if(input.script&&effectStarted&&!error.uncertain&&!error.persistence&&current.checkExecution){current.artifacts.push({id:randomUUID(),kind:'check',attemptId,projectId:project.id,producer:'sunny-local-verifier',script:input.script,command:'npm run '+input.script,status:'failed',exitCode:null,recordedAt:Date.now()});delete current.checkExecution;}book.record(current,notStarted?'CHECK_NOT_STARTED':'EVIDENCE_FAILED',{script:input.script||null,message:String(error.message).slice(0,1000),uncertain:Boolean(error.persistence&&effectStarted)});});throw error;}
   finally{this.checkRuns.delete(mission.id);if(!this.missionBook.get(mission.id).checkExecution){for(const [id,c] of this.missionCheckControllers||[])if(c.reservationId===lock)this.missionCheckControllers.delete(id);this.gate.release(lock);this.missionActions.delete(mission.id);}}
  }
  async reconcileMissionCheck(input){
@@ -703,3 +711,4 @@ class Hub extends EventEmitter {
  }
 }
 module.exports={Hub,roles};
+

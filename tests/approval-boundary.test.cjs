@@ -110,3 +110,20 @@ test('result acceptance never answers an unrelated provider approval',async t=>{
  await hub.acceptMission({missionId:mission.id,revision:mission.revision,resultId:mission.selectedResult.id,resultSha256:sha256,criteria:[true]});assert.equal(mission.status,'COMPLETE');assert.deepEqual(hub.state.approvals[0],approval);assert.deepEqual(sent,[]);assert.equal(task.status,'waiting');
 });
 test('offline scheduler dependency cannot unlock the live supervision admission gate',async t=>{const hub=fixture(t),{CrewScheduler}=require('../desktop/crew-scheduler.cjs');let starts=0;const run={id:'r',phase:'waiting',grant:{maxWorkers:3,maxRepairs:3},counters:{repairs:0},assignments:[{id:'a',crewId:'franky',ownedPaths:['src'],dependencies:[],state:'queued'}]};const scheduler=new CrewScheduler({getRun:()=>run,capacity:()=>({available:3}),assertLaunch:()=>hub.assertSupervisedExecutionAdmission(),prepare:async()=>{},durableCommit:async mutate=>mutate(run),start:async()=>starts++});await scheduler.pump('r');assert.equal(starts,0);assert.equal(run.assignments[0].state,'queued');});
+
+
+test('reconnect rejects old-transport approval but permits a fresh current-transport replay',async t=>{
+ const {hub,task}=fixture(t),{EventEmitter}=require('node:events'),{PassThrough}=require('node:stream');
+ const peer=()=>{const child=new EventEmitter();child.stdin=new PassThrough();child.stdout=new PassThrough();child.stderr=new PassThrough();child.kill=()=>{};return child;};
+ const old=peer(),current=peer(),writes=[],emit=(child,message)=>child.stdout.write(JSON.stringify(message)+'\n');
+ // Use actual CodexClient transport responses rather than the fixture's response interception.
+ hub.client.respond=require('../desktop/codex.cjs').CodexClient.prototype.respond;
+ const request={id:77,method:'item/commandExecution/requestApproval',params:{threadId:'thread',turnId:'turn',command:'fixture-only-command'}};
+ hub.client.attach(old);hub.state.codex.status='connected';emit(old,request);const prior=hub.state.approvals[0];assert.equal(task.status,'waiting');
+ hub.client.disconnect('fixture disconnect');assert.equal(task.status,'unknown');assert.equal(hub.state.approvals.length,0);await assert.rejects(hub.respond({id:prior.id,decision:'accept'}),/no longer pending/);
+ hub.client.attach(current);hub.state.codex.status='connected';current.stdin.on('data',data=>{const m=JSON.parse(String(data));writes.push(m);if(m.method==='thread/read')emit(current,{id:m.id,result:{thread:{status:{type:'active',activeFlags:['waitingOnApproval']},turns:[{id:'turn',status:'inProgress',items:[]}]}}});});
+ await hub.checkStatus(task.id);assert.equal(task.status,'waiting');assert.equal(hub.state.approvals.length,0);
+ emit(old,request);assert.equal(hub.state.approvals.length,0);assert.equal(writes.some(m=>m.result),false);
+ emit(current,request);const replay=hub.state.approvals[0];assert.notEqual(replay.id,prior.id);await assert.rejects(hub.respond({id:prior.id,decision:'accept'}),/no longer pending/);
+ await hub.respond({id:replay.id,decision:'decline'});assert.equal(task.status,'working');assert.equal(hub.state.approvals.length,0);assert.deepEqual(writes.filter(m=>m.result),[{id:77,result:{decision:'decline'}}]);assert.equal(writes.some(m=>m.method==='turn/start'||m.method==='thread/resume'),false);
+});

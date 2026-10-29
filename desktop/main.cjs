@@ -91,6 +91,7 @@ async function handle(action,args={},surface='hub'){
  case 'mission:submitMerge':return hub.merger.act(args,'submit');
  case 'mission:recheckMerge':return hub.merger.act(args,'recheck');
  case 'mission:preparePr':return hub.publication.act(args,'prepare');
+ case 'mission:editPr':return hub.publication.act(args,'edit');
  case 'mission:publishPr':return hub.publication.act(args,'publish');
  case 'mission:reconcilePr':return hub.publication.act(args,'reconcile');
  case 'mission:signalSeen':return hub.markMissionSignalSeen(args);
@@ -106,6 +107,7 @@ async function handle(action,args={},surface='hub'){
  case 'workspace:claimAcceptanceCue':return hub.claimAcceptanceCue(args);
  case 'workspace:exportDraft':{if(!args||typeof args!=='object'||Array.isArray(args)||Object.keys(args).some(key=>key!=='draft')||!args.draft)throw Error('Invalid draft export.');require('./mission-profile.cjs').validateWorkspace({...require('./mission-profile.cjs').emptyWorkspace(),drafts:[args.draft]});const result=await dialog.showSaveDialog(win,{defaultPath:'sunny-draft.json',filters:[{name:'Sunny draft',extensions:['json']}]});if(result.canceled)return {};fs.writeFileSync(result.filePath,JSON.stringify(args.draft,null,2),'utf8');return {path:result.filePath};}
  case 'mission:previewDeliverable':return hub.previewMissionDeliverable(args);
+ case 'mission:checks':return hub.missionCheckCapabilities(args);
  case 'mission:evidence':return hub.collectMissionEvidence(args);
  case 'mission:reconcileCheck':return hub.reconcileMissionCheck(args);
  case 'news:add':return hub.news.importCapture({origin:'Added in Sunny',items:[args]});
@@ -238,3 +240,4 @@ app.on('window-all-closed',()=>{if(quitting)app.quit();});app.on('activate',()=>
 }
 }
 }
+

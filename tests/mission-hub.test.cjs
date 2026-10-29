@@ -179,7 +179,7 @@ test('delayed turn starts cannot resurrect completed work or replace a current t
 });
 
 test('finished coordinated stage cannot be changed while coordinator still runs',async t=>{
- const {hub}=setup(t);const mission=await hub.createMission(brief);const attempt=hub.missionBook.begin(mission.id,mission.revision);attempt.workflowVersion=1;
+ const {hub}=setup(t);const mission=await hub.createMission(brief);const attempt=hub.missionBook.begin(mission.id,mission.revision);attempt.workflowVersion=1;attempt.workflow={complete:false,stages:[]};
  const child={id:'builder-child',projectId:'p',parentTaskId:attempt.taskId,crewId:'franky',threadId:'builder-thread',turnId:'builder-turn',status:'finished',messages:[]};
  attempt.taskIds.push(child.id);mission.taskIds.push(child.id);hub.state.tasks.push(child);let calls=0;hub.client.request=async()=>{calls++;return {turn:{id:'another'}};};
  await assert.rejects(hub.send(child.id,'Change the implementation again'),/new attempt|mission board/i);assert.equal(calls,0);
@@ -348,14 +348,14 @@ test('failed branch intent persistence prevents git mutation',async t=>{
 
 test('PR publication needs exact confirmation and durable authorization before remote submission',async t=>{
  const {hub,saves}=setup(t);const mission=await hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});await hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
- let published=0;hub.publisher={prepare:async()=>({id:'preview',attemptId:mission.activeAttemptId,state:'prepared',expiresAt:Date.now()+10000}),validate:async()=>{},publish:async()=>{published++;assert.equal(saves.at(-1).missionBook.missions[0].prPublication.state,'publishing');return {number:7,url:'https://github.com/fixture/sunny/pull/7'};}};
+ let published=0;hub.publisher={prepare:async()=>({id:'preview',attemptId:mission.activeAttemptId,state:'prepared',title:'Fixture PR',body:'Fixture description',expiresAt:Date.now()+10000}),validate:async()=>{},publish:async()=>{published++;assert.equal(saves.at(-1).missionBook.missions[0].prPublication.state,'publishing');return {number:7,url:'https://github.com/fixture/sunny/pull/7'};}};
  await hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare');await assert.rejects(hub.publication.act({missionId:mission.id,revision:mission.revision,previewId:'preview',confirmed:false},'publish'),/confirm/);assert.equal(published,0);
  await hub.publication.act({missionId:mission.id,revision:mission.revision,previewId:'preview',confirmed:true},'publish');assert.equal(published,1);assert.equal(mission.prPublication.state,'published');
  await assert.rejects(hub.publication.act({missionId:mission.id,revision:mission.revision,previewId:'preview',confirmed:true},'publish'),/confirm/);assert.equal(published,1);
 });
 test('uncertain PR publication cannot automatically retry or restart work',async t=>{
  const {hub}=setup(t);const mission=await hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});await hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
- let published=0;hub.publisher={prepare:async()=>({id:'preview',attemptId:mission.activeAttemptId,state:'prepared',expiresAt:Date.now()+10000}),validate:async()=>{},publish:async()=>{published++;throw Error('Timeout');}};
+ let published=0;hub.publisher={prepare:async()=>({id:'preview',attemptId:mission.activeAttemptId,state:'prepared',title:'Fixture PR',body:'Fixture description',expiresAt:Date.now()+10000}),validate:async()=>{},publish:async()=>{published++;throw Error('Timeout');}};
  await hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare');await assert.rejects(hub.publication.act({missionId:mission.id,revision:mission.revision,previewId:'preview',confirmed:true},'publish'),/may have reached/);assert.equal(mission.prPublication.state,'uncertain');
  await assert.rejects(hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare'),/Reconcile/);await assert.rejects(hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'}),/Reconcile/);assert.equal(published,1);
 });
@@ -365,7 +365,7 @@ test('a new attempt can prepare and reconcile a previously published PR at its n
  await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});await hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
  const oldAttempt=mission.activeAttemptId;mission.prPublication={id:'old',attemptId:oldAttempt,state:'published',number:7};
  await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});await hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
- hub.publisher.prepare=async()=>({id:'new',attemptId:mission.activeAttemptId,state:'prepared',repository:'fixture/sunny',commit:'b'.repeat(40),base:'main'});
+ hub.publisher.prepare=async()=>({id:'new',attemptId:mission.activeAttemptId,state:'prepared',title:'Fixture PR',body:'Fixture description',repository:'fixture/sunny',commit:'b'.repeat(40),base:'main'});
  await hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare');
  hub.pullRequests.inspect=async()=>({kind:'pull-request',repository:'fixture/sunny',number:7,url:'https://github.com/fixture/sunny/pull/7',commit:'b'.repeat(40),baseBranch:'main'});
  await hub.publication.act({missionId:mission.id,revision:mission.revision,prNumber:7},'reconcile');
@@ -374,12 +374,12 @@ test('a new attempt can prepare and reconcile a previously published PR at its n
 
 test('failed PR authorization persistence prevents remote submission',async t=>{
  const {hub,store}=setup(t);const mission=await hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});await hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
- let calls=0;hub.publisher={prepare:async()=>({id:'preview',attemptId:mission.activeAttemptId,state:'prepared',expiresAt:Date.now()+10000}),validate:async()=>{},publish:async()=>{calls++;}};await hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare');
+ let calls=0;hub.publisher={prepare:async()=>({id:'preview',attemptId:mission.activeAttemptId,state:'prepared',title:'Fixture PR',body:'Fixture description',expiresAt:Date.now()+10000}),validate:async()=>{},publish:async()=>{calls++;}};await hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare');
  store.save=()=>{throw Error('Disk full');};await assert.rejects(hub.publication.act({missionId:mission.id,revision:mission.revision,previewId:'preview',confirmed:true},'publish'),/Disk full/);assert.equal(calls,0);store.save=()=>{};
 });
 test('expired PR previews cannot be authorized',async t=>{
  const {hub}=setup(t);const mission=await hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});await hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
- let calls=0;hub.publisher={prepare:async()=>({id:'preview',attemptId:mission.activeAttemptId,state:'prepared',expiresAt:1}),validate:async()=>{calls++;}};await hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare');await assert.rejects(hub.publication.act({missionId:mission.id,revision:mission.revision,previewId:'preview',confirmed:true},'publish'),/unexpired/);assert.equal(calls,0);
+ let calls=0;hub.publisher={prepare:async()=>({id:'preview',attemptId:mission.activeAttemptId,state:'prepared',title:'Fixture PR',body:'Fixture description',expiresAt:1}),validate:async()=>{calls++;}};await hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare');await assert.rejects(hub.publication.act({missionId:mission.id,revision:mission.revision,previewId:'preview',confirmed:true},'publish'),/unexpired/);assert.equal(calls,0);
 });
 
 test('signal receipt persists before broadcast and rolls back on save failure',async t=>{
@@ -432,3 +432,106 @@ test('image tool activity is visible without leaking image payloads or granting 
 });
 
 test('accept preflight rejects supervised mission lacking main structured readiness',async t=>{const {hub}=setup(t),mission=await hub.createMission(brief),task=await finishedReply(hub,mission);await selectReply(hub,mission,task);mission.runId='missing-run';await assert.rejects(hub.acceptMission(acceptanceInput(mission)),/independent criterion readiness/);assert.equal(mission.status,'WAITING_FOR_REVIEW');assert.equal(mission.acceptance,undefined);delete mission.runId;});
+
+
+for(const accepted of [false,true])test(`mission handoff cannot dispatch unlinked work from ${accepted?'accepted':'review-ready'} attempt`,async t=>{
+ const {hub}=setup(t);const mission=await hub.createMission(brief);const task=await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});
+ await hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ if(accepted){await selectFixtureReply(hub,mission);await hub.acceptMission(acceptanceInput(mission));}
+ let calls=0;hub.client.request=async()=>{calls++;return {thread:{id:'handoff'},turn:{id:'handoff-turn'}};};
+ const count=hub.state.tasks.length,revision=mission.revision;
+ await assert.rejects(hub.handoff({taskId:task.id,crewId:'usopp',prompt:'Continue this mission.'}),/new attempt|mission board/i);
+ assert.equal(calls,0);assert.equal(hub.state.tasks.length,count);assert.equal(mission.revision,revision);assert.equal(hub.gate.active.size,0);
+});
+test('completed coordinated stage cannot hand off while coordinator still runs',async t=>{
+ const {hub}=setup(t);const mission=await hub.createMission(brief);const attempt=hub.missionBook.begin(mission.id,mission.revision);attempt.workflowVersion=1;attempt.workflow={complete:false,stages:[]};
+ const child={id:'builder-child',projectId:'p',parentTaskId:attempt.taskId,crewId:'franky',threadId:'builder-thread',status:'finished',messages:[]};
+ attempt.taskIds.push(child.id);mission.taskIds.push(child.id);hub.state.tasks.push(child);let calls=0;hub.client.request=async()=>{calls++;return {thread:{id:'handoff'},turn:{id:'turn'}};};
+ await assert.rejects(hub.handoff({taskId:child.id,crewId:'usopp',prompt:'Continue this mission.'}),/new attempt|mission board/i);assert.equal(calls,0);assert.equal(hub.state.tasks.length,1);
+});
+test('ordinary finished conversation retains explicit handoff',async t=>{
+ const {hub}=setup(t);const task=await hub.start({projectId:'p',crewId:'franky',prompt:'Fixture work'});
+ await hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ const next=await hub.handoff({taskId:task.id,crewId:'usopp',prompt:'Review fixture work'});assert.notEqual(next.id,task.id);assert.equal(next.crewId,'usopp');assert.equal(next.status,'working');
+});
+test('unavailable checks leave review acceptance and attempt evidence intact',async t=>{
+ const {hub}=setup(t);const mission=await hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});
+ await hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ let executions=0;hub.evidence.execute=async()=>{executions++;return {exitCode:0};};const revision=mission.revision;
+ await assert.rejects(hub.collectMissionEvidence({missionId:mission.id,revision,script:'lint'}),/unavailable/i);
+ assert.equal(executions,0);assert.equal(mission.checkExecution,undefined);assert.equal(mission.artifacts.length,0);assert.equal(mission.revision,revision);assert.equal(hub.gate.active.size,0);
+ await selectFixtureReply(hub,mission);await hub.acceptMission(acceptanceInput(mission));assert.equal(mission.status,'COMPLETE');
+});
+test('read-only check capabilities validate mission scope and report only configured scripts',async t=>{
+ const {hub}=setup(t);const mission=await hub.createMission(brief);
+ assert.deepEqual(await hub.missionCheckCapabilities({missionId:mission.id}),['test','build']);
+ await assert.rejects(hub.missionCheckCapabilities({missionId:'missing'}),/not found/i);
+ await assert.rejects(hub.missionCheckCapabilities({missionId:mission.id,projectId:'other'}),/Invalid/i);
+});
+test('editing a PR preview durably replaces identity and invalidates earlier confirmation',async t=>{
+ const {hub,saves}=setup(t);const mission=await hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});await hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ let published=0;hub.publisher={prepare:async()=>({id:'old-preview',attemptId:mission.activeAttemptId,state:'prepared',expiresAt:Date.now()+10000,title:'Original',body:'Original body'}),validate:async()=>{},revise:async(_root,preview,title,body)=>({...preview,id:'edited-preview',title,body}),publish:async()=>{published++;return {number:7,url:'https://github.com/fixture/sunny/pull/7'};}};
+ await hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare');const revision=mission.revision;
+ await hub.publication.act({missionId:mission.id,revision,previewId:'old-preview',title:'Reviewed title',body:'Reviewed body'},'edit');
+ assert.equal(saves.at(-1).missionBook.missions[0].prPublication.body,'Reviewed body');assert.equal(mission.prPublication.id,'edited-preview');assert.ok(mission.revision>revision);
+ await assert.rejects(hub.publication.act({missionId:mission.id,revision,previewId:'old-preview',confirmed:true},'publish'),/changed/i);
+ await assert.rejects(hub.publication.act({missionId:mission.id,revision:mission.revision,previewId:'old-preview',confirmed:true},'publish'),/current|confirm/i);assert.equal(published,0);
+ await assert.rejects(hub.publication.act({missionId:mission.id,revision:mission.revision,previewId:'edited-preview',title:'Title',body:'Body',base:'other'},'edit'),/Invalid/i);
+ await hub.publication.act({missionId:mission.id,revision:mission.revision,previewId:'edited-preview',confirmed:true},'publish');assert.equal(published,1);
+ await assert.rejects(hub.publication.act({missionId:mission.id,revision:mission.revision,previewId:'edited-preview',title:'Later',body:'Later body'},'edit'),/prepared|preview|reconcile/i);
+});
+test('failed edited-preview checkpoint preserves old identity and never publishes',async t=>{
+ const {hub,store}=setup(t);const mission=await hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});await hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ let remote=0;hub.publisher={validate:async()=>{},prepare:async()=>({id:'old',attemptId:mission.activeAttemptId,state:'prepared',title:'Old',body:'Old body'}),revise:async(_root,preview,title,body)=>({...preview,id:'new',title,body}),publish:async()=>{remote++;}};
+ await hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare');const revision=mission.revision;store.save=()=>{throw Error('Disk full');};
+ await assert.rejects(hub.publication.act({missionId:mission.id,revision,previewId:'old',title:'New',body:'New body'},'edit'),/Disk full/);
+ assert.equal(hub.state.missions[0].prPublication.id,'old');assert.equal(hub.state.missions[0].revision,revision);assert.equal(remote,0);assert.equal(hub.gate.active.size,0);store.save=()=>{};
+});
+for(const invalid of [{title:'Invalid\ntitle',body:'Body'},{title:'Title',body:'x'.repeat(60001)}])test(`invalid prepared PR ${invalid.title.includes('\n')?'title':'body'} cannot authorize or enter uncertain publication`,async t=>{
+ const {hub,saves}=setup(t);const mission=await hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});await hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ let external=0;hub.publisher={prepare:async()=>({id:'invalid-preview',attemptId:mission.activeAttemptId,state:'prepared',expiresAt:Date.now()+10000,...invalid}),validate:async()=>{},publish:async()=>{external++;return {number:7};}};
+ await hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare');const revision=mission.revision,count=saves.length;
+ await assert.rejects(hub.publication.act({missionId:mission.id,revision,previewId:'invalid-preview',confirmed:true},'publish'),/invalid.*PR/i);
+ assert.equal(external,0);assert.equal(mission.revision,revision);assert.equal(saves.length,count);assert.equal(mission.prPublication.state,'prepared');assert.equal(mission.prPublication.authorizedAt,undefined);assert.equal(hub.gate.active.size,0);
+});
+test('script removed after durable reservation cannot poison acceptance before execution',async t=>{
+ const fs=require('node:fs'),os=require('node:os'),path=require('node:path');const root=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-preflight-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));const pkg=path.join(root,'package.json');fs.writeFileSync(pkg,JSON.stringify({scripts:{test:'fixture'}}));
+ const {hub,store,saves}=setup(t);hub.state.projects[0].path=root;const mission=await hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});await hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ let executions=0;hub.evidence.execute=async()=>{executions++;return {exitCode:0};};const save=store.save;store.save=data=>{save(data);if(data.missionBook.missions[0].checkExecution)fs.writeFileSync(pkg,JSON.stringify({scripts:{}}));};
+ await assert.rejects(hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,script:'test'}),/unavailable/i);
+ assert.equal(executions,0);assert.equal(mission.checkExecution,undefined);assert.equal(mission.artifacts.length,0);assert.equal(hub.gate.active.size,0);assert.equal(mission.events.at(-1).type,'CHECK_NOT_STARTED');assert.equal(saves.at(-1).missionBook.missions[0].checkExecution,undefined);
+ await selectFixtureReply(hub,mission);await hub.acceptMission(acceptanceInput(mission));assert.equal(mission.status,'COMPLETE');
+});
+test('arbitrary error phase claims cannot erase executed failure evidence',async t=>{
+ const {hub}=setup(t);const mission=await hub.createMission(brief);await hub.startMission({missionId:mission.id,revision:mission.revision,roleId:'builder'});await hub.notification({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});
+ let executions=0;hub.evidence.gitState=async()=>({fingerprint:'source'});hub.evidence.execute=async()=>{executions++;throw Object.assign(Error('Fixture executed failure'),{name:'CheckPreflightError',phase:'preflight',notStarted:true,checkNotStarted:true});};
+ await assert.rejects(hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,script:'test'}),/executed failure/);assert.equal(executions,1);assert.equal(mission.artifacts.at(-1).status,'failed');
+ await assert.rejects(hub.acceptMission({missionId:mission.id,revision:mission.revision,criteria:[true]}),/passed|check/i);assert.equal(mission.status,'WAITING_FOR_REVIEW');
+});
+
+test('edited preview stays invisible and checkout stays locked until its durable receipt',async t=>{
+ const {hub,store}=setup(t),mission=await hub.createMission(brief);await finishedReply(hub,mission);
+ hub.publisher={prepare:async()=>({id:'old',attemptId:mission.activeAttemptId,state:'prepared',title:'Old',body:'Old body'}),validate:async()=>{},revise:async(_root,preview,title,body)=>({...preview,id:'new',title,body})};
+ await hub.publication.act({missionId:mission.id,revision:mission.revision,base:'main'},'prepare');
+ let entered,release;const held=new Promise(resolve=>{release=resolve;}),started=new Promise(resolve=>{entered=resolve;}),save=store.save;
+ store.save=async data=>{if(data.missionBook.missions[0].prPublication?.id==='new'){entered();await held;}save(data);};
+ const pending=hub.publication.act({missionId:mission.id,revision:mission.revision,previewId:'old',title:'New',body:'Exact new body'},'edit');
+ await started;assert.equal(mission.prPublication.id,'old');assert.equal(hub.gate.active.has('mission-publication:'+mission.id),true);
+ release();await pending;assert.equal(mission.prPublication.id,'new');assert.equal(mission.prPublication.body,'Exact new body');assert.equal(hub.gate.active.size,0);
+});
+
+test('capability lookup uses verified mission workspace, not registered checkout',async t=>{
+ const fs=require('node:fs'),os=require('node:os'),path=require('node:path'),root=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-capabilities-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));fs.writeFileSync(path.join(root,'package.json'),JSON.stringify({scripts:{lint:'fixture'}}));
+ const {hub}=setup(t),mission=await hub.createMission(brief);let verified=0;
+ hub.missionProject=()=>({id:'p',path:root,executionWorkspace:{id:'fixture-workspace'}});hub.assertExecutionProject=async project=>{assert.equal(project.path,root);verified++;};
+ assert.deepEqual(await hub.missionCheckCapabilities({missionId:mission.id}),['lint']);assert.equal(verified,1);
+ hub.assertExecutionProject=async()=>{throw Error('Workspace identity changed');};await assert.rejects(hub.missionCheckCapabilities({missionId:mission.id}),/identity changed/);
+});
+
+test('execution cannot relabel a started check as host preflight refusal',async t=>{
+ const {hub}=setup(t),mission=await hub.createMission(brief);await finishedReply(hub,mission);
+ hub.evidence.gitState=async()=>({fingerprint:'fixture'});hub.evidence.runtime=()=>({node:'fixture',npm:'fixture'});
+ hub.evidence.execute=async()=>{throw new (require('../desktop/mission-evidence.cjs').CheckPreflightError)('Execution failed');};
+ await assert.rejects(hub.collectMissionEvidence({missionId:mission.id,revision:mission.revision,script:'test'}),/Execution failed/);
+ assert.equal(mission.artifacts.at(-1).status,'failed');assert.equal(mission.events.at(-1).type,'EVIDENCE_FAILED');assert.equal(mission.checkExecution,undefined);
+});

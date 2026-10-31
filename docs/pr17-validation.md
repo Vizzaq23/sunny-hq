@@ -64,3 +64,5 @@ On Windows/Node 24.18.0, in a complete clone of PR head `8950f2c30dcc6b6a54c18fd
 - The runner's dirty-checkout preflight rejected this uncommitted tree as intended. The synthetic example CLI passed; no-replay and source-label regressions passed without asserting live proof.
 
 The **full suite and clean all-in-one hosted run are still required**. The above focused tests/build/native run do not close the combined Windows CI checkbox. The real provider checkbox remains unchecked.
+
+After committing the setup as `ea3a899117322ae15366bd0c09110251223043f1`, clean-checkout preflight passed (653 tracked files). [PR workflow run 41152843477](https://github.com/Vizzaq23/sunny-hq/actions/runs/41152843477) failed before any job steps started. GitHub's annotation reports failed recent account payments or a spending limit that needs increasing. This is an external Actions account blocker, not a test result. No billing settings were changed. An available authorized Windows runner can use the same command; the complete local suite was not run in this setup task.

@@ -37,6 +37,8 @@ No schema version or dependency changes. Existing preview records with missing/i
 
 ## Remaining review checks
 
+Reproducible setup added on 2026-10-30: [PR #17 validation commands, evidence scope, and real-provider observation procedure](pr17-validation.md). The Windows workflow now fetches full history and uses the same bounded local/CI runner with retained logs and a hidden native receipt. The redacted approval replay harness remains explicitly synthetic transport, including when fed a provider observation. These additions do not by themselves mark either outstanding check verified.
+
 On a clean Windows checkout of the candidate with Node 24:
 
 1. Run `npm ci`, `npm test`, `npm run build`. Record actual failures and the commit tested; do not reuse #15 or #16's historic counts.

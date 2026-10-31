@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "source": "synthetic",
+  "method": "item/commandExecution/requestApproval",
+  "threadId": "thread-a",
+  "turnId": "turn-a",
+  "oldRpcId": 77,
+  "replayedRpcId": 77,
+  "status": "inProgress",
+  "observationSeconds": 30
+}

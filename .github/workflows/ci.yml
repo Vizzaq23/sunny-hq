@@ -17,18 +17,28 @@ jobs:
   windows-checks:
     name: Windows tests and build
     runs-on: windows-latest
-    timeout-minutes: 90
+    timeout-minutes: 110
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+          fetch-depth: 0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '24'
           cache: npm
-      - name: Install locked dependencies
-        run: npm ci
-      - name: Unit and integration tests
-        run: npm test
-      - name: Typecheck and production build
-        run: npm run build
+      - name: Complete checkout, tests, build and hidden native workflow
+        run: npm run validate:windows
+      - name: Retain validation receipts and fixture screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: windows-validation-${{ github.sha }}
+          include-hidden-files: true
+          path: |
+            .sunny-dev/pr-validation/*/summary.json
+            .sunny-dev/pr-validation/*/*.log
+            .sunny-dev/pr-validation/*/native/result.json
+            .sunny-dev/pr-validation/*/native/*.png
+          if-no-files-found: error
+          retention-days: 14

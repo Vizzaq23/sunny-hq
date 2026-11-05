@@ -33,7 +33,8 @@ async function check({js,wait,fill,select,click,nav,screenshot,win,localFixture}
  await js('document.querySelector(".local-crew-panel>details summary").focus()');win.focus();win.webContents.focus();win.webContents.sendInputEvent({type:'keyDown',keyCode:'Tab'});win.webContents.sendInputEvent({type:'keyUp',keyCode:'Tab'});await new Promise(resolve=>setTimeout(resolve,50));
  assert.ok(await js('document.activeElement===document.querySelector(".local-source-picker summary")'),'Tab skips controls in collapsed model setup');
  await fill('[aria-label="Project lesson"]','Use explicit null checks for this project.');await button('Remember correction');await wait(`document.querySelector('[aria-label="Project lesson"]').value===""`);
- await fill('[aria-label="Ask your developer"]','Review the null case in my supplied code.');
+ const originalQuestion='    if value is None:\n        return []\n';
+ await fill('[aria-label="Ask your developer"]',originalQuestion);
  await js('document.querySelector(".local-source-picker").open=true');
  await fill('[aria-label="Source file path"]','local-review-example.ts');await button('Preview source');
  await wait(`Boolean(document.querySelector('[aria-label="Source preview"]'))`);
@@ -46,6 +47,7 @@ async function check({js,wait,fill,select,click,nav,screenshot,win,localFixture}
   await screenshot('local-crew-source-preview-compact.png');win.setSize(width,height);
  }
  await button('Add preview to question');await wait(`document.querySelector('[aria-label="Ask your developer"]').value.includes('Source snapshot')`);
+ assert.ok((await js(`document.querySelector('[aria-label="Ask your developer"]').value`)).startsWith(originalQuestion+'\n\nSource snapshot'),'attaching source preserves the original code indentation and trailing newline');
  await js('document.querySelector(".local-recall-preview").open=true');localFixture.delayRecall(150);await button('Preview recall');
  const withSource=await js(`document.querySelector('[aria-label="Ask your developer"]').value`);await fill('[aria-label="Ask your developer"]',withSource+'\nFocus on empty input.');
  await new Promise(resolve=>setTimeout(resolve,200));assert.equal(await js('document.querySelectorAll(".local-recall-preview article").length'),0,'changed question rejects late recall preview');localFixture.delayRecall(0);

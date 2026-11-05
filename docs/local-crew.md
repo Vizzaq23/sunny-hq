@@ -91,6 +91,16 @@ node scripts/check-local-crew.cjs --model qwen2.5-coder:14b
 
 It uses synthetic code and a unique isolated profile, checks a real reply, restart persistence, notes-only recall, empty cloud recall and cancellation. It records the response for review and **never executes generated code**. Passing establishes transport/state behavior, not engineering competence. Any installed local model can be selected explicitly; the example name is this machine's tested candidate, not a hardcoded application default.
 
+### First useful conversation
+
+1. Open Franky's **Local developer** tab. Under **Model and skills**, choose the installed model and the skills you want. Save personal guidelines such as: “Explain the cause, propose a small patch, and give complete runnable tests. Say what evidence is missing.”
+2. Save the project's actual conventions under **Teach a correction**. For Sunny desktop work, a useful lesson is: “Desktop modules and tests use CommonJS on Node 24. Tests import `const {test}=require('node:test')` and `const assert=require('node:assert/strict')`. Use `test(...)`; do not call `t.end()`.” Use different conventions for another project.
+3. Preview a relevant source file or paste a focused error and code excerpt. Ask for one bounded change, its failure cases and verification steps. The helper sees the supplied excerpt, not the entire repository.
+4. Inspect **Memories for this question** if the answer seems to follow an old convention. Correct or forget the relevant pinned lesson, then clear the conversation to remove old answers from the current chat context. Clearing a conversation retains saved lessons.
+5. Review the proposed patch and run its checks through your normal development workflow or an existing Sunny mission. Save a verified takeaway as a lesson when it will help future work.
+
+Each crewmate has separate model settings, guidelines, conversations and lessons. Selecting a different model changes the engine for future replies; it does not erase that character's saved history. Replies retain their model attribution. One local reply runs at a time, so the ten profiles do not require ten models resident in memory.
+
 ### Live evidence and integration limits — 2026-11-04
 
 - Primary feature checkpoint: `ad6895f` on `codex/local-crew-developer`. Isolated integration base: newer `471fb3d`, preserving Captain Watch, ordered storage and public projection. Final integration checks are in progress; the original newer checkout and installed application remain untouched.

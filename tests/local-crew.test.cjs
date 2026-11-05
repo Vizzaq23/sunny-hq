@@ -4,6 +4,25 @@ const {Growth}=require('../desktop/growth.cjs');
 const {LocalCrew,initialLocalCrew,conversationContext}=require('../desktop/local-crew.cjs');
 const {Hub}=require('../desktop/hub.cjs');
 const scope={crewId:'franky',projectId:'p'};
+test('supported answer-only mode avoids a thinking-only output limit and retains only the answer',async()=>{
+ const f=await fixture({request:async(route,body)=>{
+  if(route==='tags')return {models:[{name:'fixture:local',size:1,details:{format:'gguf'}}]};
+  if(route==='show')return {details:{format:'gguf'},thinking:{values:[false,true],default:true}};
+  return body.think===false?{done:true,message:{role:'assistant',content:'A complete bounded answer.',thinking:'Internal fixture trace'}}:{done:true,done_reason:'length',message:{role:'assistant',content:'',thinking:'Internal fixture trace'}};
+ }});
+ await f.local.ask({...scope,prompt:'Review the boundary.'});
+ assert.equal(f.local.profile('franky').sessions[0].status,'finished');assert.equal(f.calls.find(c=>c.route==='chat').body.think,false);assert.ok(!JSON.stringify(f.saved()).includes('Internal fixture trace'));
+});
+test('missing or unsupported thinking controls retain the server default',async()=>{
+ for(const thinking of [undefined,{values:['low','medium','high']},{values:['false']},{values:[true]},{values:false}]){
+  const f=await fixture({request:async(route,body)=>{
+   if(route==='tags')return {models:[{name:'fixture:local',size:1,details:{format:'gguf'}}]};
+   if(route==='show')return {details:{format:'gguf'},capabilities:['thinking'],thinking};
+   assert.ok(!Object.hasOwn(body,'think'));return {done:true,message:{role:'assistant',content:'Uses the supported default.'}};
+  }});
+  await f.local.ask({...scope,prompt:'Review.'});
+ }
+});
 async function fixture(options={}){
  const calls=[],growth=new Growth();let saved;
  const hub={growth,state:{growth:growth.data,localCrew:initialLocalCrew()},project(id){if(!['p','q'].includes(id))throw Error('Unknown project');return {id};},persist(){saved=structuredClone({localCrew:this.state.localCrew,growth:this.growth.data});},changed(){}};
@@ -28,6 +47,13 @@ test('project and character histories remain separate and corrections replace ol
  assert.match(f.hub.growth.context('franky','preference','p','local'),/New project preference/);assert.doesNotMatch(f.hub.growth.context('franky','preference','p','local'),/Old project preference/);
  assert.equal(f.hub.growth.context('zoro','preference','p'),'');
  f.hub.growth.forget('franky',note.id);assert.doesNotMatch(f.hub.growth.context('franky','preference','p','local'),/New project preference/);
+});
+test('local identity retains the character without importing execution-role instructions',async()=>{
+ const f=await fixture();await f.local.ask({...scope,prompt:'Review my supplied code.'});
+ const system=f.calls.find(c=>c.route==='chat').body.messages[0].content;
+ assert.match(system,/portraying franky/);assert.ok(system.includes(require('../desktop/crew.cjs').personalities.franky));
+ assert.match(system,/cannot inspect a repository, edit files or run tests/);assert.ok(!system.includes('run relevant deterministic checks'));
+ assert.match(require('../desktop/crew.cjs').characterInstructions('franky','builder'),/run relevant deterministic checks/,'executing mission guidance remains intact');
 });
 test('disabled memory neither injects notes nor learns a local exchange',async()=>{
  const f=await fixture();await f.local.teach({...scope,text:'Hidden preference.'});f.hub.growth.data.enabled=false;await f.local.ask({...scope,prompt:'Review.'});

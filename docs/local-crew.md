@@ -26,6 +26,10 @@ Only one local reply runs at a time. Stop aborts the local HTTP request and mark
 
 Alternatives: ten resident models multiply memory demand; online weight updates risk learning erroneous outputs and need curated evaluation. Shared local weights plus independent persistent profiles provide the requested personal continuity first. Fine-tuning is deferred until representative tasks show measurable benefit.
 
+Runtime compatibility decision, 2026-11-05: a live Qwen3.5 response exhausted the bounded output budget before producing a complete answer. Read the installed model's `/api/show` thinking controls. Request `think: false` only when `thinking.values` explicitly contains boolean `false`; otherwise retain the server's default. Do not infer support from a model name or capability label. Keep the existing deadline, answer limit, local-only check and rejection of incomplete replies. This adds no persisted field and does not store reasoning traces. Reference: [Ollama thinking controls](https://docs.ollama.com/capabilities/thinking).
+
+Local identity decision, 2026-11-05: reuse the canonical character personality with an advisory-only role prompt. Do not import the executing mission prompt's instruction to inspect repositories and run tests into a tool-free local chat. Existing mission prompts remain unchanged. Review skill guidance explicitly covers path-segment containment, symlinks, check/use races, uncertain remote effects and confirmed idempotency before retries. These are instructions to the model, not enforced guarantees about its answer quality.
+
 Protocol references: https://docs.ollama.com/api/chat and https://docs.ollama.com/api/tags; local-only configuration: https://docs.ollama.com/faq.
 
 ## Historical verification before newer-source integration — 2026-11-04
@@ -83,6 +87,8 @@ From the primary repository root, with this machine's verified portable runtime/
 
 The launcher makes no downloads. It reuses an existing local Ollama server or starts the supplied executable with process-only `OLLAMA_NO_CLOUD=1`, loopback binding and the supplied model store. Closing the preview stops only a server this launcher started. An already-running server retains its own configuration. Add `-Check` for a hidden fresh-profile admission/UI check; it records evidence under `.sunny-dev/local-crew-preview-check-*`.
 
+For an explicitly opted-in end-to-end model check, add both `-Check -LiveReplyCheck` to that launcher command. It submits a synthetic question through the actual chat form, waits for the real reply to render, verifies its model attribution, and saves the answer and screenshot in the fresh check profile. It never runs the generated answer. Plain `-Check` performs no inference. `-LiveReplyCheck` without `-Check` is rejected so test questions cannot land in an interactive saved preview profile.
+
 For a repeatable real-inference check, start Ollama separately and run:
 
 ```powershell
@@ -118,3 +124,11 @@ Each crewmate has separate model settings, guidelines, conversations and lessons
 - Latest full hidden native workflow passed after the native-dialog and guideline-draft fixes. User-facing launcher tested from no running Ollama: exit0, server absent before and after; it starts/stops its own server correctly. Current tested runtimes are stopped.
 - Real isolated SQLite regression passed: local model, skills, guidelines and project lesson survive reopening; a saved in-flight question becomes interrupted without a model call. JSON/live and SQLite/synthetic checks exercise the same ordered Hub integration. Latest focused suite56/56 also covers preserving pasted code indentation; the final full run started before the last two follow-up regressions, so those are verified separately by the focused run.
 - All ten main crewmates passed a live isolated-memory fixture with distinct saved project codes and two explicitly assigned local models. Every response contained its own code, no request contained another crew's code, and Franky's other-project request had empty recall and returned `UNKNOWN`. Evidence: parent `.sunny-dev/local-crew-live-roster-result.json`. This verifies narrow recall behavior, not general reasoning quality.
+
+### Model compatibility and quality follow-up — 2026-11-05
+
+- Added answer-only mode using live `thinking.values` metadata after Qwen3.5 exhausted its reply budget. A regression failed before the change; supported boolean controls now pass, while missing, malformed or level-only controls retain their server default. Reasoning traces are not persisted. Focused local/source/growth/history checks: **59/59 passed**.
+- Local chat now retains canonical personality with an advisory-only identity instead of the executing mission's instruction to inspect a repository and run tests. The existing mission prompt is unchanged. Native source-attachment regression also failed before the fix and passed afterward: adding a source preview preserves pasted indentation and trailing newlines.
+- Real UI-to-model checks passed with 14B and 30B in fresh profiles, including rendered replies, correct model attribution, cloud disconnected and command denial. `-Check -LiveReplyCheck` makes this repeatable; normal `-Check` makes no inference.
+- The one-click preview retains `qwen2.5-coder:14b` as its tested starting configuration. Optional [Qwen3.5 9B GGUF](https://ollama.com/library/qwen3.5:9b-q4_K_M) and [Qwen3-Coder 30B](https://ollama.com/library/qwen3-coder:30b) were downloaded and evaluated in the separate model store. Neither justified replacing it: 9B generated incorrect JavaScript/path explanations, and 30B claimed to fix a basic empty-input bug while returning the original broken function. These are small manual samples, not a ranking of model capability.
+- Explicit reviewed path/idempotency lessons improved a fresh 30B response, including real-path resolution and a check/use race warning, but the suggested guard still rejected valid names beginning with `..`. Saving a correction can improve context without guaranteeing correct code. Original and corrected answers remain in `.sunny-dev/local-crew-boundary/*/result.json`; summary: `.sunny-dev/local-crew-model-review.md`. Boundary-review drafts were not executed.

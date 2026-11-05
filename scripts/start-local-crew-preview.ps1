@@ -2,9 +2,11 @@ param(
     [Parameter(Mandatory = $true)][string]$RuntimePath,
     [Parameter(Mandatory = $true)][string]$ModelStore,
     [Parameter(Mandatory = $true)][string]$Model,
-    [switch]$Check
+    [switch]$Check,
+    [switch]$LiveReplyCheck
 )
 $ErrorActionPreference = 'Stop'
+if ($LiveReplyCheck -and -not $Check) { throw 'Use -Check with -LiveReplyCheck to keep the synthetic live question in a fresh profile.' }
 if ($Model -notmatch '^[a-zA-Z0-9][a-zA-Z0-9._:/-]*$' -or $Model -match 'cloud') { throw 'Choose a downloaded local model name.' }
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $runtime = (Resolve-Path -LiteralPath $RuntimePath).Path
@@ -37,6 +39,7 @@ try {
     # This window is explicitly requested by running the preview launcher.
     $previewArgs = @('desktop/local-crew-preview.cjs','--model',$Model)
     if ($Check) { $previewArgs += '--preview-check' }
+    if ($LiveReplyCheck) { $previewArgs += '--live-reply-check' }
     $launch = @{FilePath=$electron;WorkingDirectory=$repoRoot;ArgumentList=$previewArgs;PassThru=$true;Wait=$true}
     if ($Check) { $launch.WindowStyle = 'Hidden' }
     $preview = Start-Process @launch

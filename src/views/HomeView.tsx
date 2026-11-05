@@ -1,3 +1,4 @@
+import {CaptainWatch} from '../components/CaptainWatch';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowRight,CheckCircle2,ChevronRight,Compass,FolderPlus,LoaderCircle,Search,Send,Sparkles,Users} from 'lucide-react';
 import type {CrewId,Mission,SkillChoice,Snapshot,TaskSummary as Task} from '../shared';
@@ -51,6 +52,7 @@ export function HomeView({launchPending,onLaunchPending,snapshot,invoke,onWorksp
   <section className="home-heading"><div><span className="eyebrow">Your crew. One clear course.</span><h2>What are we getting done?</h2><p>Bring the goal. Your crew will help you get there.</p></div><button className="home-explore" onClick={onExplore}><Compass size={18}/> Visit the island <ArrowRight size={16}/></button></section>
   {window.sunny&&snapshot.codex.status!=='connected'?<div className="home-connection" role="status"><span><b>{snapshot.codex.status==='Sample data'?'Review the upgrade safely':snapshot.codex.status==='connecting'?'Connecting to Codex…':'Your crew needs a connection'}</b><small>{snapshot.codex.error??'Your draft is safe here. Check Settings to connect or sign in.'}</small></span><button onClick={onSettings}>Open Settings <ChevronRight size={16}/></button></div>:null}
   {launchedTask?<div className="launch-receipt" role="status"><span><b>Task created</b><small>{launchedTask.title} · {taskLabel(launchedTask)}</small></span><button onClick={()=>onWorkspace({taskId:launchedTask.id})}>Open task <ArrowRight size={16}/></button></div>:null}
+  <CaptainWatch snapshot={snapshot} onOpen={onWorkspace} onMission={onMission}/>
   <MissionBoard briefOnly snapshot={snapshot} invoke={invoke} onOpen={(taskId,selection)=>onWorkspace({taskId,...selection})} onSelectMission={onMission}/>
   <details className="home-conversations"><summary>Ordinary conversations and past turns</summary>
   <section className="launch-card" aria-label="Start a task">

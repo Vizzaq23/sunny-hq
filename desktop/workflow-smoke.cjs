@@ -92,6 +92,42 @@ app.whenReady().then(async()=>{
   await wait('Boolean(document.querySelector(".helm-activity"))');assert.ok(await js('document.querySelector(".helm-activity").textContent.includes("Fixture live deck update")'),'deck update and activity use the same streamed snapshot');
   Object.assign(state.tasks[0],originalDeckTask);emit();await nav('Home');await wait('Boolean(document.querySelector(".home-page"))');await revealConversations();await delay(250);
   assert.equal(await js('document.querySelectorAll(".home-task").length'),4,'newer snapshot wins over stale initial response');
+  // Captain's watch follows streamed facts and only navigates to the guarded request.
+  await wait('Boolean(document.querySelector(".captain-watch"))');
+  assert.equal(await js('document.querySelectorAll(".watch-list li").length'),4);
+  assert.equal(await js('document.querySelector("[data-watch-id$=design] .watch-label").textContent'),'Permission requested');
+  assert.equal(await js('document.querySelector("[data-watch-id$=design] .watch-copy p").textContent'),'npm test');
+  assert.equal(await js('document.querySelector("[data-watch-id$=unknown] .watch-label").textContent'),'Check connection');
+  const watchApproval=state.approvals[0];state.approvals=[];emit();
+  await wait('document.querySelector("[data-watch-id$=design] .watch-label").textContent==="Waiting — no request received"');
+  state.approvals=[watchApproval];state.codex.status='disconnected';emit();
+  await wait('Array.from(document.querySelectorAll(".watch-label")).every(x=>x.textContent==="Check connection")');
+  assert.equal(answers,0);state.codex.status='connected';emit();
+  await wait('document.querySelector("[data-watch-id$=design] .watch-label").textContent==="Permission requested"');
+  state.tasks[0].messages.push({id:'watch-event',role:'system',text:'Completed · Command: fixture test',time:Date.now()});projection.transcriptChanged(state.tasks[0]);emit();
+  await wait('document.querySelector("[data-watch-id$=captain] .watch-copy p").textContent.includes("fixture test")');
+  assert.equal(await js('document.querySelector("[data-watch-id$=captain] .watch-label").textContent'),'Working');
+  state.tasks[0].messages=state.tasks[0].messages.filter(m=>m.id!=='watch-event');projection.transcriptChanged(state.tasks[0]);emit();
+  await screenshot('captain-watch-desktop.png');win.setSize(390,844);await wait('innerWidth<400');
+  await js('document.querySelector(".captain-watch").scrollIntoView({block:"start"})');
+  assert.ok(await js('document.documentElement.scrollWidth<=innerWidth'),'captain watch fits phone');
+  await screenshot('captain-watch-mobile.png');win.setSize(1440,1050);await wait('innerWidth>1000');
+  await js('document.querySelector("[data-watch-id$=design] .watch-open").focus()');
+  assert.equal(await js('document.activeElement.className'),'watch-open');
+  await click('[data-watch-id="task:design"] .watch-open');
+  await wait('Boolean(document.querySelector(".approval-card"))');
+  assert.equal(await js('document.querySelector(".workbench-head h2").textContent'),'Refresh the dashboard layout');
+  assert.equal(answers,0,'opening request must never approve');
+  await click('[aria-label="Back to workspace"]');await wait('Boolean(document.querySelector(".home-page"))');
+
+  if(process.env.SUNNY_WATCH_PREVIEW==='1'){
+   clearTimeout(watchdog);
+   await js(`(()=>{document.title='Sunny HQ — Captain’s Watch — isolated fixture preview';const banner=document.createElement('div');banner.textContent='ISOLATED PREVIEW · Synthetic task events · No live provider or daily profile';banner.setAttribute('role','status');Object.assign(banner.style,{position:'fixed',bottom:'0',left:'0',right:'0',zIndex:'99999',padding:'10px',background:'#163d35',color:'#fff',font:'12px system-ui',textAlign:'center'});document.body.append(banner);document.querySelector('.captain-watch').scrollIntoView({block:'start'});})()`);
+   win.setTitle('Sunny HQ — Captain’s Watch — isolated fixture preview');win.show();win.focus();
+   await screenshot('captain-watch-preview.png');
+   fs.writeFileSync(path.join(output,'preview.json'),JSON.stringify({preview:true,visible:win.isVisible(),syntheticTransport:true,liveProviderProof:false,pid:process.pid}));
+   await new Promise(resolve=>win.once('closed',resolve));return;
+  }
   await delay(250);await screenshot('home-desktop.png');
   assert.equal(await js('document.querySelectorAll("button button").length'),0,'no nested buttons');
   const contractBefore=structuredClone(state.workspace),probe={id:'workflow-contract-probe',kind:'message',projectId:'studio',taskId:'done',text:'Keep exact fixture input',revision:0,updatedAt:Date.now()};
@@ -245,7 +281,7 @@ app.whenReady().then(async()=>{
    if(['luffy','jinbe'].includes(crewId)){win.setSize(360,900);await wait('innerWidth<400');assert.ok(await js('document.documentElement.scrollWidth<=innerWidth'),'populated crew relay fits a narrow phone');assert.equal(await js('document.querySelectorAll(".station-relay li").length'),3);if(crewId==='jinbe')await screenshot('station-jinbe-relay-mobile.png');win.setSize(1440,1050);await wait('innerWidth>1000');}
    if(crewId==='zoro')await screenshot('zoro-dojo-room-working.png');if(crewId==='chopper'){assert.ok(await js('document.querySelector(".workbench").classList.contains("reduce-motion")'),'reduced motion keeps Chopper room static and usable');await screenshot('chopper-infirmary-reduced-motion.png');}state.missions=state.missions.filter(value=>value.id!==stationMission.id);state.runs=state.runs.filter(value=>value.id!==stationTask.runId);await click('[aria-label="Back to workspace"]');await wait('!document.querySelector(".workbench")');
   }
-  fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({passed:true,hidden:!win.isVisible(),syntheticTransport:true,liveProviderProof:false}));console.log('SUNNY_WORKFLOW '+JSON.stringify({passed:true,hidden:!win.isVisible(),syntheticTransport:true,liveProviderProof:false,checks:['inbox-show-more','inbox-project-filter','quick-switch-mobile','quick-switch-stable-selection','quick-switch-dirty-guard','searchable-local-inbox','inbox-review-state','quick-switch-enter-target','quick-switch-ime','helm-user-and-system-reduced-motion','helm-sea-pause','streamed-deck-activity','snapshot-race','family-search','specialist-approval','duplicate-approval','draft-per-task','home-draft-navigation','failed-start-draft','duplicate-start','lazy-tools','folder-parent','editor-load','draft-reload','reconcile','inbox','compact-layout','island-navigation','startup-retry','pending-launch-navigation','dirty-project-switch','dirty-global-settings-navigation','workspace-draft-cas-helper','dirty-file-task-start','template-cleared-after-start','character-room-theme','room-audio-toggle','room-audio-settings','robin-obsidian-library-route','note-context-unsent-robin-review','oversized-note-boundary','all-ten-illustrated-crew-rooms','distinct-station-layouts','square-room-badge','all-rooms-200-percent-zoom','station-tabs-preserve-drafts','room-focus-keeps-draft','room-starters-unsent','room-ambience-pause','room-art-expansion','room-streamed-saved-update','recorded-crew-relay-dependencies','crew-relay-input-and-uncertainty','crew-relay-mobile-layout','room-system-reduced-motion-live','reduced-motion-illustrated-room'],screenshots:output}));
+  fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({passed:true,hidden:!win.isVisible(),syntheticTransport:true,liveProviderProof:false}));console.log('SUNNY_WORKFLOW '+JSON.stringify({passed:true,hidden:!win.isVisible(),syntheticTransport:true,liveProviderProof:false,checks:['captain-watch-streamed-requests','captain-watch-disconnect-precedence','captain-watch-tool-completion-not-done','captain-watch-phone-layout','captain-watch-request-navigation-no-authority','inbox-show-more','inbox-project-filter','quick-switch-mobile','quick-switch-stable-selection','quick-switch-dirty-guard','searchable-local-inbox','inbox-review-state','quick-switch-enter-target','quick-switch-ime','helm-user-and-system-reduced-motion','helm-sea-pause','streamed-deck-activity','snapshot-race','family-search','specialist-approval','duplicate-approval','draft-per-task','home-draft-navigation','failed-start-draft','duplicate-start','lazy-tools','folder-parent','editor-load','draft-reload','reconcile','inbox','compact-layout','island-navigation','startup-retry','pending-launch-navigation','dirty-project-switch','dirty-global-settings-navigation','workspace-draft-cas-helper','dirty-file-task-start','template-cleared-after-start','character-room-theme','room-audio-toggle','room-audio-settings','robin-obsidian-library-route','note-context-unsent-robin-review','oversized-note-boundary','all-ten-illustrated-crew-rooms','distinct-station-layouts','square-room-badge','all-rooms-200-percent-zoom','station-tabs-preserve-drafts','room-focus-keeps-draft','room-starters-unsent','room-ambience-pause','room-art-expansion','room-streamed-saved-update','recorded-crew-relay-dependencies','crew-relay-input-and-uncertainty','crew-relay-mobile-layout','room-system-reduced-motion-live','reduced-motion-illustrated-room'],screenshots:output}));
  }catch(error){await screenshot('failure.png').catch(()=>{});fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({passed:false,syntheticTransport:true,liveProviderProof:false,error:error.stack,health:{mainPid:process.pid,mainAlive:true,windowDestroyed:win.isDestroyed(),rendererPid:win.isDestroyed()?null:win.webContents.getOSProcessId()}}));console.error(error);process.exitCode=1;}
- finally{win.destroy();app.exit(process.exitCode||0);}
+ finally{if(!win.isDestroyed())win.destroy();app.exit(process.exitCode||0);}
 }).catch(error=>{console.error(error);app.exit(1);});

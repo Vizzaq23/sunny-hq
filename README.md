@@ -32,6 +32,8 @@ Read the [start-to-finish AI pipeline guide](docs/SUNNY-AI-PIPELINE.md) for miss
 
 ## Open it
 
+**Local crew developer preview:** on the prepared development machine, double-click `.sunny-dev/Open Local Crew Preview.cmd`. It opens this checkout's local developer UI with a separate saved profile and the downloaded Ollama model. For setup on another checkout, model selection, backup limits and verification, follow the [local crew runbook](docs/local-crew.md#isolated-launch-and-repeatable-live-check). This preview is separate from the installed Sunny application described below.
+
 **Installation reconciliation (October 14, 2026):** the supplied Start Menu shortcut opens a separate 0.11.0 package built from a different, dirty source checkout. The three targets currently configured in this repository's `Launch Sunny.cmd` are missing. Use the existing Start Menu shortcut for that installation; do not rebuild or reinstall from this checkout as an assumed equivalent. See the [exact executable, source identity and fresh recovery results](docs/reliability-baseline.md#current-reconciliation--2026-10-14) and [integration plan](docs/superpowers/plans/2026-10-14-installed-workshop-integration.md). The launch/version instructions below describe earlier releases.
 
 Double-click **Launch Sunny.cmd** in this folder. The upgraded app is in `release-workflow-0.10.0/win-unpacked/Sunny HQ.exe` (0.10.0); the launcher falls back to the older `release` build if the upgrade is missing. If Sunny is already running, finish any active work and choose **Quit** from its tray menu before launching the update. Closing its window only hides it to the tray. The previous build is preserved.

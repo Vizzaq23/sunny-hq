@@ -21,7 +21,9 @@ app.on('will-quit',()=>clearTimeout(watchdog));
  let win,failStart=true,starts=0,answers=0,failSnapshot=false,raceSnapshot=true,startDelay=150,stops=0,failCheck=true,taskRace=false;
 const projection=require('./state-projection.cjs').createStateProjection();
 const emit=()=>win.webContents.send('sunny:event',projection.event('snapshot',state));
+const localFixture=require('./local-crew-smoke.cjs').fixture(state,emit);
 ipcMain.handle('sunny:invoke',async(_event,action,args)=>{
+ if(action.startsWith('localCrew:'))return localFixture.invoke(action,args);
  if(action==='transcript:page')return projection.page(state,args);
  if(action==='workspace:get')return structuredClone(state.workspace);
  if(action==='workspace:update'){state.workspace=applyWorkspaceUpdate(state.workspace,structuredClone(args),structuredClone(state));emit();return structuredClone(state.workspace);}
@@ -47,7 +49,7 @@ ipcMain.handle('sunny:invoke',async(_event,action,args)=>{
  throw Error('Unexpected smoke IPC: '+action);
 });
 app.whenReady().then(async()=>{
- win=new BrowserWindow({width:1440,height:1050,show:false,webPreferences:{offscreen:process.env.SUNNY_SMOKE_HIDDEN==='1',preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,backgroundThrottling:false}});
+ win=new BrowserWindow({width:1440,height:1050,show:false,webPreferences:{offscreen:process.env.SUNNY_SMOKE_HIDDEN==='1'||process.argv.includes('--local-crew-only'),preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,backgroundThrottling:false}});
  assert.equal(win.isVisible(),false); // Always hidden; retain optional offscreen rendering.
  const js=async code=>{let timer;try{return await Promise.race([win.webContents.executeJavaScript(code),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Runtime.evaluate timed out after 10 seconds')),10000);})]);}catch(error){throw Error(code+'\n'+error.message);}finally{clearTimeout(timer);}};
  const wait=async(code)=>{for(let i=0;i<120;i++){if(await js(code))return;await delay(50);}throw Error('UI wait timed out: '+code);};
@@ -91,6 +93,7 @@ app.whenReady().then(async()=>{
   await wait('document.querySelector(".helm-live-update strong")?.textContent==="Fixture live deck update"');await click('[aria-label="Open saved work activity"]');
   await wait('Boolean(document.querySelector(".helm-activity"))');assert.ok(await js('document.querySelector(".helm-activity").textContent.includes("Fixture live deck update")'),'deck update and activity use the same streamed snapshot');
   Object.assign(state.tasks[0],originalDeckTask);emit();await nav('Home');await wait('Boolean(document.querySelector(".home-page"))');await revealConversations();await delay(250);
+  if(process.argv.includes('--local-crew-only')){await require('./local-crew-smoke.cjs').check({js,wait,fill,select,click,nav,screenshot,win,localFixture});fs.writeFileSync(path.join(output,'local-crew-result.json'),JSON.stringify({passed:true,syntheticModel:true}));console.log('SUNNY_LOCAL_CREW passed (synthetic model)');return;}
   assert.equal(await js('document.querySelectorAll(".home-task").length'),4,'newer snapshot wins over stale initial response');
   // Captain's watch follows streamed facts and only navigates to the guarded request.
   await wait('Boolean(document.querySelector(".captain-watch"))');
@@ -281,6 +284,7 @@ app.whenReady().then(async()=>{
    if(['luffy','jinbe'].includes(crewId)){win.setSize(360,900);await wait('innerWidth<400');assert.ok(await js('document.documentElement.scrollWidth<=innerWidth'),'populated crew relay fits a narrow phone');assert.equal(await js('document.querySelectorAll(".station-relay li").length'),3);if(crewId==='jinbe')await screenshot('station-jinbe-relay-mobile.png');win.setSize(1440,1050);await wait('innerWidth>1000');}
    if(crewId==='zoro')await screenshot('zoro-dojo-room-working.png');if(crewId==='chopper'){assert.ok(await js('document.querySelector(".workbench").classList.contains("reduce-motion")'),'reduced motion keeps Chopper room static and usable');await screenshot('chopper-infirmary-reduced-motion.png');}state.missions=state.missions.filter(value=>value.id!==stationMission.id);state.runs=state.runs.filter(value=>value.id!==stationTask.runId);await click('[aria-label="Back to workspace"]');await wait('!document.querySelector(".workbench")');
   }
+  await require('./local-crew-smoke.cjs').check({js,wait,fill,select,click,nav,screenshot,win,localFixture});
   fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({passed:true,hidden:!win.isVisible(),syntheticTransport:true,liveProviderProof:false}));console.log('SUNNY_WORKFLOW '+JSON.stringify({passed:true,hidden:!win.isVisible(),syntheticTransport:true,liveProviderProof:false,checks:['captain-watch-streamed-requests','captain-watch-disconnect-precedence','captain-watch-tool-completion-not-done','captain-watch-phone-layout','captain-watch-request-navigation-no-authority','inbox-show-more','inbox-project-filter','quick-switch-mobile','quick-switch-stable-selection','quick-switch-dirty-guard','searchable-local-inbox','inbox-review-state','quick-switch-enter-target','quick-switch-ime','helm-user-and-system-reduced-motion','helm-sea-pause','streamed-deck-activity','snapshot-race','family-search','specialist-approval','duplicate-approval','draft-per-task','home-draft-navigation','failed-start-draft','duplicate-start','lazy-tools','folder-parent','editor-load','draft-reload','reconcile','inbox','compact-layout','island-navigation','startup-retry','pending-launch-navigation','dirty-project-switch','dirty-global-settings-navigation','workspace-draft-cas-helper','dirty-file-task-start','template-cleared-after-start','character-room-theme','room-audio-toggle','room-audio-settings','robin-obsidian-library-route','note-context-unsent-robin-review','oversized-note-boundary','all-ten-illustrated-crew-rooms','distinct-station-layouts','square-room-badge','all-rooms-200-percent-zoom','station-tabs-preserve-drafts','room-focus-keeps-draft','room-starters-unsent','room-ambience-pause','room-art-expansion','room-streamed-saved-update','recorded-crew-relay-dependencies','crew-relay-input-and-uncertainty','crew-relay-mobile-layout','room-system-reduced-motion-live','reduced-motion-illustrated-room'],screenshots:output}));
  }catch(error){await screenshot('failure.png').catch(()=>{});fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({passed:false,syntheticTransport:true,liveProviderProof:false,error:error.stack,health:{mainPid:process.pid,mainAlive:true,windowDestroyed:win.isDestroyed(),rendererPid:win.isDestroyed()?null:win.webContents.getOSProcessId()}}));console.error(error);process.exitCode=1;}
  finally{if(!win.isDestroyed())win.destroy();app.exit(process.exitCode||0);}

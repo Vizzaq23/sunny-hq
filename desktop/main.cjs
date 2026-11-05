@@ -39,7 +39,7 @@ async function invalidateWorkspaceSource(project){if(project.executionWorkspace.
 async function manualWrite(project){await assertExecution(project);if(hub.gate.blocked(project.path,{projectId:project.id}))throw Error('An agent is writing in this project. Finish or interrupt it first.');}
 function assertProjectRemoval(project){
  const active=task=>['starting','working','waiting','unknown'].includes(task.status)||hub.hasTaskRecoveryIntent(task)||hub.launchingTasks.has(task.id)||hub.preparingTurns.has(task.id)||hub.pendingDispatches?.has(task.id)||hub.providerCalls?.has(task.id);
- if(hub.gate.blocked(project.path,{projectId:project.id})||hub.state.tasks.some(task=>task.projectId===project.id&&active(task))||hub.state.runs.filter(run=>run.projectId===project.id).some(run=>run.controlIntent?.state==='pending'||require('./run-control.cjs').report(hub,run.id).unknownEffects.length))throw Error('Reconcile active tasks and owned effects before removing this project.');
+ if(hub.localCrew.active?.projectId===project.id||hub.gate.blocked(project.path,{projectId:project.id})||hub.state.tasks.some(task=>task.projectId===project.id&&active(task))||hub.state.runs.filter(run=>run.projectId===project.id).some(run=>run.controlIntent?.state==='pending'||require('./run-control.cjs').report(hub,run.id).unknownEffects.length))throw Error('Reconcile active tasks and owned effects before removing this project.');
 }
 async function withManualFileWrite(project,args){
  await assertExecution(project);const id='manual-file:'+randomUUID();
@@ -130,6 +130,14 @@ async function handle(action,args={},surface='hub'){
  case 'island:stopJob':return hub.island.stop(args.id);
  case 'island:paused':return hub.island.setPaused(args.paused);
  case 'island:revenue':return hub.island.addRevenue(args);
+ case 'localCrew:models':if(!args||typeof args!=='object'||Array.isArray(args)||Object.keys(args).length)throw Error('Invalid model catalog request.');return hub.localCrew.models();
+ case 'localCrew:configure':return hub.localCrew.configure(args);
+ case 'localCrew:source':return hub.localCrew.source(args);
+ case 'localCrew:recall':return hub.localCrew.recall(args);
+ case 'localCrew:ask':return hub.localCrew.ask(args);
+ case 'localCrew:stop':return hub.localCrew.stop(args);
+ case 'localCrew:teach':return hub.localCrew.teach(args);
+ case 'localCrew:clear':return hub.localCrew.clear(args);
  case 'crew:note':{const note=hub.growth.note(args.crewId,args.text,args.id);hub.changed();return note;}
  case 'crew:forget':hub.growth.forget(args.crewId,args.id);hub.changed();return;
  case 'crew:memoryEnabled':if(typeof args.enabled!=='boolean')throw Error('Choose on or off.');hub.growth.data.enabled=args.enabled;hub.changed();return;

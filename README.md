@@ -55,6 +55,8 @@ Version 0.10 opens on **Home**: describe a goal, choose a project, and start wit
 
 ## Current boundaries
 
+The source now includes an optional **Crew → Journal → Local developer** workspace. Each crewmate can use a downloaded Ollama model with its own saved engineering skills, editable developer guidelines, project conversations and pinned project lessons. Start with Franky for senior developer-style advice. This local chat reviews supplied code and drafts fixes; existing Codex missions execute work. Ollama must be running separately on this computer. Memories affect recall, not model weights. A separate-profile preview launcher and live-runtime check are included; setup, data scope and rollback: [local crew developer](docs/local-crew.md). This source feature is not automatically installed into an existing packaged Sunny app.
+
 This first release runs Codex missions. Other providers, continuous autonomous crew routing, voice conversation, mobile access, embedding-based semantic memory, free rearrangement of deck stations are not implemented. The crew walks along fixed deck paths and uses animated idle/work sprites; Chopper reuses the original animated pet atlas. Other crew sprites are game assets, not separately installed Codex pets. Existing Codex tasks remain managed in the original app. History is a bounded recent list from Codex plus imported ChatGPT conversations.
 
 Use one active writer per checkout in Sunny. It cannot lock edits made by a separate editor, terminal, or external Codex task. Review changes before committing. The editor also refuses to overwrite files that changed after being opened.

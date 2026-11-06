@@ -48,3 +48,13 @@ test('stale process and stdin failures cannot disconnect a replacement',t=>{
  old.emit('error',Error('old process'));old.emit('exit',1);old.stdin.emit('error',Error('old pipe'));
  assert.equal(client.connected,true);assert.equal(client.child,current);
 });
+
+test('reconnect diagnostics and exit reason belong only to the current transport',t=>{
+ const old=peer(),current=peer(),client=new CodexClient(),disconnections=[];
+ t.after(()=>client.close());client.on('disconnected',reason=>disconnections.push(reason));client.attach(old);
+ old.stderr.write('Previous connection authentication failure');replace(client,current);
+ assert.equal(client.diagnostic,'');
+ current.stderr.write('Current connection pipe closed');current.emit('exit',1);
+ assert.equal(disconnections.at(-1),'Codex disconnected (exit 1). Current connection pipe closed');
+ assert.equal(disconnections.at(-1).includes('authentication failure'),false);
+});

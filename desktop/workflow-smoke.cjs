@@ -21,7 +21,9 @@ app.on('will-quit',()=>clearTimeout(watchdog));
  let win,failStart=true,starts=0,answers=0,failSnapshot=false,raceSnapshot=true,startDelay=150,stops=0,failCheck=true,taskRace=false;
 const projection=require('./state-projection.cjs').createStateProjection();
 const emit=()=>win.webContents.send('sunny:event',projection.event('snapshot',state));
+const localFixture=require('./local-crew-smoke.cjs').fixture(state,emit);
 ipcMain.handle('sunny:invoke',async(_event,action,args)=>{
+ if(action.startsWith('localCrew:')||action.startsWith('localCouncil:'))return localFixture.invoke(action,args);
  if(action==='transcript:page')return projection.page(state,args);
  if(action==='workspace:get')return structuredClone(state.workspace);
  if(action==='workspace:update'){state.workspace=applyWorkspaceUpdate(state.workspace,structuredClone(args),structuredClone(state));emit();return structuredClone(state.workspace);}
@@ -47,7 +49,7 @@ ipcMain.handle('sunny:invoke',async(_event,action,args)=>{
  throw Error('Unexpected smoke IPC: '+action);
 });
 app.whenReady().then(async()=>{
- win=new BrowserWindow({width:1440,height:1050,show:false,webPreferences:{offscreen:process.env.SUNNY_SMOKE_HIDDEN==='1',preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,backgroundThrottling:false}});
+ win=new BrowserWindow({width:1440,height:1050,show:false,webPreferences:{offscreen:process.env.SUNNY_SMOKE_HIDDEN==='1'||(process.argv.includes('--local-crew-only')||process.argv.includes('--local-council-only')),preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,backgroundThrottling:false}});
  assert.equal(win.isVisible(),false); // Always hidden; retain optional offscreen rendering.
  const js=async code=>{let timer;try{return await Promise.race([win.webContents.executeJavaScript(code),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Runtime.evaluate timed out after 10 seconds')),10000);})]);}catch(error){throw Error(code+'\n'+error.message);}finally{clearTimeout(timer);}};
  const wait=async(code)=>{for(let i=0;i<120;i++){if(await js(code))return;await delay(50);}throw Error('UI wait timed out: '+code);};
@@ -56,7 +58,7 @@ app.whenReady().then(async()=>{
  const click=async selector=>{await prepare(selector);await wait(`!document.querySelector(${JSON.stringify(selector)}).disabled`);await js(`(()=>{const element=document.querySelector(${JSON.stringify(selector)});element.focus();element.click();})()`);await delay(70);await revealConversations();};
  const fill=async(selector,value)=>{await prepare(selector);return js(`(()=>{const element=document.querySelector(${JSON.stringify(selector)});Object.getOwnPropertyDescriptor(element.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value').set.call(element,${JSON.stringify(value)});element.dispatchEvent(new Event('input',{bubbles:true}));})()`);};
  const select=async(selector,value)=>{await prepare(selector);return js(`(()=>{const element=document.querySelector(${JSON.stringify(selector)});element.value=${JSON.stringify(value)};element.dispatchEvent(new Event('change',{bubbles:true}));})()`);};
- const nav=async label=>{await js(`(()=>{const button=Array.from(document.querySelectorAll('.sidebar .main-nav button')).find(button=>button.querySelector('span').textContent===${JSON.stringify(label)});button.focus();button.click();})()`);await delay(70);if(label==='Home')await revealConversations();};
+ const nav=async label=>{const visibleLabel=label==='Home'?'Luffy':label;await js(`(()=>{const button=Array.from(document.querySelectorAll('.sidebar .main-nav button,.sidebar-foot>button')).find(button=>button.querySelector('span')?.textContent===${JSON.stringify(visibleLabel)});if(!button)throw Error('Missing navigation target');const more=button.closest('.nav-more');if(more&&more.querySelector('[hidden]'))more.querySelector(':scope > button').click();button.focus();button.click();})()`);await delay(70);if(label==='Home')await revealConversations();};
  const reload=async()=>{const loaded=new Promise(resolve=>win.webContents.once('did-finish-load',resolve));win.reload();await loaded;await wait('Boolean(document.querySelector(".helm-workspace,.workbench,.home-page,.loading-deck[role=alert]"))');if(await js('Boolean(document.querySelector(".helm-workspace"))'))await nav('Home');await revealConversations();};
  const conversationStarters=async()=>{await wait('Boolean(document.querySelector(".mission-board"))');await js('(()=>{const details=Array.from(document.querySelectorAll(".journey-surface > details")).find(d=>d.querySelector("summary").textContent.trim()==="Conversation starters");if(!details)throw Error("Missing conversation starters disclosure");if(!details.open)details.querySelector("summary").click();})()');await wait('Boolean(document.querySelector(".mission-card button"))');};
  const newConversation=async(projectId)=>{const name=state.projects.find(p=>p.id===projectId)?.name;await js(`(()=>{const button=Array.from(document.querySelectorAll('.sidebar .project-nav')).find(button=>button.querySelector('b').textContent===${JSON.stringify(name)});button.focus();button.click();})()`);await wait('Boolean(document.querySelector(".workbench .mission-start"))');assert.equal(await js('document.querySelector(".start-fields label:first-child select").value'),projectId,'direct project shortcut opens that exact project');};
@@ -76,7 +78,7 @@ app.whenReady().then(async()=>{
   throw lastError;
  };
  try{
-  await win.loadFile(path.join(root,'dist','index.html'));await wait('Boolean(document.querySelector(".helm-workspace"))');await screenshot('command-deck.png');
+  await win.loadFile(path.join(root,'dist','index.html'));await wait('Boolean(document.querySelector(".local-captain"))');await nav('The Sunny');await wait('Boolean(document.querySelector(".helm-workspace"))');await screenshot('command-deck.png');
   assert.equal(await js('document.querySelector(".helm-workspace").dataset.motion'),'reduced');
   assert.equal(await js('getComputedStyle(document.querySelector(".helm-scene"),"::before").animationName'),'none');
   state.settings.reducedMotion=false;emit();await wait('document.querySelector(".helm-workspace").dataset.motion==="full"');
@@ -91,7 +93,46 @@ app.whenReady().then(async()=>{
   await wait('document.querySelector(".helm-live-update strong")?.textContent==="Fixture live deck update"');await click('[aria-label="Open saved work activity"]');
   await wait('Boolean(document.querySelector(".helm-activity"))');assert.ok(await js('document.querySelector(".helm-activity").textContent.includes("Fixture live deck update")'),'deck update and activity use the same streamed snapshot');
   Object.assign(state.tasks[0],originalDeckTask);emit();await nav('Home');await wait('Boolean(document.querySelector(".home-page"))');await revealConversations();await delay(250);
+  if(process.argv.includes('--crew-usability-only')){await require('./crew-usability-smoke.cjs').check({js,wait,fill,select,click,nav,screenshot,win,localFixture});fs.writeFileSync(path.join(output,'crew-usability-result.json'),JSON.stringify({passed:true,syntheticModel:true}));console.log('SUNNY_CREW_USABILITY passed (synthetic model)');return;}
+  if(process.argv.includes('--local-council-only')){await require('./local-council-smoke.cjs').check({js,wait,fill,select,click,nav,screenshot,win,localFixture});fs.writeFileSync(path.join(output,'local-council-result.json'),JSON.stringify({passed:true,syntheticModel:true}));console.log('SUNNY_LOCAL_COUNCIL_UI passed (synthetic model)');return;}
+  if(process.argv.includes('--local-crew-only')){await require('./local-crew-smoke.cjs').check({js,wait,fill,select,click,nav,screenshot,win,localFixture});fs.writeFileSync(path.join(output,'local-crew-result.json'),JSON.stringify({passed:true,syntheticModel:true}));console.log('SUNNY_LOCAL_CREW passed (synthetic model)');return;}
   assert.equal(await js('document.querySelectorAll(".home-task").length'),4,'newer snapshot wins over stale initial response');
+  // Captain's watch follows streamed facts and only navigates to the guarded request.
+  await wait('Boolean(document.querySelector(".captain-watch"))');
+  assert.equal(await js('document.querySelectorAll(".watch-list li").length'),4);
+  assert.equal(await js('document.querySelector("[data-watch-id$=design] .watch-label").textContent'),'Permission requested');
+  assert.equal(await js('document.querySelector("[data-watch-id$=design] .watch-copy p").textContent'),'npm test');
+  assert.equal(await js('document.querySelector("[data-watch-id$=unknown] .watch-label").textContent'),'Check connection');
+  const watchApproval=state.approvals[0];state.approvals=[];emit();
+  await wait('document.querySelector("[data-watch-id$=design] .watch-label").textContent==="Waiting — no request received"');
+  state.approvals=[watchApproval];state.codex.status='disconnected';emit();
+  await wait('Array.from(document.querySelectorAll(".watch-label")).every(x=>x.textContent==="Check connection")');
+  assert.equal(answers,0);state.codex.status='connected';emit();
+  await wait('document.querySelector("[data-watch-id$=design] .watch-label").textContent==="Permission requested"');
+  state.tasks[0].messages.push({id:'watch-event',role:'system',text:'Completed · Command: fixture test',time:Date.now()});projection.transcriptChanged(state.tasks[0]);emit();
+  await wait('document.querySelector("[data-watch-id$=captain] .watch-copy p").textContent.includes("fixture test")');
+  assert.equal(await js('document.querySelector("[data-watch-id$=captain] .watch-label").textContent'),'Working');
+  state.tasks[0].messages=state.tasks[0].messages.filter(m=>m.id!=='watch-event');projection.transcriptChanged(state.tasks[0]);emit();
+  await screenshot('captain-watch-desktop.png');win.setSize(390,844);await wait('innerWidth<400');
+  await js('document.querySelector(".captain-watch").scrollIntoView({block:"start"})');
+  assert.ok(await js('document.documentElement.scrollWidth<=innerWidth'),'captain watch fits phone');
+  await screenshot('captain-watch-mobile.png');win.setSize(1440,1050);await wait('innerWidth>1000');
+  await js('document.querySelector("[data-watch-id$=design] .watch-open").focus()');
+  assert.equal(await js('document.activeElement.className'),'watch-open');
+  await click('[data-watch-id="task:design"] .watch-open');
+  await wait('Boolean(document.querySelector(".approval-card"))');
+  assert.equal(await js('document.querySelector(".workbench-head h2").textContent'),'Refresh the dashboard layout');
+  assert.equal(answers,0,'opening request must never approve');
+  await click('[aria-label="Back to workspace"]');await wait('Boolean(document.querySelector(".home-page"))');
+
+  if(process.env.SUNNY_WATCH_PREVIEW==='1'){
+   clearTimeout(watchdog);
+   await js(`(()=>{document.title='Sunny HQ — Captain’s Watch — isolated fixture preview';const banner=document.createElement('div');banner.textContent='ISOLATED PREVIEW · Synthetic task events · No live provider or daily profile';banner.setAttribute('role','status');Object.assign(banner.style,{position:'fixed',bottom:'0',left:'0',right:'0',zIndex:'99999',padding:'10px',background:'#163d35',color:'#fff',font:'12px system-ui',textAlign:'center'});document.body.append(banner);document.querySelector('.captain-watch').scrollIntoView({block:'start'});})()`);
+   win.setTitle('Sunny HQ — Captain’s Watch — isolated fixture preview');win.show();win.focus();
+   await screenshot('captain-watch-preview.png');
+   fs.writeFileSync(path.join(output,'preview.json'),JSON.stringify({preview:true,visible:win.isVisible(),syntheticTransport:true,liveProviderProof:false,pid:process.pid}));
+   await new Promise(resolve=>win.once('closed',resolve));return;
+  }
   await delay(250);await screenshot('home-desktop.png');
   assert.equal(await js('document.querySelectorAll("button button").length'),0,'no nested buttons');
   const contractBefore=structuredClone(state.workspace),probe={id:'workflow-contract-probe',kind:'message',projectId:'studio',taskId:'done',text:'Keep exact fixture input',revision:0,updatedAt:Date.now()};
@@ -210,7 +251,7 @@ app.whenReady().then(async()=>{
   assert.equal(await js('document.querySelector(".composer textarea").value'),'','sent template does not reappear as a follow-up');
   await js('window.confirm=()=>true;undefined');await click('[aria-label="Back to workspace"]');await nav('Home');await wait('Boolean(document.querySelector(".home-page"))');
   failSnapshot=true;await reload();await wait("document.querySelector(\".loading-deck[role=alert] h2\")?.textContent===\"Your workspace couldn't load\"");assert.ok(await js('document.body.innerText.includes("Fixture: connection unavailable")'));failSnapshot=false;
-  await click('.primary-button');await wait('Boolean(document.querySelector(".helm-workspace"))');await nav('Home');await wait('Boolean(document.querySelector(".home-page"))');
+  await click('.primary-button');await wait('Boolean(document.querySelector(".local-captain"))');await nav('Home');await wait('Boolean(document.querySelector(".home-page"))');
   taskRace=true;await reload();await wait('Boolean(document.querySelector(".home-page"))');await delay(250);
   assert.ok(await js('document.querySelector(".home-task-title").textContent.includes("Latest streamed task")'),'early streamed task is preserved over initial snapshot');
   win.setSize(1440,1050);
@@ -245,7 +286,9 @@ app.whenReady().then(async()=>{
    if(['luffy','jinbe'].includes(crewId)){win.setSize(360,900);await wait('innerWidth<400');assert.ok(await js('document.documentElement.scrollWidth<=innerWidth'),'populated crew relay fits a narrow phone');assert.equal(await js('document.querySelectorAll(".station-relay li").length'),3);if(crewId==='jinbe')await screenshot('station-jinbe-relay-mobile.png');win.setSize(1440,1050);await wait('innerWidth>1000');}
    if(crewId==='zoro')await screenshot('zoro-dojo-room-working.png');if(crewId==='chopper'){assert.ok(await js('document.querySelector(".workbench").classList.contains("reduce-motion")'),'reduced motion keeps Chopper room static and usable');await screenshot('chopper-infirmary-reduced-motion.png');}state.missions=state.missions.filter(value=>value.id!==stationMission.id);state.runs=state.runs.filter(value=>value.id!==stationTask.runId);await click('[aria-label="Back to workspace"]');await wait('!document.querySelector(".workbench")');
   }
-  fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({passed:true,hidden:!win.isVisible(),syntheticTransport:true,liveProviderProof:false}));console.log('SUNNY_WORKFLOW '+JSON.stringify({passed:true,hidden:!win.isVisible(),syntheticTransport:true,liveProviderProof:false,checks:['inbox-show-more','inbox-project-filter','quick-switch-mobile','quick-switch-stable-selection','quick-switch-dirty-guard','searchable-local-inbox','inbox-review-state','quick-switch-enter-target','quick-switch-ime','helm-user-and-system-reduced-motion','helm-sea-pause','streamed-deck-activity','snapshot-race','family-search','specialist-approval','duplicate-approval','draft-per-task','home-draft-navigation','failed-start-draft','duplicate-start','lazy-tools','folder-parent','editor-load','draft-reload','reconcile','inbox','compact-layout','island-navigation','startup-retry','pending-launch-navigation','dirty-project-switch','dirty-global-settings-navigation','workspace-draft-cas-helper','dirty-file-task-start','template-cleared-after-start','character-room-theme','room-audio-toggle','room-audio-settings','robin-obsidian-library-route','note-context-unsent-robin-review','oversized-note-boundary','all-ten-illustrated-crew-rooms','distinct-station-layouts','square-room-badge','all-rooms-200-percent-zoom','station-tabs-preserve-drafts','room-focus-keeps-draft','room-starters-unsent','room-ambience-pause','room-art-expansion','room-streamed-saved-update','recorded-crew-relay-dependencies','crew-relay-input-and-uncertainty','crew-relay-mobile-layout','room-system-reduced-motion-live','reduced-motion-illustrated-room'],screenshots:output}));
+  await require('./crew-usability-smoke.cjs').check({js,wait,fill,select,click,nav,screenshot,win,localFixture});
+  await require('./local-crew-smoke.cjs').check({js,wait,fill,select,click,nav,screenshot,win,localFixture});
+  fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({passed:true,hidden:!win.isVisible(),syntheticTransport:true,liveProviderProof:false}));console.log('SUNNY_WORKFLOW '+JSON.stringify({passed:true,hidden:!win.isVisible(),syntheticTransport:true,liveProviderProof:false,checks:['luffy-primary-navigation','more-keyboard-and-focus','luffy-search-and-project-entry','crew-direct-specialist-profiles','recommended-skills-preserve-instructions','persistent-dismissible-errors','crew-desktop-and-compact-layout','captain-watch-streamed-requests','captain-watch-disconnect-precedence','captain-watch-tool-completion-not-done','captain-watch-phone-layout','captain-watch-request-navigation-no-authority','inbox-show-more','inbox-project-filter','quick-switch-mobile','quick-switch-stable-selection','quick-switch-dirty-guard','searchable-local-inbox','inbox-review-state','quick-switch-enter-target','quick-switch-ime','helm-user-and-system-reduced-motion','helm-sea-pause','streamed-deck-activity','snapshot-race','family-search','specialist-approval','duplicate-approval','draft-per-task','home-draft-navigation','failed-start-draft','duplicate-start','lazy-tools','folder-parent','editor-load','draft-reload','reconcile','inbox','compact-layout','island-navigation','startup-retry','pending-launch-navigation','dirty-project-switch','dirty-global-settings-navigation','workspace-draft-cas-helper','dirty-file-task-start','template-cleared-after-start','character-room-theme','room-audio-toggle','room-audio-settings','robin-obsidian-library-route','note-context-unsent-robin-review','oversized-note-boundary','all-ten-illustrated-crew-rooms','distinct-station-layouts','square-room-badge','all-rooms-200-percent-zoom','station-tabs-preserve-drafts','room-focus-keeps-draft','room-starters-unsent','room-ambience-pause','room-art-expansion','room-streamed-saved-update','recorded-crew-relay-dependencies','crew-relay-input-and-uncertainty','crew-relay-mobile-layout','room-system-reduced-motion-live','reduced-motion-illustrated-room'],screenshots:output}));
  }catch(error){await screenshot('failure.png').catch(()=>{});fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({passed:false,syntheticTransport:true,liveProviderProof:false,error:error.stack,health:{mainPid:process.pid,mainAlive:true,windowDestroyed:win.isDestroyed(),rendererPid:win.isDestroyed()?null:win.webContents.getOSProcessId()}}));console.error(error);process.exitCode=1;}
- finally{win.destroy();app.exit(process.exitCode||0);}
+ finally{if(!win.isDestroyed())win.destroy();app.exit(process.exitCode||0);}
 }).catch(error=>{console.error(error);app.exit(1);});

@@ -46,4 +46,14 @@ test('selected skill becomes an explicit Codex skill input',async t=>{
  const [skill]=await catalogForProject(client,root,root);
  assert.deepEqual(skillInputs([skill]),[{type:'skill',name:'ecc-article-writing',path:skill.path}]);
 });
+
+test('reviewed specialist workflows stay available only for matching tasks and roles',async t=>{
+ const {root,client}=fixture(t,['investigate-first','surgical-patch','verify-and-stop','lean-build']);const catalog=await catalogForProject(client,root,root);
+ assert.deepEqual(suggestSkills(catalog,'Diagnose an intermittent failure','chopper').map(item=>item.id),['investigate-first']);
+ assert.deepEqual(suggestSkills(catalog,'Diagnose a performance regression','law').map(item=>item.id),['investigate-first']);
+ assert.deepEqual(suggestSkills(catalog,'Fix a bug with a focused patch','franky').map(item=>item.id),['surgical-patch']);
+ assert.deepEqual(suggestSkills(catalog,'Verify acceptance evidence','usopp').map(item=>item.id),['verify-and-stop']);
+ assert.deepEqual(suggestSkills(catalog,'Build a small prototype','ace').map(item=>item.id),['lean-build']);
+ assert.deepEqual(suggestSkills(catalog,'Diagnose and fix a bug','brook'),[]);assert.deepEqual(suggestSkills(catalog,'Verify acceptance evidence','morgans'),[]);
+});
 test('resident skills follow canonical capabilities while reporter accepts none',async t=>{const {root,client}=fixture(t,['ecc-market-research','sunny-world-art-review','review-security','imagegen','deploy-with-vercel']);const catalog=await catalogForProject(client,root,root),{skillsForRole}=require('../desktop/skill-catalog.cjs');assert.deepEqual(skillsForRole(catalog,'vivi').map(s=>s.id),['ecc-market-research']);assert.deepEqual(skillsForRole(catalog,'perona').map(s=>s.id),['sunny-world-art-review','review-security','imagegen']);assert.deepEqual(skillsForRole(catalog,'morgans'),[]);assert.deepEqual(skillsForRole(catalog,'All tools'),[]);});

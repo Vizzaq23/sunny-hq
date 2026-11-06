@@ -4,6 +4,10 @@ const {createHash}=require('node:crypto');
 
 // Only reviewed workflows belong in the launch picker. Codex remains the source of availability.
 const REVIEWED=Object.freeze([
+ {id:'investigate-first',category:'Engineering',purpose:'Diagnose an unclear failure with evidence-ranked hypotheses before changing code.',roles:['diagnostician','builder'],terms:[/diagnos|debug|investigat|intermittent|root cause|performance regression/i]},
+ {id:'surgical-patch',category:'Engineering',purpose:'Make a focused fix at the responsible layer and prove its regression behavior.',roles:['builder'],terms:[/\bfix\b|\bpatch\b|regression|bug/i]},
+ {id:'verify-and-stop',category:'Verification',purpose:'Check acceptance evidence and report pass, fail or unavailable without expanding scope.',roles:['validator','reviewer','operator'],terms:[/verif|validate|acceptance|regression check|test suite/i]},
+ {id:'lean-build',category:'Engineering',purpose:'Deliver a small useful feature using existing boundaries and an explicit stop condition.',roles:['builder','planner'],terms:[/build|implement|prototype|feature/i,/scope|small|bounded|reuse|time.box/i]},
  {id:'ecc-frontend-a11y',category:'Engineering',purpose:'Check forms and interactive UI for keyboard and screen reader access.',roles:['builder','designer','reviewer'],terms:[/accessib|keyboard|screen reader|\baria\b/i,/form|modal|menu|interface|\bui\b|component/i]},
  {id:'ecc-market-research',category:'Research',purpose:'Compare markets, competitors and vendors with attributed evidence.',roles:['researcher','planner'],terms:[/market|competitor|industry|vendor|investor/i,/research|compare|trend|sizing/i]},
  {id:'ecc-article-writing',category:'Writing',purpose:'Draft a sourced, structured article, guide or newsletter in the requested voice.',roles:['creator','researcher'],terms:[/article|blog|newsletter|essay|guide|long.form/i,/write|draft|publish|content/i]},

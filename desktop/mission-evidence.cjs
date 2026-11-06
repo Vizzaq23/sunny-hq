@@ -1,6 +1,17 @@
 const fs=require('node:fs');const path=require('node:path');const {createHash}=require('node:crypto');
 const {execFile,spawn}=require('node:child_process');const {promisify}=require('node:util');
 const runFile=promisify(execFile);
+class CheckPreflightError extends Error{constructor(message,cause){super(message,{cause});this.name='CheckPreflightError';}}
+const checkScripts=['test','build','typecheck','lint'];
+function availableChecks(root){
+ const file=path.join(root,'package.json');if(!fs.existsSync(file)||fs.statSync(file).size>1024*1024)throw Error('Project package.json is unavailable.');
+ const pkg=JSON.parse(fs.readFileSync(file,'utf8'));
+ return checkScripts.filter(script=>Object.hasOwn(pkg.scripts||{},script)&&typeof pkg.scripts[script]==='string'&&pkg.scripts[script].trim());
+}
+function assertCheckAvailable(root,script){
+ if(!checkScripts.includes(script))throw Error('Choose a supported check.');
+ if(!availableChecks(root).includes(script))throw Error('The '+script+' script is unavailable in this project.');
+}
 function npmRuntime(){
  const roots=[path.dirname(process.execPath),path.join(process.env.ProgramFiles||'C:\\Program Files','nodejs')];
  for(const root of roots){const node=path.join(root,process.platform==='win32'?'node.exe':'node'),npm=path.join(root,'node_modules/npm/bin/npm-cli.js');if(fs.existsSync(node)&&fs.existsSync(npm))return {node,npm};}
@@ -56,10 +67,10 @@ class MissionEvidence {
   return {kind:'git',branch:branch||'(detached)',commit,dirty:paths.length>0,paths,fingerprint:hash.digest('hex'),recordedAt:Date.now()};
  }
  async runCheck(root,script,beforeEffect,control){
-  if(!['test','build','typecheck','lint'].includes(script))throw Error('Choose a supported check.');
-  const file=path.join(root,'package.json');if(!fs.existsSync(file)||fs.statSync(file).size>1024*1024)throw Error('Project package.json is unavailable.');
-  const pkg=JSON.parse(fs.readFileSync(file,'utf8'));if(typeof pkg.scripts?.[script]!=='string'||!pkg.scripts[script].trim())throw Error('The '+script+' script is unavailable in this project.');
-  const before=await this.gitState(root),startedAt=Date.now(),runtime=control?.runtimeIdentity?this.assertRuntime(control.runtimeIdentity):this.runtime();
+  let before,runtime;
+  try{assertCheckAvailable(root,script);before=await this.gitState(root);runtime=control?.runtimeIdentity?this.assertRuntime(control.runtimeIdentity):this.runtime();}
+  catch(error){throw new CheckPreflightError(error.message,error);}
+  const startedAt=Date.now();
   await beforeEffect?.();
   if(control?.runtimeIdentity)this.assertRuntime(control.runtimeIdentity);
   const result=await this.execute(runtime.node,runtime.npm,script,root,120000,{control});
@@ -67,4 +78,5 @@ class MissionEvidence {
   return {kind:'check',script,command:'npm run '+script,startedAt,recordedAt:Date.now(),durationMs:Date.now()-startedAt,...result,commit:before.commit,branch:before.branch,beforeFingerprint:before.fingerprint,fingerprint:after.fingerprint,status:result.timedOut||result.exitCode!==0?'failed':before.fingerprint!==after.fingerprint?'stale':'passed'};
  }
 }
-module.exports={MissionEvidence,executeCheck};
+module.exports={MissionEvidence,executeCheck,availableChecks,assertCheckAvailable,CheckPreflightError};
+

@@ -1,5 +1,5 @@
-import {Fragment,useEffect,useRef,type KeyboardEvent,type ReactNode} from 'react';
-import {Anchor,BookOpen,Box,Compass,Inbox,LayoutDashboard,Newspaper,Menu,Settings,ShipWheel,Sparkles,Users,X} from 'lucide-react';
+import {useEffect,useRef,useState,type KeyboardEvent,type ReactNode} from 'react';
+import {Anchor,BookOpen,Box,ChevronDown,Compass,Inbox,LayoutDashboard,Newspaper,Menu,Settings,ShipWheel,Sparkles,Users,X} from 'lucide-react';
 import type {Crew,Project,TaskSummary as Task} from '../shared';
 import {formatRelative} from '../data';
 import {useCrewTexture} from '../crewTexture';
@@ -7,13 +7,15 @@ import {taskLabel,taskNeedsAttention} from '../taskFlow';
 
 export type ViewId='home'|'news'|'island'|'ship'|'projects'|'crew'|'missions'|'library'|'tools'|'inbox'|'settings';
 const nav=[
-  {id:'home',label:'Home',icon:LayoutDashboard},
-  {id:'projects',label:'Projects',icon:Box},
+  {id:'home',label:'Luffy',icon:ShipWheel},
   {id:'crew',label:'Crew',icon:Users},
+  {id:'projects',label:'Projects',icon:Box},
+  {id:'ship',label:'The Sunny',icon:LayoutDashboard},
+  {id:'island',label:'The Island',icon:Compass},
+] as const;
+const secondaryNav=[
   {id:'missions',label:'Missions',icon:Compass},
   {id:'inbox',label:'Inbox',icon:Inbox},
-  {id:'island',label:'The Island',icon:Compass},
-  {id:'ship',label:'The Sunny',icon:LayoutDashboard},
   {id:'news',label:'Morgans’ blimp',icon:Newspaper},
   {id:'library',label:'Library',icon:BookOpen},
   {id:'tools',label:'Tools',icon:Sparkles},
@@ -21,6 +23,11 @@ const nav=[
 
 export function Sidebar({view,onView,projects,tasks,activeProjectId,onProject,open,onToggle,search}:{search?:ReactNode;view:ViewId;onView:(view:ViewId)=>void;projects:Project[];tasks:Task[];activeProjectId?:string;onProject:(id:string)=>void;open:boolean;onToggle:()=>void}){
   const sidebarRef=useRef<HTMLElement>(null);
+  const moreRef=useRef<HTMLDivElement>(null),moreButton=useRef<HTMLButtonElement>(null);
+  const [more,setMore]=useState(false);
+  const attention=tasks.filter(taskNeedsAttention).length;
+  useEffect(()=>{setMore(false);},[view]);
+  useEffect(()=>{if(!more)return;const close=(event:PointerEvent)=>{if(event.target instanceof Node&&!moreRef.current?.contains(event.target))setMore(false);};document.addEventListener('pointerdown',close);return()=>document.removeEventListener('pointerdown',close);},[more]);
   useEffect(()=>{
     if(!open)return;
     const previous=document.activeElement;
@@ -41,7 +48,11 @@ export function Sidebar({view,onView,projects,tasks,activeProjectId,onProject,op
     {search}
     <nav className="main-nav" aria-label="Main navigation">
       <p className="nav-label">Captain’s command</p>
-      {nav.map(item=><Fragment key={item.id}>{item.id==='island'?<p className="nav-label voyage-nav-group">Explore the Grand Line</p>:item.id==='library'?<p className="nav-label voyage-nav-group">Ship’s resources</p>:null}<button className={view===item.id?'active':''} aria-current={view===item.id?'page':undefined} onClick={()=>onView(item.id)}><item.icon size={18} aria-hidden="true"/><span>{item.label}</span>{item.id==='inbox'&&tasks.some(taskNeedsAttention)?<em>{tasks.filter(taskNeedsAttention).length}</em>:null}</button></Fragment>)}
+      {nav.map(item=><button key={item.id} className={view===item.id?'active':''} aria-current={view===item.id?'page':undefined} onClick={()=>onView(item.id)}><item.icon size={18} aria-hidden="true"/><span>{item.label}</span></button>)}
+      <div className="nav-more" ref={moreRef} onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget))setMore(false);}} onKeyDown={event=>{if(event.key==='Escape'&&more){event.preventDefault();event.stopPropagation();setMore(false);moreButton.current?.focus();}}}>
+       <button ref={moreButton} className={secondaryNav.some(item=>item.id===view)?'active':''} aria-expanded={more} aria-controls="secondary-navigation" onClick={()=>setMore(value=>!value)}><ChevronDown size={18} aria-hidden="true"/><span>More</span>{attention?<em aria-label={`${attention} tasks need attention`}>{attention}</em>:null}</button>
+       <div id="secondary-navigation" className="nav-more-links" hidden={!more}>{secondaryNav.map(item=><button key={item.id} className={view===item.id?'active':''} aria-current={view===item.id?'page':undefined} onClick={()=>{setMore(false);moreButton.current?.focus();onView(item.id);}}><item.icon size={18} aria-hidden="true"/><span>{item.label}</span>{item.id==='inbox'&&attention?<em>{attention}</em>:null}</button>)}</div>
+      </div>
     </nav>
     <div className="sidebar-projects">
       <div className="nav-section-title"><span>Project ports</span><button onClick={()=>onView('projects')}>View all</button></div>
@@ -56,7 +67,7 @@ export function Sidebar({view,onView,projects,tasks,activeProjectId,onProject,op
 }
 
 export function Topbar({title,subtitle,desktop,codexStatus,onMenu,actions,menuOpen=false}:{title:string;subtitle?:string;desktop:boolean;codexStatus:string;onMenu:()=>void;actions?:ReactNode;menuOpen?:boolean}){
-  return <header className="topbar"><button className="menu-button" onClick={onMenu} aria-label="Open menu" aria-expanded={menuOpen} aria-controls="sunny-navigation"><Menu/></button><div className="topbar-title"><span className="topbar-kicker">{subtitle}</span><h1>{title}</h1></div><div className="topbar-actions">{actions}<span className={`status-pill ${desktop&&codexStatus==='connected'?'online':'offline'}`}><span/>{desktop?(codexStatus==='connected'?'Codex ready':codexStatus):'Browser preview'}</span></div></header>;
+  return <header className="topbar"><button className="menu-button" onClick={onMenu} aria-label="Open menu" aria-expanded={menuOpen} aria-controls="sunny-navigation"><Menu/></button><div className="topbar-title"><span className="topbar-kicker">{subtitle}</span><h1>{title}</h1></div><div className="topbar-actions">{actions}<span className={`status-pill ${desktop&&codexStatus==='connected'?'online':'offline'}`}><span/>{desktop?(codexStatus==='connected'?'Codex connected':codexStatus):'Browser preview'}</span></div></header>;
 }
 
 export function EmptyState({icon='anchor',title,body,action}:{icon?:'anchor'|'compass'|'book';title:string;body:string;action?:ReactNode}){
@@ -82,4 +93,4 @@ export function TaskRow({task,crew,onClick}:{task:Task;crew?:Crew;onClick:()=>vo
   return <button className="task-row" onClick={onClick}><span className={`task-state ${task.status}`}/><span className="task-main"><b>{task.title}</b><small>{crew?.name??'Crew'} · {formatRelative(task.updatedAt)}</small></span><span className="task-status">{taskLabel(task)}</span></button>;
 }
 
-export function Toasts({items}:{items:{id:number;message:string;tone?:string}[]}){return <div className="toast-stack" aria-live="polite">{items.map(item=><div key={item.id} className={`toast ${item.tone??''}`}>{item.message}</div>)}</div>}
+export function Toasts({items,onDismiss}:{items:{id:number;message:string;tone?:string}[];onDismiss:(id:number)=>void}){return <div className="toast-stack">{items.map(item=><div key={item.id} className={`toast ${item.tone??''}`}><span role={item.tone==='error'?'alert':'status'}>{item.message}</span><button aria-label="Dismiss notification" onClick={()=>onDismiss(item.id)}><X size={16} aria-hidden="true"/></button></div>)}</div>}

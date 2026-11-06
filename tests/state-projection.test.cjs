@@ -132,3 +132,10 @@ test('append_deltas_reject_nested_or_invalid_message_metadata_before_advancing_s
   }
  }
 });
+
+test('council projection includes reviewed public context and excludes opaque internal fields',()=>{
+ const p=producer(),s={tasks:[],localCrew:{version:1,profiles:{},councils:[{id:'c',projectId:'p',parentId:'previous',contextLimited:true,status:'ready',summary:'Advice',secret:'hidden',controller:{secret:'hidden'},contributions:[{crewId:'franky',status:'ready',text:'Proposal',secret:'hidden'}],review:{status:'ready',text:'Check',secret:'hidden'},report:{status:'ready',text:'Bulletin',secret:'hidden'},handoff:{status:'started',taskId:'t',secret:'hidden'}}]}};
+ const result=p.snapshot(s).localCrew.councils[0];assert.equal(result.parentId,'previous');assert.equal(result.contextLimited,true);assert.equal(result.handoff.taskId,'t');assert.equal(result.review.text,'Check');assert.doesNotMatch(JSON.stringify(result),/hidden|controller|secret/);
+});
+
+test('execution availability comes from the release gate, never saved profile state',()=>{const p=producer();assert.equal(p.snapshot({tasks:[],supervisedExecutionAvailable:true}).supervisedExecutionAvailable,false);});

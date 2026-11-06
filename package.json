@@ -11,6 +11,8 @@
     "desktop": "electron .",
     "build": "tsc --noEmit && vite build && node scripts/write-build-info.cjs",
     "test": "node --test --test-concurrency=1 --test-reporter=tap tests/*.test.cjs",
+    "validate:windows": "node scripts/validate-windows.cjs",
+    "validate:approval-replay": "node scripts/replay-pending-approval.cjs",
     "dist": "npm run build && electron-builder --win nsis --x64",
     "preview": "vite preview --host 127.0.0.1"
   },

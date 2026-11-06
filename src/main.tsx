@@ -1,3 +1,4 @@
+import './components/local-captain.css';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
@@ -17,3 +18,5 @@ import './quarters.css';
 import './room-stations.css';
 
 import './work-navigation.css';
+
+import './components/local-crew.css';

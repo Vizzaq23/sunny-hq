@@ -27,6 +27,6 @@ export default function Companion(){
  return <main className={`companion-shell ${sunny.snapshot.settings.reducedMotion||systemReduced?'reduce-motion':''} ${acceptedCue&&!systemReduced&&!sunny.snapshot.settings.reducedMotion?'companion-acceptance-cue':''}`}>
   <header className="companion-toolbar"><span className="ship-drag" title="Drag to move the ship"><GripHorizontal size={15}/> Thousand Sunny</span><button title="Smaller ship" aria-label="Smaller ship" onClick={()=>void sunny.invoke('companion:resize',{delta:-100}).catch(()=>{})}><Minus/></button><button title="Larger ship" aria-label="Larger ship" onClick={()=>void sunny.invoke('companion:resize',{delta:100}).catch(()=>{})}><Plus/></button><button title="Restore full hub" aria-label="Restore full hub" onClick={()=>restore()}><Maximize2/></button><button title="Hide ship to tray" aria-label="Hide ship to tray" onClick={()=>void sunny.invoke('companion:hide').catch(()=>{})}><X/></button></header>
   <ShipView compact snapshot={sunny.snapshot} invoke={sunny.invoke} toast={sunny.toast} onWorkspace={restore} onNavigate={()=>restore()} onImport={()=>restore()}/>
-  <Toasts items={sunny.toasts}/>
+  <Toasts items={sunny.toasts} onDismiss={sunny.dismissToast}/>
  </main>;
 }

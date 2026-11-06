@@ -32,6 +32,10 @@ Read the [start-to-finish AI pipeline guide](docs/SUNNY-AI-PIPELINE.md) for miss
 
 ## Open it
 
+**Luffy-led crew development:** open `.sunny-dev/Open Sunny Crew.cmd` on the prepared machine for the separate development profile. Start on Home with **Talk to Luffy**, watch local planning on the island, and step in or stop it. All crew have distinct local specialties; extra residents remain optional. The existing supervised-execution release gate is still closed, so a ready Codex connection does not yet enable crew execution. See the [local crew runbook](docs/local-crew.md).
+
+**Local crew developer preview:** on the prepared development machine, double-click `.sunny-dev/Open Local Crew Preview.cmd`. It opens this checkout's local developer UI with a separate saved profile and the downloaded Ollama model. For setup on another checkout, model selection, backup limits and verification, follow the [local crew runbook](docs/local-crew.md#isolated-launch-and-repeatable-live-check). This preview is separate from the installed Sunny application described below.
+
 **Installation reconciliation (October 14, 2026):** the supplied Start Menu shortcut opens a separate 0.11.0 package built from a different, dirty source checkout. The three targets currently configured in this repository's `Launch Sunny.cmd` are missing. Use the existing Start Menu shortcut for that installation; do not rebuild or reinstall from this checkout as an assumed equivalent. See the [exact executable, source identity and fresh recovery results](docs/reliability-baseline.md#current-reconciliation--2026-10-14) and [integration plan](docs/superpowers/plans/2026-10-14-installed-workshop-integration.md). The launch/version instructions below describe earlier releases.
 
 Double-click **Launch Sunny.cmd** in this folder. The upgraded app is in `release-workflow-0.10.0/win-unpacked/Sunny HQ.exe` (0.10.0); the launcher falls back to the older `release` build if the upgrade is missing. If Sunny is already running, finish any active work and choose **Quit** from its tray menu before launching the update. Closing its window only hides it to the tray. The previous build is preserved.
@@ -54,6 +58,8 @@ Version 0.10 opens on **Home**: describe a goal, choose a project, and start wit
 - SQLite persistence with JSON fallback, recovery preservation, settings, backup export and Windows Win+H dictation.
 
 ## Current boundaries
+
+The source now includes an optional **Crew → Journal → Local developer** workspace. Each crewmate can use a downloaded Ollama model with its own saved engineering skills, editable developer guidelines, project conversations and pinned project lessons. Start with Franky for senior developer-style advice. This local chat reviews supplied code and drafts fixes; existing Codex missions execute work. Ollama must be running separately on this computer. Memories affect recall, not model weights. A separate-profile preview launcher and live-runtime check are included; setup, data scope and rollback: [local crew developer](docs/local-crew.md). This source feature is not automatically installed into an existing packaged Sunny app.
 
 This first release runs Codex missions. Other providers, continuous autonomous crew routing, voice conversation, mobile access, embedding-based semantic memory, free rearrangement of deck stations are not implemented. The crew walks along fixed deck paths and uses animated idle/work sprites; Chopper reuses the original animated pet atlas. Other crew sprites are game assets, not separately installed Codex pets. Existing Codex tasks remain managed in the original app. History is a bounded recent list from Codex plus imported ChatGPT conversations.
 

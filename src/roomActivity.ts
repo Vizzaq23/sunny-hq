@@ -2,6 +2,7 @@ import type {Snapshot,TaskSummary as Task,WorkContext,SupervisedAssignmentSummar
 import {projectMission,type MissionProjection} from './missionProjection.ts';
 import {projectRun} from './runProjection.ts';
 import {storageOutcomeUncertain} from './workContext.ts';
+import {localCrewActivity} from './localCrewActivity.ts';
 const activeStatuses=new Set(['starting','working','running','in-progress','waiting','awaiting-approval','unknown']);
 const roleStages:Record<string,string>={nami:'plan',franky:'work',zoro:'review',usopp:'validate',sanji:'work',chopper:'work',robin:'work',brook:'work',jinbe:'work'};
 function reviewSceneAssignment(assignment:SupervisedAssignmentSummary|undefined){
@@ -17,6 +18,7 @@ export function crewSceneStatus(projection:MissionProjection){
 /** One read-only activity per identity, scoped to the retained selection. */
 export function crewSceneProjection(snapshot:Snapshot,crewId:string,context:WorkContext|null|undefined=snapshot.workspace?.context):MissionProjection {
  const idle=(label='Standing by for selected work'):MissionProjection=>({crewId,state:'idle',label,working:false});
+ const local=localCrewActivity(snapshot,crewId,context);if(local)return storageOutcomeUncertain(snapshot)?{...local,state:'unknown',working:false,label:'Local work · storage needs recovery'}:local;
  if(crewId==='morgans')return idle('Read-only reports · News blimp');
  if(context?.runId){
   const view=projectRun(snapshot,context.runId),run=view.run;

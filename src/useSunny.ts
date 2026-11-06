@@ -18,9 +18,10 @@ export function useSunny(){
 
   const toast=useCallback((message:string,tone:Toast['tone']='default')=>{
     const id=++toastId.current;
-    setToasts(items=>[...items,{id,message,tone}]);
-    window.setTimeout(()=>setToasts(items=>items.filter(item=>item.id!==id)),3600);
+    setToasts(items=>tone==='error'&&items.some(item=>item.tone==='error'&&item.message===message)?items:[...items,{id,message,tone}]);
+    if(tone!=='error')window.setTimeout(()=>setToasts(items=>items.filter(item=>item.id!==id)),3600);
   },[]);
+  const dismissToast=useCallback((id:number)=>setToasts(items=>items.filter(item=>item.id!==id)),[]);
 
   const invoke=useCallback(async<T=unknown>(action:string,args?:unknown):Promise<T>=>{
     const control=args&&typeof args==='object'?args as Record<string,unknown>:undefined;
@@ -67,5 +68,5 @@ export function useSunny(){
 
   const mergeSnapshot=useCallback((partial:Partial<Snapshot>)=>setSnapshot(prev=>({...prev,...partial})),[]);
   const resultStatuses=useMissionResultStatuses(snapshot,invoke);
-  return{snapshot:{...snapshot,resultStatuses},setSnapshot,mergeSnapshot,ready,loadError,desktop,invoke,toast,toasts};
+  return{snapshot:{...snapshot,resultStatuses},setSnapshot,mergeSnapshot,ready,loadError,desktop,invoke,toast,toasts,dismissToast};
 }

@@ -17,7 +17,8 @@ const {guardedPath,readText,writeText,hash}=require('./core.cjs');const catalog=
 const {scanMorgansInbox}=require('./morgans-inbox.cjs');
 const {searchProjectFiles}=require('./project-search.cjs');
 const {bootHub,createQuitLifecycle}=require('./persistence-lifecycle.cjs');
-app.setName('Sunny HQ');const home=process.env.USERPROFILE||os.homedir();const dataDir=fixture?.profileDir||process.env.SUNNY_DATA_DIR||path.join(home,'AppData','Local','Sunny HQ');app.setPath('userData',dataDir);
+const crewDevelopment=process.argv.includes('--crew-development');if(crewDevelopment&&(!process.env.SUNNY_DATA_DIR||!path.isAbsolute(process.env.SUNNY_DATA_DIR)))throw Error('Crew development requires an explicit separate absolute profile directory.');
+app.setName(crewDevelopment?'Sunny HQ · Crew development':'Sunny HQ');const home=process.env.USERPROFILE||os.homedir();const dataDir=fixture?.profileDir||process.env.SUNNY_DATA_DIR||path.join(home,'AppData','Local','Sunny HQ');app.setPath('userData',dataDir);
 const primary=app.requestSingleInstanceLock();if(!primary)app.exit(0);app.on('second-instance',()=>{if(win)restoreHub();});
 let win,companion,companionLoading,hub,tray,quitting=false,morgansScanTimer,publicTransport;
 const diagnosticsDir=path.join(dataDir,'diagnostics');
@@ -39,7 +40,7 @@ async function invalidateWorkspaceSource(project){if(project.executionWorkspace.
 async function manualWrite(project){await assertExecution(project);if(hub.gate.blocked(project.path,{projectId:project.id}))throw Error('An agent is writing in this project. Finish or interrupt it first.');}
 function assertProjectRemoval(project){
  const active=task=>['starting','working','waiting','unknown'].includes(task.status)||hub.hasTaskRecoveryIntent(task)||hub.launchingTasks.has(task.id)||hub.preparingTurns.has(task.id)||hub.pendingDispatches?.has(task.id)||hub.providerCalls?.has(task.id);
- if(hub.gate.blocked(project.path,{projectId:project.id})||hub.state.tasks.some(task=>task.projectId===project.id&&active(task))||hub.state.runs.filter(run=>run.projectId===project.id).some(run=>run.controlIntent?.state==='pending'||require('./run-control.cjs').report(hub,run.id).unknownEffects.length))throw Error('Reconcile active tasks and owned effects before removing this project.');
+ if(hub.localCouncil.active?.record.projectId===project.id||hub.localCouncil.reporter?.record.projectId===project.id||hub.localCrew.active?.projectId===project.id||hub.gate.blocked(project.path,{projectId:project.id})||hub.state.tasks.some(task=>task.projectId===project.id&&active(task))||hub.state.runs.filter(run=>run.projectId===project.id).some(run=>run.controlIntent?.state==='pending'||require('./run-control.cjs').report(hub,run.id).unknownEffects.length))throw Error('Reconcile active tasks and owned effects before removing this project.');
 }
 async function withManualFileWrite(project,args){
  await assertExecution(project);const id='manual-file:'+randomUUID();
@@ -91,6 +92,7 @@ async function handle(action,args={},surface='hub'){
  case 'mission:submitMerge':return hub.merger.act(args,'submit');
  case 'mission:recheckMerge':return hub.merger.act(args,'recheck');
  case 'mission:preparePr':return hub.publication.act(args,'prepare');
+ case 'mission:editPr':return hub.publication.act(args,'edit');
  case 'mission:publishPr':return hub.publication.act(args,'publish');
  case 'mission:reconcilePr':return hub.publication.act(args,'reconcile');
  case 'mission:signalSeen':return hub.markMissionSignalSeen(args);
@@ -106,6 +108,7 @@ async function handle(action,args={},surface='hub'){
  case 'workspace:claimAcceptanceCue':return hub.claimAcceptanceCue(args);
  case 'workspace:exportDraft':{if(!args||typeof args!=='object'||Array.isArray(args)||Object.keys(args).some(key=>key!=='draft')||!args.draft)throw Error('Invalid draft export.');require('./mission-profile.cjs').validateWorkspace({...require('./mission-profile.cjs').emptyWorkspace(),drafts:[args.draft]});const result=await dialog.showSaveDialog(win,{defaultPath:'sunny-draft.json',filters:[{name:'Sunny draft',extensions:['json']}]});if(result.canceled)return {};fs.writeFileSync(result.filePath,JSON.stringify(args.draft,null,2),'utf8');return {path:result.filePath};}
  case 'mission:previewDeliverable':return hub.previewMissionDeliverable(args);
+ case 'mission:checks':return hub.missionCheckCapabilities(args);
  case 'mission:evidence':return hub.collectMissionEvidence(args);
  case 'mission:reconcileCheck':return hub.reconcileMissionCheck(args);
  case 'news:add':return hub.news.importCapture({origin:'Added in Sunny',items:[args]});
@@ -128,6 +131,21 @@ async function handle(action,args={},surface='hub'){
  case 'island:stopJob':return hub.island.stop(args.id);
  case 'island:paused':return hub.island.setPaused(args.paused);
  case 'island:revenue':return hub.island.addRevenue(args);
+ case 'localCrew:models':if(!args||typeof args!=='object'||Array.isArray(args)||Object.keys(args).length)throw Error('Invalid model catalog request.');return hub.localCrew.models();
+ case 'localCouncil:handoff':return hub.localCouncil.handoff(args);
+ case 'localCouncil:setup':return hub.localCouncil.setup(args);
+ case 'localCouncil:report':return hub.localCouncil.report(args);
+ case 'localCouncil:stopReport':return hub.localCouncil.stopReport(args);
+ case 'localCouncil:start':return hub.localCouncil.start(args);
+ case 'localCouncil:stop':return hub.localCouncil.stop(args);
+ case 'localCouncil:roster':if(!args||typeof args!=='object'||Array.isArray(args)||Object.keys(args).length)throw Error('Invalid roster request.');return hub.localCouncil.roster();
+ case 'localCrew:configure':return hub.localCrew.configure(args);
+ case 'localCrew:source':return hub.localCrew.source(args);
+ case 'localCrew:recall':return hub.localCrew.recall(args);
+ case 'localCrew:ask':return hub.localCrew.ask(args);
+ case 'localCrew:stop':return hub.localCrew.stop(args);
+ case 'localCrew:teach':return hub.localCrew.teach(args);
+ case 'localCrew:clear':return hub.localCrew.clear(args);
  case 'crew:note':{const note=hub.growth.note(args.crewId,args.text,args.id);hub.changed();return note;}
  case 'crew:forget':hub.growth.forget(args.crewId,args.id);hub.changed();return;
  case 'crew:memoryEnabled':if(typeof args.enabled!=='boolean')throw Error('Choose on or off.');hub.growth.data.enabled=args.enabled;hub.changed();return;
@@ -204,19 +222,20 @@ async function showCompanion(){
  })();
  try{await companionLoading;}catch(e){companion?.destroy();companion=undefined;throw e;}finally{companionLoading=undefined;}
 }
-async function createWindow(){fixtureStage('window-enter');win=new BrowserWindow({title:'Sunny HQ',width:1520,height:980,minWidth:1000,minHeight:700,show:!smoke&&!fixture,backgroundColor:'#f7f5ef',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),offscreen:['run-ui','playable','journey-cue','journey-motion-user','journey-motion-system'].includes(fixture?.scenario),backgroundThrottling:!smoke&&!fixture,contextIsolation:true,nodeIntegration:false,sandbox:true}});win.webContents.setWindowOpenHandler(({url})=>{if(fixture)return {action:'deny'};openUrl(url).catch(()=>{});return {action:'deny'};});win.webContents.on('will-navigate',event=>event.preventDefault());win.webContents.session.setPermissionRequestHandler((_w,_p,cb)=>cb(false));
+async function createWindow(){fixtureStage('window-enter');win=new BrowserWindow({title:crewDevelopment?'Sunny HQ · Separate crew development profile':'Sunny HQ',width:1520,height:980,minWidth:1000,minHeight:700,show:!smoke&&!fixture,backgroundColor:'#f7f5ef',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),offscreen:['run-ui','playable','journey-cue','journey-motion-user','journey-motion-system'].includes(fixture?.scenario),backgroundThrottling:!smoke&&!fixture,contextIsolation:true,nodeIntegration:false,sandbox:true}});win.webContents.setWindowOpenHandler(({url})=>{if(fixture)return {action:'deny'};openUrl(url).catch(()=>{});return {action:'deny'};});win.webContents.on('will-navigate',event=>event.preventDefault());win.webContents.session.setPermissionRequestHandler((_w,_p,cb)=>cb(false));
  fixtureStage('window-created');watchSurface(win,'hub');
+  if(crewDevelopment)win.on('page-title-updated',event=>event.preventDefault());
  require('./trusted-ipc.cjs').registerTrustedIpc({ipcMain,surfaces:()=>[win,companion],companion:()=>companion,dispatch:handle});
  hub.on('event',event=>{if(event.type==='diagnostic'){diagnostic(event.data.event,{surface:'backend'});return;}if(event.type==='snapshot')emit('snapshot');else emit(event.type,event.data);if(event.type==='completed'&&hub.state.settings.notifications&&!win.isFocused()&&Notification.isSupported())new Notification({title:event.data.status==='finished'?'Work ready to review':'Your crew needs attention',body:event.data.title}).show();});
  win.on('minimize',()=>{if(!quitting&&!smoke)void showCompanion().catch(e=>emit('error',{message:e.message}));});win.on('restore',()=>companion?.hide());
- win.on('close',event=>{if(!quitting&&!smoke){event.preventDefault();win.hide();void showCompanion().catch(e=>emit('error',{message:e.message}));}});
+ win.on('close',event=>{if(!quitting&&!smoke){event.preventDefault();if(crewDevelopment){quitting=true;app.quit();return;}win.hide();void showCompanion().catch(e=>emit('error',{message:e.message}));}});
  fixtureStage('load-enter');const dev=process.env.SUNNY_DEV_URL;const loading=dev?win.loadURL(allowedUrl(dev,{localOnly:true})):win.loadFile(path.join(__dirname,'../dist/index.html'));if(fixture)await require('./fixture-stages.cjs').bounded(loading,15000);else await loading;fixtureStage('load-exit');
  const icon=nativeImage.createFromPath(path.join(__dirname,'../dist/assets/thousand-sunny.png')).resize({width:32,height:32});tray=new Tray(icon);tray.setToolTip('Sunny HQ');tray.setContextMenu(Menu.buildFromTemplate([{label:'Open Sunny HQ',click:()=>restoreHub()},{label:'Ship on desktop',click:()=>{void showCompanion().then(()=>win.minimize()).catch(e=>emit('error',{message:e.message}));}},{label:'Quit',click:async()=>{if(quitLifecycle.failure){await offerFailedQuit(quitLifecycle.failure);return;}const active=hub.state.tasks.filter(t=>['working','waiting','starting'].includes(t.status));if(active.length||hub.discussionRun){const r=await dialog.showMessageBox(win,{type:'question',buttons:['Keep working','Interrupt and quit'],defaultId:0,cancelId:0,message:`${active.length} task(s) are still active.${hub.discussionRun?' A crew discussion is also underway.':''}`});if(r.response===0)return;await Promise.allSettled(active.map(t=>hub.interrupt(t.id)));}hub.cancelDiscussion();quitting=true;app.quit();}}]));tray.on('click',()=>restoreHub());
  if(!fixture)try{await hub.connect();}catch(e){console.error('Codex connection:',e.message);}
  if(fixture){fixtureStage('acceptance-enter');await packagedFixture.runPackagedAcceptance({app,profileDir:fixture.profileDir,outputDir:fixture.outputDir,scenario:fixture.scenario,fixtureTransport:{win,hub,manifest:fixture,buildInfo,diagnosticEvents:fixtureDiagnosticEvents}});fixtureStage('acceptance-exit');quitting=true;if(['main-restart','run-ui','playable','journey-cue'].includes(fixture.scenario)&&fixture.phase===1)app.exit(73);else app.quit();}
  if(smoke){win.showInactive();await require('./smoke.cjs')({win,hub,handle,terminals});await require('./companion-smoke.cjs')({win,handle,getCompanion:()=>companion});await require('./growth-smoke.cjs')({win,hub,handle});await require('./walking-smoke.cjs')({win,hub});await require('./captain-smoke.cjs')({win,hub,handle});await require('./island-smoke.cjs')({win,hub,handle});await require('./news-smoke.cjs')({win,hub,handle});await require('./recovery-smoke.cjs')({win,hub});await new Promise(r=>setTimeout(r,1800));const state=publicState();const checks={title:await win.webContents.getTitle(),projects:state.projects.length,tools:state.tools.length,codex:state.codex.status,models:state.models.length,body:await win.webContents.executeJavaScript('document.body.innerText.slice(0,900)'),images:await win.webContents.executeJavaScript('Array.from(document.images).map(i=>({src:i.src,width:i.naturalWidth}))')};if(!checks.body.trim()||!await win.webContents.executeJavaScript('Boolean(document.querySelector(".home-page,.island-scene"))'))throw Error('The final app view did not render.');const screenshot=await captureSmokePage();const output=path.join(process.cwd(),'.sunny-dev','desktop-smoke.png');fs.mkdirSync(path.dirname(output),{recursive:true});fs.writeFileSync(output,screenshot.toPNG());console.log('SUNNY_SMOKE '+JSON.stringify({...checks,screenshot:output}));quitting=true;app.quit();}
 }
-app.whenReady().then(async()=>{fixtureStage('app-ready');hub=fixture?await packagedFixture.bootFixtureHub(fixture,fixtureStage):await bootHub({home,dataDir,catalog});hub.managedWorkspaceRoot=path.join(fixture?.profileDir||path.join(home,'AppData','Local','Sunny HQ'),'execution-workspaces');publicTransport=require('./public-transport.cjs').createPublicTransport(hub);publicTransport.bindTranscript(emitEnvelope);const store=hub.store;if(!smoke&&!fixture){hub.state.news.captureMode='chatgpt-auto';hub.markDirty();hub.scheduleSave();morgansInboxes=[[app.getPath('downloads'),new Map()]];if(process.env.SUNNY_MORGANS_INBOX&&path.isAbsolute(process.env.SUNNY_MORGANS_INBOX))morgansInboxes.push([process.env.SUNNY_MORGANS_INBOX,new Map()]);}if(store.recovery&&!smoke&&!fixture)await dialog.showMessageBox({type:"info",title:"Sunny recovered local data",message:"Unreadable saved data was preserved for recovery. Sunny will open with defaults.",detail:store.recovery});const newsArg=process.argv.find(a=>a.startsWith('--import-briefing='));if(newsArg&&!fixture)importNewsFile(newsArg.slice('--import-briefing='.length));await createWindow();if(!smoke&&!fixture){scanMorgansBriefings();morgansScanTimer=setInterval(scanMorgansBriefings,30000);}}).catch(async e=>{diagnostic('startup-failed');fixtureStage('startup-failed');if(hub)try{fixtureStage('cleanup-enter');if(fixture)await require('./fixture-stages.cjs').bounded(hub.close(),5000);else await hub.close();fixtureStage('cleanup-exit');}catch{fixtureStage('cleanup-unresolved');}console.error(e);if(!smoke&&!fixture)dialog.showErrorBox('Sunny could not start',e.message);quitting=true;app.exit(1);});
+app.whenReady().then(async()=>{fixtureStage('app-ready');hub=fixture?await packagedFixture.bootFixtureHub(fixture,fixtureStage):await bootHub({home,dataDir,catalog});hub.managedWorkspaceRoot=path.join(fixture?.profileDir||dataDir,'execution-workspaces');publicTransport=require('./public-transport.cjs').createPublicTransport(hub);publicTransport.bindTranscript(emitEnvelope);const store=hub.store;if(!smoke&&!fixture&&!crewDevelopment){hub.state.news.captureMode='chatgpt-auto';hub.markDirty();hub.scheduleSave();morgansInboxes=[[app.getPath('downloads'),new Map()]];if(process.env.SUNNY_MORGANS_INBOX&&path.isAbsolute(process.env.SUNNY_MORGANS_INBOX))morgansInboxes.push([process.env.SUNNY_MORGANS_INBOX,new Map()]);}if(store.recovery&&!smoke&&!fixture)await dialog.showMessageBox({type:"info",title:"Sunny recovered local data",message:"Unreadable saved data was preserved for recovery. Sunny will open with defaults.",detail:store.recovery});const newsArg=process.argv.find(a=>a.startsWith('--import-briefing='));if(newsArg&&!fixture)importNewsFile(newsArg.slice('--import-briefing='.length));await createWindow();if(!smoke&&!fixture&&!crewDevelopment){scanMorgansBriefings();morgansScanTimer=setInterval(scanMorgansBriefings,30000);}}).catch(async e=>{diagnostic('startup-failed');fixtureStage('startup-failed');if(hub)try{fixtureStage('cleanup-enter');if(fixture)await require('./fixture-stages.cjs').bounded(hub.close(),5000);else await hub.close();fixtureStage('cleanup-exit');}catch{fixtureStage('cleanup-unresolved');}console.error(e);if(!smoke&&!fixture)dialog.showErrorBox('Sunny could not start',e.message);quitting=true;app.exit(1);});
 async function offerFailedQuit(error){
  quitting=false;restoreHub();
  const result=await dialog.showMessageBox(win,{type:'warning',title:'Sunny still has unsaved work',buttons:['Keep window open','Quit without saving'],defaultId:0,cancelId:0,message:'Storage did not finish saving. Keep this window open to copy or export drafts before restarting Sunny.',detail:String(error.message).slice(0,1500)});
@@ -238,3 +257,4 @@ app.on('window-all-closed',()=>{if(quitting)app.quit();});app.on('activate',()=>
 }
 }
 }
+

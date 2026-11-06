@@ -43,7 +43,8 @@ export function useWorkspaceDraft(id:string,seed:Omit<WorkspaceDraft,'id'|'revis
 }
 
 export function clearSubmittedDraft(key:string,submitted:string){
- try{const storageKey=`sunny:draft:v1:${key}`;if(sessionStorage.getItem(storageKey)!==submitted)return;sessionStorage.setItem(storageKey,'');window.dispatchEvent(new CustomEvent('sunny:draft-change',{detail:key}));}catch{/* A failed storage write must not turn a successful launch into a retry. */}
+ try{const storageKey=`sunny:draft:v1:${key}`;if(sessionStorage.getItem(storageKey)===submitted)sessionStorage.setItem(storageKey,'');}catch{/* A failed storage write must not turn a successful launch into a retry. */}
+ window.dispatchEvent(new CustomEvent('sunny:draft-submitted',{detail:{key,submitted}}));
 }
 
 // Session-scoped drafts survive navigation and reloads, and clear when the window closes.
@@ -51,7 +52,12 @@ export function useDraft(key:string,initial='',options?:{id:string;projectId:str
  const workspaceDraft=useWorkspaceDraft(options?.id??'session:'+key,{kind:'message',projectId:options?.projectId??'',taskId:options?.taskId,text:initial},options?.workspace??{version:1,revision:0,context:null,drafts:[],seenAcceptanceIds:[]},options?.invoke??(async()=>{throw Error('Workspace unavailable');}));
  const read=()=>{try{return sessionStorage.getItem(`sunny:draft:v1:${key}`)??initial;}catch{return initial;}};
  const [stored,setStored]=useState(()=>({key,text:read()}));
- useEffect(()=>{const clear=(event:Event)=>{if((event as CustomEvent).detail===key)setStored({key,text:read()});};window.addEventListener('sunny:draft-change',clear);return()=>window.removeEventListener('sunny:draft-change',clear);},[key]);
+ useEffect(()=>{
+  const change=(event:Event)=>{if((event as CustomEvent).detail===key)setStored({key,text:read()});};
+  const clear=(event:Event)=>{const detail=(event as CustomEvent<{key:string;submitted:string}>).detail;if(detail.key===key)setStored(previous=>previous.key===key&&previous.text===detail.submitted?{key,text:''}:previous);};
+  window.addEventListener('sunny:draft-change',change);window.addEventListener('sunny:draft-submitted',clear);
+  return()=>{window.removeEventListener('sunny:draft-change',change);window.removeEventListener('sunny:draft-submitted',clear);};
+ },[key]);
  let text=stored.text;
  if(stored.key!==key){text=read();setStored({key,text});}
  const setText=(value:string)=>{
@@ -60,3 +66,4 @@ export function useDraft(key:string,initial='',options?:{id:string;projectId:str
  };
  return [options?workspaceDraft.draft.text:text,options?(value:string)=>workspaceDraft.edit({text:value}):setText,options?workspaceDraft:undefined] as const;
 }
+

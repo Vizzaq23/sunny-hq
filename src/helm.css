@@ -33,3 +33,22 @@
 
 /* Keep the newest authoritative update visible beside the living world. */
 .helm-world>.helm-world-foot{display:block;padding:0;background:#173d43}.helm-live-update{display:flex;align-items:center;gap:11px;width:100%;border:0;border-top:1px solid #54796f;background:none;color:#f4e6c4;text-align:left;padding:11px 20px;min-height:58px}.helm-live-update:hover{background:#224c50}.helm-live-update>span{flex:1;min-width:0}.helm-live-update small{display:block;color:#b9d2c6;font:10px ui-monospace,monospace;margin-bottom:4px}.helm-live-update strong{display:block;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.helm-live-update time{font:10px ui-monospace,monospace;color:#b9d2c6;white-space:nowrap}.helm-ambient-note{display:block;padding:0 20px 8px;font-size:10px;color:#b9d2c6}@media(min-width:761px){.helm-scene .compact-ship .ship-board{width:min(100%,calc((100vh - 335px)*1.5))}}@media(max-width:760px){.helm-live-update{padding-inline:12px}.helm-ambient-note{padding-inline:12px}}
+
+/* Keep the captain's everyday routes visible; reveal secondary destinations on demand. */
+.voyage-ui.continuous-shell>.sidebar .main-nav{overflow:visible;gap:6px}
+.voyage-ui.continuous-shell>.sidebar .main-nav>button{flex:1 1 75px;max-width:115px;font-size:12px}
+.nav-more{position:relative;flex:0 0 auto;align-self:stretch;display:flex;align-items:center}
+.voyage-ui .nav-more>button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:70px;min-height:55px;padding:7px 12px;border:0;border-radius:4px;background:transparent;color:#c5d8d7;font-size:12px}
+.voyage-ui .nav-more>button.active,.voyage-ui .nav-more>button:hover,.voyage-ui .nav-more>button[aria-expanded=true]{background:#284b50;color:#ffe1a9}
+.nav-more>button em{position:absolute;right:0;top:1px;border-radius:12px;padding:2px 5px;background:#f6c39b;color:#482e1e;font-style:normal;font-size:11px}
+.nav-more-links{position:absolute;right:0;top:calc(100% + 9px);z-index:150;width:235px;padding:8px;border:1px solid #55776f;border-radius:10px;background:#14363b;box-shadow:0 12px 30px #08262b50}
+.nav-more-links[hidden]{display:none}
+.voyage-ui .nav-more-links>button{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:10px 12px;border:0;border-radius:6px;background:transparent;color:#e0e9df;text-align:left;font-size:14px}
+.voyage-ui .nav-more-links>button:hover,.voyage-ui .nav-more-links>button.active{background:#2c5052;color:#ffe1a9}
+.nav-more-links>button em{margin-left:auto;font-style:normal;color:#ffd0a8}
+.nav-more :focus-visible{outline:3px solid #e9b66b;outline-offset:2px}
+.toast-stack{max-height:55vh;max-width:calc(100vw - 32px);overflow:auto}
+.toast{display:flex;align-items:flex-start;gap:12px;font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+.toast>span{flex:1;min-width:0}.toast>button{display:grid;place-items:center;flex:none;min-width:32px;min-height:32px;margin:-4px -6px -4px 0;border:1px solid #ffffff70;border-radius:6px;background:transparent;color:inherit}
+.toast>button:focus-visible{outline:3px solid #ffe1a9;outline-offset:2px}
+@media(max-width:900px){.voyage-ui.continuous-shell>.sidebar .main-nav{overflow-y:auto;overflow-x:hidden}.voyage-ui.continuous-shell>.sidebar .main-nav>button{flex:none;max-width:none;font-size:14px}.nav-more{display:block;align-self:auto}.voyage-ui .nav-more>button{flex-direction:row;justify-content:flex-start;width:100%;min-height:44px;font-size:14px}.nav-more-links{position:static;width:100%;box-shadow:none;margin-top:5px}.nav-more>button em{position:static;margin-left:auto}}

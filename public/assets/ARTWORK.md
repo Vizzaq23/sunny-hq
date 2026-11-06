@@ -139,3 +139,9 @@ The command deck reuses the existing ship-companion texture and crew assets at t
 ### 2026-11-05 — local council activity projection
 
 Reused existing crew and island artwork without changing asset bytes, licensing, atlases or frame geometry. Local council/report states drive named activity labels; decorative movement does not establish progress. The roster is collapsed by default to keep the island visible, with direct Luffy/Stop controls retained. Native fixtures include desktop,480px and island working-state screenshots; no new visual provenance is required.
+
+## Shipboard typography and header reuse — 2026-11-06
+
+The existing `luffy-captains-den.png` is reused as a decorative goal-panel header accent; existing ship art remains in the home header. No image, atlas or room geometry bytes changed. Official Shueisha/VIZ/Toei/card-game material was reference only; no official images or logo fonts were bundled. Existing Lucide supplies the phone-call approval icon.
+
+New local fonts are unmodified Bangers Regular and Barlow Regular/SemiBold under SIL OFL 1.1, with full notices, exact upstream links and SHA256 values in [font provenance](../fonts/README.md). These are not official One Piece fonts. DynaFont Sōgeitai, optional textures and third-party pirate artwork were not added. Runtime font loading remains local/offline. See [visual decision and evidence](../../docs/shipboard-design-2026-11-06.md).

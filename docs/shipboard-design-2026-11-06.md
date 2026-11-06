@@ -52,16 +52,18 @@ Current evidence beneath this worktree's `.sunny-dev/`:
 
 - `design-before/`: original full workflow and screenshots; receipt passed.
 - `design-before-sized-2/`: before home, approval and Sanji room at 1280×720, 390×844 and 200% zoom; receipt passed.
-- `design-final-captures/`: final responsive captures (superseded if later receipt named in final verification below).
-- `design-final-workflow/`: full UI workflow, all ten room images, 200% zoom, draft/editor preservation, duplicate approval prevention, navigation, reduced motion and motion/pause checks; passed.
+- `design-zoom-verified/`: final responsive capture probe; local font loading, zero remote resources, 82,000-character transcript and unsent draft preservation passed. This corrects the earlier probe's retained scroll position after zoom and asserts approval-action visibility at 200%. Desktop/phone gallery images come from the identical UI in `design-verified-captures/`.
+- `design-verified-workflow/`: final full UI workflow, all ten room images, 200% zoom, draft/editor preservation, duplicate approval prevention, navigation, reduced motion and motion/pause checks; passed, exit 0. Its stdout lists 68 named checks.
 - `design-focused-tests.log`: 84 tests passed, zero failures/skips. Includes room state/evidence/relay, deck motion, captain watch, attention, call sound, mission workflow, long-transcript rendering and transcript state.
-- `design-build.log`: production build/typecheck, with existing large-chunk warning.
+- `design-build-final.log`: production build/typecheck passed, with existing large-chunk warning. Build fingerprint `0aab478fa807e0d5a5f54ed138295b50e964c2f299825e0e45c1aa6657bab25c`.
 - `design-tests.log`: sandbox run, 1,512 pass / 217 fail / 3 skipped, 1,732 total. Sample failures are denied temporary Git config writes and atomic file renames. This is a failed environment-bound run, not a green suite.
-- `design-tests-native.log`: full suite rerun with normal permissions; final result recorded below when complete.
+- `design-tests-native.log`: full suite rerun with normal permissions passed: 1,732 tests, zero failures/cancellations/skips, exit 0, 3,606,971.2654 ms (about 60 minutes).
 
 `--shipboard-captures` extends the existing hidden Electron fixture with the three requested views/sizes, 200% overflow checks, native keyboard-mode focus, no implicit approval, local font loading and no remote resource fetches. `--shipboard-baseline` selects the explicitly prepared baseline dist for comparison. Both use isolated synthetic profiles.
 
-Limitations: no installed-app/live-provider acceptance claim, screen-reader certification, commercial character-art license, or end-to-end executed local-crew mission. The existing trusted execution release gate remains closed. The long-transcript check is the existing rendered regression, not an exhaustive manual screen-reader reading.
+The portable [before/after gallery](evidence/shipboard-2026-11-06/README.md) includes desktop home/approval/room pairs, phone captures and the crew roster. [Machine-readable verification](evidence/shipboard-2026-11-06/verification.json) records the receipts and scoped contrast ratios. Changed solid text color pairs measure 6.75:1–13.62:1; focus colors exceed 5:1 against their intended solid backgrounds. This is not a whole-app contrast audit.
+
+Limitations: no installed-app/live-provider acceptance claim, screen-reader certification, commercial character-art license, or end-to-end executed local-crew mission. The existing trusted execution release gate remains closed. Long transcripts were exercised in the native phone capture and existing rendered regression, not an exhaustive manual screen-reader reading.
 
 ## Rollback and review
 
@@ -69,4 +71,8 @@ Revert the dedicated visual commit to remove the stylesheet import, presentation
 
 ## Final verification
 
-Pending completion of the normal-permission full suite and final evidence review.
+Implementation saved locally in `2e10705`; no push, PR, installation or deployment. No issue was opened because this is a direct captain-requested local visual task. Full diff reviewed; reversing only the approval icon/label/import produces the base workbench source exactly after line-ending normalization. Existing bitmap changes: none. Added fonts total 305,564 bytes. The upstream notices' trailing whitespace was normalized without changing their license wording.
+
+Normal-permission `npm test` completed: **1,732 passed, 0 failed, 0 cancelled, 0 skipped**, exit 0, 3,606,971.2654 ms. The earlier sandbox failure remains recorded separately. The final build/typecheck passed, 84 focused tests passed, all 68 named native workflow checks passed, and responsive/zoom/offline-font/82k-transcript checks passed. Full diff and local documentation links checked. No lint/format command is configured or claimed.
+
+The original checkout was observed clean on `codex/crew-skills-usability` at completion; this task made no edits there. All visual work and evidence remain in the isolated branch. Remaining actions require separate captain authority: integration with the active development branch and any installation, deployment, merge or publication. Screen-reader and installed/live-provider acceptance remain unverified.

@@ -95,6 +95,11 @@ app.whenReady().then(async()=>{
     }
     win.setSize(1280,720);win.webContents.setZoomFactor(2);await delay(200);
     assert.ok(await js('document.documentElement.scrollWidth<=innerWidth'),name+' fits 200 percent');
+    await js(`document.querySelector(${JSON.stringify(selector)}).scrollIntoView({block:'start',behavior:'instant'})`);
+    if(name==='design-approval'){
+     await js('document.querySelector(".approval-actions").scrollIntoView({block:"end",behavior:"instant"})');
+     assert.ok(await js('(()=>{const rect=document.querySelector(".approve").getBoundingClientRect();return rect.top>=0&&rect.bottom<=innerHeight;})()'),'approval action visible at 200 percent');
+    }
     await screenshot(name+'-zoom.png');win.webContents.setZoomFactor(1);win.setSize(1440,1050);await delay(200);
    };
    await nav('Home');await js('document.querySelectorAll(".home-page details[open]").forEach(d=>d.open=false)');

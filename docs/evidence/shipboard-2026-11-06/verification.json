@@ -1,0 +1,260 @@
+{
+  "date": "2026-11-06",
+  "baseCommit": "1fc7b80191509e8b013034131b7adc6ab79dbe9b",
+  "implementationCommit": "2e10705",
+  "installedPackageUntouched": true,
+  "liveProviderProof": false,
+  "nodeVersion": "v24.18.0",
+  "electronVersion": "44.4.3",
+  "build": {
+    "appVersion": "0.11.0",
+    "buildId": "0aab478fa807e0d5a5f54ed138295b50e964c2f299825e0e45c1aa6657bab25c",
+    "fingerprintKind": "source-inputs-sha256",
+    "sourceCommit": "2e10705df41f1665b32980776e67e886128bba61",
+    "sourceDirty": true
+  },
+  "cleanInstall": {
+    "passed": true,
+    "packagesAdded": 390
+  },
+  "focusedTests": {
+    "passed": 84,
+    "failed": 0,
+    "skipped": 0
+  },
+  "sandboxFullSuite": {
+    "passed": 1512,
+    "failed": 217,
+    "skipped": 3,
+    "total": 1732,
+    "environmentFailuresObserved": [
+      "Git temporary config permission denied",
+      "Atomic temporary-file rename EPERM"
+    ]
+  },
+  "normalPermissionFullSuite": {
+    "status": "passed",
+    "exitCode": 0,
+    "total": 1732,
+    "passed": 1732,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "durationMs": 3606971.2654,
+    "command": "npm test via Node 24 bundled npm-cli.js",
+    "log": ".sunny-dev/design-tests-native.log",
+    "logSha256": "45b36fed6f00feeb928ed7d61c3df08ab9a2985288bc5c4bbabdbb7ca16ec8c6"
+  },
+  "workflow": {
+    "passed": true,
+    "hidden": true,
+    "syntheticTransport": true,
+    "checks": [
+      "luffy-primary-navigation",
+      "more-keyboard-and-focus",
+      "luffy-search-and-project-entry",
+      "crew-direct-specialist-profiles",
+      "recommended-skills-preserve-instructions",
+      "persistent-dismissible-errors",
+      "crew-desktop-and-compact-layout",
+      "captain-watch-streamed-requests",
+      "captain-watch-disconnect-precedence",
+      "captain-watch-tool-completion-not-done",
+      "captain-watch-phone-layout",
+      "captain-watch-request-navigation-no-authority",
+      "inbox-show-more",
+      "inbox-project-filter",
+      "quick-switch-mobile",
+      "quick-switch-stable-selection",
+      "quick-switch-dirty-guard",
+      "searchable-local-inbox",
+      "inbox-review-state",
+      "quick-switch-enter-target",
+      "quick-switch-ime",
+      "helm-user-and-system-reduced-motion",
+      "helm-sea-pause",
+      "streamed-deck-activity",
+      "snapshot-race",
+      "family-search",
+      "specialist-approval",
+      "duplicate-approval",
+      "draft-per-task",
+      "home-draft-navigation",
+      "failed-start-draft",
+      "duplicate-start",
+      "lazy-tools",
+      "folder-parent",
+      "editor-load",
+      "draft-reload",
+      "reconcile",
+      "inbox",
+      "compact-layout",
+      "island-navigation",
+      "startup-retry",
+      "pending-launch-navigation",
+      "dirty-project-switch",
+      "dirty-global-settings-navigation",
+      "workspace-draft-cas-helper",
+      "dirty-file-task-start",
+      "template-cleared-after-start",
+      "character-room-theme",
+      "room-audio-toggle",
+      "room-audio-settings",
+      "robin-obsidian-library-route",
+      "note-context-unsent-robin-review",
+      "oversized-note-boundary",
+      "all-ten-illustrated-crew-rooms",
+      "distinct-station-layouts",
+      "square-room-badge",
+      "all-rooms-200-percent-zoom",
+      "station-tabs-preserve-drafts",
+      "room-focus-keeps-draft",
+      "room-starters-unsent",
+      "room-ambience-pause",
+      "room-art-expansion",
+      "room-streamed-saved-update",
+      "recorded-crew-relay-dependencies",
+      "crew-relay-input-and-uncertainty",
+      "crew-relay-mobile-layout",
+      "room-system-reduced-motion-live",
+      "reduced-motion-illustrated-room"
+    ]
+  },
+  "capture": {
+    "passed": true,
+    "syntheticTransport": true,
+    "sizes": [
+      [
+        1280,
+        720
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "zoom": 2,
+    "approvalResponses": 0,
+    "longTranscriptCharacters": 82000,
+    "draftPreserved": true,
+    "approvalActionsVisibleAt200Percent": true
+  },
+  "screenshots": [
+    "after-approval.png",
+    "after-home.png",
+    "after-room.png",
+    "approval-200-percent.png",
+    "before-approval.png",
+    "before-home.png",
+    "before-room.png",
+    "crew-cards.png",
+    "mobile-approval.png",
+    "mobile-home.png",
+    "mobile-room.png"
+  ],
+  "limitations": [
+    "Installed package not UI-tested or replaced",
+    "No live provider mission executed",
+    "No screen-reader certification",
+    "Existing trusted execution gate unchanged"
+  ],
+  "changedTokenContrast": {
+    "method": "sRGB relative luminance for specified solid color pairs; not a full-app contrast audit",
+    "pairs": [
+      {
+        "label": "ink / cream",
+        "ratio": 13.62
+      },
+      {
+        "label": "cream / navy",
+        "ratio": 11.34
+      },
+      {
+        "label": "white / primary red",
+        "ratio": 6.75
+      },
+      {
+        "label": "white / approve",
+        "ratio": 9.14
+      },
+      {
+        "label": "focus / cream",
+        "ratio": 5.71
+      },
+      {
+        "label": "nav focus / navy",
+        "ratio": 10.51
+      }
+    ]
+  },
+  "fontBundleCopiedExactly": true,
+  "screenshotIntegrity": [
+    {
+      "name": "after-approval.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "f4481024f091934585f15304d8e8b56e71a475f7a624cf3abb21f3dcdb3a0426"
+    },
+    {
+      "name": "after-home.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "e8bc1cfd6c324f57df42b0bf72a38c7f64458165b35821e77cd226072f9e8fd6"
+    },
+    {
+      "name": "after-room.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "ebab30a3f30096b2df3b8d66a57822e0d7d57eb9cc479fd224a0fd766d2b9b6d"
+    },
+    {
+      "name": "approval-200-percent.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "2968fb4194866de51301ece5d1c9e3cf5272f149b692b7d91a09946e975542c0"
+    },
+    {
+      "name": "before-approval.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "3707739a8b8122d7483dd6e589752ccf7e22c89c030e620549bca65366a7161b"
+    },
+    {
+      "name": "before-home.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "7115fb248b23d1092c71ae01bffb8f4e341b64a65b482c2c5d343de61b2b5d16"
+    },
+    {
+      "name": "before-room.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "b84daf94e71fcf2a725f2a7ccc686088ea9d09a914ab276f8f7683b34856651e"
+    },
+    {
+      "name": "crew-cards.png",
+      "width": 1440,
+      "height": 1050,
+      "sha256": "83c8e5eeac908be8fc5dde4ee0b30e8d153347254e2644a8c9bb2f64bdf93a2b"
+    },
+    {
+      "name": "mobile-approval.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "f57d88640afbd7bc492c504b2891bd21982237043b87e19d42ed2b8d37a68218"
+    },
+    {
+      "name": "mobile-home.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "ad004eb984b8365fb87faa35cbf49cdee07fad6394d6d56d5eb20ecb04ece530"
+    },
+    {
+      "name": "mobile-room.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "7d905d61d9484f2a1b3863ab63598b6ed58124c1d143fcf113d7af9d22902c77"
+    }
+  ],
+  "localReportLinksValid": true
+}

@@ -1,6 +1,6 @@
 # Crew skills and usability research — 2026-11-06
 
-Status: research completed at04:10UTC; planning in progress through04:20UTC. This records observed problems and candidate improvements, not implemented capabilities or demonstrated model competence. Companion to [local crew](local-crew.md).
+Status: research, planning, implementation and validation completed on candidate1fc7b80. The separate development profile was updated and verified; the daily installation is unchanged. Clean install/build/native checks passed. The full suite recorded1,731 passes and one Git fixture permission failure, retained below with its passing isolated recheck. Overall validation is not green. Historical research findings below are diagnostic observations, not demonstrated model competence. Current activation and use: [local crew](local-crew.md).
 
 ## Time and scope
 
@@ -172,4 +172,48 @@ Usopp's manually reviewed pure CommonJS clamp example passed4 checks. The same c
 
 Actual schema-constrained planner run ddccef91-4b2d-47ac-9414-a349a368a466 selected Brook for copy, Sanji/Usopp for accessibility, Chopper for diagnosis, Franky/Usopp for a patch, Robin/Vivi for evidence, Nami/Usopp/Franky for prioritization, Jinbe/Law/Chopper for recovery, Law/Chopper for systems, Ace/Usopp for prototyping, Vivi for interview questions and Perona for editorial work. Clarification, reporter requests and greetings used direct replies. Some teams remain unnecessarily large. This harness intentionally rejects subsequent workers; it does not demonstrate completed councils.
 
-Focused checks:80 passed. Broader regressions:109 passed and one sandbox EPERM hard-link fixture failure; the affected four-test module passed with normal scoped filesystem permissions. Build/typecheck passed. Full hidden native workflow and separate council fixture passed, including recommendation refresh preserving personal instructions. Latest Home ordering/crew spacing changes await the next native check. Native checks use synthetic models and are not live-provider proof. Windows validation now removes inherited ELECTRON_RUN_AS_NODE (including case variants); an empty value incorrectly enables Node mode. No Electron sandbox setting changed.
+Focused checks:80 passed. Broader regressions:109 passed and one sandbox EPERM hard-link fixture failure; the affected four-test module passed with normal scoped filesystem permissions. Build/typecheck passed. Full hidden native workflow and separate council fixture passed, including recommendation refresh preserving personal instructions. The final pre-validation native workflow also passed after the Home ordering/crew spacing changes: `.sunny-dev/crew-skills-native-final.log`, screenshots `2026-11-06T04-43-07.146Z`. Native checks use synthetic models and are not live-provider proof. Windows validation now removes inherited ELECTRON_RUN_AS_NODE (including case variants); an empty value incorrectly enables Node mode. No Electron sandbox setting changed.
+
+## Requirement audit — implementation candidate 1fc7b80
+
+| Requirement | Authoritative evidence | Status / limit |
+| --- | --- | --- |
+| Include every canonical character | Canonical bindings/residents compared with local-specialties.json; local-council.test.cjs checks exact roster equality | 10 Straw Hats + Law/Ace/Vivi/Perona + Morgans covered |
+| Relevant specialized skills and personal context |19 allowlisted local skills; role guidance and applicability in actual request tests for all15; four reviewed workflow candidates remain live-discovery/role filtered | Implemented; instructions are not competence guarantees |
+| Preserve personal ownership | Actual profile export/state comparison in .sunny-dev/crew-skills-activation.json; isolated restart/memory trial9cbd6094 | All15 models/instructions/sessions and growth/settings/world preserved during refresh |
+| Luffy chooses a suitable small team | Saved-skill roster, schema constraints, existing strict parser; actual planner diagnostic ddccef91 | Mechanism verified; over-selection remains a measured model limitation |
+| Main flow stays simple | Actual updated app and hidden native checks: five primary destinations, More, project-specific Luffy entry, direct profiles, extras collapsed | Implemented and visually inspected; no screen-reader certification |
+| Watch real work and intervene | Existing world state projection plus passing native council stop/return/change-direction checks | Advisory request activity is real; animation is not execution evidence |
+| Role practice and honest learning claims | Fixed15-case diagnostic e47a85f2; reviewed Usopp example passed and mutation failed; negative answers retained | Personalization/evaluation done; no weight training or reliability certification |
+| No unauthorized execution or lost data | Existing execution gate, parser/recovery regressions and live-state preservation checks | Gate remains closed; daily app unchanged |
+| Complete clean validation | Candidate checkout1fc7b80, validate:windows receipt2026-11-06T19-23-35.756Z | Install/build/native passed; full suite1,731 pass/1 fixture permission failure; exact unresolved failure and isolated recheck recorded below |
+
+No changes were made to Electron security flags, credential handling, task authority, provider availability, dependency versions or stored schema versions. The clean candidate remains fixed during the broad run; documentation added afterward records results without changing runtime behavior.
+
+### Full-suite failure investigation — 04:54UTC
+
+The clean1fc7b80 run failed test176, “checkpoint rejects generation change across completed-check durability,” at tests/checkpoint-journey-faults.test.cjs:14. The returned result was {error:"Run changed during persistence. Inspect the current revision."}; the test expected a blocked/unknown status. The safety guard in desktop/hub.cjs rejected the changed run. The failing assertion occurs before the test's later no-successor assertions, so this failed run alone does not prove those downstream invariants.
+
+An isolated repeat passed on1fc7b80 (.sunny-dev/crew-skills-generation-recheck.log), and the identical isolated test passed on exact parentcf063c0 (.sunny-dev/crew-skills-generation-parent.log). Neither result erases the full-run failure or proves its cause. The checkpoint test/helper, hub mutation guard and supervision schema are unchanged by this feature. Earlier8bfd397 full-run logs contain the same guard error in source/metadata/grant variants; the latera9985dc full suite passed. Treat this as an unresolved intermittent failure family, not an established unrelated or newly introduced defect. Do not loosen guards or test assertions. The full current run continues to collect remaining evidence.
+
+### Fresh actual council pipeline — 04:56UTC
+
+Run c647a2f9-a3d9-4f36-9e3f-80c1cd37496a used the committed implementation and actual installed14B model with isolated synthetic project data. Direct greeting, pinned project-name recall, automatic Chopper/Usopp assignments with two local slots, fresh Zoro review, Luffy synthesis, sanitized Morgans bulletin and restart retention all completed. Receipt: .sunny-dev/local-council-check/c647a2f9-a3d9-4f36-9e3f-80c1cd37496a/result.json. No generated code executed and no personal profile changed.
+
+Semantic review: Chopper proposed the correct empty-array guard and Usopp's listed expected values match the supplied contract. Usopp's import path is a placeholder, so the block needs adaptation before it runs. Zoro incorrectly described nothing as unverified despite no execution. Luffy said the original function returns undefined (it actually throws while accessing trim), then combined an exported first declaration with an import of the same name in one code block. His prose assignments are proposals, not runtime dispatch. Morgans correctly preserved execution-not-requested and acceptance-not-evaluated. This run proves the actual pipeline and persistence, not runnable synthesized code or reliable independent review.
+
+### Resumed validation — 2026-11-06, 19:23UTC
+
+After the goal was resumed, the old process handle was missing and an elevated process inventory found no validation/test process. The04:44 run ends at test794 without a suite summary; it is incomplete, not a pass. Its recorded generation-drift failure remains evidence. Started a fresh validate:windows on unchanged clean candidate1fc7b80, retaining the original receipt and logs. New receipt directory: .sunny-dev/crew-skills-validation/.sunny-dev/pr-validation/2026-11-06T19-23-35.756Z; driver log .sunny-dev/crew-skills-resumed-validation.log. This is resumed verification after the original three-hour work window, not extra research or a claim that work ran throughout the pause.
+
+### Resumed-run fixture failure
+
+The resumed run passed the prior generation-drift case176. It later failed case703, Windows short-path Git evidence, while creating its temporary repository: git commit could not write .git/objects/01/a9aef3056764c41005ec7233fd8e4fc798c97d (Permission denied). This occurs in the test's repo helper before the MissionEvidence assertion. The unchanged full14-test mission-evidence module passed separately with normal scoped permissions; log .sunny-dev/crew-skills-mission-evidence-recheck.log. The transient host denial's underlying cause is unknown. Retain the full-run failure; do not replace its result with the isolated pass. Full validation continues.
+
+### Final validation and handoff — 2026-11-06
+
+The resumed validator finished with exit1:1,732 tests total,1,731 passed, one failed, zero cancelled/skipped/todo, duration3,617,953ms. Case703 above was the only failure. Locked installation, Electron installation, production build/typecheck and the full hidden native workflow passed. Final receipt: `.sunny-dev/crew-skills-validation/.sunny-dev/pr-validation/2026-11-06T19-23-35.756Z/summary.json`; adjacent logs retain all output and `native/` contains screenshots. Build source is clean1fc7b80191509e8b013034131b7adc6ab79dbe9b, fingerprint `1963a9810a3a470ba589594e326409780689739e78b5af13bca737863165125c`. The overall receipt remains `passed:false`.
+
+The final native receipt explicitly covers Luffy primary navigation, More keyboard/focus, Luffy search/project entry, direct specialist profiles, recommendation refresh preserving instructions, persistent dismissible errors, desktop/compact layout and existing world/draft/reduced-motion controls. It uses synthetic transport; the separate actual-model diagnostics above cover live local behavior and preserve their reasoning failures. No screen-reader certification, weight training, senior-developer reliability or execution admission is claimed.
+
+Requirement audit above is complete with the exact validation exception reported. No runtime changes followed1fc7b80; final edits only consolidate evidence and usage documentation. Personal profile preservation was verified at activation, not continuously during the pause. The separate app was last observed on Luffy before the pause; its current running state is not asserted. Follow-up work: investigate the intermittent fixture permission denial and checkpoint persistence failure without weakening guards; require source/tests to validate generated advice and satisfy the independent trusted-release requirements before enabling execution. No push, merge or daily-profile update was performed.

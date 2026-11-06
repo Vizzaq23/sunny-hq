@@ -8,6 +8,13 @@ async function check({js,wait,fill,select,click,nav,screenshot,win,localFixture}
  assert.equal(Object.keys(localFixture.hub.state.localCrew.profiles).length,15);
  assert.deepEqual(localFixture.hub.state.localCrew.profiles.robin.skills,['research','documentation','planning']);
  assert.deepEqual(localFixture.hub.state.localCrew.profiles.morgans.skills,['writing','documentation']);
+ const frankyBefore=JSON.stringify(localFixture.hub.state.localCrew.profiles.franky);
+ await button('Find reporter models');
+ await wait(`document.querySelector('[aria-label="Morgans local model"]').options.length===2`);
+ await fill('[aria-label="Morgans reporting guidelines"]','Fixture reporter: keep status brief and distinguish advice from accepted work.');
+ await button('Save reporter setup');await wait('document.querySelector(".local-captain").textContent.includes("local reporting setup saved")');
+ assert.equal(localFixture.hub.state.localCrew.profiles.morgans.instructions,'Fixture reporter: keep status brief and distinguish advice from accepted work.');
+ assert.equal(JSON.stringify(localFixture.hub.state.localCrew.profiles.franky),frankyBefore,'reporter personalization preserves other crew profiles');
  await select('[aria-label="Luffy project"]','studio');
  await fill('[aria-label="Source file path"]','local-review-example.ts');await button('Preview source');
  await wait('Boolean(document.querySelector(".local-source-picker textarea"))');
@@ -52,6 +59,23 @@ async function check({js,wait,fill,select,click,nav,screenshot,win,localFixture}
   await button('Stop crew');await wait('document.querySelector(".local-council-progress").textContent.includes("Council stopped")');
   await nav('Home');await wait('document.querySelector(".local-council-progress").textContent.includes("Council stopped")');
   assert.equal(state.localCrew.councils.at(-1).status,'interrupted');
+  await wait('Array.from(document.querySelectorAll(".local-captain button")).some(b=>b.textContent==="Ask Luffy & crew"&&!b.disabled)');
+  assert.equal(await js('document.querySelector("#luffy-objective").value'),'Synthetic cancellation check.','intentional Stop retains the draft');
+  assert.ok(!await js('document.body.textContent.includes("Fixture cancelled")'),'intentional Stop is not a failure toast');
+  // Explicit fixture transport holds two actual local requests at once.
+  await js(`(()=>{const details=Array.from(document.querySelectorAll('.local-captain>details')).find(d=>d.querySelector('summary')?.textContent==='Crew setup and controls');details.open=true;details.querySelector('input[type=checkbox]').click();})()`);
+  await click('[aria-label="Assign Franky"]');await click('[aria-label="Assign Usopp"]');
+  await select('.local-captain-setup label:last-of-type select','2');
+  await fill('#luffy-objective','Synthetic two-member visual and cancellation check.');await button('Ask Luffy & crew');
+  await wait('document.querySelectorAll(".local-council-dot.working").length===2');
+  await nav('The Sunny');await wait('document.querySelectorAll(".crew-deck .deck-crew.working").length===2');
+  await js('document.querySelector(".crew-deck").scrollIntoView({block:"center",behavior:"instant"})');await screenshot('local-council-ship-two-working.png');
+  await nav('The Island');await wait('document.querySelectorAll(".island-actors .deck-crew.working").length===2');
+  assert.match(await js('document.querySelector(".local-crew-live").textContent'),/Franky: thinking.*Usopp: thinking/);
+  await js('document.querySelector(".island-scene").scrollIntoView({block:"start",behavior:"instant"})');assert.ok(await js('(()=>{const boxes=Array.from(document.querySelectorAll(".island-actors .deck-crew.working .deck-speech")).map(e=>e.getBoundingClientRect()).sort((a,b)=>a.left-b.left);return boxes[0].right<=boxes[1].left;})()'),'simultaneous status bubbles do not overlap');await screenshot('local-council-island-two-working.png');
+  await click('.local-crew-live button');await wait('Boolean(document.querySelector(".local-captain"))');await button('Stop crew');
+  await wait('document.querySelector(".local-council-progress").textContent.includes("Council stopped")');
+  assert.ok(state.localCrew.councils.at(-1).contributions.every(member=>member.status==='interrupted'));
  }finally{localFixture.hold(false);state.tasks=oldTasks;state.approvals=oldApprovals;state.workspace.context=oldContext;localFixture.hub.changed();}
  await screenshot('local-council-stopped.png');
 }

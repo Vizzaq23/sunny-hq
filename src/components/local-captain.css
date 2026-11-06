@@ -11,3 +11,5 @@
 .local-council-summary{max-height:28rem;overflow:auto;overscroll-behavior:contain;padding:0 12px;border-left:3px solid #d5c7a8}.local-council-summary .local-council-answer{margin:0 0 12px}
 
 :is(.crew-deck,.island-actors) .deck-crew.working .deck-speech{font-size:14px;line-height:1.3;white-space:normal;min-width:110px;max-width:170px;color:#174f4d;border-color:#548d80}.island-resident[data-work-state="working"] b{opacity:1;font-size:11px;color:#174f4d;border:1px solid #548d80}.island-resident[data-work-state="working"] b small{display:block;font-size:10px;white-space:normal}
+
+.island-actors [data-speech-side="left"].working .deck-speech{transform:translateX(calc(-50% - 60px))}.island-actors [data-speech-side="right"].working .deck-speech{transform:translateX(calc(-50% + 60px))}.island-resident[data-work-state="working"] b{position:absolute;bottom:100%;left:50%;min-width:110px;max-width:160px;transform:translateX(-50%)}.island-resident[data-work-state="working"][data-speech-side="left"] b{transform:translateX(calc(-50% - 60px))}.island-resident[data-work-state="working"][data-speech-side="right"] b{transform:translateX(calc(-50% + 60px))}

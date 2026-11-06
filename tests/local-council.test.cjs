@@ -54,11 +54,22 @@ test('stop aborts active contributions and prevents queued workers and synthesis
  let release,started;const ready=new Promise(resolve=>started=resolve);
  const f=fixture(async(_id,_prompt,signal)=>{started();await new Promise(resolve=>release=resolve);assert.equal(signal.aborted,true);return {model:'fixture:local',text:'Late reply'};});
  const work=f.council.start({projectId:'p',objective:'Review',crewIds:['franky','zoro']});await ready;
- await f.council.stop({id:f.council.active.record.id});release();await assert.rejects(work);
+ await f.council.stop({id:f.council.active.record.id});release();assert.equal((await work).status,'interrupted');
  assert.equal(f.calls.length,1);assert.equal(f.council.records[0].status,'interrupted');assert.ok(f.council.records[0].contributions.every(item=>!item.text));
 });
 test('start persistence gates inference and definite failure restores prior records',async()=>{
  const f=fixture();f.hub.persist=()=>{throw Error('Disk full');};await assert.rejects(f.council.start({projectId:'p',objective:'Review'}),/Disk full/);assert.equal(f.calls.length,0);assert.deepEqual(f.council.records,[]);
+});
+
+test('Stop does not hide a failed persistence outcome or shutdown behind a successful result',async()=>{
+ for(const mode of ['storage','shutdown']){
+  let release,started;const ready=new Promise(resolve=>started=resolve);
+  const f=fixture(async()=>{started();await new Promise(resolve=>release=resolve);return {model:'fixture:local',text:'Late reply'};});
+  const work=f.council.start({projectId:'p',objective:'Retain my draft',crewIds:['franky']});await ready;
+  if(mode==='storage'){f.hub.persist=()=>{throw Object.assign(Error('Disk acknowledgement lost'),{uncertain:true});};await assert.rejects(f.council.stop({id:f.council.active.record.id}),/acknowledgement/);}
+  else{f.hub.quiescing=true;f.council.close();}
+  release();await assert.rejects(work);assert.equal(f.council.records[0].summary,'');assert.equal(f.council.active,null);
+ }
 });
 test('restart retains bounded reports but interrupts work without replay',()=>{
  const result=initialCouncils([{id:'c',projectId:'p',objective:'Review',status:'working',contributions:[{crewId:'franky',status:'working',text:'',objective:'Fix'},{crewId:'zoro',status:'ready',text:'Observed report',objective:'Review'}],secret:'discard'}]);

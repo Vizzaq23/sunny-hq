@@ -11,7 +11,7 @@ function fixture(reply){
 }
 test('every island identity has a purpose-specific specialty matching the canonical roster',()=>{
  assert.deepEqual(Object.keys(specialties.crew).sort(),CREW_ROLES.map(item=>item.crewId).sort());
- for(const role of CREW_ROLES){const entry=specialties.crew[role.crewId];assert.ok(entry.role&&entry.guidelines);assert.ok(entry.skills.length<=4&&entry.skills.length);for(const skill of entry.skills)assert.ok(specialties.skills[skill]);}
+ for(const role of CREW_ROLES){const entry=specialties.crew[role.crewId];assert.ok(entry.role&&entry.guidelines&&entry.useWhen&&entry.deliverable&&entry.starter);assert.ok(entry.skills.length<=4&&entry.skills.length);for(const skill of entry.skills)assert.ok(specialties.skills[skill]?.description);}
  assert.notDeepEqual(defaults('robin').skills,defaults('franky').skills);
  assert.match(localIdentity('law'),/Systems diagnosis and analysis/);
  assert.match(specialties.crew.morgans.guidelines,/sanitized/);
@@ -19,6 +19,29 @@ test('every island identity has a purpose-specific specialty matching the canoni
 test('existing personal setup survives role-default changes',()=>{
  const saved={version:1,profiles:{franky:{model:'fixture:local',skills:['review'],instructions:'My own instructions',sessions:[]}}};
  assert.deepEqual(initialLocalCrew(saved).profiles.franky,saved.profiles.franky);
+});
+
+test('Luffy sees actual selected skills and bounded role context for a maximum-length request',async()=>{
+ const f=fixture();f.hub.state.localCrew.profiles.robin.skills=['writing'];
+ const row=f.council.roster().find(item=>item.crewId==='robin');assert.deepEqual(row.skills,['writing']);assert.equal(row.useWhen,specialties.crew.robin.useWhen);
+ assert.equal(f.council.roster().find(item=>item.crewId==='vivi').eligible,false);
+ await f.council.start({projectId:'p',objective:'x'.repeat(6000)});
+ assert.ok(f.calls[0].prompt.length<=16000);assert.ok(f.calls[0].prompt.includes(JSON.stringify(row)));
+});
+
+test('explicit skill refresh preserves personal models, blank/custom guidance, sessions and lessons',async()=>{
+ const f=fixture();f.hub.localCrew.assertWritable=()=>{};f.hub.localCrew.models=async()=>[{name:'fixture:local'}];f.hub.localCrew.save=async()=>{};
+ const sessions=[{projectId:'p',status:'finished',messages:[{text:'A saved conversation'}]}],growth={lesson:'Keep my personal lesson'};
+ Object.assign(f.hub.state.localCrew.profiles.franky,{model:'personal:model',instructions:'My own instructions',skills:['writing'],sessions});
+ f.hub.state.localCrew.profiles.robin.instructions='';f.hub.state.growth=growth;
+ await f.council.setup({model:'fixture:local'});assert.deepEqual(f.hub.state.localCrew.profiles.franky.skills,['writing']);
+ await f.council.setup({model:'fixture:local',refreshSkills:true});
+ const profiles=f.hub.state.localCrew.profiles;assert.equal(profiles.franky.model,'personal:model');assert.equal(profiles.franky.instructions,'My own instructions');assert.equal(profiles.robin.instructions,'');assert.equal(profiles.franky.sessions,sessions);assert.equal(f.hub.state.growth,growth);
+ assert.deepEqual(profiles.franky.skills,defaults('franky').skills);assert.deepEqual(profiles.vivi.skills,defaults('vivi').skills);
+ assert.deepEqual(initialLocalCrew(f.hub.state.localCrew).profiles.franky.instructions,'My own instructions');
+ await assert.rejects(f.council.setup({model:'fixture:local',refreshSkills:'yes'}),/boolean/);
+ f.hub.localCrew.save=async()=>{throw Error('Disk full');};await assert.rejects(f.council.setup({model:'fixture:local',refreshSkills:true}),/Disk full/);assert.equal(f.hub.state.localCrew.profiles,profiles);
+ f.hub.localCrew.save=async()=>{throw Object.assign(Error('Outcome uncertain'),{uncertain:true});};await assert.rejects(f.council.setup({model:'fixture:local',refreshSkills:true}),/uncertain/);assert.notEqual(f.hub.state.localCrew.profiles,profiles,'uncertain saves are not falsely rolled back');
 });
 test('Luffy picks real available specialists and synthesizes only their actual reports',async()=>{
  const f=fixture();const result=await f.council.start({projectId:'p',objective:'Fix an input bug.'});

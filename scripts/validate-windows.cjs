@@ -30,7 +30,13 @@ async function main() {
     console.log(`Running ${name}; log: ${path.join(output, `${name}.log`)}`);
     let result;
     try { result = await new Promise(resolve => {
-      const child = spawn(exe, args, {cwd: root, env: {...process.env, ...env}, windowsHide: true, stdio: ['ignore', log, log]});
+      const childEnv = {...process.env, ...env};
+      // Electron treats even an empty value as Node mode. Native checks must
+      // remove inherited case variants rather than set this flag to ''.
+      if (name === 'native') for (const key of Object.keys(childEnv)) {
+        if (key.toUpperCase() === 'ELECTRON_RUN_AS_NODE') delete childEnv[key];
+      }
+      const child = spawn(exe, args, {cwd: root, env: childEnv, windowsHide: true, stdio: ['ignore', log, log]});
       let error;
       const timer = setTimeout(() => {
         error = 'ETIMEDOUT';
@@ -64,7 +70,7 @@ async function main() {
         throw Error('Build identity does not match the clean candidate.');
       const nativeOutput = path.join(output, 'native');
       const native = await run('native', path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe'), ['desktop/workflow-smoke.cjs'], 180_000,
-        {SUNNY_SMOKE_HIDDEN: '1', SUNNY_WORKFLOW_CHECK_OUTPUT: nativeOutput, ELECTRON_RUN_AS_NODE: ''});
+        {SUNNY_SMOKE_HIDDEN: '1', SUNNY_WORKFLOW_CHECK_OUTPUT: nativeOutput});
       if (native) {
         report.native = JSON.parse(fs.readFileSync(path.join(nativeOutput, 'result.json'), 'utf8'));
         if (report.native.passed !== true || report.native.hidden !== true || report.native.syntheticTransport !== true || report.native.liveProviderProof !== false)

@@ -49,6 +49,7 @@ declare global {interface Window {sunny?:SunnyAPI;}}
 
 // IPC action contract (all return promises; failures reject with readable Error):
 // localCrew:models {} -> {name:string,size:number}[] (live local catalog)
+// localCouncil:setup {model,refreshSkills?:boolean} -> {configured,reporter}; explicit refresh preserves personal instructions and conversations
 // localCrew:configure {crewId,model,skills:string[],instructions?:string} -> LocalCrewProfile
 // localCrew:source {crewId,projectId,path,startLine?} -> LocalSourcePreview (read only)
 // localCrew:recall {crewId,projectId,query?} -> {enabled:boolean,memories:CrewMemory[]} (pinned lessons only)

@@ -6,8 +6,12 @@ async function check({js,wait,fill,select,click,nav,screenshot,win,localFixture}
  await button('Find local models');await wait('document.querySelector(".local-captain").textContent.includes("1 downloaded local models")');
  await button('Prepare crew specialties');await wait('document.querySelector(".local-captain").textContent.includes("Crew specialties prepared")');
  assert.equal(Object.keys(localFixture.hub.state.localCrew.profiles).length,15);
- assert.deepEqual(localFixture.hub.state.localCrew.profiles.robin.skills,['research','documentation','planning']);
- assert.deepEqual(localFixture.hub.state.localCrew.profiles.morgans.skills,['writing','documentation']);
+ assert.deepEqual(localFixture.hub.state.localCrew.profiles.robin.skills,['research','documentation']);
+ assert.deepEqual(localFixture.hub.state.localCrew.profiles.morgans.skills,['status-reporting','writing']);
+ await localFixture.hub.localCrew.configure({crewId:'franky',model:'fixture:local',skills:['writing'],instructions:'Fixture personal building preferences stay mine.'});
+ await button('Update recommended crew skills');await wait('document.querySelector(".local-captain").textContent.includes("Recommended skills updated for all 15")');
+ assert.deepEqual(localFixture.hub.state.localCrew.profiles.franky.skills,['architecture','debugging','review','testing']);
+ assert.equal(localFixture.hub.state.localCrew.profiles.franky.instructions,'Fixture personal building preferences stay mine.');
  const frankyBefore=JSON.stringify(localFixture.hub.state.localCrew.profiles.franky);
  await button('Find reporter models');
  await wait(`document.querySelector('[aria-label="Morgans local model"]').options.length===2`);

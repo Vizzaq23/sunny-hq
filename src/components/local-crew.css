@@ -26,3 +26,17 @@
 /* Native modal top layer avoids transformed page containers and makes the background inert. */
 dialog.journal-backdrop{width:100vw;height:100vh;max-width:none;max-height:none;margin:0;border:0}
 dialog.journal-backdrop::backdrop{background:transparent}
+.local-crew-panel fieldset{display:grid;gap:10px;padding:12px}
+.local-crew-panel .local-skill-choice{align-items:flex-start;font-weight:400;margin:0}
+.local-skill-choice>input{margin-top:5px;flex:none}.local-skill-choice>span{display:grid;gap:3px}.local-skill-choice b{font-size:13px}.local-skill-choice small{font-size:12px;line-height:1.5;color:#53685d}
+.local-crew-panel .local-other-skills{margin:0;padding:6px 10px;background:#f7f2e6}.local-other-skills .local-skill-choice{margin-top:12px}
+.local-specialty-output{padding:10px 12px;border-left:3px solid #b28b50;background:#f5efdd}
+.crew-extra-roster,.crew-reporter{margin-top:24px}.crew-extra-roster>p,.crew-reporter>p{font-size:14px;line-height:1.6;margin:4px 0 16px}.crew-extra-roster .crew-grid{padding-bottom:16px}
+.voyage-ui .specialist-card>p{font-size:13px;line-height:1.6}.specialist-card>small{font-size:12px;line-height:1.5;color:#617164;margin-bottom:14px}
+.voyage-ui .specialist-card>.journal-open{background:#215760;color:#fff9ea;border-color:#215760}
+.crew-advanced{width:100%;margin-top:10px}.crew-advanced>summary{cursor:pointer;font-size:13px;padding:6px 0;color:#415d50}.crew-advanced>button{margin-top:5px;width:100%;border:1px solid #c5c4ad;border-radius:7px;background:#f1ead9;color:#3f5750;padding:8px;font-size:12px}
+.crew-reporter>details{padding-bottom:14px}.crew-reporter fieldset{display:grid;gap:12px;padding:14px;border:1px solid #c5c4ad;border-radius:8px}.crew-reporter label{display:grid;gap:6px}.crew-reporter textarea,.crew-reporter select{width:100%;font:inherit;padding:9px;background:#fffdf6;border:1px solid #bcb39c;border-radius:7px}.crew-reporter button{padding:9px 12px;border:1px solid #215760;background:#215760;color:#fff9ea;border-radius:7px}.crew-reporter :focus-visible,.crew-advanced :focus-visible{outline:3px solid #bd701b;outline-offset:3px}
+.local-setup-note{font-size:13px;line-height:1.6;padding:12px 0;color:#53685d}
+.voyage-ui .page-intro>.primary-button{background:#215760;color:#fff9ea;border-color:#215760}
+.card-actions{flex-wrap:wrap;gap:8px}.project-captain{background:#215760!important;color:#fff9ea!important}
+.voyage-ui .specialist-card>button+.journal-open{margin-top:8px;background:#f1ead9;color:#3f5750;border-color:#c5c4ad}.voyage-ui .crew-page .page-intro{min-height:140px;padding:22px 26px}.voyage-ui .crew-page .page-intro h2{font-size:30px}

@@ -11,9 +11,26 @@ test('only Luffy routing requests JSON output; normal advice retains free text',
  await f.local.contribute('luffy','p','Return a JSON council plan.',signal,'plan');
  await f.local.contribute('luffy','p','Summarize the actual reports.',signal);
  const [plan,advice]=f.calls.filter(call=>call.route==='chat').map(call=>call.body);
- assert.equal(plan.format,'json');assert.equal(plan.options.temperature,0);assert.equal(advice.format,undefined);assert.equal(advice.options.temperature,undefined);
+ assert.equal(plan.format.type,'object');assert.equal(plan.format.properties.assignments.maxItems,3);assert.ok(!plan.format.properties.assignments.items.properties.crewId.enum.includes('morgans'));assert.equal(plan.options.temperature,0);assert.equal(advice.format,undefined);assert.equal(advice.options.temperature,undefined);
  await assert.rejects(f.local.contribute('franky','p','Plan.',signal,'plan'),/Invalid local contribution mode/);
  await assert.rejects(f.local.contribute('luffy','p','Plan.',signal,'tools'),/Invalid local contribution mode/);
+});
+
+test('every specialist receives current role guidance and only their own personal preferences',async()=>{
+ const f=await fixture(),specialties=require('../desktop/local-specialties.json');
+ for(const [crewId,entry] of Object.entries(specialties.crew)){
+  await f.local.configure({crewId,model:'fixture:local',skills:entry.skills,instructions:'Private preference for '+crewId});
+  await f.local.contribute(crewId,'p','Give the requested bounded contribution.',new AbortController().signal);
+  const content=f.calls.filter(call=>call.route==='chat').at(-1).body.messages[0].content;
+  assert.ok(content.includes(entry.useWhen));assert.ok(content.includes(entry.deliverable));assert.ok(content.includes(entry.guidelines));
+  assert.ok(content.includes('Private preference for '+crewId));
+  for(const other of Object.keys(specialties.crew).filter(id=>id!==crewId))assert.ok(!content.includes('Private preference for '+other));
+ }
+ await f.local.ask({crewId:'brook',projectId:'p',prompt:'Draft a short message.'});
+ const content=f.calls.filter(call=>call.route==='chat').at(-1).body.messages[0].content;
+ assert.ok(content.includes(specialties.crew.brook.guidelines));assert.ok(!content.includes('Give concrete code drafts'));
+ const restored=initialLocalCrew(f.saved().localCrew);
+ assert.deepEqual(restored.profiles.vivi.skills,specialties.crew.vivi.skills);assert.equal(restored.profiles.brook.instructions,'Private preference for brook');
 });
 test('supported answer-only mode avoids a thinking-only output limit and retains only the answer',async()=>{
  const f=await fixture({request:async(route,body)=>{

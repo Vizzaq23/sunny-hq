@@ -18,8 +18,8 @@ export function crewSceneStatus(projection:MissionProjection){
 /** One read-only activity per identity, scoped to the retained selection. */
 export function crewSceneProjection(snapshot:Snapshot,crewId:string,context:WorkContext|null|undefined=snapshot.workspace?.context):MissionProjection {
  const idle=(label='Standing by for selected work'):MissionProjection=>({crewId,state:'idle',label,working:false});
- if(crewId==='morgans')return idle('Read-only reports · News blimp');
  const local=localCrewActivity(snapshot,crewId,context);if(local)return storageOutcomeUncertain(snapshot)?{...local,state:'unknown',working:false,label:'Local work · storage needs recovery'}:local;
+ if(crewId==='morgans')return idle('Read-only reports · News blimp');
  if(context?.runId){
   const view=projectRun(snapshot,context.runId),run=view.run;
   if(!run||run.projectId!==context.projectId)return {...idle(),state:'unknown',label:'Run unavailable. Your selection is retained.'};

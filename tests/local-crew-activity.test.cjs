@@ -21,3 +21,9 @@ test('Luffy planning/synthesis and direct local chats derive only from real stat
  s.localCrew.councils[0].status='synthesizing';assert.match(localCrewActivity(s,'luffy').label,/actual crew reports/);
  s.localCrew.councils=[];s.localCrew.profiles.franky.sessions=[{projectId:'p',status:'working'}];assert.match(localCrewActivity(s,'franky').label,/personal conversation/);
 });
+
+test('Morgans only appears working for an actual sanitized report, with storage and project scope intact',()=>{
+ const s=fixture();s.localCrew.councils[0].status='ready';s.localCrew.councils[0].report={status:'working'};
+ assert.equal(crewSceneProjection(s,'morgans').working,true);assert.match(crewSceneProjection(s,'morgans').label,/sanitized/);assert.equal(localCrewActivity(s,'morgans',{projectId:'other'}),undefined);
+ s.persistence.state='uncertain';assert.equal(crewSceneProjection(s,'morgans').working,false);s.persistence.state='saved';s.localCrew.councils[0].report.status='ready';assert.equal(crewSceneProjection(s,'morgans').working,false);
+});

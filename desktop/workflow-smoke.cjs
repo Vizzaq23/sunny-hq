@@ -250,7 +250,7 @@ app.whenReady().then(async()=>{
   assert.equal(await js('document.querySelector(".composer textarea").value'),'','sent template does not reappear as a follow-up');
   await js('window.confirm=()=>true;undefined');await click('[aria-label="Back to workspace"]');await nav('Home');await wait('Boolean(document.querySelector(".home-page"))');
   failSnapshot=true;await reload();await wait("document.querySelector(\".loading-deck[role=alert] h2\")?.textContent===\"Your workspace couldn't load\"");assert.ok(await js('document.body.innerText.includes("Fixture: connection unavailable")'));failSnapshot=false;
-  await click('.primary-button');await wait('Boolean(document.querySelector(".helm-workspace"))');await nav('Home');await wait('Boolean(document.querySelector(".home-page"))');
+  await click('.primary-button');await wait('Boolean(document.querySelector(".local-captain"))');await nav('Home');await wait('Boolean(document.querySelector(".home-page"))');
   taskRace=true;await reload();await wait('Boolean(document.querySelector(".home-page"))');await delay(250);
   assert.ok(await js('document.querySelector(".home-task-title").textContent.includes("Latest streamed task")'),'early streamed task is preserved over initial snapshot');
   win.setSize(1440,1050);

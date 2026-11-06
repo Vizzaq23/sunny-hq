@@ -135,3 +135,7 @@ Admission evidence: raw overlay SHA256 `E7F9DF750D2876A6F9350BEE82184A9A94D19803
 
 ### Command deck reuse — 2026-10-16
 The command deck reuses the existing ship-companion texture and crew assets at their established 3:2 geometry. Workbench rooms render their existing images in a dedicated panel rather than behind conversation text. Franky's room and frame/foot contracts are unchanged. No new images, copied reference assets or third-party shaders were added in this pass.
+
+### 2026-11-05 — local council activity projection
+
+Reused existing crew and island artwork without changing asset bytes, licensing, atlases or frame geometry. Local council/report states drive named activity labels; decorative movement does not establish progress. The roster is collapsed by default to keep the island visible, with direct Luffy/Stop controls retained. Native fixtures include desktop,480px and island working-state screenshots; no new visual provenance is required.

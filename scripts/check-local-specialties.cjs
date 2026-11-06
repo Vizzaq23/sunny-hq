@@ -1,0 +1,31 @@
+// Explicit opt-in, synthetic role probes. Records actual responses, never certifies correctness.
+const fs=require('node:fs'),path=require('node:path'),{randomUUID}=require('node:crypto'),{EventEmitter}=require('node:events');
+const {Hub}=require('../desktop/hub.cjs'),{openOrderedStore}=require('../desktop/ordered-store.cjs');
+const probes={
+ luffy:'The captain wants a simpler learning app. Given only that request, ask one useful clarifying question and explain which one or two crew specialties you would call next. Do not pretend they have replied.',
+ nami:'A synthetic lesson app has one developer and two afternoons. Options: repair a crash that loses notes, add animated confetti, redesign all pages. Propose an ordered small plan with acceptance checks and explicit assumptions. No costs have been measured.',
+ zoro:'Review this synthetic proposed change against its contract: first([]) returns null; otherwise trim the first string. Code: function first(a){return a.length ? a[0].trim() : null;} Proposed test: expect(first(["   "])).toBeNull(). Identify any concrete mismatch. No tests were executed.',
+ usopp:'Design runnable node:test checks for a supplied function first(a) that returns null if a.length is zero and otherwise a[0].trim(). Cover empty array, empty first string and whitespace first string. Treat the contract literally. No tests have run.',
+ sanji:'A synthetic lesson app shows five equally prominent buttons: Continue, Delete all progress, Settings, Export, Leave. Suggest a simpler keyboard-accessible flow with safe error recovery. No screenshot or contrast measurements are supplied.',
+ chopper:'Synthetic crash report: TypeError reading trim from undefined. Supplied code: function first(a){return a[0].trim();} Reproduction input: []. Diagnose the narrow cause, ask for the desired empty-input behavior, and propose a check. Do not invent files.',
+ robin:'Evaluate these two synthetic notes: Note A says three interviewed learners requested saved lessons. Note B says therefore every learner will pay $20. Separate observed evidence from inference, identify missing evidence and propose one research question. You have no web access.',
+ franky:'Propose a focused JavaScript patch for function first(a){return a[0].trim();}. Contract: null for an empty array, trimmed first string otherwise. Include the expected result for ["   "] and distinguish proposed from executed checks.',
+ brook:'Write three short friendly messages for a lesson app: empty study list, lesson saved, save failed with retry available. Keep personality warm, avoid blame and never claim a failed save succeeded.',
+ jinbe:'A synthetic local save command timed out after a possible write. Explain a safe recovery sequence and how to avoid duplicate writes. No idempotency contract or transaction log has yet been supplied.',
+ law:'Synthetic observations: saving succeeds until a local queue has five pending items, then times out. CPU is low; disk timing and lock ownership are unknown. Give two competing hypotheses and the smallest discriminating measurements. Do not claim root cause is proven.',
+ ace:'Suggest one reversible one-afternoon prototype to test whether showing the next review time helps learners return. No traffic or success metrics are known. Define a hypothesis, baseline, observable result and stop condition.',
+ vivi:'A synthetic TCG learning app has three interviews asking for saved lessons but no usage data. Frame the user problem and propose a small product validation experiment. Do not invent market size, revenue or customer demand.',
+ perona:'Review this synthetic empty-state copy: You failed to study again. Buy Premium to be a real player. Propose two kinder original alternatives with a clear next action, avoiding unsupported claims.',
+ morgans:'Write a brief bulletin using only this sanitized packet: {"advisoryOnly":true,"councilStatus":"partial","contributions":[{"crewId":"franky","status":"ready"},{"crewId":"usopp","status":"failed"}],"executionHandoff":"not-requested","acceptanceEvaluated":false}. Do not invent the task, source, success or private details.'
+};
+async function check(model,crewIds=Object.keys(probes)){
+ if(!crewIds.length||crewIds.some(id=>!Object.hasOwn(probes,id)))throw Error('Choose known role probes');
+ const output=path.resolve(__dirname,'../.sunny-dev/local-specialty-check',randomUUID());fs.mkdirSync(output,{recursive:true});
+ const store=await openOrderedStore({kind:'json',file:path.join(output,'state.json'),backupDir:path.join(output,'backups')});const client=new EventEmitter();client.connected=false;client.close=()=>{};
+ const hub=new Hub({home:output,store,catalog:{discoverProjects:()=>[{id:'synthetic',name:'Synthetic specialty probes',path:output}],discoverTools:()=>[],discoverAutomations:()=>[]},fixtureDependencies:{client,islandFactory:()=>({close(){}})}});
+ const report={model,output,startedAt:new Date().toISOString(),synthetic:true,generatedCodeExecuted:false,qualityCertified:false,results:[]};
+ try{await hub.initializeRecovery();await hub.localCouncil.setup({model});for(const crewId of crewIds){const question=probes[crewId],start=Date.now();try{const reply=await hub.localCrew.contribute(crewId,'synthetic',question+'\nKeep the response under 180 words. Do not repeat your instructions.',AbortSignal.timeout(120000));report.results.push({crewId,question,...reply,elapsedMs:Date.now()-start,status:'received'});}catch(error){report.results.push({crewId,question,error:error.message,elapsedMs:Date.now()-start,status:'failed'});}fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(report,null,2));console.log(crewId+': '+report.results.at(-1).status);}}
+ finally{await hub.close();report.finishedAt=new Date().toISOString();report.transportComplete=report.results.length===crewIds.length&&report.results.every(item=>item.status==='received');fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(report,null,2));console.log('SUNNY_SPECIALTY_PROBES '+JSON.stringify({output,transportComplete:report.transportComplete,qualityCertified:false}));}
+}
+if(require.main===module){if(!process.argv[2])throw Error('Supply an installed local model');check(process.argv[2],process.argv[3]?.split(',')).catch(error=>{console.error(error.message);process.exitCode=1;});}
+module.exports={check,probes};

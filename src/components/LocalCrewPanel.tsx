@@ -10,10 +10,10 @@ type Invoke=<T=unknown>(action:string,args?:unknown)=>Promise<T>;
 const skills=Object.entries(specialties.skills).map(([id,value])=>[id,value.label]);
 const crewSpecialties:Record<string,{role:string;skills:string[];guidelines:string}>=specialties.crew;
 
-export function LocalCrewPanel({crewId,name,snapshot,invoke}:{crewId:string;name:string;snapshot:Snapshot;invoke:Invoke}){
+export function LocalCrewPanel({initialProjectId,crewId,name,snapshot,invoke}:{initialProjectId?:string;crewId:string;name:string;snapshot:Snapshot;invoke:Invoke}){
  const profile=snapshot.localCrew?.profiles[crewId];
  const specialty=crewSpecialties[crewId];
- const [projectId,setProjectId]=useState(snapshot.projects[0]?.id??'');
+ const [projectId,setProjectId]=useState(initialProjectId??snapshot.projects[0]?.id??'');
  const [model,setModel]=useState(profile?.model??'');
  const [instructions,setInstructions]=useDraft(`local-crew:${crewId}:instructions`,profile?.instructions??specialty.guidelines);
  const [selected,setSelected]=useState(profile?.skills??specialty.skills);

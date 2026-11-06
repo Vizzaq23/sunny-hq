@@ -20,8 +20,8 @@ export function DeckCrew({crew,index,walker,state,projection,selected,moment,lin
  const activity=projection&&projection.state!=='idle'?projection.label:state==='waiting'?'Waiting for your approval':state==='attention'?'Needs attention':walker.moving?(state==='working'?'Heading to work':'Walking on deck'):working?'Working on your mission':walker.mode==='meeting'?'Talking with the crew':chores?`Ambient deck routine · ${ROUTINES[crew.id]}`:'Taking a breather';
  const speaking=line?.crew===crew.id;
  return <button data-crew-id={crew.id} data-moving={walker.moving} data-mode={walker.mode} data-deck-x={walker.x.toFixed(3)} data-deck-y={walker.y.toFixed(3)} className={`deck-crew deck-crew-${index+1} ${state} ${selected?'selected':''} ${walker.moving?'walking':''} ${working||chores?'at-work':''} ${performing?'performing action-'+crew.id:''} ${speaking?'bantering':''}`}
-  style={{left:`${walker.x}%`,top:`${walker.y}%`,zIndex:Math.round(walker.y)+(selected||speaking?100:0)}} onClick={onSelect} onMouseEnter={()=>onHover(true)} onMouseLeave={()=>onHover(false)} onFocus={()=>onHover(true)} onBlur={()=>onHover(false)} aria-label={`Talk to ${crew.name}`} title={`${crew.name} · ${activity}`}>
-  <span className="deck-speech">{speaking?line?.text:state==='working'?'On your mission':state==='waiting'?'Need your call.':state==='attention'?'Hit a snag.':crew.name}</span>
+  style={{left:`${walker.x}%`,top:`${walker.y}%`,zIndex:Math.round(walker.y)+(state==='working'?180:selected||speaking?100:0)}} onClick={onSelect} onMouseEnter={()=>onHover(true)} onMouseLeave={()=>onHover(false)} onFocus={()=>onHover(true)} onBlur={()=>onHover(false)} aria-label={`Talk to ${crew.name}`} title={`${crew.name} · ${activity}`}>
+  <span className="deck-speech">{state==='working'?activity:speaking?line?.text:state==='waiting'?'Waiting.':state==='attention'?'Hit a snag.':crew.name}</span>
   <span className={`deck-sprite ${spriteClass}`} style={style}/>
   <span className="deck-name"><b>{crew.name}</b><small>{activity}</small></span>
   {working?<span className="work-sparks" aria-hidden="true">✦</span>:null}

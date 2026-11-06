@@ -3,7 +3,8 @@ import type {MissionProjection} from './missionProjection';
 const active=new Set(['planning','working','reviewing','synthesizing']);
 /** Local advice is visible activity, never an accepted mission or simulated tool execution. */
 export function localCrewActivity(snapshot:Snapshot,crewId:string,context?:WorkContext|null):MissionProjection|undefined{
- if(crewId==='morgans'||context?.runId||context?.taskId||context?.missionId||context?.attemptId)return;
+ if(context?.runId||context?.taskId||context?.missionId||context?.attemptId)return;
+ if(crewId==='morgans'){const reporting=snapshot.localCrew?.councils?.find(item=>item.report?.status==='working'&&(!context?.projectId||item.projectId===context.projectId));return reporting?{crewId,state:'working',working:true,label:'Preparing a sanitized local bulletin'}:undefined;}
  // A real executing/uncertain task retains priority over local advisory animation.
  if(snapshot.tasks.some(task=>task.crewId===crewId&&!task.external&&['starting','working','waiting','unknown'].includes(task.status)))return;
  const record=snapshot.localCrew?.councils?.find(item=>active.has(item.status)&&(!context?.projectId||item.projectId===context.projectId));

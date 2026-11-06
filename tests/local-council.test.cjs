@@ -129,3 +129,21 @@ test('stopping Morgans rejects late replies without replacing the council',async
  f.hub.state.localCrew.profiles.morgans={model:'fixture:local'};const record=await f.council.start({projectId:'p',objective:'Review',crewIds:['franky']});
  const work=f.council.report({id:record.id});await ready;await f.council.stopReport({id:record.id});release();await assert.rejects(work);assert.equal(record.report.status,'interrupted');assert.equal(record.report.text,'');assert.equal(record.status,'ready');assert.equal(f.council.reporter,null);
 });
+
+test('follow-ups retain only bounded same-project conversation context, without inherited authority',async()=>{
+ const f=fixture();const first=await f.council.start({projectId:'p',objective:'Build a lesson picker',crewIds:['franky']});first.summary='Earlier useful recommendation';first.handoff={status:'started',taskId:'private-task-reference'};
+ const next=await f.council.start({projectId:'p',objective:'Make that keyboard accessible',parentId:first.id,crewIds:['sanji']});assert.equal(next.parentId,first.id);const call=f.calls.find(c=>c.crewId==='sanji');assert.match(call.prompt,/Earlier useful recommendation/);assert.match(call.prompt,/no permissions inherited/);assert.doesNotMatch(call.prompt,/private-task-reference/);assert.equal(next.handoff,undefined);
+ assert.equal(initialCouncils([next])[0].parentId,first.id);
+});
+test('missing, active and cross-project parents fail before any model call',async()=>{
+ const f=fixture();const args={projectId:'p',objective:'Follow up',parentId:'previous'};await assert.rejects(f.council.start(args),/settled previous/);
+ f.council.records.push({id:'previous',projectId:'other',status:'ready'});await assert.rejects(f.council.start(args),/settled previous/);f.council.records[0].projectId='p';f.council.records[0].status='working';await assert.rejects(f.council.start(args),/settled previous/);assert.equal(f.calls.length,0);
+});
+test('large follow-up context stays within the local transport budget and reports shortening',async()=>{
+ const f=fixture();const first=await f.council.start({projectId:'p',objective:'Initial',crewIds:['franky']});first.objective='x'.repeat(6000);first.summary='y'.repeat(16000);
+ const next=await f.council.start({projectId:'p',objective:'Follow up',parentId:first.id,crewIds:['franky']});assert.equal(next.contextLimited,true);assert.ok(f.calls.every(call=>call.prompt.length<=16000));
+});
+
+test('known execution release gate rejects before any handoff receipt or mission',async()=>{const f=fixture();const record=await f.council.start({projectId:'p',objective:'Fix'});f.hub.state.codex={status:'connected'};f.hub.assertSupervisedExecutionAdmission=()=>{throw Error('Execution release gate closed');};let launches=0,saves=0;f.hub.startGoal=()=>{launches++;};f.hub.persist=()=>{saves++;};await assert.rejects(f.council.handoff({id:record.id,title:'Fix',objective:'Reviewed scope',acceptanceCriteria:['Check']}),/release gate closed/);assert.equal(launches,0);assert.equal(saves,0);assert.equal(record.handoff,undefined);});
+
+test('review and synthesis retain the complete captain contract before allocating report context',async()=>{const f=fixture(async()=>({model:'fixture:local',text:'Long proposal '.repeat(1000)}));const objective='x'.repeat(5900)+' END_OF_CONTRACT_MUST_REMAIN';const result=await f.council.start({projectId:'p',objective,crewIds:['franky']});for(const call of f.calls){assert.ok(call.prompt.includes(objective),call.crewId+' retains the full request');assert.ok(call.prompt.length<=16000);}assert.equal(result.synthesisLimited,true);assert.equal(result.status,'ready');});

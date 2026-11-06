@@ -4,6 +4,17 @@ const {Growth}=require('../desktop/growth.cjs');
 const {LocalCrew,initialLocalCrew,conversationContext}=require('../desktop/local-crew.cjs');
 const {Hub}=require('../desktop/hub.cjs');
 const scope={crewId:'franky',projectId:'p'};
+
+test('only Luffy routing requests JSON output; normal advice retains free text',async()=>{
+ const f=await fixture();await f.local.configure({crewId:'luffy',model:'fixture:local',skills:['coordination']});
+ const signal=new AbortController().signal;
+ await f.local.contribute('luffy','p','Return a JSON council plan.',signal,'plan');
+ await f.local.contribute('luffy','p','Summarize the actual reports.',signal);
+ const [plan,advice]=f.calls.filter(call=>call.route==='chat').map(call=>call.body);
+ assert.equal(plan.format,'json');assert.equal(plan.options.temperature,0);assert.equal(advice.format,undefined);assert.equal(advice.options.temperature,undefined);
+ await assert.rejects(f.local.contribute('franky','p','Plan.',signal,'plan'),/Invalid local contribution mode/);
+ await assert.rejects(f.local.contribute('luffy','p','Plan.',signal,'tools'),/Invalid local contribution mode/);
+});
 test('supported answer-only mode avoids a thinking-only output limit and retains only the answer',async()=>{
  const f=await fixture({request:async(route,body)=>{
   if(route==='tags')return {models:[{name:'fixture:local',size:1,details:{format:'gguf'}}]};

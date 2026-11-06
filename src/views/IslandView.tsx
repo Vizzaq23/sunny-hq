@@ -31,7 +31,7 @@ export function IslandView({snapshot,invoke,onWorkspace,onShip,onNews,onProjectR
  const create=()=>{setForm({...draftJob,projectId:snapshot.projects[0]?.id||'',district});setEditing(true);setTab('jobs');};
  const save=async()=>{await run('island:saveJob',form);setEditing(false);};
  return <div className={`page island-page ${quiet||snapshot.settings.reducedMotion?'life-paused':''}`}>
-  <LocalCrewLiveBar snapshot={snapshot} invoke={invoke} onCaptain={()=>onWorkspace({crewId:'luffy',projectId:snapshot.localCrew?.councils?.find(item=>['planning','working','reviewing','synthesizing'].includes(item.status))?.projectId})}/>
+  <LocalCrewLiveBar snapshot={snapshot} invoke={invoke} onCaptain={projectId=>onWorkspace({crewId:'luffy',projectId})}/>
   <section className="island-intro"><div><span className="eyebrow">The Grand Line · Sunny HQ</span><h2>Choose your next destination.</h2><p>The Sunny is home. Every island opens a place for real work with your crew.</p></div><button className="primary-button" onClick={()=>onWorkspace({crewId:'luffy'})}>Talk to Luffy <ArrowRight size={17}/></button></section>
   <details className="island-roster-details"><summary>Crew stations and live details</summary><WorldRoster snapshot={snapshot} onCrew={crewId=>onWorkspace({crewId,...(crewId==='luffy'?{}:{projectId:snapshot.projects[0]?.id})})} onBriefings={onNews} onOpen={taskId=>onWorkspace({taskId})}/></details>
   <nav className="voyage-route" aria-label="Grand Line destinations">{DISTRICTS.map(d=><button key={d.id} aria-pressed={district===d.id} onClick={()=>{setDistrict(d.id);setEditing(false);}}><span>{d.name}</span><small>{d.tagline}</small></button>)}</nav>

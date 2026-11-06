@@ -23,6 +23,12 @@ async function check({js,wait,fill,select,click,nav,screenshot,win,localFixture}
  await wait('document.querySelector(".local-council-progress").textContent.includes("Crew advice is ready")');
  assert.equal(await js('document.querySelectorAll(".local-council-members>details").length'),2);
  assert.match(await js('document.querySelector(".local-council-progress").textContent'),/Franky.*Usopp/s);
+ await select('[aria-label="Luffy project"]','launch');
+ await nav('The Sunny');await wait('Boolean(document.querySelector(".local-crew-live"))');
+ assert.match(await js('document.querySelector(".local-crew-live").textContent'),/Crew advice is ready/);
+ assert.ok(!await js('document.querySelector(".local-crew-live").textContent.includes("Stop crew")'),'settled advice has no active Stop control');
+ await click('.local-crew-live button');await wait('Boolean(document.querySelector(".local-captain"))');
+ assert.equal(await js(`document.querySelector('[aria-label="Luffy project"]').value`),'studio','return from settled advice restores its project');
  await button('Ask Morgans for a local bulletin');await wait('document.querySelector(".local-captain").textContent.includes("Bulletin: ready")');
  assert.ok(!localFixture.lastChat().messages.at(-1).content.includes('empty-input bug'),'Morgans receives no objective or source');
  const first=localFixture.hub.state.localCrew.councils.at(-1);
@@ -69,6 +75,8 @@ async function check({js,wait,fill,select,click,nav,screenshot,win,localFixture}
   await fill('#luffy-objective','Synthetic two-member visual and cancellation check.');await button('Ask Luffy & crew');
   await wait('document.querySelectorAll(".local-council-dot.working").length===2');
   await nav('The Sunny');await wait('document.querySelectorAll(".crew-deck .deck-crew.working").length===2');
+  assert.match(await js('document.querySelector(".helm-station").textContent'),/Local crew council.*Synthetic two-member visual and cancellation check/s);
+  assert.ok(!await js('document.querySelector(".helm-station").textContent.includes("ready for your next assignment")'),'waiting captain does not appear idle');
   await js('document.querySelector(".crew-deck").scrollIntoView({block:"center",behavior:"instant"})');await screenshot('local-council-ship-two-working.png');
   await nav('The Island');await wait('document.querySelectorAll(".island-actors .deck-crew.working").length===2');
   assert.match(await js('document.querySelector(".local-crew-live").textContent'),/Franky: thinking.*Usopp: thinking/);

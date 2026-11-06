@@ -6,7 +6,7 @@ const specialties=require('../desktop/local-specialties.json');
 const {CREW_ROLES}=require('../desktop/crew-registry.cjs');
 function fixture(reply){
  const calls=[];let saved;
- const hub={state:{world:{residents:[{id:'law',recruited:true}]},localCrew:{version:1,profiles:Object.fromEntries(Object.keys(specialties.crew).filter(id=>id!=='morgans').map(id=>[id,{model:'fixture:local',...defaults(id),sessions:[]}]))}},project(id){assert.equal(id,'p');return {id};},assertOpenForEffect(){if(this.quiescing)throw Error('Closing');},persist(){saved=structuredClone(this.state);},changed(){},localCrew:{async contribute(crewId,projectId,prompt,signal){calls.push({crewId,projectId,prompt,signal});if(reply)return reply(crewId,prompt,signal);return {model:'fixture:local',text:crewId==='luffy'&&prompt.startsWith('Plan ')?JSON.stringify({summary:'Build and verify.',assignments:[{crewId:'franky',objective:'Propose a small fix.'},{crewId:'usopp',objective:'Design regression checks.'}]}):'Evidence-limited proposal by '+crewId};}}};
+ const hub={state:{world:{residents:[{id:'law',recruited:true}]},localCrew:{version:1,profiles:Object.fromEntries(Object.keys(specialties.crew).filter(id=>id!=='morgans').map(id=>[id,{model:'fixture:local',...defaults(id),sessions:[]}]))}},project(id){assert.equal(id,'p');return {id};},assertOpenForEffect(){if(this.quiescing)throw Error('Closing');},persist(){saved=structuredClone(this.state);},changed(){},localCrew:{async contribute(crewId,projectId,prompt,signal,mode){calls.push({crewId,projectId,prompt,signal,mode});if(reply)return reply(crewId,prompt,signal);return {model:'fixture:local',text:crewId==='luffy'&&prompt.startsWith('Plan ')?JSON.stringify({summary:'Build and verify.',assignments:[{crewId:'franky',objective:'Propose a small fix.'},{crewId:'usopp',objective:'Design regression checks.'}]}):'Evidence-limited proposal by '+crewId};}}};
  const council=new LocalCouncil(hub);hub.localCouncil=council;return {hub,council,calls,saved:()=>saved};
 }
 test('every island identity has a purpose-specific specialty matching the canonical roster',()=>{
@@ -23,6 +23,7 @@ test('existing personal setup survives role-default changes',()=>{
 test('Luffy picks real available specialists and synthesizes only their actual reports',async()=>{
  const f=fixture();const result=await f.council.start({projectId:'p',objective:'Fix an input bug.'});
  assert.equal(result.status,'ready');assert.deepEqual(f.calls.map(call=>call.crewId),['luffy','franky','usopp','zoro','luffy']);
+ assert.deepEqual(f.calls.map(call=>call.mode),['plan','advice','advice','advice','advice']);
  assert.ok(f.calls[0].prompt.includes('Customer needs and product research'));
  assert.match(f.calls.at(-1).prompt,/Evidence-limited proposal by franky/);
  assert.deepEqual(f.saved().localCrew.councils[0],result);assert.equal(f.council.active,null);

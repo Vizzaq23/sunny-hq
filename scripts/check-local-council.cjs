@@ -8,11 +8,16 @@ async function check(model){
  let hub;const report={model,output,startedAt:new Date().toISOString(),synthetic:true,generatedCodeExecuted:false};
  try{
   hub=await boot();await hub.localCouncil.setup({model});assert.equal(Object.keys(hub.state.localCrew.profiles).length,15);
+  report.greeting=await hub.localCouncil.start({projectId:'fixture',objective:'Hi Luffy! Please greet me in one sentence. Answer directly without assigning any specialists.'});
+  assert.equal(report.greeting.status,'ready');assert.equal(report.greeting.contributions.length,0);
+  await hub.localCrew.teach({crewId:'luffy',projectId:'fixture',text:'Synthetic project preference: call our small experimental feature Harbor Lantern. This is only a fixture name, not completed work.'});
+  report.recall=await hub.localCouncil.start({projectId:'fixture',objective:'Luffy, what name did I save for our small experimental feature in your project memory? Reply directly in one short sentence; no specialist assignments.'});
+  assert.equal(report.recall.status,'ready');assert.equal(report.recall.contributions.length,0);
   let previous='';hub.on('event',()=>{const record=hub.localCouncil.active?.record;if(!record)return;const state=record.status+': '+record.contributions.map(item=>item.crewId+'='+item.status).join(', ');if(state!==previous){previous=state;console.log(state);}});
   report.council=await hub.localCouncil.start({projectId:'fixture',objective:'Help improve this synthetic TypeScript utility with a small correct fix and runnable Vitest checks. Supplied implementation: export function first(items: string[]) { return items[0].trim(); } Desired contract: return null for an empty array; otherwise return the trimmed first string. No repository or test execution has occurred. Ask only the specialists needed for this code problem; keep each reply below 300 words.',concurrency:2});
   assert.ok(['ready','partial'].includes(report.council.status));assert.ok(report.council.contributions.length>0);assert.ok(report.council.summary);
   report.bulletin=await hub.localCouncil.report({id:report.council.id});assert.equal(report.bulletin.status,'ready');
-  await hub.close();hub=await boot();assert.equal(hub.state.localCrew.councils[0].summary,report.council.summary);assert.equal(hub.state.localCrew.profiles.morgans.model,model);
+  await hub.close();hub=await boot();assert.equal(hub.state.localCrew.councils.find(record=>record.id===report.council.id).summary,report.council.summary);assert.equal(hub.state.localCrew.profiles.morgans.model,model);
   report.passed=true;
  }catch(error){report.error=error.stack;throw error;}
  finally{await hub?.close().catch(error=>{report.closeError=error.message;});report.finishedAt=new Date().toISOString();fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(report,null,2));console.log('SUNNY_LOCAL_COUNCIL '+JSON.stringify({passed:report.passed??false,output,error:report.error}));}

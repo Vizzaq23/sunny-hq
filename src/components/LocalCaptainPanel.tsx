@@ -1,4 +1,4 @@
-import {useRef,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import type {CrewId,LocalCouncil,Snapshot} from '../shared';
 import {CREW_BY_ID} from '../data';
 import {useDraft,clearSubmittedDraft} from '../useDraft';
@@ -18,6 +18,7 @@ export function LocalCaptainPanel({initialProjectId,onProjectChange,snapshot,inv
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[journal,setJournal]=useState<{crewId:CrewId;projectId:string}|null>(null);
  const pending=useRef(false);
  const active=snapshot.localCrew?.councils?.find(record=>activeStates.has(record.status));
+ useEffect(()=>{if(active&&active.projectId!==projectId){setProjectId(active.projectId);onProjectChange?.(active.projectId);}},[active?.projectId,projectId,onProjectChange]);
  const records=(snapshot.localCrew?.councils??[]).filter(record=>record.projectId===projectId);
  const current=active??records.at(-1);
  const previous=records.at(-1);
@@ -77,5 +78,5 @@ function CouncilLesson({council,invoke}:{council:LocalCouncil;invoke:Invoke}){
  const [lesson,setLesson]=useDraft(key);
  const [busy,setBusy]=useState(false),[notice,setNotice]=useState('');const pending=useRef(false);
  const save=async()=>{if(pending.current)return;pending.current=true;setBusy(true);setNotice('');const submitted=lesson;try{await invoke('localCrew:teach',{crewId,projectId:council.projectId,text:submitted});clearSubmittedDraft(key,submitted);setNotice('Saved for this member and project. You can edit or forget it in their journal.');}catch(error){setNotice(error instanceof Error?error.message:String(error));}finally{pending.current=false;setBusy(false);}};
- return <details className="local-council-lesson"><summary>Teach a preference or correction</summary><p>Write the lesson you want remembered. Crew answers are not automatically treated as facts.</p><label>Crew member<select aria-label="Member to teach" value={crewId} disabled={busy} onChange={event=>setCrewId(event.target.value)}>{Object.entries(specialties.crew).filter(([id])=>id!=='morgans').map(([id,value])=><option key={id} value={id}>{CREW_BY_ID.get(id)?.name??id} · {value.role}</option>)}</select></label><label>Project lesson<textarea aria-label="Council project lesson" maxLength={2000} disabled={busy} value={lesson} onChange={event=>setLesson(event.target.value)} placeholder="Keep plans small and show me the evidence before calling a fix complete."/></label><button disabled={busy||!lesson.trim()} onClick={()=>void save()}>Remember this lesson</button>{notice?<p role="status">{notice}</p>:null}<small>Local project memory changes future context; it does not retrain model weights.</small></details>;
+ return <details className="local-council-lesson"><summary>Teach a preference or correction</summary><p>Write the lesson you want remembered. Crew answers are not automatically treated as facts.</p><label>Crew member<select aria-label="Member to teach" value={crewId} disabled={busy} onChange={event=>{setCrewId(event.target.value);setNotice('');}}>{Object.entries(specialties.crew).filter(([id])=>id!=='morgans').map(([id,value])=><option key={id} value={id}>{CREW_BY_ID.get(id)?.name??id} · {value.role}</option>)}</select></label><label>Project lesson<textarea aria-label="Council project lesson" maxLength={2000} disabled={busy} value={lesson} onChange={event=>setLesson(event.target.value)} placeholder="Keep plans small and show me the evidence before calling a fix complete."/></label><button disabled={busy||!lesson.trim()} onClick={()=>void save()}>Remember this lesson</button>{notice?<p role="status">{notice}</p>:null}<small>Local project memory changes future context; it does not retrain model weights.</small></details>;
 }

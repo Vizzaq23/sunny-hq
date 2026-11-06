@@ -1,4 +1,18 @@
-# Local crew developer — 2026-11-04
+# Local crew and Luffy conversations
+
+## Start with Luffy — current development build
+
+1. Open `.sunny-dev/Open Sunny Crew.cmd` on the prepared machine. It uses a separate saved development profile; the installed daily app is unchanged.
+2. On **Home → Talk to Luffy**, choose your project and describe what you want. Add a project-file preview when the crew needs actual code. Luffy chooses a small team from the configured, available specialists; simple conversation can receive a direct reply.
+3. Choose **Watch on the island**, or open **The Sunny**, to see real local request states. **Step in with Luffy** returns to the current project. **Stop crew** cancels active requests and leaves queued work stopped. **Change direction** stops the old council so you can send an edited request.
+4. Read Luffy's answer and expand individual reports when needed. Completed advice remains reachable through **Return to Luffy**. Use **New topic** to start without the preceding turn, or keep the default follow-up context.
+5. Under **Teach a preference or correction**, choose the member and save a verified project lesson. Each member has separate memory. Under **Crew setup and controls**, open individual profiles; extra island specialists and Morgans' reporter setup stay nested until needed.
+
+All ten Straw Hats and four island residents have distinct local profiles, skills and guidelines; Morgans has a separate sanitized-report profile. Downloaded model weights may be shared. Personalization uses saved instructions and recall, not continuous weight training. Local replies can be wrong even when the reviewer agrees.
+
+**Execution limitation:** this build's existing supervised-execution release gate is closed. Local planning, reviews, source previews and memory work; a connected Codex account alone does not enable crew implementation. No autonomous edits or tests are implied by the activity display. Current verification and measured limitations are recorded below.
+
+## Original local developer decision — 2026-11-04
 
 Decision: add an optional local advisory workspace to each crew journal. Franky is the initial senior developer helper. Each character retains its identity, selected local model and explicit engineering skill instructions. Existing Codex missions remain the execution path; local chat has no command, file-write, browser or delegation tools. Skill selection is guidance, not evidence of senior-level capability.
 
@@ -135,7 +149,7 @@ Each crewmate has separate model settings, guidelines, conversations and lessons
 - The one-click preview retains `qwen2.5-coder:14b` as its tested starting configuration. Optional [Qwen3.5 9B GGUF](https://ollama.com/library/qwen3.5:9b-q4_K_M) and [Qwen3-Coder 30B](https://ollama.com/library/qwen3-coder:30b) were downloaded and evaluated in the separate model store. Neither justified replacing it: 9B generated incorrect JavaScript/path explanations, and 30B claimed to fix a basic empty-input bug while returning the original broken function. These are small manual samples, not a ranking of model capability.
 - Explicit reviewed path/idempotency lessons improved a fresh 30B response, including real-path resolution and a check/use race warning, but the suggested guard still rejected valid names beginning with `..`. Saving a correction can improve context without guaranteeing correct code. Original and corrected answers remain in `.sunny-dev/local-crew-boundary/*/result.json`; summary: `.sunny-dev/local-crew-model-review.md`. Boundary-review drafts were not executed.
 
-## Current verification and launch handoff — 2026-11-05
+## Earlier local-developer verification and launch handoff — 2026-11-05
 
 The primary repository now uses `codex/local-crew-integration`. Implementation checkpoints are `34891ef`, `1342040` and `fa4a40a`, on newer base `471fb3d`; the earlier `ad6895f` branch remains available. The generated `.sunny-dev/Open Local Crew Preview.cmd` launches this checkout with its separate profile and the downloaded 14B model. The installed Sunny application, its shortcut and daily profile have not been activated or migrated by this work.
 
@@ -197,3 +211,13 @@ Further UI checks: the complete native workflow passed at `.sunny-dev/workflow-c
 Routing reliability refinement: only Luffy's planning call requests Ollama `format: "json"` and temperature0; specialist answers, review and synthesis remain ordinary text. The existing strict parser still validates fields, team size, distinct eligible/recruited/configured IDs, and direct-reply shape before dispatch. No fallback invents assignments, and no automatic retry is added. The planner receives the compact canonical role/skill/availability roster, not every specialist's full instructions. Source: [Ollama structured outputs](https://docs.ollama.com/capabilities/structured-outputs), checked November6.
 
 Live14B evidence `.sunny-dev/local-council-check/ae0170d8-09cf-4997-870f-15b1d02d528f/result.json`: direct greeting, fresh-topic pinned preference recall, automatic Franky+Usopp selection, review/synthesis, sanitized bulletin and restart retention passed. Prior probe334a39e2 emitted a direct prose plan instead of assignments; retained as a failure, followed by the routing-policy/context correction. The successful routing probe still contained wrong whitespace/leading-empty test assertions, so reasoning quality remains unqualified. No generated code was executed. Latest focused suite84/84 passed; production build passed.
+
+### Final Luffy-first handoff — 2026-11-06 UTC
+
+Clean isolated install, production build and full suite at `a9985dc1b6e5cf1c096f1ca2f7fa95d823606d88` completed successfully: **1,726 tests passed, zero failures/cancellations/skips**, in 3,196,814 ms (about53 minutes). Evidence: `.sunny-dev/specialized-final-install.log`, `specialized-final-build.log` and `specialized-final-tests.log`. This includes the four checkpoint cases that failed in the earlier run; their original failures remain recorded above, with cause unresolved. Do not describe this as a full-suite run on the later implementation checkpoint. Existing dependency audit reports12 advisories (7 moderate,5 high); no install policy or release gate was weakened.
+
+Implementation checkpoint `fdeeb0bd32733b8854fad4cb821d4e961c8a679e` on `codex/specialized-local-crew` passed the production TypeScript/Vite build and 84 focused council, transport, profile, source and activity tests. Full native workflow passed at `.sunny-dev/workflow-check/2026-11-06T02-15-15.960Z`; the final council fixture passed at `2026-11-06T02-09-28.930Z` in the same directory. Native fixtures use isolated profiles and synthetic transport. They cover Stop/draft retention, two simultaneous workers, project-correct return to Luffy, optional reporter settings, narrow layout and reduced motion; they do not prove model reasoning or execution admission.
+
+The actual separate development app remains open with the updated runtime. A fresh-topic TCG Coach question recalled the explicitly saved correction accurately, without dispatching specialists: council `1efd8232-25bc-4c17-bc84-3a65bf760956` retained the 2 MiB guard, read409/write413 and existing ID/integrity/version contracts. Both the displayed reply and saved record were checked. Franky's existing instructions remain unchanged, all15 profiles are present, all four optional residents are recruited and scheduling remains paused. The installed daily application/profile is unchanged.
+
+The existing trusted-release gate still blocks supervised execution. Completing local advice, receiving Zoro's review or passing source tests does not grant release admission. No TCG source changes, automatic weight training, push or merge were performed in this council evaluation. Keep the rejected TCG advice and earlier full-suite failures as negative evidence when assessing reliability.

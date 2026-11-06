@@ -78,7 +78,52 @@ app.whenReady().then(async()=>{
   throw lastError;
  };
  try{
-  await win.loadFile(path.join(root,'dist','index.html'));await wait('Boolean(document.querySelector(".local-captain"))');await nav('The Sunny');await wait('Boolean(document.querySelector(".helm-workspace"))');await screenshot('command-deck.png');
+  await win.loadFile(path.join(root,process.argv.includes('--shipboard-baseline')?'.sunny-dev/baseline-dist':'dist','index.html'));await wait('Boolean(document.querySelector(".local-captain"))');await nav('The Sunny');await wait('Boolean(document.querySelector(".helm-workspace"))');await screenshot('command-deck.png');
+  if(process.argv.includes('--shipboard-captures')){
+   if(!process.argv.includes('--shipboard-baseline')){
+    assert.ok(await js('document.fonts.load("16px Barlow").then(fonts=>fonts.length>0&&fonts.every(font=>font.status==="loaded"))'),'bundled Barlow loads');
+    assert.ok(await js('document.fonts.load("16px Bangers").then(fonts=>fonts.length>0&&fonts.every(font=>font.status==="loaded"))'),'bundled Bangers loads');
+    assert.equal(await js('performance.getEntriesByType("resource").filter(entry=>/^https?:/.test(entry.name)).length'),0,'fixture loads no remote resources');
+   }
+   const captureSizes=async(name,selector)=>{
+    for(const [width,height,label] of [[1280,720,'desktop'],[390,844,'mobile']]){
+     win.setSize(width,height);await delay(200);
+     await js(`document.querySelector(${JSON.stringify(selector)}).scrollIntoView({block:'start',behavior:'instant'})`);
+     assert.ok(await js('document.documentElement.scrollWidth<=innerWidth'),name+' fits '+label);
+     if(name==='design-approval')await js('document.querySelector(".approval-actions").scrollIntoView({block:"end",behavior:"instant"})');
+     await screenshot(name+'-'+label+'.png');
+    }
+    win.setSize(1280,720);win.webContents.setZoomFactor(2);await delay(200);
+    assert.ok(await js('document.documentElement.scrollWidth<=innerWidth'),name+' fits 200 percent');
+    await screenshot(name+'-zoom.png');win.webContents.setZoomFactor(1);win.setSize(1440,1050);await delay(200);
+   };
+   await nav('Home');await js('document.querySelectorAll(".home-page details[open]").forEach(d=>d.open=false)');
+   await captureSizes('design-home','.home-heading');
+   await click('[data-watch-id="task:design"] .watch-open');await wait('Boolean(document.querySelector(".approval-card"))');
+   await captureSizes('design-approval','.approval-card');
+   win.webContents.debugger.attach('1.3');
+   await win.webContents.debugger.sendCommand('Input.dispatchKeyEvent',{type:'keyDown',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
+   await win.webContents.debugger.sendCommand('Input.dispatchKeyEvent',{type:'keyUp',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
+   win.webContents.debugger.detach();
+   await js('document.querySelector(".approve").focus()');
+   assert.equal(await js('document.activeElement.className'),'approve');
+   assert.notEqual(await js('getComputedStyle(document.querySelector(".approve")).outlineStyle'),'none');
+   assert.equal(answers,0,'capturing and focusing permission never approves');
+   await captureSizes('design-room','.workbench-head');
+   await fill('.composer textarea','Keep my unsent shipboard draft');
+   const longTask=state.tasks.find(task=>task.id==='design');
+   longTask.messages.push({id:'shipboard-long-reply',role:'assistant',text:'Fixture long transcript. Review the recorded evidence before accepting this work.\n'.repeat(1000),time:Date.now()});
+   const longDelta=projection.transcriptChanged(longTask);
+   win.webContents.send('sunny:event',{type:'transcript:delta',epoch:longDelta.epoch,sequence:longDelta.sequence,data:longDelta});emit();
+   await wait('document.querySelector(".conversation").textContent.includes("Fixture long transcript")');
+   win.setSize(390,844);await delay(200);
+   assert.ok(await js('document.documentElement.scrollWidth<=innerWidth'),'long transcript fits phone');
+   assert.equal(await js('document.querySelector(".composer textarea").value'),'Keep my unsent shipboard draft');
+   await js('document.querySelector(".conversation").scrollIntoView({block:"start",behavior:"instant"})');
+   await screenshot('design-long-transcript-mobile.png');
+   fs.writeFileSync(path.join(output,'design-result.json'),JSON.stringify({passed:true,syntheticTransport:true,sizes:[[1280,720],[390,844]],zoom:2,approvalResponses:answers,longTranscriptCharacters:longTask.messages.at(-1).text.length,draftPreserved:true}));
+   return;
+  }
   assert.equal(await js('document.querySelector(".helm-workspace").dataset.motion'),'reduced');
   assert.equal(await js('getComputedStyle(document.querySelector(".helm-scene"),"::before").animationName'),'none');
   state.settings.reducedMotion=false;emit();await wait('document.querySelector(".helm-workspace").dataset.motion==="full"');

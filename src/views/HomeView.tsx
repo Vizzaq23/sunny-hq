@@ -1,3 +1,4 @@
+import {LocalCaptainPanel} from '../components/LocalCaptainPanel';
 import {CaptainWatch} from '../components/CaptainWatch';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowRight,CheckCircle2,ChevronRight,Compass,FolderPlus,LoaderCircle,Search,Send,Sparkles,Users} from 'lucide-react';
@@ -17,7 +18,7 @@ const starters=[
  {label:'Research an idea',prompt:'Research this idea and give me a practical recommendation: ',crew:'robin'},
  {label:'Plan my next steps',prompt:'Help me prioritize and complete these tasks: ',crew:'nami'},
 ];
-export function HomeView({launchPending,onLaunchPending,snapshot,invoke,onWorkspace,onImport,onExplore,onSettings,onMission}:{launchPending:boolean;onLaunchPending:(pending:boolean)=>void;snapshot:Snapshot;invoke:Invoke;onWorkspace:(init:{taskId?:string;projectId?:string;crewId?:CrewId;prompt?:string})=>void;onImport:()=>void;onExplore:()=>void;onSettings:()=>void;onMission?:(mission:Mission)=>void}){
+export function HomeView({captainProjectId,launchPending,onLaunchPending,snapshot,invoke,onWorkspace,onImport,onExplore,onSettings,onMission}:{captainProjectId?:string;launchPending:boolean;onLaunchPending:(pending:boolean)=>void;snapshot:Snapshot;invoke:Invoke;onWorkspace:(init:{taskId?:string;projectId?:string;crewId?:CrewId;prompt?:string})=>void;onImport:()=>void;onExplore:()=>void;onSettings:()=>void;onMission?:(mission:Mission)=>void}){
  const [projectId,setProjectId]=useState(()=>{try{return sessionStorage.getItem('sunny:last-project')??snapshot.projects[0]?.id??'';}catch{return snapshot.projects[0]?.id??'';}});
  const selectedProject=snapshot.projects.find(project=>project.id===projectId);
  const [mode,setMode]=useDraft('home:routing','delegate'),[crewId,setCrewId]=useDraft('home:specialist','franky');
@@ -50,10 +51,11 @@ export function HomeView({launchPending,onLaunchPending,snapshot,invoke,onWorksp
  const choosePhase=(next:string)=>{setPhase(next);setLimit(12);document.querySelector('.home-tasks')?.scrollIntoView({behavior:snapshot.settings.reducedMotion?'auto':'smooth',block:'start'});};
  return <div className="page home-page">
   <section className="home-heading"><div><span className="eyebrow">Your crew. One clear course.</span><h2>What are we getting done?</h2><p>Bring the goal. Your crew will help you get there.</p></div><button className="home-explore" onClick={onExplore}><Compass size={18}/> Visit the island <ArrowRight size={16}/></button></section>
-  {window.sunny&&snapshot.codex.status!=='connected'?<div className="home-connection" role="status"><span><b>{snapshot.codex.status==='Sample data'?'Review the upgrade safely':snapshot.codex.status==='connecting'?'Connecting to Codex…':'Your crew needs a connection'}</b><small>{snapshot.codex.error??'Your draft is safe here. Check Settings to connect or sign in.'}</small></span><button onClick={onSettings}>Open Settings <ChevronRight size={16}/></button></div>:null}
+  {window.sunny&&!snapshot.localCrew?.profiles.luffy?.model&&snapshot.codex.status!=='connected'?<div className="home-connection" role="status"><span><b>{snapshot.codex.status==='Sample data'?'Review the upgrade safely':snapshot.codex.status==='connecting'?'Connecting to Codex…':'Your crew needs a connection'}</b><small>{snapshot.codex.error??'Your draft is safe here. Check Settings to connect or sign in.'}</small></span><button onClick={onSettings}>Open Settings <ChevronRight size={16}/></button></div>:null}
   {launchedTask?<div className="launch-receipt" role="status"><span><b>Task created</b><small>{launchedTask.title} · {taskLabel(launchedTask)}</small></span><button onClick={()=>onWorkspace({taskId:launchedTask.id})}>Open task <ArrowRight size={16}/></button></div>:null}
+  <LocalCaptainPanel key={captainProjectId} initialProjectId={captainProjectId} snapshot={snapshot} invoke={invoke} onExplore={onExplore} onImport={onImport}/>
   <CaptainWatch snapshot={snapshot} onOpen={onWorkspace} onMission={onMission}/>
-  <MissionBoard briefOnly snapshot={snapshot} invoke={invoke} onOpen={(taskId,selection)=>onWorkspace({taskId,...selection})} onSelectMission={onMission}/>
+  <details className="home-tracked-work"><summary>Tracked Codex work and mission controls</summary><MissionBoard briefOnly snapshot={snapshot} invoke={invoke} onOpen={(taskId,selection)=>onWorkspace({taskId,...selection})} onSelectMission={onMission}/></details>
   <details className="home-conversations"><summary>Ordinary conversations and past turns</summary>
   <section className="launch-card" aria-label="Start a task">
    <div className="launch-main"><div className="launch-heading"><span className="launch-icon"><Sparkles size={21}/></span><div><h3>Start an ordinary conversation</h3><p>This conversation does not create a tracked goal run.</p></div></div>

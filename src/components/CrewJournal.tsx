@@ -5,10 +5,10 @@ import {ALL_CREW as CREW,CREW_BY_ID} from '../data';
 import {CrewBadge} from './Chrome';
 import {LocalCrewPanel} from './LocalCrewPanel';
 type Invoke=<T=unknown>(action:string,args?:unknown)=>Promise<T>;
-export function CrewJournal({crewId,snapshot,invoke,onClose}:{crewId:CrewId;snapshot:Snapshot;invoke:Invoke;onClose:()=>void}){
+export function CrewJournal({initialTab='memory',crewId,snapshot,invoke,onClose}:{initialTab?:'memory'|'relationships'|'local';crewId:CrewId;snapshot:Snapshot;invoke:Invoke;onClose:()=>void}){
  const crew=CREW_BY_ID.get(crewId)!;
  const profile=snapshot.growth?.profiles[crewId];
- const [tab,setTab]=useState<'memory'|'relationships'|'local'>('memory'),[note,setNote]=useState(''),[editId,setEditId]=useState<string>(),[saving,setSaving]=useState(false);
+ const [tab,setTab]=useState<'memory'|'relationships'|'local'>(initialTab),[note,setNote]=useState(''),[editId,setEditId]=useState<string>(),[saving,setSaving]=useState(false);
  const [partner,setPartner]=useState<CrewId>(crewId==='zoro'?'sanji':'zoro'),[topic,setTopic]=useState('What have you learned about working with our captain, and how can you help each other?');
  const [starting,setStarting]=useState(false),[error,setError]=useState('');
  const busy=starting||Boolean(snapshot.discussions?.some(e=>e.status==='working'));

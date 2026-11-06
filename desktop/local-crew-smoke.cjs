@@ -13,9 +13,11 @@ function fixture(state,emit){
   if(route==='show')return {details:{format:'gguf'}};
   lastChat=_body;
   if(hold)await new Promise((_resolve,reject)=>signal.addEventListener('abort',()=>reject(Error('Fixture cancelled')),{once:true}));
+  if(_body.messages.at(-1).content.startsWith('Plan a local advisory council'))return {done:true,message:{role:'assistant',content:JSON.stringify({summary:'Franky drafts a fix; Usopp checks edge cases.',assignments:[{crewId:'franky',objective:'Propose the fix.'},{crewId:'usopp',objective:'Plan regression checks.'}]})}};
   return {done:true,message:{role:'assistant',content:'Fixture advice: add a null guard and verify the empty-input case. No tests were run.'}};
  }});
- return {hold(value){hold=value;},delayRecall(value){recallDelay=value;},lastChat:()=>lastChat,invoke(action,args){const method=action.split(':')[1];if(!['models','configure','ask','stop','teach','clear','source','recall'].includes(method))throw Error('Unknown fixture action');const result=service[method](...(method==='models'?[]:[args]));return method==='recall'&&recallDelay?new Promise(resolve=>setTimeout(()=>resolve(result),recallDelay)):result;}};
+ hub.localCrew=service;hub.localCouncil=new (require('./local-council.cjs').LocalCouncil)(hub);
+ return {hub,hold(value){hold=value;},delayRecall(value){recallDelay=value;},lastChat:()=>lastChat,invoke(action,args){const method=action.split(':')[1];if(action.startsWith('localCouncil:')){if(!['setup','roster','start','stop','report','stopReport'].includes(method))throw Error('Unknown council fixture action');return hub.localCouncil[method](args);}if(!['models','configure','ask','stop','teach','clear','source','recall'].includes(method))throw Error('Unknown fixture action');const result=service[method](...(method==='models'?[]:[args]));return method==='recall'&&recallDelay?new Promise(resolve=>setTimeout(()=>resolve(result),recallDelay)):result;}};
 }
 async function check({js,wait,fill,select,click,nav,screenshot,win,localFixture}){
  await nav('Crew');

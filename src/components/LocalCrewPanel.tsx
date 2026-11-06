@@ -4,16 +4,19 @@ import {useDraft,clearSubmittedDraft} from '../useDraft';
 import {LocalSourcePicker} from './LocalSourcePicker';
 import {LocalRecallPreview} from './LocalRecallPreview';
 import {CREW_BY_ID} from '../data';
+import specialties from '../../desktop/local-specialties.json';
 
 type Invoke=<T=unknown>(action:string,args?:unknown)=>Promise<T>;
-const skills=[['architecture','Architecture'],['debugging','Debugging'],['review','Code review'],['testing','Test planning']];
+const skills=Object.entries(specialties.skills).map(([id,value])=>[id,value.label]);
+const crewSpecialties:Record<string,{role:string;skills:string[];guidelines:string}>=specialties.crew;
 
 export function LocalCrewPanel({crewId,name,snapshot,invoke}:{crewId:string;name:string;snapshot:Snapshot;invoke:Invoke}){
  const profile=snapshot.localCrew?.profiles[crewId];
+ const specialty=crewSpecialties[crewId];
  const [projectId,setProjectId]=useState(snapshot.projects[0]?.id??'');
  const [model,setModel]=useState(profile?.model??'');
- const [instructions,setInstructions]=useDraft(`local-crew:${crewId}:instructions`,profile?.instructions??'');
- const [selected,setSelected]=useState(profile?.skills??skills.map(([id])=>id));
+ const [instructions,setInstructions]=useDraft(`local-crew:${crewId}:instructions`,profile?.instructions??specialty.guidelines);
+ const [selected,setSelected]=useState(profile?.skills??specialty.skills);
  const [models,setModels]=useState<{name:string;size:number}[]>([]);
  const [busy,setBusy]=useState(false),[sending,setSending]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const draftKey=`local-crew:${crewId}:${projectId}`;
@@ -23,19 +26,20 @@ export function LocalCrewPanel({crewId,name,snapshot,invoke}:{crewId:string;name
  const activeRun=Object.entries(snapshot.localCrew?.profiles??{}).flatMap(([id,p])=>p.sessions.filter(s=>s.status==='working').map(s=>({crewId:id,projectId:s.projectId})))[0];
  const active=Boolean(activeRun);
  const otherRun=activeRun&&(activeRun.crewId!==crewId||activeRun.projectId!==projectId)?activeRun:undefined;
- const dirty=instructions!==(profile?.instructions??'')||model!==profile?.model||JSON.stringify(selected)!==JSON.stringify(profile?.skills);
+ const dirty=instructions!==(profile?.instructions??specialty.guidelines)||model!==profile?.model||JSON.stringify(selected)!==JSON.stringify(profile?.skills);
  const perform=async(work:()=>Promise<void>)=>{setBusy(true);setError('');setNotice('');try{await work();}catch(e){setError(e instanceof Error?e.message:String(e));}finally{setBusy(false);}};
  const ask=async()=>{const submitted=prompt;setSending(true);setError('');setNotice('');try{await invoke('localCrew:ask',{crewId,projectId,prompt:submitted});clearSubmittedDraft(draftKey,submitted);}catch(e){setError(e instanceof Error?e.message:String(e));}finally{setSending(false);}};
  return <div className="local-crew-panel">
-  <h4>{name} · local developer helper</h4>
-  <p>Review code, investigate errors, and plan changes with your own saved crew profile. Add a project file or paste code below. This chat drafts advice; use a mission to edit files or run tests.</p>
+  <h4>{name} · {specialty.role}</h4>
+  <p>Work with your own specialist profile, model and project lessons. Add a project file or paste code below. This chat drafts advice; use a mission to edit files or run tests.</p>
   <label>Project<select aria-label="Local developer project" disabled={sending} value={projectId} onChange={e=>setProjectId(e.target.value)}><option value="" disabled>Choose a project</option>{snapshot.projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
   <details open={!profile?.model||dirty}>
    <summary>Model and skills{profile?.model?` · ${profile.model}`:''}</summary>
    <p>Start Ollama on this computer with a downloaded model. Sunny connects to port 11434 and never downloads a model or falls back to cloud.</p>
    <button disabled={busy||active} onClick={()=>void perform(async()=>{const found=await invoke<{name:string;size:number}[]>('localCrew:models',{});setModels(found);setNotice(found.length?`${found.length} local model(s) found.`:'No downloaded local models found. Add one in Ollama, then refresh.');})}>Refresh local models</button>
    <label>Local model<select aria-label="Local model" value={model} disabled={busy||active} onChange={e=>setModel(e.target.value)}><option value="">Choose an installed model</option>{model&&!models.some(m=>m.name===model)?<option value={model}>{model} (saved; refresh to check)</option>:null}{models.map(m=><option key={m.name} value={m.name}>{m.name} · {(m.size/1024**3).toFixed(1)} GB</option>)}</select></label>
-   <fieldset disabled={busy||active}><legend>Developer skills</legend>{skills.map(([id,label])=><label key={id}><input type="checkbox" checked={selected.includes(id)} onChange={e=>setSelected(e.target.checked?[...selected,id]:selected.filter(s=>s!==id))}/>{label}</label>)}</fieldset>
+   <fieldset disabled={busy||active}><legend>Specialist skills · choose up to four</legend>{skills.map(([id,label])=><label key={id}><input type="checkbox" checked={selected.includes(id)} disabled={!selected.includes(id)&&selected.length>=4} onChange={e=>setSelected(e.target.checked?[...selected,id]:selected.filter(s=>s!==id))}/>{label}</label>)}</fieldset>
+   <button disabled={busy||active} onClick={()=>{setSelected([...specialty.skills]);setInstructions(specialty.guidelines);setNotice('Recommended specialty loaded. Save local setup to apply it.');}}>Use {name}’s recommended specialty</button>
    <label>Your developer guidelines<textarea aria-label="Developer guidelines" maxLength={4000} value={instructions} disabled={busy||active} onChange={e=>setInstructions(e.target.value)} placeholder="Explain tradeoffs, prefer small patches, and give complete runnable test examples."/></label>
    <small>These preferences belong to {name} across local projects. Save project-specific conventions as lessons below.</small>
    <button disabled={busy||active||!model||!selected.length} onClick={()=>void perform(async()=>{const saved=await invoke<{instructions?:string}>('localCrew:configure',{crewId,model,skills:selected,instructions});setInstructions(saved.instructions??'');setNotice('Model and skills saved for '+name+'.');})}>Save local setup</button>

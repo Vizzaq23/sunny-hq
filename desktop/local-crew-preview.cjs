@@ -28,6 +28,12 @@ ipcMain.handle('sunny:invoke',async(event,action,args={})=>{
  }
  const localActions=new Set(['configure','source','recall','ask','stop','teach','clear']);
  if(typeof action==='string'&&action.startsWith('localCrew:')&&localActions.has(action.slice(10)))return hub.localCrew[action.slice(10)](args);
+ if(action==='localCouncil:setup')return hub.localCouncil.setup(args);
+ if(action==='localCouncil:report')return hub.localCouncil.report(args);
+ if(action==='localCouncil:stopReport')return hub.localCouncil.stopReport(args);
+ if(action==='localCouncil:start')return hub.localCouncil.start(args);
+ if(action==='localCouncil:stop')return hub.localCouncil.stop(args);
+ if(action==='localCouncil:roster'){if(!args||typeof args!=='object'||Array.isArray(args)||Object.keys(args).length)throw Error('Invalid roster request.');return hub.localCouncil.roster();}
  if(action==='workspace:get')return hub.state.workspace;
  if(action==='workspace:update')return hub.updateWorkspace(args);
  if(['task:history','library:search','tools:refresh'].includes(action))return [];
@@ -49,7 +55,7 @@ app.whenReady().then(async()=>{
  hub.state.world.paused=true;await hub.initializeRecovery();
  if(model){
   if(!(await hub.localCrew.models()).some(entry=>entry.name===model))throw Error('The requested preview model is not downloaded in the running Ollama server.');
-  for(const crewId of ['luffy','zoro','nami','usopp','sanji','chopper','robin','franky','brook','jinbe'])if(!hub.localCrew.profile(crewId).model)await hub.localCrew.configure({crewId,model,skills:['architecture','debugging','review','testing']});
+  for(const crewId of ['luffy','zoro','nami','usopp','sanji','chopper','robin','franky','brook','jinbe'])if(!hub.localCrew.profile(crewId).model)await hub.localCrew.configure({crewId,model,...require('./local-crew.cjs').defaults(crewId)});
  }
  transport=createPublicTransport(hub);hub.on('event',event=>{if(win&&!win.isDestroyed())win.webContents.send('sunny:event',transport.event(event.type,event.data));});
  win=new BrowserWindow({title:'Sunny · Local developer preview · Separate profile',width:1440,height:1000,show:false,autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,offscreen:checking}});

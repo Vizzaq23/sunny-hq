@@ -3,9 +3,11 @@ param(
     [Parameter(Mandatory = $true)][string]$ModelStore,
     [Parameter(Mandatory = $true)][string]$Model,
     [switch]$Check,
-    [switch]$LiveReplyCheck
+    [switch]$LiveReplyCheck,
+    [switch]$Hybrid
 )
 $ErrorActionPreference = 'Stop'
+if ($Hybrid -and ($Check -or $LiveReplyCheck)) { throw 'Hybrid launches the full development app; use the separate fixture checks for validation.' }
 if ($LiveReplyCheck -and -not $Check) { throw 'Use -Check with -LiveReplyCheck to keep the synthetic live question in a fresh profile.' }
 if ($Model -notmatch '^[a-zA-Z0-9][a-zA-Z0-9._:/-]*$' -or $Model -match 'cloud') { throw 'Choose a downloaded local model name.' }
 $repoRoot = Split-Path -Parent $PSScriptRoot
@@ -16,7 +18,7 @@ if (-not (Test-Path -LiteralPath $electron)) { throw 'Install the pinned project
 if (-not (Test-Path -LiteralPath (Join-Path $repoRoot 'dist/index.html'))) { throw 'Run npm run build before opening this preview.' }
 $ownedServer = $null
 $previous = @{}
-foreach ($key in @('OLLAMA_HOST','OLLAMA_MODELS','OLLAMA_NO_CLOUD','ELECTRON_RUN_AS_NODE')) { $previous[$key] = [Environment]::GetEnvironmentVariable($key, 'Process') }
+foreach ($key in @('OLLAMA_HOST','OLLAMA_MODELS','OLLAMA_NO_CLOUD','ELECTRON_RUN_AS_NODE','SUNNY_DATA_DIR')) { $previous[$key] = [Environment]::GetEnvironmentVariable($key, 'Process') }
 try {
     $env:OLLAMA_HOST = '127.0.0.1:11434'
     $env:OLLAMA_MODELS = $models
@@ -35,9 +37,13 @@ try {
         }
         if (-not $connected) { throw 'The local runtime did not become ready on port 11434.' }
     }
-    Write-Host 'Opening the separate local developer preview. No model downloads or cloud fallback.'
+    if ($Hybrid) { Write-Host 'Opening the separate crew development profile: local planning and your existing Codex connection.' } else { Write-Host 'Opening the separate local developer preview. No model downloads or cloud fallback.' }
     # This window is explicitly requested by running the preview launcher.
     $previewArgs = @('desktop/local-crew-preview.cjs','--model',$Model)
+    if ($Hybrid) {
+        $env:SUNNY_DATA_DIR = Join-Path $repoRoot '.sunny-dev/specialized-crew-profile'
+        $previewArgs = @('desktop/main.cjs','--crew-development')
+    }
     if ($Check) { $previewArgs += '--preview-check' }
     if ($LiveReplyCheck) { $previewArgs += '--live-reply-check' }
     $launch = @{FilePath=$electron;WorkingDirectory=$repoRoot;ArgumentList=$previewArgs;PassThru=$true;Wait=$true}

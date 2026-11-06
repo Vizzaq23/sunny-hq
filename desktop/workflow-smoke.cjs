@@ -23,7 +23,7 @@ const projection=require('./state-projection.cjs').createStateProjection();
 const emit=()=>win.webContents.send('sunny:event',projection.event('snapshot',state));
 const localFixture=require('./local-crew-smoke.cjs').fixture(state,emit);
 ipcMain.handle('sunny:invoke',async(_event,action,args)=>{
- if(action.startsWith('localCrew:'))return localFixture.invoke(action,args);
+ if(action.startsWith('localCrew:')||action.startsWith('localCouncil:'))return localFixture.invoke(action,args);
  if(action==='transcript:page')return projection.page(state,args);
  if(action==='workspace:get')return structuredClone(state.workspace);
  if(action==='workspace:update'){state.workspace=applyWorkspaceUpdate(state.workspace,structuredClone(args),structuredClone(state));emit();return structuredClone(state.workspace);}
@@ -49,7 +49,7 @@ ipcMain.handle('sunny:invoke',async(_event,action,args)=>{
  throw Error('Unexpected smoke IPC: '+action);
 });
 app.whenReady().then(async()=>{
- win=new BrowserWindow({width:1440,height:1050,show:false,webPreferences:{offscreen:process.env.SUNNY_SMOKE_HIDDEN==='1'||process.argv.includes('--local-crew-only'),preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,backgroundThrottling:false}});
+ win=new BrowserWindow({width:1440,height:1050,show:false,webPreferences:{offscreen:process.env.SUNNY_SMOKE_HIDDEN==='1'||(process.argv.includes('--local-crew-only')||process.argv.includes('--local-council-only')),preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,backgroundThrottling:false}});
  assert.equal(win.isVisible(),false); // Always hidden; retain optional offscreen rendering.
  const js=async code=>{let timer;try{return await Promise.race([win.webContents.executeJavaScript(code),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Runtime.evaluate timed out after 10 seconds')),10000);})]);}catch(error){throw Error(code+'\n'+error.message);}finally{clearTimeout(timer);}};
  const wait=async(code)=>{for(let i=0;i<120;i++){if(await js(code))return;await delay(50);}throw Error('UI wait timed out: '+code);};
@@ -78,7 +78,7 @@ app.whenReady().then(async()=>{
   throw lastError;
  };
  try{
-  await win.loadFile(path.join(root,'dist','index.html'));await wait('Boolean(document.querySelector(".helm-workspace"))');await screenshot('command-deck.png');
+  await win.loadFile(path.join(root,'dist','index.html'));await wait('Boolean(document.querySelector(".local-captain"))');await nav('The Sunny');await wait('Boolean(document.querySelector(".helm-workspace"))');await screenshot('command-deck.png');
   assert.equal(await js('document.querySelector(".helm-workspace").dataset.motion'),'reduced');
   assert.equal(await js('getComputedStyle(document.querySelector(".helm-scene"),"::before").animationName'),'none');
   state.settings.reducedMotion=false;emit();await wait('document.querySelector(".helm-workspace").dataset.motion==="full"');
@@ -93,6 +93,7 @@ app.whenReady().then(async()=>{
   await wait('document.querySelector(".helm-live-update strong")?.textContent==="Fixture live deck update"');await click('[aria-label="Open saved work activity"]');
   await wait('Boolean(document.querySelector(".helm-activity"))');assert.ok(await js('document.querySelector(".helm-activity").textContent.includes("Fixture live deck update")'),'deck update and activity use the same streamed snapshot');
   Object.assign(state.tasks[0],originalDeckTask);emit();await nav('Home');await wait('Boolean(document.querySelector(".home-page"))');await revealConversations();await delay(250);
+  if(process.argv.includes('--local-council-only')){await require('./local-council-smoke.cjs').check({js,wait,fill,select,click,nav,screenshot,win,localFixture});fs.writeFileSync(path.join(output,'local-council-result.json'),JSON.stringify({passed:true,syntheticModel:true}));console.log('SUNNY_LOCAL_COUNCIL_UI passed (synthetic model)');return;}
   if(process.argv.includes('--local-crew-only')){await require('./local-crew-smoke.cjs').check({js,wait,fill,select,click,nav,screenshot,win,localFixture});fs.writeFileSync(path.join(output,'local-crew-result.json'),JSON.stringify({passed:true,syntheticModel:true}));console.log('SUNNY_LOCAL_CREW passed (synthetic model)');return;}
   assert.equal(await js('document.querySelectorAll(".home-task").length'),4,'newer snapshot wins over stale initial response');
   // Captain's watch follows streamed facts and only navigates to the guarded request.

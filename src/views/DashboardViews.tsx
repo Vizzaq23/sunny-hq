@@ -1,3 +1,5 @@
+import {CrewMap} from '../components/CrewMap';
+import {ShipLog} from '../components/ShipLog';
 import {WorkInbox} from '../components/WorkInbox';
 import type {Approval} from '../shared';
 import {useEffect,useMemo,useState} from 'react';
@@ -69,23 +71,25 @@ export function ShipView({snapshot,context=snapshot.workspace?.context,onWorkspa
 
 export {ProjectsView} from './ProjectsView';
 
-export function CrewView({onSelect,snapshot,invoke}:{onSelect:(crewId:CrewId)=>void;snapshot:Snapshot;invoke:Invoke}){
+export function CrewView({onSelect,snapshot,invoke,onTask}:{onTask:(id:string)=>void;onSelect:(crewId:CrewId)=>void;snapshot:Snapshot;invoke:Invoke}){
   const [journal,setJournal]=useState<CrewId|null>(null);
   const [crewQuery,setCrewQuery]=useState('');
   const matchesCrew=(crew:typeof ALL_CREW[number])=>`${crew.name} ${localSpecialties[crew.id].role} ${localSpecialties[crew.id].useWhen}`.toLowerCase().includes(crewQuery.trim().toLowerCase());
-  const coreCrew=ALL_CREW.filter(crew=>crew.spriteRow===undefined&&matchesCrew(crew));
+  const coreCrew=ALL_CREW.filter(crew=>crew.spriteRow===undefined&&crew.id!=='luffy'&&matchesCrew(crew));
   const localBusy=Boolean(snapshot.localCrew?.councils?.some(record=>['planning','working','reviewing','synthesizing'].includes(record.status)||record.report?.status==='working')||Object.values(snapshot.localCrew?.profiles??{}).some(profile=>profile.sessions.some(session=>session.status==='working')));
   const card=(crew:typeof ALL_CREW[number],index:number)=>{
    const specialty=localSpecialties[crew.id],available=crew.spriteRow===undefined||snapshot.world?.residents.some(resident=>resident.id===crew.id&&resident.recruited);
-   return <article key={crew.id} className="crew-card specialist-card" style={{'--crew':crew.color} as React.CSSProperties}><div className="crew-number">{String(index+1).padStart(2,'0')}</div><CrewPortrait crew={crew}/><span className="crew-station">{crew.station}</span><h3>{crew.name}</h3><h4>{specialty.role}</h4><p>{specialty.useWhen}</p><small>{snapshot.localCrew?.profiles[crew.id]?.model?'Model selected':'Local setup needed'}{!available?' · Recruit on the island for councils':''}</small>{crew.id==='luffy'?<button onClick={()=>onSelect('luffy')}>Talk to Luffy<ArrowRight size={15}/></button>:null}<button className="journal-open" onClick={()=>setJournal(crew.id)}>{crew.id==='luffy'?'Luffy’s profile':'Open '+crew.name+'’s profile'}</button>{crew.id!=='luffy'?<details className="crew-advanced"><summary>More</summary><button disabled={!available} onClick={()=>onSelect(crew.id)}>Open Codex workbench</button></details>:null}</article>;
+   return <article key={crew.id} data-crew-id={crew.id} className="crew-card specialist-card" style={{'--crew':crew.color} as React.CSSProperties}><div className="crew-number">{String(index+1).padStart(2,'0')}</div><span className="wanted-stamp">WANTED · ON DECK</span><CrewPortrait crew={crew}/><span className="crew-station">{crew.station}</span><h3>{crew.name}</h3><h4>{specialty.role}</h4><p>{specialty.useWhen}</p><small>{snapshot.localCrew?.profiles[crew.id]?.model?'Model selected':'Local setup needed'}{!available?' · Recruit on the island for councils':''}</small>{crew.id==='luffy'?<button onClick={()=>onSelect('luffy')}>Talk to Luffy<ArrowRight size={15}/></button>:null}<button className="journal-open" onClick={()=>setJournal(crew.id)}>{crew.id==='luffy'?'Luffy’s profile':'Open '+crew.name+'’s profile'}</button>{crew.id!=='luffy'?<details className="crew-advanced"><summary>More</summary><button disabled={!available} onClick={()=>onSelect(crew.id)}>Open Codex workbench</button></details>:null}</article>;
   };
   return <div className="page crew-page"><section className="page-intro compact"><div><span className="eyebrow">The Straw Hat crew</span><h2>Your crew, each with a purpose</h2><p>Start with Luffy and let him choose a small team. Open a profile to guide a member, choose skills or teach a project lesson.</p></div><button className="primary-button" onClick={()=>onSelect('luffy')}>Talk to Luffy<ArrowRight size={16}/></button></section>
-   <div className="crew-directory-toolbar"><label className="projects-search"><Search size={18} aria-hidden="true"/><input aria-label="Find a Straw Hat specialist" placeholder="Find a name or skill…" value={crewQuery} onChange={event=>setCrewQuery(event.target.value)}/>{crewQuery?<button aria-label="Clear crew search" onClick={()=>setCrewQuery('')}><X size={16}/></button>:null}</label><span role="status">{coreCrew.length} Straw Hat{coreCrew.length===1?'':'s'} · One crew</span></div>
-   <div className="crew-grid core-crew-grid">{coreCrew.map(crew=>card(crew,ALL_CREW.indexOf(crew)))}</div>
+   <div className="crew-directory-toolbar"><label className="projects-search"><Search size={18} aria-hidden="true"/><input aria-label="Find a Straw Hat specialist" placeholder="Find a name or skill…" value={crewQuery} onChange={event=>setCrewQuery(event.target.value)}/>{crewQuery?<button aria-label="Clear crew search" onClick={()=>setCrewQuery('')}><X size={16}/></button>:null}</label><span role="status">{coreCrew.length} specialist{coreCrew.length===1?'':'s'} · Luffy captains the crew</span></div>
+   <CrewMap snapshot={snapshot} captain={<><CrewPortrait crew={CREW_BY_ID.get('luffy')!}/><div><span className="eyebrow">Captain · Monkey D. Luffy</span><h3>One captain. One crew.</h3><p>Bring the objective. Luffy coordinates the specialists and returns their findings for your review.</p><div className="captain-map-actions"><button className="primary-button" onClick={()=>onSelect('luffy')}>Talk to Luffy <ArrowRight size={16}/></button><button className="journal-open" onClick={()=>setJournal('luffy')}>Luffy’s profile</button></div></div></>}>{coreCrew.map(crew=>card(crew,ALL_CREW.indexOf(crew)))}</CrewMap>
+   <ShipLog snapshot={snapshot} onTask={onTask}/>
    {!coreCrew.length?<section className="projects-empty"><Search size={28}/><h3>No specialist matches yet</h3><p>Try a name like Sanji or a skill like accessibility.</p><button className="small-button" onClick={()=>setCrewQuery('')}>Show the whole crew</button></section>:null}
+   <ShipLog snapshot={snapshot} onTask={onTask}/>
    <details className="island-roster-details crew-extra-roster"><summary>Extra island specialists · Law, Ace, Vivi and Perona</summary><p>Luffy calls on recruited specialists when their distinct skills help. You can prepare their profiles before recruiting them.</p><div className="crew-grid">{ALL_CREW.filter(crew=>crew.spriteRow!==undefined).map(card)}</div></details>
    <details className="island-roster-details crew-reporter"><summary>Morgans · work bulletins</summary><p>{specialties.crew.morgans.useWhen} His reports use sanitized states, never private conversations or project lessons.</p><LocalReporterSettings profile={snapshot.localCrew?.profiles.morgans} disabled={localBusy} invoke={invoke}/></details>
-   {journal?<CrewJournal initialTab="local" initialProjectId={snapshot.workspace?.context?.projectId} key={journal} crewId={journal} snapshot={snapshot} invoke={invoke} onClose={()=>setJournal(null)}/>:null}
+   {journal?<CrewJournal onOpenTask={onTask} onOpenRoom={onSelect} initialTab="local" initialProjectId={snapshot.workspace?.context?.projectId} key={journal} crewId={journal} snapshot={snapshot} invoke={invoke} onClose={()=>setJournal(null)}/>:null}
   </div>;
 }
 

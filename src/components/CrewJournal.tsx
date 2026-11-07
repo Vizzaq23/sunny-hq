@@ -3,9 +3,10 @@ import {X,BookOpen,MessageCircle,Trash2,Pencil,Send} from 'lucide-react';
 import type {CrewId,Snapshot} from '../shared';
 import {ALL_CREW as CREW,CREW_BY_ID} from '../data';
 import {CrewBadge} from './Chrome';
+import {taskLabel,taskIsBusy} from '../taskFlow';
 import {LocalCrewPanel} from './LocalCrewPanel';
 type Invoke=<T=unknown>(action:string,args?:unknown)=>Promise<T>;
-export function CrewJournal({initialProjectId,initialTab='memory',crewId,snapshot,invoke,onClose}:{initialProjectId?:string;initialTab?:'memory'|'relationships'|'local';crewId:CrewId;snapshot:Snapshot;invoke:Invoke;onClose:()=>void}){
+export function CrewJournal({onOpenTask,onOpenRoom,initialProjectId,initialTab='memory',crewId,snapshot,invoke,onClose}:{onOpenTask?:(id:string)=>void;onOpenRoom?:(id:string)=>void;initialProjectId?:string;initialTab?:'memory'|'relationships'|'local';crewId:CrewId;snapshot:Snapshot;invoke:Invoke;onClose:()=>void}){
  const crew=CREW_BY_ID.get(crewId)!;
  const profile=snapshot.growth?.profiles[crewId];
  const [tab,setTab]=useState<'memory'|'relationships'|'local'>(initialTab),[note,setNote]=useState(''),[editId,setEditId]=useState<string>(),[saving,setSaving]=useState(false);
@@ -18,12 +19,21 @@ export function CrewJournal({initialProjectId,initialTab='memory',crewId,snapsho
  const close=()=>{if(note.trim()&&!window.confirm('Discard this unsaved journal note?'))return;onClose();};
  const closeRef=useRef(close);closeRef.current=close;const dialogRef=useRef<HTMLDialogElement>(null);
  useEffect(()=>{const previous=document.activeElement as HTMLElement;const dialog=dialogRef.current;dialog?.showModal();dialog?.querySelector<HTMLButtonElement>('.crew-journal>header>button:last-child')?.focus();return()=>{if(dialog?.open)dialog.close();if(previous?.isConnected)previous.focus();};},[]);
+ const assignments=snapshot.tasks.filter(task=>!task.external&&task.crewId===crewId).sort((a,b)=>Number(taskIsBusy(b))-Number(taskIsBusy(a))||b.updatedAt-a.updatedAt);
+ const councils=(snapshot.localCrew?.councils??[]).filter(c=>c.contributions.some(item=>item.crewId===crewId)).sort((a,b)=>b.updatedAt-a.updatedAt);
  const exchanges=(snapshot.discussions??[]).filter(e=>e.crew.includes(crewId)&&e.crew.includes(partner)).slice(0,8);
  return <dialog ref={dialogRef} className="journal-backdrop" data-interactive="true" aria-label={`${crew.name}'s profile`} onCancel={event=>{event.preventDefault();closeRef.current();}}><section className="crew-journal">
   <header><CrewBadge crew={crew}/><div><span className="eyebrow">Your crewmate</span><h3>{crew.name}’s profile</h3><p>{tab==='local'?crew.role:<>Level {level} · {profile?.xp??0} experience · {profile?.conversations??0} conversations</>}</p></div><button aria-label="Close profile" onClick={close}><X/></button></header>
   <div className="growth-meter"><span style={{width:`${Math.min(100,((profile?.xp??0)-20*(level-1)**2)/(20*level**2-20*(level-1)**2)*100)}%`}}/></div>
   <nav><button className={tab==='memory'?'active':''} onClick={()=>setTab('memory')}><BookOpen/>Memories</button><button className={tab==='relationships'?'active':''} onClick={()=>setTab('relationships')}><MessageCircle/>Crew relationships</button><button className={tab==='local'?'active':''} onClick={()=>setTab('local')}>Local profile</button></nav>
   <div className="journal-scroll">
+   <section className="profile-assignment"><span className="eyebrow">{crew.station} · assignment &amp; output</span>
+    {onOpenRoom?<button onClick={()=>{if(note.trim()&&!window.confirm('Discard this unsaved journal note?'))return;onClose();onOpenRoom(crewId);}}>Open {crew.name}’s room</button>:null}
+    {!assignments.length&&!councils.length?<p>No recorded assignments yet.</p>:null}
+    {assignments.slice(0,3).map(task=><details key={task.id}><summary>{task.title} · {taskLabel(task)}</summary><small>{snapshot.projects.find(p=>p.id===task.projectId)?.name??'Project unavailable'} · {new Date(task.updatedAt).toLocaleString()}</small><p>{task.lastAssistantPreview??'No saved reply yet.'}</p>{onOpenTask?<button onClick={()=>{if(note.trim()&&!window.confirm('Discard this unsaved journal note?'))return;onClose();onOpenTask(task.id);}}>Open assignment evidence</button>:null}</details>)}
+    {councils.slice(0,3).map(council=>{const item=council.contributions.find(c=>c.crewId===crewId)!;return <details key={council.id}><summary>{item.objective} · {item.status}</summary><small>{snapshot.projects.find(p=>p.id===council.projectId)?.name??'Project unavailable'} · Local council {council.id}</small><p>{item.text||item.error||'No saved contribution yet.'}</p></details>;})}
+    <small>Three recent conversations (active first) and councils. Replies are proposals until reviewed.</small>
+   </section>
    {tab!=='local'?<p className="journal-explanation">Experience reflects shared conversations, not a more powerful model. {crew.name} keeps their core personality while using remembered preferences and past discussions.</p>:null}
    {tab==='local'?<LocalCrewPanel initialProjectId={initialProjectId} key={crewId} crewId={crewId} name={crew.name} snapshot={snapshot} invoke={invoke}/>:tab==='memory'?<>
     <label className="memory-toggle"><input type="checkbox" checked={snapshot.growth?.enabled!==false} onChange={e=>void invoke('crew:memoryEnabled',{enabled:e.target.checked}).catch(()=>{})}/>Learn and recall memories for the whole crew</label>

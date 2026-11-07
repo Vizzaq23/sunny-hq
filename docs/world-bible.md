@@ -167,3 +167,8 @@ The captain and watch stations include a crew relay when their selected task bel
 ## Captain's shipboard panel pass — 2026-11-06
 
 The current Luffy-first home, captain's watch, crew roster, ten rooms and captain log gain shared ink framing, blue/cream surfaces and locally bundled display/UI type. The Den Den Mushi approval label uses a phone icon, readable evidence and larger approve/decline controls; response semantics do not change. Existing task/mission/attempt projections remain authoritative. No new route percentage, celebration, simulated work, world actor or backend action is introduced. The installed open-water package is separate and unchanged. See [isolated source-build evidence and limitations](shipboard-design-2026-11-06.md).
+
+
+## Crew coordination map — 2026-11-07
+
+The [crew map decision](crew-map-2026-11-07.md) records Luffy’s separate captain area, equal core specialists, native profile evidence, ship log and Captain’s Orders navigation. Explicit Luffy child tasks and saved council contributions drive brief delegation/reply pulses. Persistent lines indicate hierarchy only. Returned replies are not acceptance; council last-updated times are labelled rather than invented as per-event timestamps.

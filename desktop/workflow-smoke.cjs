@@ -81,6 +81,7 @@ app.whenReady().then(async()=>{
  };
  try{
   await win.loadFile(path.join(root,process.argv.includes('--shipboard-baseline')?'.sunny-dev/baseline-dist':'dist','index.html'));await wait('Boolean(document.querySelector(".local-captain"))');await nav('The Sunny');await wait('Boolean(document.querySelector(".helm-workspace"))');await screenshot('command-deck.png');
+  if(process.argv.includes('--crew-map-only')){await require('./crew-map-smoke.cjs').check({js,wait,fill,click,nav,screenshot,win,state,emit,projection});fs.writeFileSync(path.join(output,'crew-map-result.json'),JSON.stringify({passed:true,syntheticTransport:true,liveProviderProof:false}));console.log('SUNNY_CREW_MAP passed');return;}
   if(process.argv.includes('--studio-captures')){
    await require('./studio-ui-smoke.cjs').check({js,wait,fill,select,click,nav,screenshot,win,state,emit,toolLaunches});
    fs.writeFileSync(path.join(output,'studio-result.json'),JSON.stringify({passed:true,syntheticTransport:true,liveProviderProof:false,checks:['crew-specialty-search-and-reset','tool-search-and-reset','tool-launch-selected-project','home-draft-preservation','desktop-laptop-phone-layout','supporting-destination-layouts','home-200-percent-zoom','user-and-system-reduced-motion','local-ship-art-loaded']}));

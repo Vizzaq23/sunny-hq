@@ -152,3 +152,8 @@ Reused existing crew and island artwork without changing asset bytes, licensing,
 The existing `luffy-captains-den.png` is reused as a decorative goal-panel header accent; existing ship art remains in the home header. No image, atlas or room geometry bytes changed. Official Shueisha/VIZ/Toei/card-game material was reference only; no official images or logo fonts were bundled. Existing Lucide supplies the phone-call approval icon.
 
 New local fonts are unmodified Bangers Regular and Barlow Regular/SemiBold under SIL OFL 1.1, with full notices, exact upstream links and SHA256 values in [font provenance](../fonts/README.md). These are not official One Piece fonts. DynaFont Sōgeitai, optional textures and third-party pirate artwork were not added. Runtime font loading remains local/offline. See [visual decision and evidence](../../docs/shipboard-design-2026-11-06.md).
+
+
+## Crew map treatment — 2026-11-07
+
+Existing studio CrewPortrait and crew badges are reused unchanged. The crew map, parchment fibers and decorative sea porthole are original authored SVG/CSS; no image/shader/font bytes or atlas geometry changed, and no third-party component source was copied. See [decision and references](../../docs/crew-map-2026-11-07.md).

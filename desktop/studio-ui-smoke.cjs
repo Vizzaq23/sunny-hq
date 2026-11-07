@@ -36,7 +36,7 @@ async function check({js,wait,fill,select,click,nav,screenshot,win,state,emit,to
   await fill('[aria-label="Find a Straw Hat specialist"]','no-such-specialist');
   await wait('Boolean(document.querySelector(".crew-page .projects-empty"))');
   await click('.crew-page .projects-empty button');
-  assert.equal(await js('document.querySelectorAll(".core-crew-grid>.crew-card").length'),10);
+  assert.equal(await js('document.querySelectorAll(".core-crew-grid>.crew-card").length'),9);
   await screenshot('studio-crew-desktop.png');
   await js('document.querySelector(".core-crew-grid>.crew-card:last-child").scrollIntoView({block:"end",behavior:"instant"})');
   await screenshot('studio-crew-second-row.png');

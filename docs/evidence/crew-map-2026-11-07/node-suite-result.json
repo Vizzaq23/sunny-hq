@@ -1,0 +1,18 @@
+{
+  "passed": 167,
+  "failed": 2,
+  "completed": false,
+  "stopped": "Stopped after repeated unchanged backend checkpoint deadlines; not a full-suite pass.",
+  "failures": [
+    "genuine durable pre-start batch rejects missing readonly binding without sibling effects",
+    "genuine durable pre-start batch rejects missing overlap receipt without sibling effects"
+  ],
+  "baseline": {
+    "revision": "c6aa0ca",
+    "command": "node --test --test-name-pattern=\"genuine durable pre-start batch rejects missing readonly binding\" tests/checkpoint-journey-faults.test.cjs",
+    "passed": 0,
+    "failed": 1,
+    "error": "Journey deadline",
+    "durationMs": 160933.0196
+  }
+}

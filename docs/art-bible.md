@@ -131,3 +131,8 @@ Room relay refinement: Luffy/Jinbe use a dark sea-green inset with warm dependen
 The focused Luffy-to-approval visual pass uses navy/sea blue, sail cream, ink outlines and restrained red/gold. This supersedes the earlier system-font-only recommendation for these surfaces: locally bundled SIL OFL Barlow supplies UI text and Bangers supplies short expressive headings/crew names. Neither is an official One Piece font. Keep transcripts and controls readable; preserve monospace code. Full license notices accompany the local files.
 
 Original ship/room art and atlas bytes remain unchanged. The existing Luffy room illustration is reused decoratively in the goal-panel header. Ten rooms retain their admitted intrinsic geometry and state semantics. Manga framing and TCG-inspired hierarchy are presentation cues, not copied reference art. Approval explanation/evidence/buttons remain explicit, and phone top-bar controls occupy their own row. See [decision, sources and evidence](shipboard-design-2026-11-06.md).
+
+
+## Crew wanted posters and captain panel — 2026-11-07
+
+The [crew map](crew-map-2026-11-07.md) separates Luffy’s navy/brass captain panel from equal-sized core specialist cards. Existing studio portraits retain their geometry. Original restrained CSS fibers and a small decorative sea porthole add parchment/ocean atmosphere without new assets. Beams are finite event cues; all effects respect pause and reduced motion. No atlas or room-floor changes.

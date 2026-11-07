@@ -51,7 +51,7 @@ async function check({js,wait,fill,select,click,nav,screenshot,win,localFixture}
  await fill('#luffy-objective','Preserve this unsent request.');await click('.captain-starters button');
  assert.ok((await js('document.querySelector("#luffy-objective").value')).startsWith('Preserve this unsent request.\n\n'));
  assert.equal(localFixture.lastChat(),undefined,'starter requests do not contact a model');await fill('#luffy-objective','');
- await nav('Crew');assert.equal(await js('document.querySelectorAll(".core-crew-grid>.crew-card").length'),10);
+ await nav('Crew');assert.equal(await js('document.querySelectorAll(".core-crew-grid>.crew-card").length'),9);
  await screenshot('crew-primary-roster.png');
  assert.equal(await js('document.querySelector(".crew-extra-roster").open'),false);assert.equal(await js('document.querySelectorAll(".crew-extra-roster .crew-card").length'),4);
  assert.match(await js('document.querySelector(".crew-reporter").textContent'),/Morgans.*sanitized/s);

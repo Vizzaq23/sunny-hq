@@ -1,21 +1,25 @@
-import {useState} from 'react';
+import {useMemo,useState} from 'react';
+import {BookOpen,Search,ArrowUpRight,GitBranch,ClipboardCheck,MessageSquare,Flag} from 'lucide-react';
 import type {Snapshot} from '../shared';
-import {CREW_BY_ID} from '../data';
-import {taskLabel} from '../taskFlow';
-import {delegationSignals} from '../crewDelegation';
-
-export function ShipLog({snapshot,onTask}:{snapshot:Snapshot;onTask:(id:string)=>void}){
- const [project,setProject]=useState(''),[limit,setLimit]=useState(40);
- const scoped={...snapshot,tasks:snapshot.tasks.filter(t=>!project||t.projectId===project),localCrew:snapshot.localCrew?{...snapshot.localCrew,councils:snapshot.localCrew.councils?.filter(c=>!project||c.projectId===project)}:undefined};
- const rows:{id:string;time:number;title:string;label:string;detail:string;taskId?:string;timeLabel?:string}[]=[...delegationSignals(scoped).map(signal=>({...signal,label:signal.direction==='outbound'?`Luffy → ${CREW_BY_ID.get(signal.crewId)?.name??signal.crewId}`:`${CREW_BY_ID.get(signal.crewId)?.name??signal.crewId} → Luffy · reply ready`})),
-  ...(scoped.localCrew?.councils??[]).flatMap(c=>c.review?.text?[{id:`council-review:${c.id}`,time:c.updatedAt,timeLabel:'Council last updated',title:c.objective,label:`Zoro · local review ${c.review.status}`,detail:`Council ${c.id}\n${c.review.text}`}]:[]),
-  ...scoped.tasks.filter(t=>!t.external).map(task=>({id:`update:${task.id}`,time:task.updatedAt,title:task.title,label:`${CREW_BY_ID.get(task.crewId)?.name??task.crewId} · ${taskLabel(task)}`,detail:task.lastAssistantPreview??task.error??'No saved reply. Open the conversation for recorded activity.',taskId:task.id})),
-  ...(snapshot.missions??[]).filter(m=>!project||m.projectId===project).flatMap(m=>[
-   ...m.events.map(e=>({id:`event:${m.id}:${e.id}`,time:e.time,title:m.title,label:e.type.replaceAll('_',' ').toLowerCase(),detail:`Saved mission event ${e.id} · sequence ${e.sequence} · mission ${m.id}`,taskId:undefined})),
-   ...(m.reviewDecisions??[]).map(r=>({id:`review:${m.id}:${r.id}`,time:r.time,title:m.title,label:`Captain · ${r.decision.replaceAll('-',' ')}`,detail:`${r.note??'No review note.'}\nAttempt ${r.attemptId} · reviewed revision ${r.reviewedRevision}`,taskId:m.attempts.find(a=>a.id===r.attemptId)?.taskId}))
-  ])].sort((a,b)=>b.time-a.time||a.id.localeCompare(b.id));
- return <section className="ship-event-log" aria-labelledby="ship-log-title"><header><div><span className="eyebrow">Recorded aboard the Sunny</span><h3 id="ship-log-title">Ship’s log</h3></div><label>Project<select value={project} onChange={e=>{setProject(e.target.value);setLimit(40);}}><option value="">All projects</option>{snapshot.projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label></header><p>Saved events and latest conversation states. Returned replies still need review; this is not a completion meter.</p>
-  <ol>{rows.slice(0,limit).map(row=><li key={row.id}><time dateTime={new Date(row.time).toISOString()}>{row.timeLabel?row.timeLabel+' · ':''}{new Date(row.time).toLocaleString()}</time><details><summary><strong>{row.label}</strong><span>{row.title}</span></summary><p>{row.detail}</p>{row.taskId?<button onClick={()=>onTask(row.taskId!)}>Open conversation evidence</button>:null}</details></li>)}</ol>
-  {!rows.length?<p>No recorded events in this project yet.</p>:null}{rows.length>limit?<button onClick={()=>setLimit(value=>value+40)}>Show more records ({rows.length-limit} remaining)</button>:null}
+import {ALL_CREW,CREW_BY_ID} from '../data';
+import {shipLogEntries,filterShipLog,type ShipLogKind} from '../shipLog';
+const kinds:{id:ShipLogKind|'all';label:string}[]=[{id:'all',label:'All records'},{id:'delegation',label:'Delegation'},{id:'review',label:'Reviews'},{id:'check',label:'Checks'},{id:'work',label:'Conversations'},{id:'mission',label:'Mission events'}];
+const icons={delegation:GitBranch,work:MessageSquare,review:ClipboardCheck,check:ClipboardCheck,mission:Flag};
+const names=new Map(ALL_CREW.map(c=>[c.id,c.name]));
+export function ShipLog({snapshot,onTask,onMission}:{snapshot:Snapshot;onTask:(id:string)=>void;onMission?:(id:string,attemptId?:string)=>void}){
+ const [project,setProject]=useState(''),[limit,setLimit]=useState(30),[query,setQuery]=useState(''),[kind,setKind]=useState<ShipLogKind|'all'>('all');
+ const records=useMemo(()=>shipLogEntries(snapshot),[snapshot]);
+ const rows=filterShipLog(records,query,project,kind,names);
+ return <section className="ship-event-log" aria-labelledby="ship-log-title">
+  <header><div><span className="eyebrow">Evidence, not estimates</span><h3 id="ship-log-title"><BookOpen aria-hidden="true"/>Ship’s log</h3></div><label>Project<select value={project} onChange={e=>{setProject(e.target.value);setLimit(30);}}><option value="">All projects</option>{snapshot.projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label></header>
+  <p>Saved events and latest conversation states. Replies remain ready for review until you accept the work.</p>
+  <div className="ship-log-tools"><label className="ship-log-search"><Search size={17} aria-hidden="true"/><input aria-label="Search ship log" value={query} onChange={e=>{setQuery(e.target.value);setLimit(30);}} placeholder="Find a crewmate, result or check…"/></label><label className="sr-only" htmlFor="ship-log-kind">Record type</label><select id="ship-log-kind" value={kind} onChange={e=>{setKind(e.target.value as typeof kind);setLimit(30);}}>{kinds.map(k=><option key={k.id} value={k.id}>{k.label}</option>)}</select></div>
+  <div className="ship-log-count" role="status">{rows.length} {rows.length===1?'record':'records'}{rows.length>limit?` · showing ${limit}`:''}</div>
+  {rows.length?<ol aria-label="Recorded work">{rows.slice(0,limit).map(row=>{
+   const Icon=icons[row.kind],mission=snapshot.missions?.find(m=>m.id===row.missionId);
+   const targetAvailable=mission&&(!row.attemptId||mission.attempts.some(a=>a.id===row.attemptId));
+   return <li key={row.id} data-kind={row.kind}><span className="log-entry-icon" aria-hidden="true"><Icon size={15}/></span><div><time dateTime={new Date(row.time).toISOString()}>{row.timeLabel?row.timeLabel+' · ':''}{new Date(row.time).toLocaleString()}</time><details><summary><span className="log-entry-label">{row.crewId?<b>{CREW_BY_ID.get(row.crewId)?.name??row.crewId}</b>:null}{row.label}</span><strong>{row.title}</strong></summary><p>{row.detail}</p><small className="log-record-source">{snapshot.projects.find(p=>p.id===row.projectId)?.name??'Project unavailable'} · {row.source}</small>{row.taskId?<button onClick={()=>onTask(row.taskId!)}>Open conversation evidence <ArrowUpRight size={15}/></button>:row.missionId&&onMission&&targetAvailable?<button onClick={()=>onMission(row.missionId!,row.attemptId)}>Inspect mission evidence <ArrowUpRight size={15}/></button>:row.missionId?<small>Mission evidence unavailable</small>:null}</details></div></li>;
+  })}</ol>:<div className="ship-log-empty"><BookOpen size={28}/><h4>{records.length?'No matching records':'A fresh page in the log'}</h4><p>{records.length?'Try another project, record type or search.':'Assignments, checks and your review decisions will appear here when they are recorded.'}</p>{records.length?<button onClick={()=>{setQuery('');setProject('');setKind('all');}}>Clear filters</button>:null}</div>}
+  {rows.length>limit?<button className="ship-log-more" onClick={()=>setLimit(value=>value+30)}>Show 30 more records</button>:null}
  </section>;
 }

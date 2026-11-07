@@ -174,3 +174,7 @@ The captain requested inspection of Shueisha, VIZ chapter1, the official Straw H
 ## Crew map references — 2026-11-07
 
 See [crew map decision](crew-map-2026-11-07.md) for the requested Magic UI, Aceternity, shadcn and Paper references, page-access limits and original implementation. No third-party source or shader was copied. Captain’s Orders now includes navigation to crew rooms and pending request inspection; it still cannot authorize or execute an approval.
+
+### Crew component research follow-up — 2026-11-07
+
+See [modern component research](crew-components-research-2026-11-07.md) for the expanded comparison of Magic UI, Aceternity, Motion Primitives, shadcn/cmdk, Base UI, React Aria, Radix, Motion, Paper and WAI patterns, including upstream license links and explicit adopt/defer decisions. Original implementation only; no imported component source.

@@ -1,0 +1,25 @@
+✔ command activity includes real standalone updates and excludes external history (0.6474ms)
+✔ command activity retains waiting and unknown states without inventing progress (0.1262ms)
+✔ command activity scopes both tasks and events to selected project and run (0.1617ms)
+✔ command activity bounds previews and orders the latest twelve saved updates (0.1442ms)
+✔ only explicit same-project Luffy delegation produces outbound signals (0.8585ms)
+✔ fresh assignments pulse once, never on duplicate, stale or recovered snapshots (0.1857ms)
+✔ only finished saved replies produce inbound cues; failure and unknown are not results (0.1191ms)
+✔ local councils use real queued assignment and ready contribution states (0.4707ms)
+✔ a metadata refresh cannot replay a finished reply with no turn ID (0.1014ms)
+✔ external modal displays one bounded page with older/newer/reload and visible errors (438.7246ms)
+✔ log preserves exact attempt and check evidence without inventing acceptance (1.4592ms)
+✔ log scopes project, record kind and every search word (0.2641ms)
+✔ external history is excluded and mutable conversation time is labelled honestly (0.1476ms)
+✔ pending approval and errors outrank finished and active status (0.5063ms)
+✔ local search combines all terms across task, project and crew without mutating input (7.7932ms)
+✔ search includes older tasks beyond the former twelve-item cutoff (0.377ms)
+✔ bounded compass keeps the selected destination when live updates push it beyond the limit (0.2512ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 755.4221

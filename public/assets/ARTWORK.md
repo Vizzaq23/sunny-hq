@@ -157,3 +157,7 @@ New local fonts are unmodified Bangers Regular and Barlow Regular/SemiBold under
 ## Crew map treatment — 2026-11-07
 
 Existing studio CrewPortrait and crew badges are reused unchanged. The crew map, parchment fibers and decorative sea porthole are original authored SVG/CSS; no image/shader/font bytes or atlas geometry changed, and no third-party component source was copied. See [decision and references](../../docs/crew-map-2026-11-07.md).
+
+## 2026-11-07 — original parchment grain
+
+`parchment-grain.svg` is an original SVG fractal-noise material authored for Sunny's crew component research pass. No external image or shader source was copied. Static low-opacity use on posters, logs and work briefs preserves text contrast. Existing portrait atlas geometry is unchanged. See `docs/crew-components-research-2026-11-07.md` for reference and license research; the sea window is original CSS, not a vendored Paper shader.

@@ -172,3 +172,7 @@ The current Luffy-first home, captain's watch, crew roster, ten rooms and captai
 ## Crew coordination map — 2026-11-07
 
 The [crew map decision](crew-map-2026-11-07.md) records Luffy’s separate captain area, equal core specialists, native profile evidence, ship log and Captain’s Orders navigation. Explicit Luffy child tasks and saved council contributions drive brief delegation/reply pulses. Persistent lines indicate hierarchy only. Returned replies are not acceptance; council last-updated times are labelled rather than invented as per-event timestamps.
+
+### Crew work surfaces — 2026-11-07 research pass
+
+The captain hierarchy retains equal specialist posters and real-state labels. Poster profiles open on saved work; log entries open their actual conversation or mission attempt. The parchment grain is static and the larger CSS sea window is decorative, independently visibility-paused. See [crew map decision](crew-map-2026-11-07.md) and [component research](crew-components-research-2026-11-07.md). No sprite/room geometry changed.

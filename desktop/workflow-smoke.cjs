@@ -22,7 +22,9 @@ app.on('will-quit',()=>clearTimeout(watchdog));
 const projection=require('./state-projection.cjs').createStateProjection();
 const emit=()=>win.webContents.send('sunny:event',projection.event('snapshot',state));
 const localFixture=require('./local-crew-smoke.cjs').fixture(state,emit);
+const toolLaunches=[];
 ipcMain.handle('sunny:invoke',async(_event,action,args)=>{
+ if(action==='tools:open'){toolLaunches.push({...args});return;}
  if(action.startsWith('localCrew:')||action.startsWith('localCouncil:'))return localFixture.invoke(action,args);
  if(action==='transcript:page')return projection.page(state,args);
  if(action==='workspace:get')return structuredClone(state.workspace);
@@ -79,6 +81,11 @@ app.whenReady().then(async()=>{
  };
  try{
   await win.loadFile(path.join(root,process.argv.includes('--shipboard-baseline')?'.sunny-dev/baseline-dist':'dist','index.html'));await wait('Boolean(document.querySelector(".local-captain"))');await nav('The Sunny');await wait('Boolean(document.querySelector(".helm-workspace"))');await screenshot('command-deck.png');
+  if(process.argv.includes('--studio-captures')){
+   await require('./studio-ui-smoke.cjs').check({js,wait,fill,select,click,nav,screenshot,win,state,emit,toolLaunches});
+   fs.writeFileSync(path.join(output,'studio-result.json'),JSON.stringify({passed:true,syntheticTransport:true,liveProviderProof:false,checks:['crew-specialty-search-and-reset','tool-search-and-reset','tool-launch-selected-project','home-draft-preservation','desktop-laptop-phone-layout','supporting-destination-layouts','home-200-percent-zoom','user-and-system-reduced-motion','local-ship-art-loaded']}));
+   return;
+  }
   if(process.argv.includes('--shipboard-captures')){
    if(!process.argv.includes('--shipboard-baseline')){
     assert.ok(await js('document.fonts.load("16px Barlow").then(fonts=>fonts.length>0&&fonts.every(font=>font.status==="loaded"))'),'bundled Barlow loads');

@@ -1,0 +1,24 @@
+{
+  "command": "npm test",
+  "node": "24.18.0",
+  "tests": 1732,
+  "passed": 1731,
+  "failed": 1,
+  "cancelled": 0,
+  "skipped": 0,
+  "durationMs": 4073101.0482,
+  "failure": {
+    "test": "external modal displays one bounded page with older/newer/reload and visible errors",
+    "cause": "Node test loader parsed projects.css as JavaScript",
+    "reproducedOnParentCheckout": true,
+    "resolution": "Incorporate Projects fix 37bba58: load Projects CSS in main.tsx before studio.css; no tests changed"
+  },
+  "focusedRerun": {
+    "command": "node --test tests/external-history-ui.test.cjs tests/transcript-ui.test.cjs tests/workbench-handoff.test.cjs",
+    "tests": 10,
+    "passed": 10,
+    "failed": 0
+  },
+  "fullSuiteRepeatedAfterImportFix": false,
+  "originalLog": ".sunny-dev-studio-tests.log"
+}

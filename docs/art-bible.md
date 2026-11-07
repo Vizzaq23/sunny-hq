@@ -1,5 +1,16 @@
 # Sunny art bible
 
+## Studio dashboard and directory — 2026-11-06
+
+The studio pass uses the existing `thousand-sunny.png` as a contained decorative
+illustration, and `crew-sheet.png` for static directory/composer portraits. Its
+1774×887 source stays in the documented five-column/two-row layout, displayed at
+88×110 (56×70 in the composer), preserving each cell's 4:5 ratio. Animated world
+sprites, Chopper's pet anchor and room geometry are unchanged. Warm neutral
+work surfaces sit beneath navy navigation, red primary captain action and gold
+selection accents. Header scrims protect text at narrow widths. See the
+[studio decision and current verification](sunny-studio-design.md).
+
 Established 2026-09-21 from inspected `island-world.png`, `crew-pet-states.png`, existing rendering code and [artwork provenance](../public/assets/ARTWORK.md). A separately named supplied pixel-art sheet was not located; the existing Chopper atlas is the documented user-selected anchor. Do not claim an unseen sheet was reviewed.
 
 ## Identity and current reality

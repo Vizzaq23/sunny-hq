@@ -163,4 +163,9 @@ Verification and release outcome are recorded in docs/evidence/work-navigation-2
 
 ## Official One Piece visual references — 2026-11-06
 
+The later [studio UI pass](sunny-studio-design.md) combines this existing review
+with the captain's saved Navbar Gallery, CTA Gallery, Refero Styles and Footer
+Design leads. It documents actual page access, original adaptations and the
+unavailable Scrolltide page. No third-party components or artwork were copied.
+
 The captain requested inspection of Shueisha, VIZ chapter1, the official Straw Hat card list, the Thousand Sunny profile, Toei and DynaFont before a focused shipboard visual pass. Page access, observed design cues, the Sunny profile403, font-license provenance, before/after captures and exact validation are recorded in the [dated shipboard decision](shipboard-design-2026-11-06.md). VIZ's reader and the card list were visually inspected. Official material remains reference only; runtime reuses existing Sunny artwork and adds locally bundled OFL Bangers/Barlow, not official character art or logo fonts. No new framework or backend integration was added.

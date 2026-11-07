@@ -89,6 +89,14 @@ export function CrewBadge({crew,size='normal',onClick}:{crew:Crew;size?:'small'|
   return <Tag className={`crew-badge ${size} ${pixel?'pixel':'portrait'} ${chopper?'chopper':''}`} style={{'--crew':crew.color,'--crew-x':`${x}%`,'--crew-y':`${y}%`,backgroundImage:`url("${resident?residentTexture??residentUrl:chopper?chopperUrl:texture??crewSheetUrl}")`,backgroundSize:resident?'400% 400%':chopper?'800% 1100%':texture?'800% 500%':undefined} as React.CSSProperties} onClick={onClick} title={`${crew.name} · ${crew.role}`} aria-label={`${crew.name}, ${crew.role}`}><span>{crew.name}</span></Tag>;
 }
 
+// The existing portrait sheet is 5 columns by 2 rows. Directory portraits do
+// not replace the animated world atlases or their measured ground anchors.
+export function CrewPortrait({crew}:{crew:Crew}){
+  const index=['luffy','zoro','nami','usopp','sanji','chopper','robin','franky','brook','jinbe'].indexOf(crew.id);
+  if(index<0)return <CrewBadge crew={crew} size="large"/>;
+  return <span className="crew-directory-portrait" data-portrait-row={Math.floor(index/5)} role="img" aria-label={`${crew.name}, ${crew.role}`} style={{backgroundImage:`url("${import.meta.env.BASE_URL}assets/crew-sheet.png")`,backgroundPosition:`${index%5*25}% ${Math.floor(index/5)*100}%`}}/>;
+}
+
 export function TaskRow({task,crew,onClick}:{task:Task;crew?:Crew;onClick:()=>void}){
   return <button className="task-row" onClick={onClick}><span className={`task-state ${task.status}`}/><span className="task-main"><b>{task.title}</b><small>{crew?.name??'Crew'} · {formatRelative(task.updatedAt)}</small></span><span className="task-status">{taskLabel(task)}</span></button>;
 }

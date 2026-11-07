@@ -37,6 +37,10 @@ The [studio checks](studio-result.json) cover responsive layouts, search/reset,
 selected-project launch, draft preservation, zoom and reduced motion.
 The [workflow checks](workflow-checks.json) cover 68 existing native interactions,
 with a separate [process result](workflow-result.json).
-The latter ran immediately before a CSS-only portrait-edge correction; the
-studio capture pass includes that final correction. Neither proves live-provider
+Both final runs include the portrait correction and central Projects stylesheet
+import fix. Neither proves live-provider
 execution, installed-profile operation or screen-reader acceptance.
+
+The [regression result](regression-result.json) records the completed serial
+suite (1,731/1,732 passed), the inherited CSS-loader failure, and the successful
+10-test rerun after its correction. No second full-suite green run is claimed.

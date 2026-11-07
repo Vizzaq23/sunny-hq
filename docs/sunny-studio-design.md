@@ -69,9 +69,25 @@ recorded checks include tool search/reset and an assertion that a synthetic
 launch receives the selected project's ID. Build/typecheck passed again.
 
 [Reviewed screenshots and native receipts](evidence/studio-2026-11-06/README.md)
-are retained with the change. The required full serial suite is still running
-at this checkpoint. All fixture content is synthetic. No installed-app/live-provider
+are retained with the change. The required full serial suite completed 1,732
+tests: 1,731 passed, one inherited test-host failure described below, zero skipped
+or cancelled, in 4,073 seconds. All fixture content is synthetic. No installed-app/live-provider
 or screen-reader acceptance is claimed.
+
+The serial suite exposed an inherited renderer-test loader issue in
+`external-history-ui.test.cjs`: importing the Projects view caused Node to parse
+`projects.css` as JavaScript (`Unexpected token '.'`). The same failure was
+reproduced in the parent checkout. This branch incorporates the Projects fix
+from `37bba58`: load Projects CSS centrally in `src/main.tsx`, immediately before
+the studio stylesheet, instead of importing it from the component. No tests or
+assertions are changed. The affected test plus transcript and workbench handoff
+suites passed 10/10 after the correction. The original failing full-run result
+is retained. The full suite was not repeated after this import-only correction; the affected
+suite and related renderer checks were rerun. There are no unresolved observed
+failures, but this is not a claim of a completely green second full run.
+After incorporating the shared import fix, build/typecheck and both native
+fixtures passed again (9 studio checks and 68 workflow checks, exit 0). The
+retained screenshots and receipts are from these integrated final runs.
 
 ## Rollback
 

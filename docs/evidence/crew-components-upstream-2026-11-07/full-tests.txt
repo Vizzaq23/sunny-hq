@@ -1,0 +1,1757 @@
+Full serial npm test — Node 24.18.0 — 2026-11-07
+Exit code: 0
+Implementation: 84bf81a, receipts: 142a2f4 (no product edits during run).
+Command: node --test --test-concurrency=1 --test-reporter=tap tests/*.test.cjs
+Raw local log: .sunny-dev/upstream-tests.log
+Raw log SHA256: 8965e1354994ebf32a32c3b57f61a02e2f616cc7342ee7619bc724a187539702
+Nested tests are included in TAP final totals. Diagnostic fixture records omitted from this receipt.
+
+# tests 1740
+# suites 0
+# pass 1740
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5546803.4107
+
+ok 1 - portable inputs preserve the frozen workload
+ok 2 - moved isolated checkout resolves inputs without its former sibling
+ok 3 - mutated fixture fails before loading or sampling
+ok 4 - mutated protocol fails before loading or sampling
+ok 5 - reliability gate rejects missing and unknown causal/native/full-state facts
+ok 6 - reliability gate rejects known historical 10 and 30 MiB failures
+ok 7 - reliability gate retains strict frozen thresholds and complete sample requirements
+ok 8 - reliability gate rejects fresh failing source-runtime measurements without promoting native invokes
+ok 9 - unchecked criteria refuses before real sqlite worker submission and valid acceptance still works
+ok 10 - malformed string criterion refuses before real sqlite worker submission and valid acceptance still works
+ok 11 - malformed object criterion refuses before real sqlite worker submission and valid acceptance still works
+ok 12 - nonarray criteria refuses before real sqlite worker submission and valid acceptance still works
+ok 13 - null criteria refuses before real sqlite worker submission and valid acceptance still works
+ok 14 - missing criteria refuses before real sqlite worker submission and valid acceptance still works
+ok 15 - sparse criteria refuses before real sqlite worker submission and valid acceptance still works
+ok 16 - too few criteria refuses before real sqlite worker submission and valid acceptance still works
+ok 17 - too many criteria refuses before real sqlite worker submission and valid acceptance still works
+ok 18 - unknown acceptance criteria field refuses before real sqlite worker submission and valid acceptance still works
+ok 19 - unchecked criteria refuses before real json worker submission and valid acceptance still works
+ok 20 - malformed string criterion refuses before real json worker submission and valid acceptance still works
+ok 21 - malformed object criterion refuses before real json worker submission and valid acceptance still works
+ok 22 - nonarray criteria refuses before real json worker submission and valid acceptance still works
+ok 23 - null criteria refuses before real json worker submission and valid acceptance still works
+ok 24 - missing criteria refuses before real json worker submission and valid acceptance still works
+ok 25 - sparse criteria refuses before real json worker submission and valid acceptance still works
+ok 26 - too few criteria refuses before real json worker submission and valid acceptance still works
+ok 27 - too many criteria refuses before real json worker submission and valid acceptance still works
+ok 28 - unknown acceptance criteria field refuses before real json worker submission and valid acceptance still works
+ok 29 - unowned provider approval is rejected without offering authority
+ok 30 - nullable elicitation cannot bind to a task without a valid thread
+ok 31 - approval cannot authorize a superseding turn
+ok 32 - reused RPC IDs cannot replay a previously displayed approval
+ok 33 - resolving one of several requests keeps the task waiting
+ok 34 - permission snapshot is detached from mutable provider parameters
+ok 35 - expired acceptance sends nothing; same live request may still be declined
+ok 36 - declining user input does not submit the filled answers
+ok 37 - unknown question and invalid decision reject before provider output
+ok 38 - active status notifications cannot hide a pending approval
+ok 39 - approval received before start acknowledgement binds to the eventual turn
+ok 40 - changed project and completed task both invalidate approval
+ok 41 - command approvals require a provider turn identifier
+ok 42 - nullable MCP elicitation stays bound to its local execution across acknowledgement
+ok 43 - foreign thread resolution cannot remove a captain request
+ok 44 - result acceptance never answers an unrelated provider approval
+ok 45 - offline scheduler dependency cannot unlock the live supervision admission gate
+ok 46 - reconnect rejects old-transport approval but permits a fresh current-transport replay
+ok 47 - assignment DAG rejects cycles, missing dependencies and duplicate IDs
+ok 48 - case normalized parent child and shared lockfile ownership must be ordered
+ok 49 - graph rejects unsafe paths wrong base scope and more than sixteen nodes
+ok 50 - ordered same file successor waits for durable transfer to new base
+ok 51 - serial same-file ownership can pass through a durable intermediate owner
+ok 52 - partial intermediate ownership cannot release an ancestor wider sibling path
+ok 53 - recovery retains newest acknowledged request revision and snooze
+ok 54 - real-style worker call and navigation retain coordinator attempt despite newer unrelated work
+ok 55 - actual answers reject superseded run revision before any provider response
+ok 56 - attention prioritizes real requests, keeps seen unresolved calls and ignores prose
+ok 57 - durable seen/snooze never answers or accepts, rejects stale binding and survives Hub restart
+ok 58 - explicit freshly launched attempt survives an older renderer snapshot
+ok 59 - same pending request stays snoozed across unrelated revisions without another receipt
+ok 60 - legacy multiple-revision receipts remain valid when current request is acknowledged
+ok 61 - invalid resident edits leave all persisted fields unchanged
+ok 62 - cold background checkpoints persist derived recovery state despite equal initial generations
+ok 63 - covered queued background checkpoint returns existing receipt without capturing or resubmitting
+ok 64 - newer mutations during a required receipt still get a background checkpoint
+ok 65 - required barriers and explicitly validated checkpoints remain required when clean
+ok 66 - failed checkpoint is retried even if an earlier generation was acknowledged
+ok 67 - missing receipt cannot authorize a covered queued checkpoint skip
+ok 68 - invalid-sha receipt cannot authorize a covered queued checkpoint skip
+ok 69 - wrong-epoch receipt cannot authorize a covered queued checkpoint skip
+ok 70 - stale-sequence receipt cannot authorize a covered queued checkpoint skip
+ok 71 - queued checkpoints cannot use the first recovery receipt before initialization completes
+ok 72 - a new edit after the covered prepare keeps its own scheduled durability
+ok 73 - uncertain storage rejects queued checkpoints rather than treating equal generations as durable
+ok 74 - failed recovery interruption marks its retained task outcome before an early throw
+ok 75 - post-save captain stop failure remains dirty and is persisted by the next checkpoint
+ok 76 - routing edits remain dirty when authority admission rejects before dispatch
+ok 77 - reconciliation errors added after awaited failure are not covered by an earlier receipt
+ok 78 - actual settings handler rejects invalid roomSoundVolume atomically
+ok 79 - actual settings handler rejects invalid model atomically
+ok 80 - actual settings handler rejects invalid roomSoundEnabled atomically
+ok 81 - actual settings handler preserves accepted and ignored field semantics
+ok 82 - captain reset is dirty before failed resume await can hide the persisted change
+ok 83 - actual startup marks automatic news capture dirty before creating the first window
+ok 84 - failed captain result save marks alias deletion dirty after its awaited failure
+ok 85 - both surfaces receive the same producer envelope without losing epoch or sequence
+ok 86 - closing surfaces cannot abort the common event for another window
+ok 87 - legacy unsequenced private navigation delivery remains compatible
+ok 88 - broadcast projection exposes committed run decisions without private paths or replay responses
+ok 89 - build source fingerprint changes with runtime inputs and excludes private/generated files
+ok 90 - the authorized worktree build stamp retains its exact Git revision without global configuration
+ok 91 - copied source nested below another checkout cannot claim the parent commit
+ok 92 - actual worker binds the exact prepared fragments and their receipt digest
+ok 93 - private lifecycle preserves undefined cache, shallow opaque merge and defensive loads
+ok 94 - failed validation and raw write preserve cache and consume preparation
+ok 95 - native workers persist exact compact UTF-8 and digest for partial opaque and undefined commits
+ok 96 - private first commit rechecks exact v1/v2 backup after preparation
+ok 97 - private invalid authority and cyclic encoding failures preserve cache
+ok 98 - pending durable audio acknowledgment survives mute without later playback
+ok 99 - pending durable audio acknowledgment survives unmount without later playback
+ok 100 - active tone closes immediately on mute
+ok 101 - active tone closes immediately on unmount
+ok 102 - unrelated revision never repeats a durable notification sound
+ok 103 - a snooze or resolved call while acknowledgment is pending suppresses audio
+ok 104 - quarter captain caption grows below the fixed marker without moving its floor anchor
+ok 105 - 50k goal is a compact preview with closed native disclosure and exact full text after workflow status
+ok 106 - short goals remain fully visible without an unnecessary full-goal disclosure
+ok 107 - a multi-line goal keeps the first three lines in preview and all lines in disclosure
+ok 108 - CaptainLog renders playable candidate and missing final evidence separately without file preview or acceptance
+ok 109 - CaptainLog renders actual stage owner and distinct review history with direct controls
+ok 110 - CaptainLog withholds accepted labels until exact main-held result status verifies the receipt
+ok 111 - CaptainLog linked run never reports working during unknown storage or blocked outcomes
+ok 112 - real permissions and questions are separate; removed request does not leave a phantom approval
+ok 113 - offline, unknown and uncertain storage override pending permissions and working signals
+ok 114 - old attempts stay hidden unless they retain a request that needs reconciliation
+ok 115 - finished tools and assistant prose do not mark a running goal ready
+ok 116 - only explicit goal review state creates a review row, with exact attempt, never acceptance
+ok 117 - run pause and unknown effects suppress task working display
+ok 118 - external history is excluded, multiple requests count once, projection is immutable
+ok 119 - an old error on working task is contextual, not terminal failure
+ok 120 - goal review replaces stale active task row and clearly marks offline saved results
+ok 121 - binding during asynchronous selected-skill preparation prevents any worker provider start
+ok 122 - existing legacy child cannot send another turn after its parent binds a run
+ok 123 - run-bound paused read-only parent cannot dispatch a legacy specialist through actual request
+ok 124 - a run binding created after worker thread preparation blocks the first provider turn
+ok 125 - Hub resident launch inherits selected skills and retains launch binding history
+ok 126 - Hub rechecks recruited role revision after asynchronous launch preparation
+ok 127 - resident recruitment loss after thread preparation prevents the first worker turn
+ok 128 - Luffy has a real delegation tool and no project writer lock
+ok 129 - delegation creates a linked specialist, waits for actual output and returns it to Luffy
+ok 130 - repeated tool call IDs cannot launch duplicate specialists
+ok 131 - invalid role and stale turn calls never launch work
+ok 132 - concurrent delegation is rejected and existing writer locks are preserved
+ok 133 - Stop crew interrupts the active specialist and Luffy
+ok 134 - failed specialist output is not reported as successful work
+ok 135 - specialists cannot recursively invoke captain delegation
+ok 136 - six assignments bound a captain turn and failed calls do not restart work
+ok 137 - a saved uncertain child blocks new delegation after restart
+ok 138 - disconnect resolves pending tool work as uncertain without retry
+ok 139 - legacy Luffy conversations gain tools while preserving their visible history
+ok 140 - another project writer prevents delegation without starting a child
+ok 141 - old completion notifications cannot finish a newer assignment
+ok 142 - unrelated uncertain work in the same checkout prevents delegation
+ok 143 - reconciliation returns the actual final reply when its notification was missed
+ok 144 - Luffy’s chosen model and reasoning reach the specialist and survive a follow-up
+ok 145 - unsupported routing choices never create an assignment
+ok 146 - cumulative provider token notifications replace rather than double count
+ok 147 - existing 0.5 captain sessions migrate to the model selection tool schema
+ok 148 - coordinated mission dispatch enforces and records planner worker validator reviewer sequence
+ok 149 - coordinator ending without required stages fails instead of exposing captain acceptance
+ok 150 - mission specialists receive their own role and ID without coordinator instructions
+ok 151 - long mission delegation preserves objective, role and every acceptance criterion
+ok 152 - oversized mission delegation rejects visibly without sending a truncated provider prompt
+ok 153 - parent Stop during final workspace await prevents actual worker thread start
+ok 154 - parent turn change after durable dispatch prevents actual first worker turn
+ok 155 - ambiguous actual worker thread submission retains unknown task and checkout reservation
+ok 156 - project discovery is shallow, stable, friendly, categorized, and linked to vault notes
+ok 157 - module location is added only for a source checkout outside app.asar
+ok 158 - project discovery ignores an immediate symlink that escapes a scan root
+ok 159 - vaultPath resolves the Applied AI Studio vault location
+ok 160 - tool discovery reports only present desktop tools, shortcuts, skills, and configured MCP names
+ok 161 - automation discovery returns metadata without prompts or logs
+ok 162 - library search scans Markdown case-insensitively and excludes private vault sections
+ok 163 - library search rejects symlinked Markdown outside the vault
+ok 164 - getExecutable resolves supported commands from PATH without a shell
+ok 165 - coverage response distinguishes unavailable vault and keeps the legacy array contract
+ok 166 - checkpoint collection fences dirty before any integration effect
+ok 167 - checkpoint collection fences unknown-effect before any integration effect
+ok 168 - genuine durable pre-start batch rejects missing readonly binding without sibling effects
+ok 169 - genuine durable pre-start batch rejects missing overlap receipt without sibling effects
+ok 170 - checkpoint rejects actual changed recipe before successor effects
+ok 171 - checkpoint rejects actual changed behavior before successor effects
+ok 172 - checkpoint rejects source change across completed-check durability
+ok 173 - checkpoint rejects predecessor change across completed-check durability
+ok 174 - checkpoint rejects metadata change across completed-check durability
+ok 175 - checkpoint rejects grant change across completed-check durability
+ok 176 - checkpoint rejects generation change across completed-check durability
+ok 177 - held genuine predecessor outcome durability cannot publish a checkpoint or reserve successors
+ok 178 - entire successor wave remains absent after before batch storage failure
+ok 179 - entire successor wave remains absent after lost-ack batch storage failure
+ok 180 - held real checkpoint build settles local stop before owned effect drain
+ok 181 - held real checkpoint build settles local disconnect before owned effect drain
+ok 182 - held real checkpoint build settles local close before owned effect drain
+ok 183 - real disjoint successor and read-only input both start at atomic combined checkpoint
+ok 184 - ordinary three-wave wider owner hands distinct child regions through two retained checked prefixes
+ok 185 - deterministic waves propagate author edges through read-only dependencies
+ok 186 - finished disjoint dependencies cannot bypass the checkpoint barrier
+ok 187 - successor rejects wrong checkpoint checkpointId
+ok 188 - successor rejects wrong checkpoint epochId
+ok 189 - successor rejects wrong checkpoint deliveryId
+ok 190 - successor rejects wrong checkpoint generation
+ok 191 - successor rejects wrong checkpoint digest
+ok 192 - successor rejects wrong checkpoint wave
+ok 193 - successor rejects wrong checkpoint workspaceId
+ok 194 - successor rejects wrong checkpoint workspaceIdentity
+ok 195 - successor rejects wrong checkpoint sourceHead
+ok 196 - immutable graph binding detects changed ownership and admits only its active wave
+ok 197 - legacy absence never infers a wave and original bases survive successor rebinding
+ok 198 - entire installed wave rejects missing readonly binding despite intact sibling
+ok 199 - entire installed wave rejects missing overlap receipt despite intact sibling
+ok 200 - shared transfer requires actual terminal predecessor, different base and direct wider-owner authority
+ok 201 - post-await scheduler rechecks active wave before reservation and provider dispatch
+ok 202 - checkpoint local wait HUB_CLOSING settles once without draining an owned effect
+ok 203 - checkpoint local wait STOP_REQUESTED settles once without draining an owned effect
+ok 204 - checkpoint local wait CONNECTION_LOST settles once without draining an owned effect
+ok 205 - checkpoint pending deadline preserves exact operation until a durable receipt exists
+ok 206 - final repair allowance cannot authorize a checkpoint to fund future production
+ok 207 - plan rejects insufficient integrate before production admission
+ok 208 - plan rejects insufficient test before production admission
+ok 209 - plan rejects insufficient build before production admission
+ok 210 - plan rejects insufficient launches before production admission
+ok 211 - plan rejects insufficient roots before production admission
+ok 212 - Hub refuses a thirty-fourth managed reservation including unknown and reserved roots
+ok 213 - prefix quiescence excludes live predecessor
+ok 214 - prefix quiescence excludes unknown predecessor
+ok 215 - prefix quiescence excludes pending turn response
+ok 216 - prefix quiescence excludes pending dispatch
+ok 217 - prefix quiescence excludes pending author binding
+ok 218 - prefix quiescence excludes durability reservation
+ok 219 - prefix quiescence excludes unknown workspace
+ok 220 - prefix quiescence excludes unknown Git close
+ok 221 - prefix quiescence excludes unclosed check
+ok 222 - prefix quiescence excludes future root
+ok 223 - same-shaped competing unknown effect conflict cannot mask prefix uncertainty
+ok 224 - same-shaped not live conflict cannot mask prefix uncertainty
+ok 225 - same-shaped recovered conflict cannot mask prefix uncertainty
+ok 226 - same-shaped unknown controller conflict cannot mask prefix uncertainty
+ok 227 - same-shaped unknown resolution conflict cannot mask prefix uncertainty
+ok 228 - same-shaped nonmatching generated binding conflict cannot mask prefix uncertainty
+ok 229 - same-shaped outside current wave conflict cannot mask prefix uncertainty
+ok 230 - same-shaped missing reservation conflict cannot mask prefix uncertainty
+ok 231 - stale approval and notification frames are ignored after reconnect
+ok 232 - stale stderr cannot change diagnostics or emit diagnostic events
+ok 233 - a stale RPC reply cannot settle a current request
+ok 234 - partial protocol frames stay isolated across attachments
+ok 235 - replacement during a batch discards old frames and preserves the new partial frame
+ok 236 - stale process and stdin failures cannot disconnect a replacement
+ok 237 - reconnect diagnostics and exit reason belong only to the current transport
+ok 238 - standalone Codex launch drops an inherited registered-app marker without changing other environment values
+ok 239 - RPC assembles split lines and correlates out-of-order replies
+ok 240 - disconnect rejects pending requests instead of hanging
+ok 241 - provider requests stay pending until explicitly answered
+ok 242 - provider errors reject with the actual diagnostic
+ok 243 - transport failure kills the disconnected provider process
+ok 244 - RPC timeouts are marked as uncertain outcomes
+ok 245 - disconnected transports cannot replay requests, notifications or diagnostics
+ok 246 - a stale transport reply cannot settle a current RPC
+ok 247 - partial protocol frames remain isolated to the current attachment
+ok 248 - replacing a transport during a data batch ignores the remaining old messages
+ok 249 - command activity includes real standalone updates and excludes external history
+ok 250 - command activity retains waiting and unknown states without inventing progress
+ok 251 - command activity scopes both tasks and events to selected project and run
+ok 252 - command activity bounds previews and orders the latest twelve saved updates
+ok 253 - companion stays inside negative-coordinate and small monitor work areas
+ok 254 - only known crew and bounded workspace IDs cross the companion bridge
+ok 255 - shared wake exception is only the queued prepared repair and still requires live admission
+ok 256 - ordinary non-exhausted assignment never receives the conflict budget exception
+ok 257 - settlement failure retains fence: bundle-drift
+ok 258 - settlement failure retains fence: intent-write
+ok 259 - settlement failure retains fence: abort-failure
+ok 260 - settlement failure retains fence: abort-mismatch
+ok 261 - settlement failure retains fence: pause-between
+ok 262 - settlement failure retains fence: apply-response
+ok 263 - settlement failure retains fence: second-conflict
+ok 264 - settlement failure retains fence: completion-write
+ok 265 - preparation failure does not recreate private effects: bundle-write
+ok 266 - preparation failure does not recreate private effects: bundle-receipt
+ok 267 - preparation failure does not recreate private effects: workspace-create
+ok 268 - preparation failure does not recreate private effects: prepared-receipt
+ok 269 - only main projected reserved repair can appear working behind retained conflict
+ok 270 - strict settled history does not claim exhaustion or readiness; uncertainty still wins
+ok 271 - public Hub conflict preparation rejects an unaccounted external head
+ok 272 - known owned Git conflict automatically prepares final-slot repair; first commit conflict
+ok 273 - known owned Git conflict automatically prepares final-slot repair; prefix and suffix retained
+ok 274 - prepared repair rejects forged identity, stale source, bundle change and recovered child; pause between children prevents second effect
+ok 275 - another run releasing shared crew wakes the exact prepared repair without a second prepare
+ok 276 - schema fixture is a valid internally consistent terminal receipt
+ok 277 - contradictory terminal receipt stays fenced: wrong final head
+ok 278 - contradictory terminal receipt stays fenced: duplicated result commit
+ok 279 - contradictory terminal receipt stays fenced: unknown original command
+ok 280 - contradictory terminal receipt stays fenced: wrong original operation
+ok 281 - verified absence has an explicit generation-bound local capability and preserves complete DB through reopen
+ok 282 - old semantics, wrong status, interval, method, generation, nonce and unbound witness never admit absence
+ok 283 - absence rejects unexpected staged archive bytes and present capture rejects missing archive
+ok 284 - changing database bytes or moving the receipt to another generation fails before consumption
+ok 285 - exact nonempty copy admission consumes the capture once, and a plain copied object cannot issue recovery authority
+ok 286 - receipt without native completion, changed bytes, wrong phase and extra members fail without default or marker writes
+ok 287 - copied adapter requires admitted authority and never falls through to a default bootstrap
+ok 288 - supported backup retains a WAL-only row, exact raw JSON and all schema/version/opaque values
+ok 289 - missing row, unknown physical schema and unsupported authority never become a saved default
+ok 290 - backup verification compares full raw state and rejects altered middle content or opaque values
+ok 291 - explicit working-copy reader validates fragment format while source capture remains strict
+ok 292 - public copied outcomes are fixed scalar projections and reject private fields or values
+ok 293 - passing outcome requires every preservation and cleanup proof, and never claims full-tree backup
+ok 294 - only explicit v2 native-point-epoch absence can enter the fixed public scalar projection
+ok 295 - forged capability rejects before store load and copied acquisition never normalizes through the filesystem
+ok 296 - constructor through recovery, persist, close and reopen preserves saved paths and fences with zero attempted external probes
+ok 297 - saved managed reservation lookup validates relationships without execution authority and retains logical fences on failure
+ok 298 - ordinary gate keeps existing filesystem normalization
+ok 299 - copied passive storage retains full accumulated memories and opaque residents beyond ordinary display normalization
+ok 300 - real managed recovery retains owned-effect and combined-check command fences without attempting a caught execution resolver
+ok 301 - actual copied store v1 initializes WAL/FULL, preserves complete local consumers and closes/reopens without seeds
+ok 302 - actual copied store v2 initializes WAL/FULL, preserves complete local consumers and closes/reopens without seeds
+ok 303 - actual copied store v3 initializes WAL/FULL, preserves complete local consumers and closes/reopens without seeds
+ok 304 - copied query uses admitted local membership before any provider and rejects all effect actions
+ok 305 - full preserved comparison rejects changed middle messages, drafts, grants and opaque values
+ok 306 - recovery oracle rejects arbitrary authority transitions, binding replacement, nested loss and revision regression
+ok 307 - independent recovery oracle accepts actual managed quiescent run through store reopen
+ok 308 - independent recovery oracle accepts actual managed uncertain run through store reopen
+ok 309 - independent oracle accepts only the task-derived mission recovery revision and event
+ok 310 - independent oracle accepts exact existing-budget tokens policy stop and rejects changed grant binding
+ok 311 - independent oracle accepts exact existing-budget repairs policy stop and rejects changed grant binding
+ok 312 - actual preload invokes copied local routes through shared trusted sender and main-frame checks
+ok 313 - file access cannot escape project through parent traversal
+ok 314 - file access rejects sibling paths sharing project prefix
+ok 315 - stale editor writes preserve newer on-disk content
+ok 316 - saving unchanged base produces new content and version
+ok 317 - queue rejects a second writer in the same checkout
+ok 318 - queue rejects the fourth active run and frees interrupted slots
+ok 319 - provider idle does not falsely mark a task completed
+ok 320 - persisted tasks and settings survive reopen
+ok 321 - restricted project metadata cannot be edited via the normal editor
+ok 322 - nested project roots cannot bypass active checkout protection
+ok 323 - corrupt JSON is preserved while defaults recover
+ok 324 - discussion disables configured external connections and command features
+ok 325 - only final output from the requested thread becomes a reply
+ok 326 - tool attempts stop a discussion instead of becoming a learned exchange
+ok 327 - cancel rejects a pending reply and cleans its listeners
+ok 328 - only explicit same-project Luffy delegation produces outbound signals
+ok 329 - fresh assignments pulse once, never on duplicate, stale or recovered snapshots
+ok 330 - only finished saved replies produce inbound cues; failure and unknown are not results
+ok 331 - local councils use real queued assignment and ready contribution states
+ok 332 - a metadata refresh cannot replay a finished reply with no turn ID
+ok 333 - full roster shares one capability contract
+ok 334 - resident bindings preserve custom descriptions and district without granting tools
+ok 335 - reporter cannot inherit writing or execution skills or specialist configuration
+ok 336 - Morgans packet separates evidence and omits transcripts secrets and tools
+ok 337 - Morgans cannot receive worker or reviewer authority
+ok 338 - public report route keeps imported news and removes arbitrary report injection
+ok 339 - historical evidence keeps its own source/time across snapshots
+ok 340 - reviewing phase dispatches remaining reviewers without admitting unrelated implementation
+ok 341 - scheduler durably reserves once and retains ambiguous submission without retry
+ok 342 - stop during awaited preparation prevents start
+ok 343 - explicit scope enforcing offline writers overlap separate actual roots and share manual capacity
+ok 344 - one live assignment per crew and lower capacity only prevent new starts
+ok 345 - queued resident role or recruitment mutation during preparation blocks dispatch
+ok 346 - actual Hub scheduler uses verified separate Git roots with explicit offline scope enforcement
+ok 347 - coalesced completion wake reruns when a start response is pending
+ok 348 - completion while a sibling start is held preserves the dependent wake
+ok 349 - actual manual terminal notification automatically releases shared graph capacity
+ok 350 - actual island terminal notification automatically releases shared graph capacity
+ok 351 - delayed read-only context remains pinned after integration advances
+ok 352 - actual completion before turn start response automatically launches the dependant
+ok 353 - actual completion while sibling thread start is pending preserves automatic dependant dispatch
+ok 354 - another run completion automatically wakes a queued graph after shared checkout release
+ok 355 - partial directory transfers preserve sibling ownership and automatically dispatch transfers and original pinned readers
+ok 356 - every station is reachable using explicit deck paths
+ok 357 - idle crew move after staggered rests and stay within deck bounds
+ok 358 - real working crew return home and then work without wandering
+ok 359 - pause freezes positions and active routes without losing destinations
+ok 360 - waiting and selected crew stay still and do not fake working
+ok 361 - rerouting in mid-stride finishes the current walkway segment
+ok 362 - paused frames retain identity until authoritative status changes
+ok 363 - local delivery waiters settle before shutdown and never register idle remote effects
+ok 364 - the thirty-second local deadline returns pending without cancelling the durable operation
+ok 365 - known pre-turn reservation keeps capacity occupied without inventing token telemetry
+ok 366 - only an exact acknowledged fresh pre-turn main binding can classify a reservation
+ok 367 - fresh continuation excludes retained author and control histories even without live task rows
+ok 368 - fixed suite plan rejects malformed claims and never maps a failed or different-source command
+ok 369 - deployment inspection reads only GET endpoints bound to exact repository and HEAD
+ok 370 - empty deployment and status responses stay unavailable; no success invented
+ok 371 - deployment inspection rejects foreign identities, mismatched source and malformed metadata
+ok 372 - deployment lookup rejects source changes, unsupported origins and conceals remote errors
+ok 373 - observations retain latest returned status by time, flag bounded queries and strip payloads
+ok 374 - startup diagnostics record only known events and rotate bounded logs
+ok 375 - manifest redacts untrusted details
+ok 376 - successful submission clears only matching persisted text and signals exact authored value
+ok 377 - denied storage still signals exact successful submission without failing the save
+ok 378 - quota storage still signals exact successful submission without failing the save
+ok 379 - SMALL uses the pictured live-catalog lane
+ok 380 - MEDIUM uses the pictured live-catalog lane
+ok 381 - HIGH uses the pictured live-catalog lane
+ok 382 - ESCALATE uses the pictured live-catalog lane
+ok 383 - non-engineering requests keep the current execution
+ok 384 - unavailable catalog lane abstains instead of inventing a model
+ok 385 - missing key does not transmit the brief
+ok 386 - new routing requires the existing project allowlist and an explicit routing flag
+ok 387 - a stalled remote response gives a bounded fallback
+ok 388 - high-risk guidance asks for fresh review without claiming completion
+ok 389 - execution and evidence read the same worktree
+ok 390 - creation intent precedes Git effects and uncertain creation stays reserved
+ok 391 - junction escape and stored case alias collision reject
+ok 392 - non-Git legacy roots resolve original and remain sequential
+ok 393 - external pages reconstruct huge Unicode exactly with bounded private display-only pages
+ok 394 - external sessions replace old reads and reject malformed requests before provider access
+ok 395 - concurrent initial loads never restore a replaced session
+ok 396 - supported provider wrappers retain text and opaque items show explicit unsupported content
+ok 397 - opaque top-level and nested metadata never becomes text and empty recognized histories stay empty
+ok 398 - mixed supported text blocks preserve all text and show unsupported content without metadata
+ok 399 - cursor identity lookup does not normalize unrelated earlier messages
+ok 400 - top-level turns items preserve supported provider messages
+ok 401 - closing pending external history never reopens modal; later selections win
+ok 402 - external navigation replaces one page and displays stale and provider errors
+ok 403 - external modal displays one bounded page with older/newer/reload and visible errors
+ok 404 - disconnected transport proves rejection before any submission
+ok 405 - explicit failed-launch retry survives restart and deduplicates a lost reply
+ok 406 - uncertain and generic failures never gain safe retry evidence
+ok 407 - failed retry reservation checkpoint submits no replacement
+ok 408 - stale commands and delegated launches cannot bypass their owner
+ok 409 - replacement checkpoint failure retains proof that explicit recovery is safe
+ok 410 - a rejection before thread creation retains the entire goal across restart
+ok 411 - an uncertain replacement never submits again when the retry reply is lost
+ok 412 - uncertain errors remain ineligible even if another error flag says not submitted
+ok 413 - failed report creation returns its task identity for linked reporter recovery
+ok 414 - third-cycle pending graph admits only exact coordinator and accounting
+ok 415 - completion predicate rejects every changed durable binding and all control states
+ok 416 - sealed delivery requires exact finite operation and current generation; terminal proof grants no provider work
+ok 417 - historical installed checkpoint successor set remains mandatory after a new epoch
+ok 418 - retained completed continuation records validate without granting current execution
+ok 419 - third-cycle integration consumer accepts only its preallocated operation
+ok 420 - third-cycle reserved author budget binds the pending task to its exact launch reservation
+ok 421 - runtime completion requires its fixed operation and cannot mix a worker or caller purpose
+ok 422 - finite effect rejects mixed worker identity and grant scope outside the original boundary
+ok 423 - feedback graph rechecks immutable revision after source await
+ok 424 - current-epoch generated repair is not its own historical owner and reaches scheduler eligibility
+ok 425 - generated membership does not mutate sealed graph ids and becomes historical with its owner
+ok 426 - resolution-shaped and corrupted generated records do not gain current membership
+ok 427 - a bound generated repair cannot bypass overlapping historical ownership handoffs
+ok 428 - generated membership survives valid reservation and preparation before provider dispatch
+ok 429 - prepared generated membership remains stable across assignment launch and capture states
+ok 430 - applying and completed repairs retain membership only with candidate and author bindings
+ok 431 - unknown resolution stays current for recovery without receiving a launch allowance
+ok 432 - stale ownership, bundle, workspace and extra fields cannot confer generated membership
+ok 433 - private fixture markers permit only fixed bounded scalar stages
+ok 434 - never-resolving renderer readiness and cleanup reject within explicit fixture budgets
+ok 435 - crash at insert retains exact old or new state
+ok 436 - crash at layout retains exact old or new state
+ok 437 - crash at cleanup retains exact old or new state
+ok 438 - crash at before-commit retains exact old or new state
+ok 439 - crash at after-commit retains exact old or new state
+ok 440 - crash at migration-before-commit retains exact old or new state
+ok 441 - crash at migration-after-commit retains exact old or new state
+ok 442 - legacy WAL migration preserves exact state, verified backup and rejects legacy writes
+ok 443 - required commits publish exact compact bytes and remove unreachable fragments
+ok 444 - unknown format, corrupt bytes, missing fragments and forged view fail closed
+ok 445 - backup failure leaves legacy table and bytes intact
+ok 446 - small edit binds only changed fragment bytes to SQLite
+ok 447 - actual unchanged PNG padded extraction retains full head hands and soles without neighbor contamination
+ok 448 - malformed or unexpected atlas dimensions fail closed
+ok 449 - build caption describes approach and arrival while visual Pause preserves work state
+ok 450 - scene travels only for active Franky build and freezes all attention/review states
+ok 451 - bench work frames begin only on arrival; reduced motion and visual Pause remove all stepping
+ok 452 - acceptance cue requires live same-context transition and successful durable first claim
+ok 453 - paused visuals still clear an obsolete work frame when authority becomes unavailable
+ok 454 - each scene renders authoritative labels and clear direct controls with still loading fallback
+ok 455 - deck and room respect the selected task instead of an unrelated newer Franky task
+ok 456 - a finished provider turn does not start a crew victory scene
+ok 457 - Franky deck travel and work frames require an actual work stage
+ok 458 - missing selected work stays visibly unknown in legacy room rows
+ok 459 - workshop routes the selected attempt permission ahead of concurrent input and excludes other attempts
+ok 460 - island Inspect and Back return both standalone Luffy and same-mission Zoro to the visible island
+ok 461 - saved Franky room and Settings return preserve both mission-only and task-selected room context
+ok 462 - room Stop disables duplicate requests and exposes backend failure without claiming stopped state
+ok 463 - direct roster and Morgans returns restore the matching visible destination in island or quarters
+ok 464 - fifteen distinct scene destinations preserve reporter access and explicit unmeasured floors
+ok 465 - all task-capable identities consume run authority while reports never perform work
+ok 466 - current assignment wins retained history and ambiguous active assignments never work
+ok 467 - explicit missing, cross-project and historical contexts never borrow current work
+ok 468 - review, failed and unavailable task statuses suppress every crew work pose
+ok 469 - task-only selections retain run gates and historical attempts cannot animate current assignments
+ok 470 - stage evidence limits work props and attention stays still even during visual pause
+ok 471 - source assets retain hashes and actual decoded container dimensions
+ok 472 - direct roster controls render fifteen destinations without requiring a task or travel
+ok 473 - roster click handlers route fourteen crew conversations and one report-only destination
+ok 474 - actual supervised review workers without workflow stages use their assignment capability and stay still
+ok 475 - completed conversations are learned once and survive restart
+ok 476 - failed turns and scripted banter do not create experience
+ok 477 - forgetting survives restart and repeated completion events
+ok 478 - explicit notes can be corrected and retrieved ahead of episodes
+ok 479 - completed real exchanges teach both participants once
+ok 480 - recall stays bounded and excludes another crew’s private memories
+ok 481 - project recall excludes other projects even when their text matches better
+ok 482 - scoped recall keeps global captain notes but excludes unscoped episodes and exchanges
+ok 483 - unscoped recall does not pull project episodes and disabling recall still works
+ok 484 - backend handoff cannot bypass a reviewed mission attempt
+ok 485 - backend handoff cannot launch new work from an unresolved tool effect
+ok 486 - finished standalone task still hands its result to another crew member
+ok 487 - new turns receive relevant crew recall without rewriting the saved user message
+ok 488 - disabled recall sends no learned context
+ok 489 - a finished turn releases the checkout and retains streamed text
+ok 490 - idle notification never overrides a completed result
+ok 491 - saved active tasks reopen as unknown instead of falsely running
+ok 492 - user input answers use the provider question-to-array contract
+ok 493 - declining permissions grants no filesystem or network access
+ok 494 - server request resolution removes a stale approval
+ok 495 - an uncertain turn start keeps the checkout gate when reconciliation fails
+ok 496 - outer start failure does not release a gate for an uncertain submitted turn
+ok 497 - outer start preserves an active result found during reconciliation
+ok 498 - interrupt reconciles an unknown turn before releasing its gate
+ok 499 - source ancillary metadata is removed before native decoding
+ok 500 - animated images and invalid source declarations are refused
+ok 501 - image artifact preserves original hash while preview comes from decoder pixels
+ok 502 - image bounds and malformed structures reject before native decode
+ok 503 - image reader rejects protected paths, hard links, directories and non-PNG extensions
+ok 504 - native decode failure or mismatched dimensions cannot become a reviewed artifact
+ok 505 - ChatGPT import follows selected branch without importing hidden system messages
+ok 506 - invalid export shape rejected and empty conversations ignored
+ok 507 - source revision replay and reload deduplicate without refilling allowance
+ok 508 - outside standing scope retains ranked backlog and cannot mutate acceptance
+ok 509 - consumed receipt never restarts and stopped recovery cannot assess
+    ok 1 - durable resource accounting contract exists
+    ok 2 - usage high water and approved limits survive replay
+    ok 3 - launch identities remain durable and idempotent through repair and restart
+    ok 4 - three global workers and unknown telemetry one-worker admission
+    ok 5 - worker and run time limits include suspend and restart uncertainty without clock credit
+    ok 6 - only confirmed quiescent waiting excludes active elapsed time
+    ok 7 - strict private accounting rejects malformed and sparse records
+    ok 8 - restart cannot assume a previous human wait remains quiescent when execution is now uncertain
+ok 510 - main held ownership charges replay and delayed old thread exactly once to both ledgers
+ok 511 - assessment options disable runtime extensions and provide no dynamic tools
+ok 512 - actual trusted feedback receipt survives restart without autonomous wake or allowance refill
+ok 513 - actual Hub attributes first delayed telemetry from detached owned thread
+ok 514 - actual Hub assessment resume fences pause during deferred config
+ok 515 - actual Hub assessment resume fences shutdown during deferred config
+ok 516 - actual Hub assessment resume fences budget during deferred config
+ok 517 - actual Hub assessment resume fences thread during deferred config
+ok 518 - actual Hub assessment resume fences ownership during deferred config
+ok 519 - actual Hub assessment resume fences live-gate during deferred config
+ok 520 - actual Hub completion durably queues once and dispatches canonical read-only assessment
+ok 521 - new worlds are paused and new residents are not silently recruited
+ok 522 - job definitions persist as paused and do not launch on save
+ok 523 - enabled due jobs execute once and then wait for review
+ok 524 - daily run limits prevent catch-up bursts
+ok 525 - time limit stops active work and disables the job
+ok 526 - reported-token threshold stops work without double counting cumulative usage
+ok 527 - restarting disarms automation and preserves uncertain job history
+ok 528 - invalid projects, unrecruited residents and unbounded limits are rejected
+ok 529 - recruitment and resident job changes survive world reload
+ok 530 - pausing while launch is pending prevents a late job from starting
+ok 531 - uncertain work in a shared checkout blocks an island job
+ok 532 - editing a job keeps its previous attempt history and pauses its schedule
+ok 533 - editing or pausing cannot discard a pending review
+ok 534 - completed work stays ready for review after a delayed scheduler check
+ok 535 - parallel job preference validates and survives restart while automation disarms
+ok 536 - three independent jobs run concurrently and the fourth waits for a slot
+ok 537 - parallel captain jobs still reserve their project
+ok 538 - editing an uncertain mission is rejected before configuration changes
+ok 539 - island adapter reads the same manual and graph global capacity without interrupting active jobs
+ok 540 - structured journal preserves exact old formatting and project inclusion
+ok 541 - disabled/missing setup skips remote calls {"SUNNY_JEV_ENABLED":"0"}
+ok 542 - disabled/missing setup skips remote calls {"SUNNY_JEV_PROJECT_IDS":"p10,p2"}
+ok 543 - disabled/missing setup skips remote calls {"TYPESAFE_API_KEY":""}
+ok 544 - filtered context retains pins and exact source and gives advice only
+ok 545 - failure falls back exactly and direct role excludes routing questions
+ok 546 - mission stage and unrecruited roles excluded
+ok 547 - Jev preparation excludes unrecruited and reporting specialists
+ok 548 - Jev preparation validates unique recruited specialists and preserves saved descriptions
+ok 549 - changed catalog discards stale result
+ok 550 - changed journal does not reuse forgotten context
+ok 551 - empty/disabled journal is supported
+ok 552 - pinned notes that overflow legacy budget use fallback without evaluation
+ok 553 - stop during preparation prevents turn/start and releases only its lock
+ok 554 - abort finishes even if preparation ignores its signal
+ok 555 - disconnect during preparation preserves uncertain reservation
+ok 556 - close during preparation never launches
+ok 557 - revision change prevents stale launch and holds uncertain reservation
+ok 558 - two simultaneous sends cannot prepare or submit twice
+ok 559 - successful preparation preserves prompt and reports activity
+ok 560 - service exception falls back without losing the objective
+ok 561 - new task cancelled during preparation is interrupted, not failed
+ok 562 - submitted uncertain turn is not retried and retains reservation
+ok 563 - project removal prevents pre-turn launch
+ok 564 - Jev lane changes the actual provider turn before engineering work starts
+ok 565 - explicit model selection survives Jev lane advice
+ok 566 - routing failure preserves already selected journal context
+ok 567 - fixed native build uses declared external script under the unchanged preview CSP
+ok 568 - isolated preview loads verified nested entrypoint for relative immutable assets
+ok 569 - fixed journey supervisor rejects size variations before any worker launch
+ok 570 - native journey rejects structural capability before importing store, provider or Hub
+ok 571 - private journey entries reject copied capabilities before privileged imports
+ok 572 - fixed capability rejects extra phases, settings capacity and unrelated local effects
+ok 573 - journey observation waits for the feedback attempt rather than replaying its predecessor
+ok 574 - restart task identity matches persisted JSON without losing assigned worker identity
+ok 575 - finite journey beta follows the current assignment after recalled alpha work
+    ok 1 - missing current boundary
+    ok 2 - unplanned current assignment
+ok 576 - finite journey refuses recalled work when the current assignment is absent or unplanned
+ok 577 - journey receipt rejects cross-scenario, missing effects, foreign entries and incomplete genuine-history declarations
+ok 578 - audio receipt requires causal cancellation of each observed active native node
+ok 579 - aggregate requires all four scenarios from one exact package and ordered same-profile cue phases
+ok 580 - journey declarations reject missing completed task or independent exact review evidence
+ok 581 - raw split preserves prepare, run lookup, stringify, receiver and original thrown failures
+ok 582 - adapter split retains opaque/undefined semantics and publishes current only after raw success
+ok 583 - queue probe records skipped and failed stages and cannot alter outcomes
+ok 584 - retired worker v1 summary is absent and exact receipt is preserved
+ok 585 - retired worker v1 failure summary is absent and validation failure is preserved
+ok 586 - every island identity has a purpose-specific specialty matching the canonical roster
+ok 587 - existing personal setup survives role-default changes
+ok 588 - Luffy sees actual selected skills and bounded role context for a maximum-length request
+ok 589 - explicit skill refresh preserves personal models, blank/custom guidance, sessions and lessons
+ok 590 - Luffy picks real available specialists and synthesizes only their actual reports
+ok 591 - manual crew selection bypasses routing, with bounded actual overlap
+ok 592 - failed specialists stay visible and make synthesis partial
+ok 593 - all failed contributions never fabricate a synthesis
+ok 594 - untrusted plans reject unknown, duplicate, unrecruited and reporter assignments
+ok 595 - invalid caller inputs fail before local requests
+ok 596 - stop aborts active contributions and prevents queued workers and synthesis
+ok 597 - start persistence gates inference and definite failure restores prior records
+ok 598 - Stop does not hide a failed persistence outcome or shutdown behind a successful result
+ok 599 - restart retains bounded reports but interrupts work without replay
+ok 600 - Morgans receives fixed sanitized statuses, never goal, code, reports or errors
+ok 601 - execution handoff uses reviewed user text, real goal path and one pending receipt
+ok 602 - failed execution receipt remains unknown and cannot blindly retry
+ok 603 - handoff storage failure prevents execution
+ok 604 - pending handoffs and reports become uncertain/interrupted on restart
+ok 605 - short conversation is answered by Luffy without fabricated worker activity
+ok 606 - cross-review receives actual results before Luffy synthesizes them
+ok 607 - synthesis budgeting keeps full small reports and preserves the tail of large reports
+ok 608 - Stop is idempotent and cannot relabel a received council answer during persistence
+ok 609 - unconfigured reviewer is visible as missing evidence, not a successful review
+ok 610 - setup preserves personal profiles, specializes legacy defaults, and rolls back definite failure
+ok 611 - ambiguous saved council IDs cannot dispatch a handoff or reporter
+ok 612 - Luffy can clarify a request before any specialist is configured
+ok 613 - stopping Morgans rejects late replies without replacing the council
+ok 614 - follow-ups retain only bounded same-project conversation context, without inherited authority
+ok 615 - missing, active and cross-project parents fail before any model call
+ok 616 - large follow-up context stays within the local transport budget and reports shortening
+ok 617 - known execution release gate rejects before any handoff receipt or mission
+ok 618 - review and synthesis retain the complete captain contract before allocating report context
+ok 619 - live local replies drive honest ship/island states without mission acceptance
+ok 620 - local activity cannot override selected missions, other projects or unknown execution
+ok 621 - stopping, failed storage and idle council do not animate continued work
+ok 622 - Luffy planning/synthesis and direct local chats derive only from real status
+ok 623 - Morgans only appears working for an actual sanitized report, with storage and project scope intact
+ok 624 - HTTP transport stays on fixed loopback, passes cancellation and counts UTF-8 payload bytes
+ok 625 - HTTP catalog uses GET without a body
+ok 626 - HTTP redirects and error bodies cannot trigger a second request or leak response text
+ok 627 - invalid JSON and oversized HTTP responses are rejected
+ok 628 - socket errors and timeouts settle the request without retry
+ok 629 - only Luffy routing requests JSON output; normal advice retains free text
+ok 630 - every specialist receives current role guidance and only their own personal preferences
+ok 631 - supported answer-only mode avoids a thinking-only output limit and retains only the answer
+ok 632 - missing or unsupported thinking controls retain the server default
+ok 633 - a completed fixture response persists the selected model, scoped recall and attribution
+ok 634 - project and character histories remain separate and corrections replace old notes
+ok 635 - local identity retains the character without importing execution-role instructions
+ok 636 - disabled memory neither injects notes nor learns a local exchange
+ok 637 - local lessons and episodes never enter default Codex or router recall
+ok 638 - untrusted arguments and unknown projects are rejected before contacting the model
+ok 639 - remote model metadata is rejected before any private prompt is sent
+ok 640 - missing models and malformed responses are failures without learned experience
+ok 641 - output-limit completion is not learned or treated as a finished answer
+ok 642 - source requests validate crew and project and cannot trigger model execution
+ok 643 - stop prevents late response completion and blocks duplicate work while unwinding
+ok 644 - timeouts abort the request without retry
+ok 645 - failed persistence prevents network activity and rolls back setup and lessons
+ok 646 - restart interrupts in-flight work and clear removes only the chosen conversation
+ok 647 - completion persistence failure does not leave learned experience in memory
+ok 648 - failed start persistence preserves a previously finished conversation exactly
+ok 649 - model history contains only completed pairs and the current question, never unanswered prompts
+ok 650 - a failed question is retained visibly but not replayed on the next model request
+ok 651 - recall preview matches budgeted model context, stays scoped and makes no model call
+ok 652 - Hub persistence includes local profiles and recovers interrupted sessions without provider calls
+ok 653 - an asynchronous initial receipt gates every model request and Stop cancels before dispatch
+ok 654 - a delayed setup failure is awaited and rolls back only its own setup
+ok 655 - a failed async lesson save preserves unrelated journal edits
+ok 656 - a failed async completion save preserves unrelated learning and corrections
+ok 657 - shutdown and storage recovery guards prevent local inference
+ok 658 - public projection includes bounded local fields and privacy labels without opaque metadata
+ok 659 - fresh local recall uses captain lessons instead of reinforcing unverified generated answers
+ok 660 - profiles without local crew data remain additive only after the captain configures a crewmate
+ok 661 - Stop cannot relabel a received answer while its durable completion is pending
+ok 662 - an uncertain initial receipt leaves a recoverable interrupted question and never dispatches
+ok 663 - shutdown during completion persistence retains the already received answer
+ok 664 - personal developer guidelines are bounded, local, crew-specific and survive restart
+ok 665 - repeated Stop remains idempotent while an aborted reply unwinds
+ok 666 - failed completion rolls back its experience even if its provisional episode was forgotten
+ok 667 - failed learning restores episodes evicted provisionally at the retention boundary
+ok 668 - retention rollback preserves concurrent learning and honors forgetting an already-evicted episode
+ok 669 - manual code questions preserve significant leading indentation and trailing newlines
+ok 670 - real isolated SQLite storage retains local setup and lessons and never replays interrupted work
+ok 671 - archive preserves every raw byte, compatible field and stored ID while the actual pager reconstructs every segment
+ok 672 - consumer rejects reordered groups, duplicate empty messages and interleaved segments
+ok 673 - archive admission rejects malformed encoding, structure, duplicate identity and unsupported content without an empty fallback
+ok 674 - accumulated archive has no importer 20000-conversation truncation and private documents do not enter the index
+ok 675 - local history enforces admitted membership before paging and never accepts forged archive authority
+ok 676 - smaller conversation preview preserves indentation, full lines and source identity
+ok 677 - complete excerpt remains unchanged and an oversized first line is rejected
+ok 678 - source previews retain exact line numbers and full-file provenance within an excerpt budget
+ok 679 - source reader rejects protected paths, traversal and filename aliases before reading
+ok 680 - invalid UTF-8, binary content, oversized files and unbounded lines cannot become previews
+ok 681 - source previews cannot follow hard links or directory links
+ok 682 - actual main read routes return bounded protocol state and unchanged read sequence
+ok 683 - every actual main task action response is projected without its full transcript
+ok 684 - actual main IPC rejects another sender or child frame before reading history or effects
+ok 685 - quiescent actual main still permits read-only paging and blocks new task work
+ok 686 - actual main bounds both external-history routes and preserves complete imported/provider text
+ok 687 - actual main fixture IPC keeps trusted reads and blocks ordinary task effects
+ok 688 - actual main fixture permits only validated fixed packaged crew texture reads
+ok 689 - actual main run IPC validates before calling authority and projects only public run fields
+ok 690 - prepares a uniquely named branch from the exact clean base
+ok 691 - dirty work is preserved and prevents branch preparation
+ok 692 - a changed base after planning blocks the switch
+ok 693 - reconciliation only accepts the exact prepared branch and base
+ok 694 - native fixture dispatch executes the actual transcript hook action through production paging
+ok 695 - native reply selection chooses the requested producer before awaiting its exact button
+ok 696 - native Stop retains the actual awaited IPC settlement after in-memory interruption
+ok 697 - native direct Stop checks the real global gate only after its dispatch settles
+ok 698 - native acceptance fault is a pre-worker transient refusal and restores the real barrier
+ok 699 - native delegation completes a child only after its turn and launch acknowledgement
+ok 700 - written deliverable hashes actual bytes and presents markup only as text
+ok 701 - deliverable rejects traversal, absolute paths, links and protected folders
+ok 702 - deliverable refuses oversized, invalid UTF-8 and binary content
+ok 703 - deliverable rejects hard-linked aliases of protected content
+ok 704 - deliverable refuses Windows short-name aliases before opening files
+ok 705 - owned check cancellation acknowledgment does not imply process exit
+ok 706 - Git evidence fingerprints actual dirty and untracked content
+ok 707 - Git evidence refuses nested project roots
+ok 708 - Git evidence identifies a Windows short-path repository without accepting its child
+ok 709 - check runner preserves exit status and refuses nonexistent scripts
+ok 710 - zero exit after source mutation is stale evidence, not passing evidence
+ok 711 - index flags that hide changed source cannot produce verification evidence
+ok 712 - submodule work cannot be reduced to an unchanged pointer
+ok 713 - timeout cleanup failure rejects even when the process never closes
+ok 714 - process exit during timeout still waits for cleanup result
+ok 715 - verified timeout cleanup reports failure and settles after process exit
+ok 716 - skip-worktree files cannot silently bypass source verification
+ok 717 - preflight source inspection failure is host-classified before check execution
+ok 718 - source inspection after execution cannot masquerade as a preflight failure
+ok 719 - selected reply acceptance persists matching receipt identity and does not publish
+ok 720 - acceptance_save_failure_rolls_back
+ok 721 - unattached_result_cannot_accept even when every criterion is confirmed
+ok 722 - changed selected reply cannot accept and forged identity cannot replace selection
+ok 723 - rework_prompt_persists_on_new_attempt_before_dispatch
+ok 724 - rework reacquires authoritative mission after rollback during async preparation
+ok 725 - revision changes during async rework preparation still prevent provider dispatch
+ok 726 - rework rejects invalid phase, stale revision and invalid bounded changes
+ok 727 - selection and acceptance reject stale async reads and keep concurrent actions locked
+ok 728 - result selection save failure and stale artifact read keep prior selection
+ok 729 - reply changed between resolution and durable selection is rejected
+ok 730 - acceptance takes a detached intent snapshot across asynchronous verification
+ok 731 - result commands cannot smuggle provider authority or release an uncertain writer
+ok 732 - a historical result cannot authorize a later rework attempt
+ok 733 - missing-thread recovery persists interruption before release and rolls back failed saves
+ok 734 - missing-thread recovery rejects live launch, known thread, external and active descendants
+ok 735 - missing-thread confirmation cannot race an outstanding provider launch
+ok 736 - missing-thread mission recovery saves cancelled attempt and permits a distinct retry
+ok 737 - uncertain check stays reserved across restart until exact captain confirmation
+ok 738 - pending check cannot be manually cleared and failure to save intent prevents execution
+ok 739 - failed result checkpoint retains check reservation until durable recovery
+ok 740 - provider turn dispatch requires durable thread and execution identity
+ok 741 - delegated task checkpoint failure prevents all provider requests
+ok 742 - unknown legacy launch without a thread retains its checkout reservation
+ok 743 - delayed turn starts cannot resurrect completed work or replace a current turn
+ok 744 - finished coordinated stage cannot be changed while coordinator still runs
+ok 745 - merge acceptance rejects a PR retargeted since inspection
+ok 746 - image evidence keeps provenance without image bytes and refuses changed-file preview or acceptance
+ok 747 - deployment observations attach to current attempt without granting acceptance and survive reload
+ok 748 - deployment refresh after acceptance preserves acceptance and failed lookup releases the lock
+ok 749 - mission launches real Hub task and persists evidence before snapshot
+ok 750 - failed durable begin never submits provider work
+ok 751 - legacy tasks remain unchanged and new ledger survives reload
+ok 752 - completed mission attempts cannot receive untracked workbench follow-ups
+ok 753 - failed task checkpoint after durable begin still prevents provider dispatch
+ok 754 - restart recovers a durable launch reservation with no submitted task
+ok 755 - recovery during send cannot append work to an attempt that just finished
+ok 756 - completion arriving during resume prevents a new turn without changing its result
+ok 757 - check evidence attaches to the finished attempt and releases its checkout
+ok 758 - an in-flight check blocks retry and acceptance; rejected check releases checkout
+ok 759 - failed or stale latest checks prevent mission acceptance
+ok 760 - mission role routing persists before provider submission and rejects unknown roles without an attempt
+ok 761 - merge-bound acceptance refreshes exact PR evidence and records the proof
+ok 762 - unmerged or changed PR cannot satisfy merge-bound acceptance
+ok 763 - merge acceptance cannot use cached proof when fresh GitHub verification fails
+ok 764 - branch intent is durable before switching and unresolved preparation blocks launch
+ok 765 - failed branch intent persistence prevents git mutation
+ok 766 - PR publication needs exact confirmation and durable authorization before remote submission
+ok 767 - uncertain PR publication cannot automatically retry or restart work
+ok 768 - a new attempt can prepare and reconcile a previously published PR at its new source
+ok 769 - failed PR authorization persistence prevents remote submission
+ok 770 - expired PR previews cannot be authorized
+ok 771 - signal receipt persists before broadcast and rolls back on save failure
+ok 772 - receipt cannot invalidate evidence while a mission action is in flight
+ok 773 - creative text evidence previews exact bytes and blocks changed output at acceptance
+ok 774 - image tool activity is visible without leaking image payloads or granting mission acceptance
+ok 775 - accept preflight rejects supervised mission lacking main structured readiness
+ok 776 - mission handoff cannot dispatch unlinked work from review-ready attempt
+ok 777 - mission handoff cannot dispatch unlinked work from accepted attempt
+ok 778 - completed coordinated stage cannot hand off while coordinator still runs
+ok 779 - ordinary finished conversation retains explicit handoff
+ok 780 - unavailable checks leave review acceptance and attempt evidence intact
+ok 781 - read-only check capabilities validate mission scope and report only configured scripts
+ok 782 - editing a PR preview durably replaces identity and invalidates earlier confirmation
+ok 783 - failed edited-preview checkpoint preserves old identity and never publishes
+ok 784 - invalid prepared PR title cannot authorize or enter uncertain publication
+ok 785 - invalid prepared PR body cannot authorize or enter uncertain publication
+ok 786 - script removed after durable reservation cannot poison acceptance before execution
+ok 787 - arbitrary error phase claims cannot erase executed failure evidence
+ok 788 - edited preview stays invisible and checkout stays locked until its durable receipt
+ok 789 - capability lookup uses verified mission workspace, not registered checkout
+ok 790 - execution cannot relabel a started check as host preflight refusal
+ok 791 - committed undeclared/protected outside.txt rejects preserving worker bytes
+ok 792 - committed undeclared/protected .agents/policy.md rejects preserving worker bytes
+ok 793 - committed undeclared/protected SRC/../.CoDeX/policy.md rejects preserving worker bytes
+ok 794 - committed undeclared/protected src/AGENTS.md rejects preserving worker bytes
+ok 795 - rename source and intermediate deleted protected paths are inspected
+ok 796 - unexpected head/base/branch and uncommitted generated output reject
+ok 797 - actual Hub serial integration persists intent before Git and invalidates worker evidence
+ok 798 - real Git conflict retains both heads, conflict bytes and bounded owner repair obligation
+ok 799 - lost response after real cherry-pick retains unknown reservation and never retries
+ok 800 - failed completed receipt leaves durable pending intent and retained reservation
+ok 801 - durable complete author history exists before writing turn and survives invalidation
+ok 802 - two individually passing workers require actual combined checks and fresh review
+ok 803 - missing author history cannot become complete from current provider IDs
+ok 804 - real passing combined checks schedule fresh reviewer on integrated source and retain repair proof
+ok 805 - actual integration accepts commit ranges in long managed workspace paths
+ok 806 - live check detects staged additions and changed HEAD, with no provider call
+ok 807 - failed launch cleanup finds allocated task even when start promise rejected
+ok 808 - merge review never submits a remote mutation even with confirmation
+ok 809 - changed head, draft or failed checks cannot prepare merge review
+ok 810 - uncertain requests resolve to observed open or closed without mutation
+ok 811 - failed observation preserves uncertainty and releases local action gate
+ok 812 - merge review persistence failure prevents remote calls
+ok 813 - reconciliation confirms a merged result without resubmitting
+ok 814 - target changes or invalid merge time cannot verify an approval
+ok 815 - retargeted nonmerged PR can clear uncertainty without verifying a merge
+ok 816 - nonmerged reconciliation still requires the same PR identity
+ok 817 - v1_upgrade_preserves_tasks_and_legacy_acceptance
+ok 818 - backup_failure_writes_nothing
+ok 819 - unknown_version_never_starts_hub
+ok 820 - old_reader_rejects_v3_before_save
+ok 821 - backup_tampering_or_different_state_cannot_authorize_upgrade
+ok 822 - fresh_profiles_create_v3_without_backup_and_store_preserves_unknown_fields
+ok 823 - mission_book_rejects_v1_and_malformed_workspace_authority
+ok 824 - malformed_authority_and_unknown_versions_are_preserved_as_unsupported
+ok 825 - verified_backup_is_exclusive_and_preserves_exact_full_state_bytes
+ok 826 - failed_backup_write_or_readback_never_saves_application_state
+ok 827 - v1_store_upgrade_is_deferred_until_a_verified_first_save_and_remains_v3_on_reload
+ok 828 - workspace_limit_checks_preserve_current_input_and_accept_exact_boundaries
+ok 829 - v3_inspection_rejects_forged_modern_acceptance_and_accepts_legacy_receipt
+ok 830 - saved_requested_changes_are_bounded_to_50000_code_units
+ok 831 - backup_deleted_or_changed_before_first_upgraded_save_keeps_store_untouched
+ok 832 - malformed_mission_status_membership_and_completion_authority_fail_closed
+ok 833 - duplicate_mission_ids_fail_closed_even_across_projects
+ok 834 - sparse_workspace_arrays_are_rejected_before_serialization_without_mutating_input
+ok 835 - sparse_mission_membership_and_acceptance_arrays_are_rejected_before_backup
+ok 836 - playable result projection binds manifest membership and refreshes when the run review revision changes
+ok 837 - project context without a selection is idle even with newer active work and a saved workspace selection
+ok 838 - explicit standalone idle task projects idle with truthful motion
+ok 839 - explicit standalone starting task projects starting with truthful motion
+ok 840 - explicit standalone working task projects working with truthful motion
+ok 841 - explicit standalone running task projects working with truthful motion
+ok 842 - explicit standalone in-progress task projects working with truthful motion
+ok 843 - explicit standalone waiting task projects waiting with truthful motion
+ok 844 - explicit standalone awaiting-approval task projects approval with truthful motion
+ok 845 - explicit standalone unknown task projects unknown with truthful motion
+ok 846 - explicit standalone failed task projects failed with truthful motion
+ok 847 - explicit standalone interrupted task projects stopped with truthful motion
+ok 848 - explicit standalone finished task projects review with truthful motion
+ok 849 - explicit standalone completed task projects review with truthful motion
+ok 850 - explicit standalone unrecognized task projects unknown with truthful motion
+ok 851 - finished turn and COMPLETE without a bound receipt never imply accepted
+ok 852 - mission projection follows actual plan stage owner rather than coordinator or newest task
+ok 853 - mission projection follows actual work stage owner rather than coordinator or newest task
+ok 854 - mission projection follows actual validate stage owner rather than coordinator or newest task
+ok 855 - mission projection follows actual review stage owner rather than coordinator or newest task
+ok 856 - mission projection follows actual work stage owner rather than coordinator or newest task
+ok 857 - explicit completed task remains selected while its attempt proceeds to another stage
+ok 858 - unassigned structured stage waits without inventing a Franky builder
+ok 859 - a stage reference outside attempt membership is unknown
+ok 860 - root role routing labels a planner without inferring a stage from crew identity or text
+ok 861 - selected earlier attempt is not overwritten by newer active work, receipts, connection or approvals
+ok 862 - task-only context resolves its own historical attempt rather than the active attempt
+ok 863 - explicit attempt without mission resolves only a unique project-owned attempt
+ok 864 - missing and contradictory explicit references remain unavailable instead of falling back
+ok 865 - duplicate task or mission identities fail closed
+ok 866 - missing selected-attempt member cannot be disguised by another live task
+ok 867 - permission approval anywhere in selected attempt overrides active Franky motion
+ok 868 - structured user input and permission requests differ, with permission winning when both exist
+ok 869 - unknown sibling and reconciling current mission each stop active motion; approval remains actionable
+ok 870 - unrelated project, mission and unowned approval cannot interrupt a selected task
+ok 871 - current mission NEEDS_USER is still despite stale active task data
+ok 872 - current mission BLOCKED is still despite stale active task data
+ok 873 - current mission FAILED is still despite stale active task data
+ok 874 - current mission CANCELLED is still despite stale active task data
+ok 875 - current mission WAITING_FOR_REVIEW is still despite stale active task data
+ok 876 - running project check and uncertain external actions never animate a builder
+ok 877 - modern reply acceptance requires exact result receipt binding and exposes its stable cue identity
+ok 878 - modern deliverable acceptance requires exact result receipt binding and exposes its stable cue identity
+ok 879 - legacy receipt does not manufacture a result-bound acceptance or cue
+ok 880 - malformed, mismatched or unbound acceptance never yields accepted state or cue
+ok 881 - accepted result requires main-held unique available reply and current artifact status
+ok 882 - unknown or stale main result status withholds accepted projection and cue despite saved receipt
+ok 883 - pending acceptance receipt cannot retain previous available result or accepted cue
+ok 884 - approval or uncertainty prevents even a saved receipt from showing accepted
+ok 885 - projection is pure and reduced motion or a seen cue never changes authoritative work state
+ok 886 - external history cannot supply authoritative live crew motion
+ok 887 - unfinished attempt with a failed or stopped sibling cannot animate another builder
+ok 888 - a historical selected task cannot borrow current task-family work when attempt membership is missing
+ok 889 - inconsistent workflow completion cannot invent an active owner
+ok 890 - malformed snapshot or context stays unavailable without throwing or selecting work
+ok 891 - completed workflow stages wait for the coordinator turn rather than declaring mission review
+ok 892 - explicit missing stage result or unrecognized member status remains unknown
+ok 893 - global uncertain storage withholds current acceptance while retaining audit and requiring fresh recovery proof
+ok 894 - selected coordinator preserves verified acceptance without a worker assignment
+ok 895 - preview binds exact source and target without remote mutation
+ok 896 - publish uses exact commit, canonical remote and draft body file
+ok 897 - stale source or remote rejects before any publication
+ok 898 - unowned branches and unsafe target input cannot produce previews
+ok 899 - draft describes review gaps and source-bound latest checks without claiming completion
+ok 900 - revised preview preserves exact captain text and immutable source while renewing identity
+ok 901 - preview text validation and stale source prevent revisions without external commands
+ok 902 - publication passes edited multiline text literally through title argv and UTF-8 body file
+ok 903 - generated invalid or oversized previews stay repairable but cannot publish directly
+ok 904 - PR description application cap is enforced before any remote operation
+ok 905 - result_status_is_bounded_main_verified_read_without_mutation
+ok 906 - result_status_rejects_foreign_stale_duplicate_and_extra_arguments
+ok 907 - changed_or_duplicate_reply_is_unavailable_even_with_selected_receipt
+ok 908 - pending_acceptance_never_reads_as_available
+ok 909 - fenced_acceptance_never_reads_as_available
+ok 910 - malformed_selected_ref_never_exposes_opaque_private_fields
+ok 911 - completed_result_read_does_not_reopen_or_accept_mission
+ok 912 - file_result_rechecks_replaced_live_entity_after_await
+ok 913 - file_drift_and_missing_reader_do_not_return_available
+ok 914 - file_status_rejects_project_root_replacement_during_read
+ok 915 - file_status_revalidates_replaced_current_completed_authority
+ok 916 - page_reply_reference_hashes_full_message_not_segment_or_forged_metadata
+ok 917 - page_reply_reference_rejects_non_members_and_duplicate_or_working_replies
+ok 918 - reply_reference_requires_unique_finished_attempt_message
+ok 919 - changed_reply_or_file_cannot_accept
+ok 920 - deliverable_requires_current_attached_artifact_and_explicit_producer_membership
+ok 921 - result_reference_rejects_unknown_fields_and_mismatched_producer
+ok 922 - unattached_result_cannot_accept
+ok 923 - new_attempt_clears_selection
+ok 924 - supervised acceptance fails closed without independent criterion readiness even with a selected result
+ok 925 - requested changes bind the reviewed attempt, survive restart and guide a distinct attempt
+ok 926 - empty changes and unresolved side effects cannot create a review decision
+ok 927 - review checkpoint failure rolls back status and decision without launching work
+ok 928 - acceptance records the captain decision only after criteria, and persists after restart
+ok 929 - stable role resolves explicit capability and configured runtime binding
+ok 930 - reporter is refused on worker routes and uses the sanitized report endpoint
+ok 931 - unsupported providers and contradictory choices fail before dispatch
+ok 932 - legacy crew choices map to roles without granting authority
+ok 933 - mission context includes scoped criteria and no unrelated history
+ok 934 - resident mission routing uses canonical specialty and rejects unrecruited admission
+ok 935 - all fresh criterion reviewers pin combined source and capacity-one partial review stays schedulable
+ok 936 - definite combined intent rejection releases its lock but lost durable acknowledgment retains recovery
+ok 937 - coordinated stages require ordered real task results
+ok 938 - planner must complete with output before a worker may start
+ok 939 - out-of-order work and uncertain results never satisfy stages
+ok 940 - completed staged attempt cannot silently start extra work
+ok 941 - supervised workflow never infers review approval from finished reviewer prose
+ok 942 - new ledger is additive and rejects unknown saved schema
+ok 943 - mission launch is single-use and allocates a distinct attempt
+ok 944 - coding completion awaits revision-bound captain acceptance
+ok 945 - merge objective cannot complete from coding or a generic acceptance
+ok 946 - uncertain attempt keeps reservation and cannot be retried
+ok 947 - retry keeps old evidence and ignores late completion of an earlier attempt
+ok 948 - child approval is visible and finished parent does not hide active child work
+ok 949 - failed dispatch is durable and duplicate snapshots do not grow event history
+ok 950 - retry archives previous merge review and preserves it across reload
+ok 951 - uncertain merge cannot be hidden by a new attempt
+ok 952 - retry archives prior publication but cannot conceal uncertain publication
+ok 953 - signal receipts persist without approving work and reject stale or foreign events
+ok 954 - GPT-6 Sol and Luna can be explicitly selected with catalog-supported reasoning
+ok 955 - canonical model and supported effort follow Luffy’s explicit selection
+ok 956 - unknown models and incompatible reasoning fail before dispatch
+ok 957 - token saver starts with lower supported effort without guessing model prices
+ok 958 - deep work and balanced preferences use only supported options
+ok 959 - missing catalogs preserve provider defaults but cannot validate invented settings
+ok 960 - routing context exposes capabilities and the efficiency policy without claiming prices
+ok 961 - imports a completed ChatGPT file once through News validation
+ok 962 - ignores unrelated, unsourced, symlinked and still-written files
+ok 963 - malformed and oversized files report once without blocking another briefing
+ok 964 - rotates through more than 100 briefing files without starving older captures
+ok 965 - rotation notices changes to an already seen file after later batches
+ok 966 - rotation survives deletion of its last inspected name and insertion of new files
+ok 967 - a full malformed batch reports once and cannot starve a valid older file
+ok 968 - news starts empty with no unattended connection claim
+ok 969 - capture imports deduplicate canonical URLs while keeping saved state
+ok 970 - invalid capture is atomic and blocks unsafe links
+ok 971 - unknown projects and categories are rejected
+ok 972 - capture provenance is honest and publication dates are separate
+ok 973 - saved preferences and read states survive reload
+ok 974 - handoff requires a real project and quotes sources as untrusted
+ok 975 - capture batch and text size are bounded
+ok 976 - note drafts survive navigation and preserve the original conflict hash
+ok 977 - save acceptance retains newer edits and rebases them on the accepted hash
+ok 978 - reverting text during a pending save remains an unsaved edit against the new disk value
+ok 979 - successful save clears only its own draft
+ok 980 - older deferred replies and errors cannot replace the current request
+ok 981 - save completion from an unmounted view retains edits made in the next view
+ok 982 - control matrix fixes one fresh-process size and nearest-rank gates
+ok 983 - actual entry bootstrap runs Electron argv entry even when require.main differs, and keeps imports inert
+ok 984 - production workload validation enforces the declared U+2014 and UTF-8 shape without importing a session fixture
+ok 985 - cleanup rejection remains failed evidence and cannot prevent the final process exit
+ok 986 - production facade rejects foreign frames and awaits pending load and exact Hub completion
+ok 987 - renderer times the actual invoke promise and preserves raw rejected and failure replies
+ok 988 - known rejected control remains a raw failure sample
+ok 989 - continuous 1ms monitor covers later synchronous authority preparation after initial background I/O
+ok 990 - read-only proof compares the whole stored compact row and receipt, including opaque transcript data
+ok 991 - control admission observes native submission before a fast background receipt can settle
+ok 992 - control admission still rejects an already-settled native checkpoint
+ok 993 - control admission reports pre-submission persistence failure instead of waiting forever
+ok 994 - native_idle_submission_captures_before_caller_mutation sqlite
+ok 995 - native_idle_submission_captures_before_caller_mutation json
+ok 996 - owned_capture_preserves_idle_and_waiting_images_without_cloning_string_bytes
+ok 997 - owned_waiting_images_coalesce_without_losing_required_barriers
+ok 998 - failed_waiting_capture_does_not_replace_accepted_checkpoint
+ok 999 - queued_postMessage_failure_rejects_pending_flush_and_reports_uncertainty
+ok 1000 - native_postMessage_forward_then_throw_never_claims_a_durable_receipt
+ok 1001 - small native updates send patches and retain unversioned transcript edits
+ok 1002 - barriers_are_ordered_and_receipts_match_exact_images sqlite
+ok 1003 - opaque_unicode_profile_and_backup_receipt_roundtrip sqlite
+ok 1004 - barriers_are_ordered_and_receipts_match_exact_images json
+ok 1005 - opaque_unicode_profile_and_backup_receipt_roundtrip json
+ok 1006 - background_coalescing_preserves_required_barriers
+ok 1007 - inflight_mutation_cannot_change_saved_image
+ok 1008 - commit_without_receipt_is_uncertain
+ok 1009 - forged_receipts_fail_closed
+ok 1010 - worker_validates_authority_and_preserves_opaque_fields
+ok 1011 - large_images_preserve_complete_multibyte_transcripts
+ok 1012 - worker_start_failure_is_reported_without_unhandled_rejection
+ok 1013 - invalid_checkpoint_image_cannot_save_an_unchanged_profile
+ok 1014 - initialization_and_commit_timeouts_terminate_workers
+ok 1015 - commits_use_no_main_thread_writable_storage_apis
+ok 1016 - successful_v1_upgrade_retains_backup_and_reopens_exactly
+ok 1017 - invalid_initial_profile_fails_without_overwrite
+ok 1018 - close_drains_accepted_barriers_and_rejects_new_images
+ok 1019 - receipt_hash_matches_persisted_bytes_when_opaque_field_is_explicitly_undefined sqlite
+ok 1020 - receipt_hash_matches_persisted_bytes_when_opaque_field_is_explicitly_undefined json
+ok 1021 - package helpers hash actual nested ASAR entries while preserving slash receipt keys
+ok 1022 - packaged fixture cannot connect or use live profile
+ok 1023 - fixture admission rejects junction aliases and manifest scripts
+ok 1024 - packaged frozen workload preserves exact bytes and real profile validity
+ok 1025 - actual source main exit and relaunch retains durable drafts results and uncertain reservations
+ok 1026 - fixture uses real Hub recovery and fails closed on provider and scheduler attempts
+ok 1027 - real persistence worker faults reject and lost acknowledgement remains durable but uncertain
+ok 1028 - packaged pending-check command reaches the real false-attestation boundary and retains reservation
+ok 1029 - write failure is a real SQLite write rejection with the previous durable image preserved
+ok 1030 - fixture launch rejects smoke preview imports and runtime security flags before routing
+ok 1031 - fixture rejects nonempty unmanifested evidence directory
+ok 1032 - second phase cannot open a fixture profile containing file aliases
+ok 1033 - write-failure acceptance rejects an unrelated timeout and any changed previous image
+ok 1034 - real write-failure evidence binds a native locked receipt to the complete durable image
+ok 1035 - actual PowerShell file admission rejects exe and ASAR junction ancestors
+ok 1036 - renderer readiness follows the restored production workbench and refuses loading or recovery
+ok 1037 - package identity hashes raw ASAR bytes without changing Electron archive handling
+ok 1038 - private Windows manifest survives both phase writes with only user and SYSTEM access
+ok 1039 - fixed assets include build-info under dist and missing or tampered frozen assets fail
+ok 1040 - complete raw samples proofs events package and generation validate together
+ok 1041 - unchanged frozen workload metadata matches all sizes and actual package path lengths
+ok 1042 - forged or partial summary wrong provenance stale root and tampered raw digests reject
+ok 1043 - raw validation requires every sample exact proof timer warmup and completed cleanup
+ok 1044 - supervisor requires raw validation plus normal exit and independently empty owned job
+ok 1045 - passing flags cannot replace complete transcript draft opaque and semantic proof fields
+ok 1046 - matching raw/event digests cannot admit missing background receipt
+ok 1047 - matching raw/event digests cannot admit missing null-reason receipt
+ok 1048 - matching raw/event digests cannot admit missing recorded background submission
+ok 1049 - matching raw/event digests cannot admit wrong background receipt association
+ok 1050 - matching raw/event digests cannot admit wrong control submission association
+ok 1051 - matching raw/event digests cannot admit missing initial receipt
+ok 1052 - matching raw/event digests cannot admit wrong initial worker epoch
+ok 1053 - matching raw/event digests cannot admit missing frozen shape
+ok 1054 - matching raw/event digests cannot admit wrong frozen task count
+ok 1055 - matching raw/event digests cannot admit wrong frozen compact size
+ok 1056 - matching raw/event digests cannot admit wrong frozen mission tasks
+ok 1057 - matching raw/event digests cannot admit undersize full-row proof
+ok 1058 - matching raw/event digests cannot admit missing mandatory readiness assertion
+ok 1059 - matching raw/event digests cannot admit invented assertion substitutes for shape
+ok 1060 - matching raw/event digests cannot admit wrong renderer isolation proof
+ok 1061 - consistent omission of all background receipts still fails with recomputed digests
+ok 1062 - consistent smaller workload flags cannot replace the actual frozen size
+ok 1063 - packaged summary validates exact written JSON despite optional undefined memory fields
+ok 1064 - private admission permits only ordered-control phase one and the three frozen sizes
+ok 1065 - shared runner and adapter imports are inert and both reject a fabricated capability
+ok 1066 - one finalizer writes completed raw evidence before summary and exits only once
+ok 1067 - raw write failure cannot publish a passing summary
+ok 1068 - completion just before deadline cannot pass with cleanup after the absolute deadline
+ok 1069 - ordered-control selects the fixed 300 second ceiling
+ok 1070 - main routes ordered-control exactly once before ordinary bootstrap imports or readiness
+ok 1071 - synthetic request responses and inert scheduler are installed before Hub constructor
+ok 1072 - external denial and owned readonly IPC are installed before renderer load
+ok 1073 - compiled launcher control uses only injected fake native operations for all failure branches
+ok 1074 - playable driver expects phase-one restart and enforces restart and owned Node evidence
+ok 1075 - external deadline is armed before a never-returning launch and never invents cleanup
+ok 1076 - hung observation and late answers cannot replace terminal deadline or acquire ownership
+ok 1077 - a completed helper is insufficient when containment or cleanup was not observed
+ok 1078 - job assignment failure never resumes helper code and timeout closes only its created job
+ok 1079 - process ownership rejects PID reuse, wrong executable, manifest, parent generation and Node exceptions
+ok 1080 - valid job exit still requires exact package phase identities and zero provider effects
+ok 1081 - native adapter uses atomic private job admission without breakaway or PID termination fallback
+ok 1082 - same RPC ID replay still requires a new local approval and one explicit decline
+ok 1083 - replacement RPC ID has the same stale-decision protections
+ok 1084 - no replay does not fabricate an approval or claim live verification
+ok 1085 - a provider label never upgrades in-memory replay to live proof
+ok 1086 - reject incomplete, unsupported and unredacted observations
+ok 1087 - no_dispatch_or_acceptance_before_durable_receipt: dispatch
+ok 1088 - no_dispatch_or_acceptance_before_durable_receipt: acceptance
+ok 1089 - newer_stream_and_reentrant_edits_survive_barrier_failure
+ok 1090 - changed_result_during_pending_acceptance_withholds_cue
+ok 1091 - authority_sync_after_barrier_is_not_discarded
+ok 1092 - queue_saturation_rejects_before_mutation
+ok 1093 - final_receipt_invalidation_compensates_exact_entity_and_retains_newer_data
+ok 1094 - pending_acceptance_is_explicitly_validated_in_current_profile_format
+ok 1095 - uncertain_branch_switch_keeps_reservation_until_saved_inspection
+ok 1096 - Hub_keeps_opaque_nested_service_fields_in_submitted_profile
+ok 1097 - receipt_validation_does_not_reserialize_full_profile_in_main
+ok 1098 - news_preference_updates_preserve_nested_opaque_values
+ok 1099 - approval_response_saves_exact_bound_decision_before_provider_response
+ok 1100 - Stop_during_initial_dispatch_save_prevents_any_provider_submission
+ok 1101 - saturated_send_does_not_append_unsent_captain_text
+ok 1102 - failed_acceptance_compensation_is_unresolved_and_cannot_release_or_play
+ok 1103 - check_outcome_save_failure_retains_check_reservation_without_replay
+ok 1104 - publication_outcome_save_failure_stays_reserved_until_explicit_reconciliation
+ok 1105 - simultaneous_cross_surface_cue_claims_have_one_durable_owner
+ok 1106 - changed_deliverable_after_final_submission_is_durably_compensated
+ok 1107 - Hub_acceptance_roundtrips_through_worker_owned_JSON_without_external_calls
+ok 1108 - island_Stop_acknowledges_saved_job_and_task_outcomes_together
+ok 1109 - direct_tool_dispatch_saves_exact_arguments_before_provider_call
+ok 1110 - saturated_direct_tool_admission_preserves_task_and_zero_dispatch
+ok 1111 - failed_tool_outcome_write_retains_reservation_and_never_replays
+ok 1112 - a successful explicit checkpoint supersedes already scheduled identical background saves
+ok 1113 - a newer mutation after an explicit checkpoint still receives its own background save
+ok 1114 - a failed explicit checkpoint leaves its scheduled save and idle retry available
+ok 1115 - continuous new deltas after an explicit checkpoint still reach the one-second checkpoint
+ok 1116 - background and shutdown checkpoints preserve private run resource high water and reservations
+ok 1117 - persistence profiling uses a bounded synthetic task state at the requested byte scale
+ok 1118 - profile summaries use observed samples and nearest-rank latency percentiles
+ok 1119 - v2 worker upgrade retains exact backup and full profile on reopen
+ok 1120 - shutdown quiesces scheduler before draining required receipts and never writes after uncertain flush
+ok 1121 - restart_preserves_every_acknowledged_barrier sqlite
+ok 1122 - worker_crash_retains_unknown_reservations_and_never_replays sqlite
+ok 1123 - final_acceptance_commit_crash_and_content_mismatch_restart_fences_audit sqlite
+ok 1124 - failed_boot_never_overwrites_unsupported_profile sqlite
+ok 1125 - restart_preserves_every_acknowledged_barrier json
+ok 1126 - worker_crash_retains_unknown_reservations_and_never_replays json
+ok 1127 - final_acceptance_commit_crash_and_content_mismatch_restart_fences_audit json
+ok 1128 - failed_boot_never_overwrites_unsupported_profile json
+ok 1129 - shutdown_during_save_preserves_pending_drafts_and_closes_worker
+ok 1130 - disk_failure_storage_retry_has_zero_external_calls
+ok 1131 - failed_shutdown_keeps_text_and_unsaved_health_available
+ok 1132 - before_quit_waits_and_is_idempotent_without_real_app
+ok 1133 - boot_waits_for_durable_restart_recovery_before_exposing_hub
+ok 1134 - failed_before_quit_never_claims_exit_and_repeated_events_share_failure
+ok 1135 - acceptance_recovery_fence_is_explicitly_validated_and_retains_audit
+ok 1136 - pending_acceptance_restart_restores_reservation_without_finishing_or_replaying
+ok 1137 - native_terminal_store_failure_retry_rejects_and_preserves_acknowledged_profile
+ok 1138 - dual_existing_formats_fail_closed_without_choosing_by_timestamp
+ok 1139 - opaque_external_intents_restore_even_terminal_captain_reservations_and_never_replay
+ok 1140 - submitted_approval_audit_does_not_turn_finished_task_into_unresolved_work
+ok 1141 - startup_rechecks_complete_binding_after_awaited_recovery_save
+ok 1142 - unsupported_delete_journal_sqlite_boot_preserves_exact_bytes
+ok 1143 - malformed_json_boot_refuses_defaults_and_preserves_original
+ok 1144 - branch_switch_rechecks_quiesce_after_awaited_source_read
+ok 1145 - check_process_rechecks_quiesce_after_awaited_source_read
+ok 1146 - publication_push_rechecks_quiesce_after_internal_validation
+ok 1147 - publication_pr_rechecks_quiesce_after_push_without_replaying
+ok 1148 - existing_foreign_sqlite_and_empty_json_boot_never_create_authority_defaults
+ok 1149 - new_missing_profiles_bootstrap_and_supported_delete_journal_keeps_exact_data
+ok 1150 - supervised reservation roundtrip rejects malformed authority without overwriting durable state
+ok 1151 - acceptance quiescence excludes only its exact published main-held intent
+ok 1152 - owned acceptance does not mask foreign or concurrent uncertain effects
+ok 1153 - feedback author provider dispatch revalidates checkpoint before any provider request
+ok 1154 - feedback dispatch rechecks task and budget after awaited checkpoint inspection
+ok 1155 - historical handoff continues through exact installed checkpoint without rewriting initial receipt
+ok 1156 - historical handoff retains old proof and entire installed successor proof fences
+ok 1157 - real installed checkpoint schedules and starts overlapping successor with seeded prior epoch handoff
+ok 1158 - retained build controls remain visible without a currently selected or available result
+ok 1159 - validated feedback remains attached to old exact build and duplicate does not refill or trigger again
+ok 1160 - feedback rejects foreign identity, unsafe attachments and stale revision
+ok 1161 - only explicit new-attempt request starts once and keeps original receipt with no acceptance
+ok 1162 - pending improvement handoff retries deduplicated receipt without creating a new build attempt
+ok 1163 - explicit attempt request retries a failed pre-dispatch hook once, never a lost dispatch
+ok 1164 - actual approved local runtime serves exact staged bytes and interaction; stop settles same controller
+ok 1165 - stale, denied, unreviewed and missing bytes reject before spawn
+ok 1166 - stage mutation and inspection race reject; arbitrary command fields reject
+ok 1167 - failed spawn remains failed and recovered PID has no cancellation authority
+ok 1168 - preview policy denies foreign localhost, credentials, redirects and all permissions
+ok 1169 - actual Hub shared Stop-all durably settles approved Node, preserves failures and feeds genuine feedback hook
+ok 1170 - actual Hub shutdown drains captured launch final receipt before closing authority
+ok 1171 - result IPC rejects every renderer command authority field and unknown result action
+ok 1172 - persisted PID substitution cannot terminate another live fixture runtime
+ok 1173 - preview already closed by captain does not prevent owned exit and durable cleanup
+ok 1174 - unexpected real runtime exit invalidates current readiness and completion entitlement
+ok 1175 - public manual scripts reject ordinary supervised authority and replay with zero intent or check
+ok 1176 - public legacy check and ordinary nonexecuting inspection remain available
+ok 1177 - foreign run authority cannot become legacy manual execution
+ok 1178 - legacy promotion during workspace await is rejected before intent and effect
+ok 1179 - legacy promotion after intent and at actual callback never executes a check or strands owned authority
+ok 1180 - manual denial does not clear a foreign durable intent
+ok 1181 - genuine started and uncertain legacy effects retain their existing cleanup semantics
+ok 1182 - private manual denial cannot release a storage-uncertain intent
+ok 1183 - manual denial retains a foreign or possibly started controller and its reservation
+ok 1184 - public goal enrolls a committed bounded playable contract before provider dispatch
+ok 1185 - playable delivery seals a real fixed build before genuine producer closure and result selection
+ok 1186 - genuine source review enables candidate Play while final runtime readiness remains absent
+ok 1187 - genuine stopped playable feedback admits a second graph while retaining the first
+ok 1188 - original plus three genuine complete feedback cycles reject a fourth with spare grant
+ok 1189 - fresh genuine playable runtime and captain acceptance persist without improvement dispatch
+ok 1190 - genuine failed preselection build retains closed failure and produces no snapshot or manifest
+ok 1191 - v2 manifest binds actual npm build receipt without serving the source recipe
+ok 1192 - manifest inspection binds exact bytes and every binary asset
+ok 1193 - strict manifest rejects identity, command strings, traversal, protected paths, unknown fields and missing assets
+ok 1194 - binary reader rejects hardlinks and root aliases
+ok 1195 - playable reference cannot be inferred from a reply or source commit
+ok 1196 - candidate independent review may precede playable evidence while final readiness cannot
+ok 1197 - candidate rejects missing build evidence, author review and unresolved stable findings
+ok 1198 - candidate never waives an undeclared manifest obligation by its blocker prefix
+ok 1199 - inspector rejects exact manifest whitespace replacement and bounded bytes
+ok 1200 - inspector detects earlier asset mutation while reading later bytes
+ok 1201 - directory junction escape and aliased workspace root reject
+ok 1202 - actual Hub selects integrity before review, exposes sanitized candidate, requires final proof for acceptance and rejects byte/source drift
+ok 1203 - legacy manifest runtime IDs coexist with exact already passed test and build obligations
+ok 1204 - runtime interaction binds session, epoch, source and each criterion obligation
+ok 1205 - stale runtime messages and unknown obligations cause zero evidence mutations
+ok 1206 - exact JSON bytes preserve keys, Unicode, scalar and sparse array semantics
+ok 1207 - changed field reuses sealed history and appending a long string reuses prefix fragments
+ok 1208 - encoder refuses mutable objects and executable values
+ok 1209 - an early array edit retains later encoded history bytes
+ok 1210 - tail edits reuse verified digest prefixes without rehashing unchanged history
+ok 1211 - digest prefixes remain exact across early edits, deletions and reordered layouts
+ok 1212 - capture isolates in-place unversioned edits, aliases and sparse arrays
+ok 1213 - patch detects in-place changes and preserves untouched sealed subtrees
+ok 1214 - property order, prototype keys, insertion and deletion survive patching
+ok 1215 - large update uses full replacement and is isolated before caller mutation
+ok 1216 - malformed and inherited patch paths fail without mutating base
+ok 1217 - cycles, accessors and executable values are rejected without invoking getters
+ok 1218 - adding control metadata does not resend unchanged transcript text
+ok 1219 - many small operations include separators in the transport byte limit
+ok 1220 - delete-only updates also fall back when their envelope exceeds the limit
+ok 1221 - captures supported native values with their existing JSON representation
+ok 1222 - deep changed profiles fall back safely without overflowing the diff stack
+ok 1223 - deployment health retains latest current-attempt observation and detects later source mismatch
+ok 1224 - health takes latest per script and never borrows earlier attempt or another project
+ok 1225 - later source inspection marks recorded checks stale without claiming current monitoring
+ok 1226 - missing checks and PR remain unknown and current latest PR is retained
+ok 1227 - uncertain connection and pending publication take precedence over check results
+ok 1228 - append order stays authoritative after clock rollback and failed evidence remains failed
+ok 1229 - written deliverables guide creative review without inventing check success
+ok 1230 - search stops at exactly 4000 files across flat siblings
+ok 1231 - search stops globally across nested directory siblings
+ok 1232 - empty directory traversal stops at 4000 visits including the root
+ok 1233 - file search yields to the event loop during a large traversal
+ok 1234 - preserves matching lines, text truncation, exclusions, binary and size limits
+ok 1235 - retains the 100 matching-line cap and propagates unavailable roots
+ok 1236 - rejects a file replaced between metadata validation and opening
+ok 1237 - does not follow a directory replaced by an outside junction during traversal
+ok 1238 - limits bytes read when a validated file grows during reading
+ok 1239 - private snapshots and action replies contain summaries without advancing event sequence
+ok 1240 - one published envelope has one shared sequence and private reads cannot create gaps
+ok 1241 - actual transcript mutation publishes the same delta revision and event sequence
+ok 1242 - live mutation channels seed new tasks and publish only one envelope to every surface
+ok 1243 - stale transcript cleanup cannot unbind or permit duplicates after a new binding
+ok 1244 - pages validate unique membership and stale revisions before returning bounded display
+ok 1245 - task replies reject a detached or unknown task rather than cloning arbitrary payloads
+ok 1246 - a detached mutation cannot contaminate authoritative transcript metadata
+ok 1247 - uncertain storage withholds result availability while leaving audit in snapshots
+ok 1248 - an explicit uncertain health state also withholds results
+ok 1249 - PR evidence is scoped to origin repository and exact clean HEAD
+ok 1250 - different PR source cannot be attached as current work
+ok 1251 - missing, pending and failing CI remain distinct from passed
+ok 1252 - PR number and returned URL cannot redirect verification
+ok 1253 - dirty local work and changes during query invalidate PR evidence
+ok 1254 - skipped-only checks do not prove passing CI
+ok 1255 - reconciliation never credits a lower provider cumulative total to a supervised goal
+ok 1256 - reconciling an already interrupted captain and child succeeds without another interrupt
+ok 1257 - captain continuation resolves stopped unknown assignments and starts exactly one turn
+ok 1258 - an in-progress turn prevents continuation even when the outer thread says idle
+ok 1259 - unknown provider state keeps the checkout locked and cannot be reconciled as stopped
+ok 1260 - an unresolved captain cannot start a turn after its child is resolved
+ok 1261 - a disconnected child read blocks continuation and preserves the checkout lock
+ok 1262 - concurrent captain sends cannot both resume the same stopped turn
+ok 1263 - an active thread without an identified active turn cannot interrupt a cached old turn
+ok 1264 - a concurrent stop prevents continuation until its reconciliation finishes
+ok 1265 - dedicated preload has exactly immutable bootstrap and six hardcoded query methods
+ok 1266 - invalid or absent bootstrap exposes no ordinary or recovery bridge
+ok 1267 - bootstrap and exposure failures reach the main preload failure lifecycle with a fixed error and nonzero exit
+ok 1268 - main independently denies foreign frames, pre-bootstrap requests, extra args and stale navigation
+ok 1269 - recovery IPC disposal survives a destroyed window and repeated disposal preserves later handlers
+ok 1270 - earliest recovery entry denies forged direct launch before fixture, storage and ordinary imports
+ok 1271 - terminal query failure remains sticky in main until a nonzero actual exit request
+ok 1272 - reader retains complete final-v3 raw image and pages every transcript without source or authority changes
+ok 1273 - reader local archive is full, bounded and never falls back to remote history
+ok 1274 - schema and archive failure do not manufacture defaults or migrated images
+ok 1275 - forged admission and direct entry cannot import storage or normal runtime
+ok 1276 - fixed SQLite adapter closes the connection on every reachable read/schema failure
+ok 1277 - saved project roots are inert strings and managed final-v3 authority survives reader queries
+ok 1278 - live reliability probe requires explicit opt-in before creating data or starting a worker
+ok 1279 - live report journey requires explicit opt-in
+ok 1280 - renderer diagnostics retain build and surface evidence while excluding private fields
+ok 1281 - renderer lifecycle diagnostics cover both surfaces and ignore aborted/subframe loads
+ok 1282 - renderer recovery reload requires an explicit choice and a live non-quitting surface
+ok 1283 - a transient idle state-save failure retries the latest state without provider work
+ok 1284 - a persistent state-save failure has one bounded retry and shutdown cancels it
+ok 1285 - a valid provider message whose consumer fails is classified separately and disconnects uncertain work
+ok 1286 - malformed protocol input emits a private-safe decode category and later messages still correlate
+ok 1287 - an asynchronous provider consumer failure also disconnects with an uncertain pending request
+ok 1288 - failed persistence still blocks a provider dispatch even while save retry is scheduled
+ok 1289 - throwing diagnostic and disconnect observers cannot prevent transport cleanup
+ok 1290 - a late rejected consumer from an old connection cannot disconnect its replacement
+ok 1291 - asynchronously rejected diagnostic observers do not recurse or block disconnect
+ok 1292 - renderer exit diagnostics retain the OS reason and code but discard private details
+ok 1293 - diagnostics cannot inject arbitrary reasons, codes or detail on unrelated events
+ok 1294 - native hang lifecycle records one episode and monotonic recovery duration
+ok 1295 - renderer exit and reload cannot attribute an old hang to a new renderer
+ok 1296 - hang duration and surface are bounded and private properties excluded
+ok 1297 - journey acceptance requires source facts, readable sections and a resolved review
+ok 1298 - report IPC accepts only a bounded scope object
+ok 1299 - report follows a verified recovery chain to the finished result
+ok 1300 - report never follows unrelated replacements or cycles
+ok 1301 - manual backup retains pending and saved results with exact receipt content
+ok 1302 - restore rejects corrupt or contradictory saved receipts and duplicate identities
+ok 1303 - StateStore: reviewed result and exact receipt survive restart and repeated delivery
+ok 1304 - SqliteStore: reviewed result and exact receipt survive restart and repeated delivery
+ok 1305 - recovery trial 1: written note with lost receipt recovers one original note
+ok 1306 - recovery trial 2: written note with lost receipt recovers one original note
+ok 1307 - recovery trial 3: written note with lost receipt recovers one original note
+ok 1308 - intent checkpoint failure creates no note or in-memory success
+ok 1309 - missing vault preserves a failed intent and retries only at its reserved destination
+ok 1310 - StateStore: abrupt process exit before-write, trial 1: restart recovers one exact note
+ok 1311 - StateStore: abrupt process exit before-write, trial 2: restart recovers one exact note
+ok 1312 - StateStore: abrupt process exit before-write, trial 3: restart recovers one exact note
+ok 1313 - StateStore: abrupt process exit after-note, trial 1: restart recovers one exact note
+ok 1314 - StateStore: abrupt process exit after-note, trial 2: restart recovers one exact note
+ok 1315 - StateStore: abrupt process exit after-note, trial 3: restart recovers one exact note
+ok 1316 - StateStore: abrupt process exit after-receipt, trial 1: restart recovers one exact note
+ok 1317 - StateStore: abrupt process exit after-receipt, trial 2: restart recovers one exact note
+ok 1318 - StateStore: abrupt process exit after-receipt, trial 3: restart recovers one exact note
+ok 1319 - SqliteStore: abrupt process exit before-write, trial 1: restart recovers one exact note
+ok 1320 - SqliteStore: abrupt process exit before-write, trial 2: restart recovers one exact note
+ok 1321 - SqliteStore: abrupt process exit before-write, trial 3: restart recovers one exact note
+ok 1322 - SqliteStore: abrupt process exit after-note, trial 1: restart recovers one exact note
+ok 1323 - SqliteStore: abrupt process exit after-note, trial 2: restart recovers one exact note
+ok 1324 - SqliteStore: abrupt process exit after-note, trial 3: restart recovers one exact note
+ok 1325 - SqliteStore: abrupt process exit after-receipt, trial 1: restart recovers one exact note
+ok 1326 - SqliteStore: abrupt process exit after-receipt, trial 2: restart recovers one exact note
+ok 1327 - SqliteStore: abrupt process exit after-receipt, trial 3: restart recovers one exact note
+ok 1328 - a junction replacing Inbox is refused, including links within the vault
+ok 1329 - a definite directory failure persists failed status and retries the same operation
+ok 1330 - conflicting or partial note is never overwritten or duplicated
+ok 1331 - checking a missing previously saved note does not recreate it
+ok 1332 - changed vault cannot redirect recovery to another destination
+ok 1333 - saving another reviewed version keeps the previous receipt
+ok 1334 - reject stale, active, external, forged, unreviewed and oversized requests before writing
+ok 1335 - an accepted earlier reply saves only with the current exact acceptance binding
+ok 1336 - late main result read cannot verify newer mission or transcript binding
+ok 1337 - main result read error remains recoverable without manufactured available status
+ok 1338 - result verification reads only explicit selection and retains at most two adjacent prior entries
+ok 1339 - uncertain storage clears cached result proof without rereading until recovery
+ok 1340 - uncertainty retires adjacent cached proofs so recovery cannot resurrect earlier availability
+ok 1341 - changes required is not ready
+ok 1342 - all mandatory criteria and independent exact-source approval are ready
+ok 1343 - empty required checks prevents readiness
+ok 1344 - stale fingerprint prevents readiness
+ok 1345 - missing artifact prevents readiness
+ok 1346 - unresolved blocking finding prevents readiness
+ok 1347 - author reviewer overlap prevents readiness
+ok 1348 - malformed verdict prevents readiness
+ok 1349 - unverified workspace prevents readiness
+ok 1350 - unverified integration prevents readiness
+ok 1351 - author session reused under a new task ID rejects
+ok 1352 - documentation build exemption is justified but playable cannot be exempted
+ok 1353 - assigned reviewer tool persists receipt and readiness before response; identical replay is idempotent
+ok 1354 - wrong reviewer thread rejects with no durable verdict
+ok 1355 - wrong reviewer turn rejects with no durable verdict
+ok 1356 - Luffy tool forgery rejects with no durable verdict
+ok 1357 - invented reviewerTaskId rejects with no durable verdict
+ok 1358 - self asserted author exemption rejects with no durable verdict
+ok 1359 - author thread reused under new task rejects with no durable verdict
+ok 1360 - three run-wide repair batches block and route stable findings to path owners
+ok 1361 - review tool registration is exclusive to main assigned review sessions
+ok 1362 - repeated replacement author history rejects an older session reused under a new reviewer task
+ok 1363 - incomplete authorship history fails closed
+ok 1364 - stale actual source rejects reviewer verdict before durable acceptance
+ok 1365 - Luffy ready leaves mission unaccepted and requires captain result receipt
+ok 1366 - reviewer turn changed during awaited source read rejects without saving verdict
+ok 1367 - reviewer replay cannot change target run
+ok 1368 - source invalidation preserves historical review attribution while removing current readiness
+ok 1369 - repair exhaustion survives coordinator controls and grant increases
+ok 1370 - stable blocking findings survive source replacement and block acceptance until trusted resolution
+ok 1371 - source changed inside durable barrier rejects ready response and clears durable readiness
+ok 1372 - missionMutation awaits async options validation and rejects without publication
+ok 1373 - provider resolved finding claim does not close stable main finding
+ok 1374 - trusted finding resolution rejects malformed identity and stale source
+ok 1375 - async after-save validation is awaited and rejected mutation is durably compensated
+ok 1376 - failed source corrective save fences authority and emits no successful verdict
+ok 1377 - room isolates projects and gives approvals priority over other assignments
+ok 1378 - unknown work remains uncertain and outranks ordinary active work
+ok 1379 - finished turns are reviewable and old attempts cannot borrow mission completion
+ok 1380 - room event log is project scoped, bounded and latest first
+ok 1381 - crew identity alone never invents a work phase
+ok 1382 - signal projection exposes saved receipts and exact mission revision without affecting attention
+ok 1383 - each Sunny specialist has a distinct short room-arrival signature
+ok 1384 - room cue player resumes only on request, uses the selected safe volume, and stops active cues
+ok 1385 - room audio stays unavailable without a running audio context
+ok 1386 - stop cancels playback awaiting native resume and a later explicit play can start
+ok 1387 - active voices remain owned until real ended cleanup and repeated stop still cancels them
+ok 1388 - room starters preserve the captain draft and remain unsent strings
+ok 1389 - station evidence excludes old attempts and foreign projects
+ok 1390 - old task cannot borrow new attempt results
+ok 1391 - idle rooms do not aggregate unrelated work
+ok 1392 - same run identifier in another project cannot populate station
+ok 1393 - review ledger only reports a recorded current-attempt captain decision
+ok 1394 - work travels to station then begins work frames
+ok 1395 - blocked crew stop immediately without reaching or leaving a station
+ok 1396 - reduced motion snaps with no travel and idle returns to rest
+ok 1397 - clock jumps never teleport animated crew and negative time does not reverse them
+ok 1398 - visual pause holds admitted feet while attention can still update without mutating work
+ok 1399 - captain remains on the clear illustrated floor and can reach the board approach
+ok 1400 - room relay uses exact recorded dependencies and confirmed active assignments
+ok 1401 - room relay cannot borrow a task or run from a different project
+ok 1402 - room relay freezes confirmation when input, uncertainty, storage or stop needs attention
+ok 1403 - multiple current assignments for one crew never create false working motion
+ok 1404 - unadmitted assignments do not borrow a same-crew neighbor dependency label
+ok 1405 - Hub budget authority is integrated before provider effects
+ok 1406 - trusted Hub saves reservation and counter before actual thread/start and turn/start protocol calls
+ok 1407 - failed durable reservation produces zero provider starts
+ok 1408 - coordinator telemetry without task.runId uses durable high water and warning once
+ok 1409 - budget threshold enters shared stop-work transition without private interrupt dispatch
+ok 1410 - live runtime gate remains disabled despite valid grant
+ok 1411 - capacity includes manual and island specialists
+ok 1412 - awaited captain options rechecks contracted grant before thread/start
+ok 1413 - turn reservation receipt delay rechecks budget and prevents turn/start
+ok 1414 - provider confirmed human wait excludes time; generic waiting and suspend continue accounting
+ok 1415 - restart recovery retains high water and counts uncertain gap without relaunch
+ok 1416 - public summaries expose counters and uncertainty without private thread or reservation ledger
+ok 1417 - actual replacement retains delayed old-thread usage ownership without admitting old lifecycle events
+ok 1418 - durable telemetry attribution survives two actual replacements and matches the transport provider
+ok 1419 - durable resource accounting contract exists
+ok 1420 - usage high water and approved limits survive replay
+ok 1421 - launch identities remain durable and idempotent through repair and restart
+ok 1422 - three global workers and unknown telemetry one-worker admission
+ok 1423 - worker and run time limits include suspend and restart uncertainty without clock credit
+ok 1424 - only confirmed quiescent waiting excludes active elapsed time
+ok 1425 - strict private accounting rejects malformed and sparse records
+ok 1426 - restart cannot assume a previous human wait remains quiescent when execution is now uncertain
+ok 1427 - explicit resume establishes a fresh coordinator before actual queued worker dispatch
+ok 1428 - planned redirect archives coordinator receipts and resumes a new valid attempt
+ok 1429 - shutdown drains an already owned final receipt while refusing new actions
+ok 1430 - failed resumed coordinator cannot admit queued workers or bypass pending recovery
+ok 1431 - historical receipts still reject forged binding and revision ownership
+ok 1432 - shutdown drains an already started mission check and rejects arbitrary receipt mutations
+ok 1433 - default disabled gate blocks historical coordinator redirect continuation before provider dispatch
+ok 1434 - whole run stop persists intent, cancels unused queue before thread creation
+ok 1435 - pause stays pending after interrupt acknowledgment, attempts all siblings and retains errors
+ok 1436 - check and integration cancellation do not certify process exit; sibling failure does not short circuit
+ok 1437 - stop during preparation aborts owned work without submitting a provider turn
+ok 1438 - accepted lost reply remains unknown and reserved until explicit reconciliation
+ok 1439 - redirect waits for quiescence then archives attempt without replenishing counters or dispatching
+ok 1440 - owned harmless child requires observed exit and durable outcome before paused confirmation
+ok 1441 - actual Hub pending accepted turn call remains reserved after whole run stop
+ok 1442 - restart preserves stop intent and budget; recovered owned effects are reserved and never dispatched
+ok 1443 - missing thread attestation cannot release unresolved sibling effects
+ok 1444 - explicit resume rejects pending pause and never dispatches historical unknown work
+ok 1445 - explicit resume preserves reviewing admission instead of opening implementation
+ok 1446 - animation pause preference changes no supervised authority
+ok 1447 - restart quiet queued run cannot wake from unrelated capacity release before explicit resume
+ok 1448 - action resume returns a sanitized current report after clearing historical control state
+ok 1449 - shared owned registration cannot bypass the disabled live runtime gate
+ok 1450 - owned launch registration retains cumulative launch budget and fences beforeEffect after stop
+ok 1451 - .island-page idle roster Tab passes Robin Inspect before the next actual destination
+ok 1452 - .island-page Robin Inspect Brook DOM slice lands on Brook before Enter
+ok 1453 - .island-page first destination and ordinary no-Inspect predecessor preserve Tab order
+ok 1454 - .project-room idle roster Tab passes Robin Inspect before the next actual destination
+ok 1455 - .project-room Robin Inspect Brook DOM slice lands on Brook before Enter
+ok 1456 - .project-room first destination and ordinary no-Inspect predecessor preserve Tab order
+ok 1457 - private run UI admits only bounded production settings updates
+ok 1458 - world scenes retain coherent authority and four distinct recruited residents
+ok 1459 - main-owned scene seeds project idle, waiting, failure and review without work claims
+ok 1460 - same-context working to unknown to failed remains a strict saved mission profile
+ok 1461 - roster open and close receipts precede the next durably published deck seed
+ok 1462 - renderer asset sample crosses the bridge as bounded scalars before receipt writing
+ok 1463 - pannable island viewport and real actor contact govern the scene, while raw map cropping stays visible in telemetry
+ok 1464 - resident map labels stay out of busy art while roster status retains a readable backed presentation
+ok 1465 - quarters and workshop retain art, actor, and contact visibility requirements
+ok 1466 - quarters status labels retain room between stations and clear the captain at compact and doubled text geometry
+ok 1467 - positive motion is admitted only after all three visible actor controls change
+ok 1468 - temporary user motion setting restores through the production action on observation failure
+ok 1469 - run projection discovers all 15 identities and only authoritative state works
+ok 1470 - queued dependencies, capacity, budget and missing selection give truthful next action
+ok 1471 - goal entry exists and disabled gate saves an honest blocked run without provider effects
+ok 1472 - current same-crew work stays visible with retained history and cancelled dependencies remain blocked
+ok 1473 - supervised mission start rejects a direct specialist before attempt or provider effects
+ok 1474 - actual tracked goal creates an integration workspace, attempt and main coordinator binding
+ok 1475 - log preserves exact attempt and check evidence without inventing acceptance
+ok 1476 - log scopes project, record kind and every search word
+ok 1477 - external history is excluded and mutable conversation time is labelled honestly
+ok 1478 - suggests at most two reviewed, available skills for the brief and role
+ok 1479 - disabled, changed, duplicate and missing selections fail before launch
+ok 1480 - selected skill becomes an explicit Codex skill input
+ok 1481 - reviewed specialist workflows stay available only for matching tasks and roles
+ok 1482 - resident skills follow canonical capabilities while reporter accepts none
+ok 1483 - suggestions require manual checkbox opt-in and retain explicit choices, limits and reconfirmation
+ok 1484 - persisted explicit selection stays checked when a different skill is suggested
+ok 1485 - quick task retains confirmed skill and invokes it without changing the saved brief
+ok 1486 - mission selection is saved with the attempt and an unavailable skill cannot begin a new attempt
+ok 1487 - a coordinator passes a confirmed skill only to a matching specialist
+ok 1488 - a completed mission keeps confirmed skills and provider result after restart
+ok 1489 - public_projection_retains_uncertainty_and_pending_acceptance_without_intent_details
+ok 1490 - summary_has_no_transcript_or_private_rpc_fields
+ok 1491 - private_snapshot_queries_do_not_create_published_sequence_gaps
+ok 1492 - replacement_increments_revision_without_changing_persisted_task_schema
+ok 1493 - bounded_append_delta_preserves_older_history_with_exact_offsets
+ok 1494 - unverified_offsets_replacements_and_oversize_appends_invalidate
+ok 1495 - surrogate_join_at_append_boundary_invalidates_and_unknown_task_seeds_conservatively
+ok 1496 - summary_hotpath_never_reads_or_serializes_message_text_for_100_tasks
+ok 1497 - summary_hotpath_never_reads_or_serializes_message_text_for_1000_tasks
+ok 1498 - summary_hotpath_never_reads_or_serializes_message_text_for_3000_tasks
+ok 1499 - cached_previews_are_bounded_surrogate_safe_and_not_result_authority
+ok 1500 - append_to_older_message_keeps_latest_assistant_preview
+ok 1501 - oversize_append_does_not_copy_the_full_current_message_to_check_suffix
+ok 1502 - snapshot_nested_projection_omits_opaque_extensions_without_mutating_profile
+ok 1503 - summary_scalar_fields_cannot_forward_nested_private_objects
+ok 1504 - deleted_task_invalidates_cursor_and_project_membership_precedes_stale_summary
+ok 1505 - append_deltas_reject_nested_or_invalid_message_metadata_before_advancing_sequence
+ok 1506 - council projection includes reviewed public context and excludes opaque internal fields
+ok 1507 - execution availability comes from the release gate, never saved profile state
+ok 1508 - ordinary reachable checkpoint waves retain real prefix and final two-reviewer authority
+ok 1509 - ordinary validation rejects lost retained integration provenance before checks
+ok 1510 - frozen delivery source rejects clean drift at selected
+ok 1511 - frozen delivery source rejects clean drift at validation
+ok 1512 - frozen delivery source rejects clean drift at before-check-spawn
+ok 1513 - fresh validation continuation rejects reused production thread before turn submission
+ok 1514 - fresh validation continuation rejects reused author thread before turn submission
+ok 1515 - unbound early mutation has zero effects and invalid partitions reject before dispatch
+ok 1516 - real unchanged project suite fails a broken combined behavior before any reviewer starts
+ok 1517 - second required reviewer adverse blocks the exact continuation
+ok 1518 - second required reviewer missing blocks the exact continuation
+ok 1519 - second required reviewer malformed blocks the exact continuation
+ok 1520 - held production delivery settles on close without remote cleanup fiction
+ok 1521 - held production delivery settles on disconnect without remote cleanup fiction
+ok 1522 - held production delivery settles on stop without remote cleanup fiction
+ok 1523 - public goal sends canonical context and only production role tools
+ok 1524 - ordinary reply genuinely integrates two live writers and completes both same-crew reviewers
+ok 1525 - rejected stale call is retained and conflicting replay cannot gain current authority
+ok 1526 - missing worker telemetry never admits a second worker or invents usage
+ok 1527 - lost submitted worker turn remains unknown and prevents extra work
+ok 1528 - changed pinned recipe blocks delivery without running substitute checks
+ok 1529 - reused production coordinator thread is rejected before a reviewer turn
+ok 1530 - actual final-slot Git repair preserves authority through held capture audit
+ok 1531 - actual final-slot Git repair preserves authority through held capture grant
+ok 1532 - wrong public delivery identity has no effect and initial graph reserves review launch budget
+ok 1533 - persisted collecting delivery reopens unknown with retained counters and zero replay
+ok 1534 - ordinary held delivery honors cumulative tokenLimit exhaustion
+ok 1535 - ordinary held delivery honors cumulative activeMs exhaustion
+ok 1536 - ordinary held delivery honors cumulative workerMs exhaustion
+ok 1537 - uncertain durable candidate reopens without replaying delivery effects
+ok 1538 - uncertain durable selection reopens without replaying delivery effects
+ok 1539 - uncertain durable continuation-intent reopens without replaying delivery effects
+ok 1540 - delivery audit durability fence completion
+ok 1541 - delivery audit durability fence stop
+ok 1542 - delivery audit durability fence lost-alias
+ok 1543 - delivery audit durability fence lost-response
+ok 1544 - public delivery audit replay keeps first pending immutable across Stop
+ok 1545 - internal delivery response guard rejects conflicting duplicate waiter settlement
+ok 1546 - one specialist slot admits actual reviewers beside the ordinary live captain continuation
+ok 1547 - numeric Git process failure durably blocks delivery and settles its waiter
+ok 1548 - a decision changes visible work but cannot expand authority
+ok 1549 - run commit publishes the exact durable run revision
+ok 1550 - durable schema rejects conflicting call receipts copied into another run
+ok 1551 - durable Hub grant contraction publishes blockers and prevents proceed without losing usage
+ok 1552 - scope reconciliation retains intent blockers and rejects proceed even if old scope blockers are absent
+ok 1553 - coordinator provider call identity cannot be reused across runs in its parent turn
+ok 1554 - captain grant contraction recomputes proposal blockers and preserves paused state and usage
+ok 1555 - new run commands reject ambiguous project membership before persistence
+ok 1556 - multiple missing local scopes produce distinct blockers and further model talk remains bounded
+ok 1557 - linked mission provider and workspace admission remain disabled while legacy conversations stay labelled
+ok 1558 - run revision changes during correction retain newer live authority and fence uncertainty
+ok 1559 - pure transitions retain original scope and criteria and only describe effects
+ok 1560 - maximum stable IDs remain valid after events and invalid DAG proposals do not admit execution
+ok 1561 - extended schema rejects unknown, sparse and cross-bound replay authority records
+ok 1562 - missing scope becomes a blocker and two disagreement rounds terminate in intent evidence
+ok 1563 - a lowered captain grant retains usage and enters stop policy
+ok 1564 - failed preflight and receipt publish no optimistic run authority
+ok 1565 - post-commit concurrent update cannot overwrite a newer run
+ok 1566 - run changes are not skipped and queued stale commands cannot execute
+ok 1567 - a durable acknowledgment lost to the caller stays uncertain and cannot be reapplied
+ok 1568 - bad receipts and failed correction fence subsequent run mutations
+ok 1569 - live supervision execution admission remains disabled independently of persisted grant
+ok 1570 - coordinator calls bind active parent and replay the saved response without new authority
+ok 1571 - coordinator turn changes during durable commit compensate without publishing a proposal
+ok 1572 - reopen retains run after a later unrelated workspace save
+ok 1573 - supervision command contract rejects model authority expansion
+ok 1574 - supervision commands reject unknown fields, malformed revisions, IDs and sparse bounded arrays
+ok 1575 - captain controls require exact revision and allow only local scope activity grants
+ok 1576 - v2 upgrade preserves full state and requires exact backup
+ok 1577 - new reservations fail closed in old reader
+ok 1578 - malformed authority remains invalid before normalization
+ok 1579 - schema exports validate without mutation and reject malformed nested authorities
+ok 1580 - new record bindings and nested review decision authority roundtrip
+ok 1581 - task run binding cannot disagree with its containing mission
+ok 1582 - review authority follows canonical crew role capabilities including creative review
+ok 1583 - non-review supervised task crew must match the canonical assignment
+ok 1584 - review task references resolve to one same-run same-project reviewer assignment
+ok 1585 - no-book profiles reject every orphan supervised task binding but retain legacy support
+ok 1586 - worker rejects invalid reviewer bindings without overwriting acknowledged profile
+ok 1587 - worker preflight preserves original no-book files with orphan task authority
+ok 1588 - task launch rejects implicit privilege and malformed arguments
+ok 1589 - task control only accepts the task identifier and declared fields
+ok 1590 - ready_review_stays_actionable and accepted history is separate
+ok 1591 - stopped tasks offer continuation rather than claiming a result is ready
+ok 1592 - approval waits and uncertain tasks stay blocked and visible for attention
+ok 1593 - a specialist needing approval raises its captain family into attention without duplicating tasks
+ok 1594 - active children keep a completed captain family active and orphan assignments remain accessible
+ok 1595 - search finds specialist work and project names while respecting project and phase filters
+ok 1596 - definite pre-effect workspace rejection releases temporary creation locks
+ok 1597 - uncertain workspace creation transfers temporary lock to durable recoverable reservation
+ok 1598 - manual Git holds physical and logical reservation through invalidation
+ok 1599 - manual Git holds physical and logical reservation through rollback
+ok 1600 - creation intent persistence definite failure releases reservations
+ok 1601 - creation intent persistence uncertainty retains reservations
+ok 1602 - project removal preserves registration and history for unknown-task outside the registered root
+ok 1603 - project removal preserves registration and history for pending-effect outside the registered root
+ok 1604 - project removal preserves registration and history for pending-control outside the registered root
+ok 1605 - manual file save rejects ownership acquired during asynchronous workspace preflight
+ok 1606 - manual file save reserves physical and logical ownership through successful source invalidation
+ok 1607 - manual file save reserves physical and logical ownership through failed source invalidation
+ok 1608 - project removal remains available after tasks and owned effects are confirmed stopped
+ok 1609 - whole run missing-thread attestation retains terminal descendant tool intent
+ok 1610 - unresolved tool survives completed without completion or reservation release
+ok 1611 - unresolved tool survives error without completion or reservation release
+ok 1612 - explicit Stop can interrupt known turn but cannot prove unresolved tool outcome
+ok 1613 - idle direct tool holds checkout while effect runs and releases only after known saved outcome
+ok 1614 - known tool outcome keeps an already-owned active turn reservation
+ok 1615 - direct tool conflicts with another checkout writer before intent or effect
+ok 1616 - temporary direct tool reservation awaits exact saved known outcome
+ok 1617 - captain toolDispatchIntent blocks terminal send and terminal release
+ok 1618 - captain replacementThreadIntent blocks terminal send and terminal release
+ok 1619 - captain approvalResponseIntent blocks terminal send and terminal release
+ok 1620 - submitted approval response is not an unresolved effect fence
+ok 1621 - real provider append and completed replacement advance public revisions without full task payloads
+ok 1622 - real Captain logs publish append metadata before their public snapshot
+ok 1623 - new task is seeded empty before its first admitted user message
+ok 1624 - pages_default_to_50_messages_and_allow_at_most_100
+ok 1625 - page_rejects_wrong_project_and_malformed_requests_and_cursors
+ok 1626 - stale_epoch_or_revision_returns_explicit_stale_result_without_text
+ok 1627 - pages_reconstruct_complete_unicode_and_huge_message_in_both_directions
+ok 1628 - older_pages_are_chronological_and_stable_identity_cursors_survive_array_insertions
+ok 1629 - empty_history_is_complete_and_message_private_fields_are_not_exposed
+ok 1630 - page_rejects_nested_or_invalid_role_and_timestamp_without_rewriting_history
+ok 1631 - late_initial_snapshot_does_not_replace_newer_event
+ok 1632 - events_before_initial_snapshot_preserve_metadata_and_newer_task_revision
+ok 1633 - retired_epoch_snapshot_cannot_replace_restarted_public_state
+ok 1634 - live_restart_after_early_event_rejects_old_pending_initial_snapshot
+ok 1635 - old_page_cannot_replace_new_selection
+ok 1636 - stream_edit_during_load_invalidates_stale_page
+ok 1637 - missing_history_has_visible_recovery
+ok 1638 - stale_page_from_restarted_session_requires_snapshot_recovery_without_retry_loop
+ok 1639 - append_chain_preserves_readable_older_pages_and_gap_resyncs
+ok 1640 - unrelated_events_advance_sequence_and_duplicate_events_are_ignored
+ok 1641 - append_updates_partial_tail_length_without_inventing_missing_text
+ok 1642 - bad_offsets_surrogate_join_and_replacements_require_reload
+ok 1643 - page_cache_is_bounded_and_complete_unicode_segments_remain_in_order
+ok 1644 - old_epoch_events_do_not_reenter_after_restart
+ok 1645 - navigation_preserves_unsent_draft_and_loader_exposes_retry_without_cross_task_text
+ok 1646 - real huge Unicode tail overflow preserves older pages and exposes exact unread append
+ok 1647 - full 100-message page rolls new message behind its exact last boundary
+ok 1648 - partial reply selection sends canonical whole-message main ref and opens original task
+ok 1649 - reply display without canonical metadata cannot manufacture a selectable result
+ok 1650 - conversation renders huge reply segments and visible history recovery controls without touching draft focus
+ok 1651 - uncertain storage disables new reply selection while retaining navigation and recovery instructions
+ok 1652 - checking uncertain status preserves running work and never interrupts it
+ok 1653 - failed status checks keep uncertainty and the project lock visible
+ok 1654 - streaming batches only changed tasks and preserves the complete reply
+ok 1655 - approval snapshots supersede pending streamed updates without a stale replay
+ok 1656 - continuous streaming checkpoints before the stream ends
+ok 1657 - restored uncertain writers reserve their checkout before and after status checks
+ok 1658 - a late active status read cannot overwrite a newer completed turn
+ok 1659 - multiple streams flush once per task and completion cancels pending text updates
+ok 1660 - a continuous stream checkpoints by 1000ms in the scheduler
+ok 1661 - checking status serializes competing send and stop operations
+ok 1662 - a disposed renderer cannot prevent scheduling saved state
+ok 1663 - a disposed companion does not block delivery to the live workspace
+ok 1664 - early persistence health survives initial snapshot while initial projects and newer tasks are retained
+ok 1665 - sequence gap during pending initial read requests a current snapshot after that read settles
+ok 1666 - a newer full snapshot remains authoritative over the pending initial response
+ok 1667 - initial stored acceptance is historical while new broadcast receipt is eligible for a live cue
+ok 1668 - gap snapshot and recovery snapshot never grant live receipt cues
+ok 1669 - uncertain receipt remains historical after storage recovery while ordinary pending permits consecutive receipt
+ok 1670 - visual live check refuses provider activity without explicit opt-in
+ok 1671 - settings_return_preserves_selected_attempt
+ok 1672 - missing_project_never_opens_first_project
+ok 1673 - missing attempt and mismatched task stay unavailable
+ok 1674 - ordinary_conversation_stays_conversation
+ok 1675 - selected reply display requires exact main-held status and refuses unavailable or changed content
+ok 1676 - result status binding rejects stale epoch revision attempt result ref and producer revision
+ok 1677 - new Home conversation does not inherit another ordinary task return target
+ok 1678 - same mission opened from a visible new origin owns Back while embedded task switches retain their origin
+ok 1679 - pending approval and errors outrank finished and active status
+ok 1680 - local search combines all terms across task, project and crew without mutating input
+ok 1681 - search includes older tasks beyond the former twelve-item cutoff
+ok 1682 - bounded compass keeps the selected destination when live updates push it beyond the limit
+ok 1683 - Morgans starts one saved read-only report turn without tools or crew memory
+ok 1684 - unsafe reporter setup returns the factual packet without starting a thread
+ok 1685 - Morgans cannot be started as a normal unsourced specialist
+ok 1686 - a saved Morgans report cannot accept an unsourced follow-up turn
+ok 1687 - reporter provider requests cannot become captain approvals
+ok 1688 - bad report scope is rejected before any provider request
+ok 1689 - uncertain reporter submission retains the saved task without automatic retry
+ok 1690 - an unexpected reporter tool attempt is stopped without logging its command
+ok 1691 - status reconciliation cannot revive a reporter result after a tool attempt
+ok 1692 - a previous profile shape and a saved reporter task reopen without a schema change or writer lock
+ok 1693 - a rejected reporter can retry explicit interruption after the first interrupt fails
+ok 1694 - reports saved work across projects without equating a finished turn to an accepted mission
+ok 1695 - check, PR, deployment and approval observations retain source and uncertainty
+ok 1696 - scope and packet bounds reject invalid requests and state truncation
+ok 1697 - pre-range unresolved mission keeps its current-attempt observations visible
+ok 1698 - a large saved history stays within one reporter prompt budget and labels truncation
+ok 1699 - specialist handoff publishes new task ID for persisted navigation
+ok 1700 - existing task never seeds its follow-up from a submitted conversation template
+ok 1701 - Workbench passes selected summary identity to paged conversation and leaves saved composer draft intact
+ok 1702 - every task-capable crew room resolves only its admitted illustration
+ok 1703 - actual managed Git pane sends workspace IDs for status diff and commit
+ok 1704 - workspace preparation waits for a writer and resumes once without an admission failure
+ok 1705 - workspace draft writes use stored draft revision and exact clearing revision
+ok 1706 - rejected workspace persistence never mutates supplied local draft or retries
+ok 1707 - submitted draft matching includes revision, criteria and completion boundary
+ok 1708 - Hub saves workspace context and draft atomically and restart never dispatches
+ok 1709 - failed workspace save rolls back acknowledged state and exposes unsaved health
+ok 1710 - a failed presentation save preserves the mission authority instance used by pending actions
+ok 1711 - a stale workspace write and draft clear cannot erase newer captain text
+ok 1712 - a failing persistence observer cannot roll back a successfully saved draft
+ok 1713 - retry success broadcasts saved health without provider execution
+ok 1714 - an acceptance cue is durably claimed once across surfaces and restart
+ok 1715 - recreated locks retain canonical physical roots and logical integrating-run reservation
+ok 1716 - execution and evidence read the same worktree across provider editor search terminal Git check result and acceptance routes
+ok 1717 - actual Hub worker protocol start and resume use the stored managed cwd
+ok 1718 - pure_workspace_helper_API_is_available
+ok 1719 - two_windows_cannot_overwrite_newer_draft
+ok 1720 - older_launch_response_cannot_clear_edited_draft
+ok 1721 - deleted_reference_is_explicitly_unavailable
+ok 1722 - restart_keeps_draft_without_dispatch
+ok 1723 - presentation_updates_reject_extra_fields_and_invalid_shapes
+ok 1724 - limits_keep_input_without_dispatch
+ok 1725 - receipt_claim_is_atomic_across_surfaces
+ok 1726 - standalone_draft_validation_reuses_saved_workspace_bounds
+ok 1727 - malformed_current_workspace_fails_closed_before_any_update
+ok 1728 - receipt_claim_rejects_duplicate_or_unbound_modern_receipts
+ok 1729 - return_destination_membership_is_validated_without_replacing_missing_ids
+ok 1730 - workspace identity reads make progress during a delayed Git reply and still reject metadata drift

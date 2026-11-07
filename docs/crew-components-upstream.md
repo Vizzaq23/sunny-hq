@@ -37,4 +37,4 @@ Revert this integration commit and restore its package-lock.json, then npm ci/bu
 
 ## Verification
 
-Validation receipts and current limits are recorded in `docs/evidence/crew-components-upstream-2026-11-07/README.md` once final checks complete. Earlier screenshot directories describe the older reference-only versions and must not be used as evidence of actual upstream integration.
+Validation receipts and current limits are recorded in [the evidence record](evidence/crew-components-upstream-2026-11-07/README.md): build/typecheck, 1,740 full-suite tests, 17 focused tests, dedicated native crew-map fixture and 68-check native workflow all passed. Earlier screenshot directories describe the older reference-only versions and must not be used as evidence of actual upstream integration.

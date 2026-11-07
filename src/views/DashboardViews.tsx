@@ -4,7 +4,7 @@ import {useEffect,useMemo,useState} from 'react';
 import {createExternalHistoryController,type ExternalHistoryState} from '../externalHistory';
 import {ArrowRight,BookOpen,Box,BriefcaseBusiness,Braces,ChevronRight,Clock3,FolderPlus,History,Layers3,Plus,Search,Send,ShipWheel,Sparkles,Target,Users,X} from 'lucide-react';
 import type {CrewId,Project,Snapshot,TaskSummary as Task,WorkContext} from '../shared';
-import {ALL_CREW,CREW,CREW_BY_ID,MISSIONS,shortPath} from '../data';
+import {ALL_CREW,CREW,CREW_BY_ID,MISSIONS} from '../data';
 import {CrewBadge,EmptyState,TaskRow} from '../components/Chrome';
 import {useCrewTexture} from '../crewTexture';
 import {ACTIONS,useCrewLife} from '../crewLife';
@@ -67,11 +67,7 @@ export function ShipView({snapshot,context=snapshot.workspace?.context,onWorkspa
   </div>;
 }
 
-export function ProjectsView({projects,tasks,onImport,onOpen,onRemove,onCaptain}:{projects:Project[];tasks:Task[];onImport:()=>void;onOpen:(id:string)=>void;onRemove:(id:string)=>void;onCaptain:(id:string)=>void}){
-  return <div className="page"><section className="page-intro"><div><span className="eyebrow">The cargo hold</span><h2>Projects aboard</h2><p>Local folders stay on your machine. Sunny HQ gives each one a crew, logbook, editor, terminal, and preview.</p></div><button className="primary-button" onClick={onImport}><FolderPlus size={18}/> Import folder</button></section>
-    {projects.length?<div className="project-grid">{projects.map((project,index)=>{const projectTasks=tasks.filter(t=>t.projectId===project.id);return <article className="project-card" key={project.id}><div className={`project-cover cover-${index%5}`}><span>{project.name.charAt(0)}</span><em>{project.category||'Local project'}</em></div><div className="project-body"><h3>{project.name}</h3><p className="path">{shortPath(project.path)}</p><div className="project-meta"><span><Clock3 size={14}/>{projectTasks.length?`${projectTasks.length} mission${projectTasks.length===1?'':'s'}`:'No missions yet'}</span><span><Users size={14}/>{new Set(projectTasks.map(t=>t.crewId)).size||'—'} crew</span></div><div className="card-actions"><button className="small-button project-captain" onClick={()=>onCaptain(project.id)}>Talk to Luffy</button><button className="ghost-button" onClick={()=>onOpen(project.id)}>Workbench</button><button className="ghost-button danger" onClick={()=>onRemove(project.id)}>Remove</button></div></div></article>})}</div>:<div className="large-empty"><div className="empty-illustration"><Box/><span/><i/></div><h3>Bring your first project aboard</h3><p>Choose any local folder. Sunny HQ will never invent project activity; your files and Codex missions appear as they happen.</p><button className="primary-button" onClick={onImport}><FolderPlus size={18}/> Choose a folder</button></div>}
-  </div>;
-}
+export {ProjectsView} from './ProjectsView';
 
 export function CrewView({onSelect,snapshot,invoke}:{onSelect:(crewId:CrewId)=>void;snapshot:Snapshot;invoke:Invoke}){
   const [journal,setJournal]=useState<CrewId|null>(null);

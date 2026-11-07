@@ -2,7 +2,6 @@ import {useState} from 'react';
 import {ArrowRight,Folder,FolderPlus,Search,X} from 'lucide-react';
 import type {Project,TaskSummary} from '../shared';
 import {taskIsBusy,taskNeedsAttention} from '../taskFlow';
-import './projects.css';
 
 type Props={projects:Project[];tasks:TaskSummary[];onImport:()=>void;onOpen:(id:string)=>void;onRemove:(id:string)=>void;onCaptain:(id:string)=>void};
 

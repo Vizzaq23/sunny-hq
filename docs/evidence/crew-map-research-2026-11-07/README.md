@@ -21,3 +21,5 @@ Source: isolated `codex/crew-map`, second pass after `009e96a`. Node 24.18.0. No
 ![200 percent zoom](crew-map-zoom.png)
 
 Source rationale and all six adoption decisions: [research](../../crew-components-research-2026-11-07.md), [implementation](../../crew-map-2026-11-07.md). Original static parchment and CSS ocean are deliberate alternatives to the referenced shaders; profile is a native dialog rather than a shared-layout morph.
+
+Final review correction: the captain's council overview displays the council's own status, Zoro displays his review status, and contributors display their own contribution status. Production build/typecheck passed again (`cff23010a0e8a5777ba0d7a852e23999be2964e96c26880d517d31cf455325e6`). Screenshot/native receipts above precede this label-only correction.

@@ -44,13 +44,21 @@ class MissionEvidence {
   const actual=fs.realpathSync.native(root),repo=fs.realpathSync.native((await this.command(actual,['rev-parse','--show-toplevel'])).trim());
   const normalize=p=>process.platform==='win32'?p.toLowerCase():p;
   if(normalize(repo)!==normalize(actual))throw Error('Register the repository root before collecting mission evidence.');
-  const flags=await this.command(actual,['ls-files','-v','-z']);
+  // These read-only queries are independent once repository membership is known.
+  // Settle every child even on failure; never cache across a freshness boundary.
+  const reads=await Promise.allSettled([
+   this.command(actual,['ls-files','-v','-z']),
+   this.command(actual,['ls-files','--stage','-z']),
+   this.command(actual,['rev-parse','HEAD']),
+   this.command(actual,['branch','--show-current']),
+   this.command(actual,['status','--porcelain=v1','-z','--untracked-files=all']),
+   this.command(actual,['diff','HEAD','--no-ext-diff','--no-textconv','--binary'])
+  ]);
+  const failed=reads.find(read=>read.status==='rejected');if(failed)throw failed.reason;
+  const [flags,index,head,currentBranch,status,diff]=reads.map(read=>read.value);
   if(flags.split('\0').some(row=>row&&(/^[a-z]/.test(row)||row.startsWith('S '))))throw Error('Remove assume-unchanged or skip-worktree index flags before verifying this mission.');
-  const index=await this.command(actual,['ls-files','--stage','-z']);
   if(index.split('\0').some(row=>row.startsWith('160000 ')))throw Error('Submodule evidence is not supported yet. Verify the submodule repository separately.');
-  const commit=(await this.command(actual,['rev-parse','HEAD'])).trim(),branch=(await this.command(actual,['branch','--show-current'])).trim();
-  const status=await this.command(actual,['status','--porcelain=v1','-z','--untracked-files=all']);
-  const diff=await this.command(actual,['diff','HEAD','--no-ext-diff','--no-textconv','--binary']);
+  const commit=head.trim(),branch=currentBranch.trim();
   const hash=createHash('sha256').update(commit).update('\0').update(branch).update('\0').update(status).update('\0').update(diff),paths=[];
   const rows=status.split('\0');let bytes=0;
   for(let i=0;i<rows.length;i++){

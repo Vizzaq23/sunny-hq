@@ -1,5 +1,25 @@
 const {test}=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs');const os=require('node:os');const path=require('node:path');const {execFileSync}=require('node:child_process');
 const {MissionEvidence,executeCheck}=require('../desktop/mission-evidence.cjs');
+test('independent Git evidence reads progress together and all settle before rejecting',async t=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-evidence-drain-'));
+ t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+ let release;const held=new Promise(resolve=>release=resolve),calls=[];
+ const evidence=new MissionEvidence(),failure=Error('fixture Git read failed');
+ evidence.command=async(_root,args)=>{
+  calls.push(args.join(' '));
+  if(args[0]==='rev-parse'&&args[1]==='--show-toplevel')return root;
+  if(args[0]==='ls-files'&&args[1]==='-v'){await held;return '';}
+  if(args[0]==='branch')throw failure;
+  return '';
+ };
+ let settled=false;const pending=evidence.gitState(root);pending.then(()=>settled=true,()=>settled=true);
+ try{
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(calls.length,7,'all six independent reads start despite one delayed reply');
+  assert.equal(settled,false,'a failed read cannot leave another owned child pending');
+  release();await assert.rejects(pending,error=>error===failure);
+ }finally{release();await Promise.allSettled([pending]);}
+});
 test('owned check cancellation acknowledgment does not imply process exit',async()=>{
  const {EventEmitter}=require('node:events'),child=new EventEmitter();child.pid=123;const control={};let kill;
  const pending=executeCheck('node','npm','test','unused',1000,{spawn:()=>child,control,killTree:(_child,done)=>{kill=done;}});pending.catch(()=>{});

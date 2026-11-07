@@ -1,5 +1,16 @@
 # Sunny world bible
 
+## Studio dashboard — 2026-11-06
+
+Home places the captain's brief beside the existing authoritative watch on wide
+screens and stacks both on compact screens. The three-step course is guidance,
+not a progress tracker. Crew directory search finds the ten Straw Hats by name
+or specialty; optional residents remain in their existing disclosure. Static
+portraits identify people; world sprites still visualize recorded work. The
+short page entrance and button feedback stop under either reduced-motion
+preference. No provider, approval, acceptance or persistence behavior changes.
+See [studio evidence and limits](sunny-studio-design.md).
+
 The captain leads a living digital crew from Sunny HQ. Projects are destinations, meaningful objectives are missions, and durable evidence belongs in the logbook. The One Piece-inspired premise is permanent; real work and clear controls determine what happens underneath it.
 
 ## Places that exist

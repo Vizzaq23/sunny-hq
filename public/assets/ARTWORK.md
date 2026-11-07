@@ -34,6 +34,13 @@ Prompt:
 
 ## `crew-sheet.png`
 
+Studio reuse (2026-11-06): the unchanged sheet supplies `CrewPortrait` in the
+Straw Hat directory and Luffy composer. CSS keeps the documented 5×2 cell
+contract and 4:5 cell aspect ratio. No new extracted files, edits, commercial
+license claim or changes to animated pet atlases. `thousand-sunny.png` is also
+reused intact in a contained home illustration. See
+[studio design](../../docs/sunny-studio-design.md).
+
 - Dimensions: 1774 × 887 px
 - Source: `C:\Users\Quintin\.codex\generated_images\01a08ece-a591-7ad2-b6e7-6ec26e710e62\exec-0db0730b-0744-4d15-b959-81fa10f214e3.png`
 - Use case: `illustration-story`

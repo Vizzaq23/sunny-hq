@@ -5,6 +5,8 @@ import {useDraft,clearSubmittedDraft} from '../useDraft';
 import {CrewJournal} from './CrewJournal';
 import {LocalSourcePicker} from './LocalSourcePicker';
 import {LocalReporterSettings} from './LocalReporterSettings';
+import {CrewPortrait} from './Chrome';
+import {MessageCircle} from 'lucide-react';
 import specialties from '../../desktop/local-specialties.json';
 type Invoke=<T=unknown>(action:string,args?:unknown)=>Promise<T>;
 const activeStates=new Set(['planning','working','reviewing','synthesizing']);
@@ -32,7 +34,7 @@ export function LocalCaptainPanel({initialProjectId,onProjectChange,snapshot,inv
  const memberLabel=(id:string)=>CREW_BY_ID.get(id)?.name??id;
  const memberAvailable=(id:string)=>!['law','ace','vivi','perona'].includes(id)||snapshot.world?.residents.some(member=>member.id===id&&member.recruited);
  return <section className="local-captain" aria-label="Talk to Luffy">
-  <header><span className="eyebrow">Your captain, your crew</span><h2>Talk to Luffy</h2><p>Tell him what you want. He’ll pick the right crew and bring their ideas back.</p></header>
+  <header className="captain-compose-heading"><CrewPortrait crew={CREW_BY_ID.get('luffy')!}/><div><span className="eyebrow">Start with your captain</span><h2>Talk to Luffy</h2><p>One idea. The right crew. A clear next step.</p></div><MessageCircle size={22} aria-hidden="true"/></header>
   <label>Project<select aria-label="Luffy project" value={projectId} disabled={busy||Boolean(active)} onChange={event=>{setProjectId(event.target.value);onProjectChange?.(event.target.value);}}><option value="">Choose a project</option>{snapshot.projects.map(project=><option key={project.id} value={project.id}>{project.name}</option>)}</select></label>
   {previous&&!active?<div className="local-captain-continuation"><small>{parentId?`Following up: ${previous.objective.slice(0,110)}`:'Starting a new topic'}</small><button onClick={()=>setFreshTopicFor(parentId?previous.id:null)}>{parentId?'New topic':'Continue previous conversation'}</button></div>:null}
   <LocalSourcePicker key={projectId} crewId="luffy" projectId={projectId} prompt={prompt} onPrompt={setPrompt} invoke={invoke} maxPromptLength={6000} maxPreviewLength={3500}/>

@@ -1,0 +1,54 @@
+{
+  "retrieved": "2026-11-07",
+  "sources": [
+    {
+      "name": "magic-ui-animated-beam",
+      "url": "https://magicui.design/r/animated-beam.json",
+      "path": "src/components/vendor/animated-beam.tsx",
+      "license": "MIT",
+      "upstreamSha256": "6afa2ee1d01694a428eb8517d48deebe5c6b532dc0ee871800bb9d92aae43e79",
+      "adaptedSha256": "49751a118a6dd25e1400ef5c12beee49684f96d89d4c07c451ac52285238ae34"
+    },
+    {
+      "name": "aceternity-timeline",
+      "url": "https://ui.aceternity.com/registry/timeline.json",
+      "path": "src/components/vendor/timeline.tsx",
+      "license": "Aceternity License",
+      "upstreamSha256": "1b003835c83d3a0480f958ba5634aaee9009a83d7227be549b5f5c79d05543af",
+      "adaptedSha256": "64b4bb416ebea34a9bbc6002a865901bb6362c15028df789672235f21e32beb3"
+    },
+    {
+      "name": "motion-primitives-morphing-dialog",
+      "url": "https://raw.githubusercontent.com/ibelick/motion-primitives/main/components/core/morphing-dialog.tsx",
+      "path": "src/components/vendor/morphing-dialog.tsx",
+      "license": "MIT",
+      "upstreamSha256": "3783289015c56be36cd74701468a4d2aa345b48676b7fa12964ace9558e4e33e",
+      "adaptedSha256": "f349faf21852f14c87f6cc8eeeb0a2392eed4803b10ea17cecefb3c338f6e60b"
+    },
+    {
+      "name": "shadcn-base-nova-command",
+      "url": "https://ui.shadcn.com/r/styles/base-nova/command.json",
+      "path": "src/components/vendor/command.tsx",
+      "license": "MIT",
+      "upstreamSha256": "8364ab717110bce154b9d452119d4f87a23a91160516cc0986865b709e407d2c",
+      "adaptedSha256": "c4a9f18cf728f4296a32f2813d3a2d4c33d369ae41ee5ff8eae263e206621d9a"
+    }
+  ],
+  "packages": [
+    {
+      "name": "@paper-design/shaders-react",
+      "version": "0.0.82",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "@paper-design/shaders",
+      "version": "0.0.82",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "cmdk",
+      "version": "1.1.1",
+      "license": "MIT"
+    }
+  ]
+}

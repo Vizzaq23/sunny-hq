@@ -18,8 +18,10 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
+    "@paper-design/shaders-react": "0.0.82",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/xterm": "^5.5.0",
+    "cmdk": "1.1.1",
     "lucide-react": "^0.468.0",
     "monaco-editor": "^0.52.0",
     "motion": "14.3.0",
@@ -52,7 +54,8 @@
       "tests/helpers/frozen-control-loader.cjs",
       "tests/helpers/frozen-control-fixture.cjs",
       "docs/evidence/protocols/ordered-control-2026-10-02.md",
-      "package.json"
+      "package.json",
+      "docs/licenses/crew-components/**/*"
     ],
     "win": {
       "target": "nsis"

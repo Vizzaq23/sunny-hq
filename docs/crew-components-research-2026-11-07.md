@@ -1,5 +1,7 @@
 # Modern React components: Sunny adoption decisions
 
+> Update: the captain requested the actual linked components. The reference-only decisions below are historical; see [actual upstream integration](crew-components-upstream.md) for the current implementation.
+
 Date: 2026-11-07. Scope: six requested crew/work surfaces, branch `codex/crew-map`. Implementation and verification: [crew map decision](crew-map-2026-11-07.md).
 
 ## Research and decisions

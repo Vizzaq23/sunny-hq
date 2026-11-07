@@ -73,7 +73,7 @@ async function check({js,wait,fill,select,click,nav,screenshot,win,localFixture}
   await profileButton('Refresh local models');await wait('Boolean(document.querySelector(".toast.error"))');await new Promise(resolve=>setTimeout(resolve,3800));
   assert.match(await js('document.querySelector(".toast.error")?.textContent??""'),/Synthetic model catalog unavailable/,'errors remain until dismissed');
   assert.equal(await js('document.querySelector(".toast.error span").getAttribute("role")'),'alert');
-  await key('Escape');await wait('!document.querySelector(".crew-journal")');assert.equal(await js('document.activeElement.className'),'journal-open');
+  await key('Escape');await wait('!document.querySelector(".crew-journal")');assert.equal(await js('document.activeElement===document.querySelector("[data-crew-id=brook] .journal-open")'),true);
   await click('.toast.error button');await wait('!document.querySelector(".toast.error")');
  }finally{localFixture.hub.localCrew.request=request;}
  await wait('!document.querySelector(".crew-journal")');

@@ -176,3 +176,7 @@ The [crew map decision](crew-map-2026-11-07.md) records Luffy’s separate capta
 ### Crew work surfaces — 2026-11-07 research pass
 
 The captain hierarchy retains equal specialist posters and real-state labels. Poster profiles open on saved work; log entries open their actual conversation or mission attempt. The parchment grain is static and the larger CSS sea window is decorative, independently visibility-paused. See [crew map decision](crew-map-2026-11-07.md) and [component research](crew-components-research-2026-11-07.md). No sprite/room geometry changed.
+
+### Actual upstream materials and interactions — 2026-11-07
+
+The [upstream integration](crew-components-upstream.md) supersedes the custom research-pass effects: Magic UI beams project genuine delegation, Motion Primitives profiles retain Sunny native modal behavior, Aceternity Timeline renders saved evidence, and shadcn Command owns command navigation. Actual PaperTexture replaces the static grain on posters/logs/briefs/Zoro ledger; actual Paper Water replaces the CSS sea, with a local still image on GPU loss and reduced-motion/visibility controls. No work state, authority, room geometry or sprite atlas changes.

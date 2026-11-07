@@ -1,4 +1,5 @@
-import {useEffect,useRef,useState} from 'react';
+import {MorphingDialogContent,MorphingDialogTitle} from './vendor/morphing-dialog';
+import {useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {X,BookOpen,MessageCircle,Trash2,Pencil,Send} from 'lucide-react';
 import type {CrewId,Snapshot} from '../shared';
 import {ALL_CREW as CREW,CREW_BY_ID} from '../data';
@@ -6,7 +7,8 @@ import {CrewPortrait} from './Chrome';
 import {CrewProfileOverview} from './CrewProfileOverview';
 import {LocalCrewPanel} from './LocalCrewPanel';
 type Invoke=<T=unknown>(action:string,args?:unknown)=>Promise<T>;
-export function CrewJournal({animateEntrance=false,onOpenTask,onOpenRoom,initialProjectId,initialTab='memory',crewId,snapshot,invoke,onClose}:{animateEntrance?:boolean;onOpenTask?:(id:string)=>void;onOpenRoom?:(id:string)=>void;initialProjectId?:string;initialTab?:'overview'|'memory'|'relationships'|'local';crewId:CrewId;snapshot:Snapshot;invoke:Invoke;onClose:()=>void}){
+export function CrewJournal({morph=false,animateEntrance=false,onOpenTask,onOpenRoom,initialProjectId,initialTab='memory',crewId,snapshot,invoke,onClose}:{morph?:boolean;animateEntrance?:boolean;onOpenTask?:(id:string)=>void;onOpenRoom?:(id:string)=>void;initialProjectId?:string;initialTab?:'overview'|'memory'|'relationships'|'local';crewId:CrewId;snapshot:Snapshot;invoke:Invoke;onClose:()=>void}){
+ const Content=morph?MorphingDialogContent:'section';
  const crew=CREW_BY_ID.get(crewId)!;
  const profile=snapshot.growth?.profiles[crewId];
  const [tab,setTab]=useState<'overview'|'memory'|'relationships'|'local'>(initialTab),[note,setNote]=useState(''),[editId,setEditId]=useState<string>(),[saving,setSaving]=useState(false);
@@ -18,10 +20,10 @@ export function CrewJournal({animateEntrance=false,onOpenTask,onOpenRoom,initial
  const discuss=async()=>{setStarting(true);setError('');try{await invoke('crew:discuss',{crew:[crewId,partner],topic});}catch(e){setError(e instanceof Error?e.message:String(e));}finally{setStarting(false);}};
  const close=()=>{if(note.trim()&&!window.confirm('Discard this unsaved journal note?'))return;onClose();};
  const closeRef=useRef(close);closeRef.current=close;const dialogRef=useRef<HTMLDialogElement>(null);
- useEffect(()=>{const previous=document.activeElement as HTMLElement;const dialog=dialogRef.current;dialog?.showModal();dialog?.querySelector<HTMLButtonElement>('.crew-journal>header>button:last-child')?.focus();return()=>{if(dialog?.open)dialog.close();if(previous?.isConnected)previous.focus();};},[]);
+ useLayoutEffect(()=>{const previous=document.activeElement as HTMLElement;const dialog=dialogRef.current;if(dialog?.open)dialog.close();dialog?.showModal();dialog?.querySelector<HTMLButtonElement>('.crew-journal>header>button:last-child')?.focus();return()=>{if(dialog?.open)dialog.close();if(previous?.isConnected)previous.focus();};},[]);
  const exchanges=(snapshot.discussions??[]).filter(e=>e.crew.includes(crewId)&&e.crew.includes(partner)).slice(0,8);
- return <dialog ref={dialogRef} className="journal-backdrop" data-entrance={animateEntrance} data-interactive="true" aria-label={`${crew.name}'s profile`} onCancel={event=>{event.preventDefault();closeRef.current();}}><section className="crew-journal">
-  <header><CrewPortrait crew={crew}/><div><span className="eyebrow">Your crewmate</span><h3>{crew.name}’s profile</h3><p>{tab==='local'||tab==='overview'?crew.role:<>Level {level} · {profile?.xp??0} experience · {profile?.conversations??0} conversations</>}</p></div><button aria-label="Close profile" onClick={close}><X/></button></header>
+ return <dialog open={morph?true:undefined} ref={dialogRef} className="journal-backdrop" data-entrance={animateEntrance} data-interactive="true" aria-label={`${crew.name}'s profile`} onCancel={event=>{event.preventDefault();closeRef.current();}}><Content className="crew-journal">
+  <header><CrewPortrait crew={crew}/><div><span className="eyebrow">Your crewmate</span>{morph?<MorphingDialogTitle dialogTitle><h3>{crew.name}’s profile</h3></MorphingDialogTitle>:<h3>{crew.name}’s profile</h3>}<p>{tab==='local'||tab==='overview'?crew.role:<>Level {level} · {profile?.xp??0} experience · {profile?.conversations??0} conversations</>}</p></div><button aria-label="Close profile" onClick={close}><X/></button></header>
   <div hidden={tab==='overview'||tab==='local'} className="growth-meter"><span style={{width:`${Math.min(100,((profile?.xp??0)-20*(level-1)**2)/(20*level**2-20*(level-1)**2)*100)}%`}}/></div>
   <nav aria-label="Profile sections"><button className={tab==='overview'?'active':''} aria-pressed={tab==='overview'} onClick={()=>setTab('overview')}>Overview</button><button className={tab==='memory'?'active':''} aria-pressed={tab==='memory'} onClick={()=>setTab('memory')}><BookOpen/>Memories</button><button className={tab==='relationships'?'active':''} aria-pressed={tab==='relationships'} onClick={()=>setTab('relationships')}><MessageCircle/>Crew relationships</button><button className={tab==='local'?'active':''} aria-pressed={tab==='local'} onClick={()=>setTab('local')}>Local profile</button></nav>
   <div className="journal-scroll">
@@ -40,5 +42,5 @@ export function CrewJournal({animateEntrance=false,onOpenTask,onOpenRoom,initial
     <div className="journal-discussions">{exchanges.map(e=><article key={e.id}><header><b>{e.topic}</b><span>{e.status}</span></header>{e.messages.map((m,i)=><p key={i}><strong>{CREW_BY_ID.get(m.crewId)?.name}</strong>{m.text}</p>)}{e.error?<small>{e.error}</small>:null}{e.status==='working'?<p>Waiting for the next crewmate…</p>:null}</article>)}</div>
    </>:null}{error?<p className="journal-error" role="alert">{error}</p>:null}
   </div>
- </section></dialog>;
+ </Content></dialog>;
 }

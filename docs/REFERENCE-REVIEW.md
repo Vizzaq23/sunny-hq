@@ -178,3 +178,7 @@ See [crew map decision](crew-map-2026-11-07.md) for the requested Magic UI, Acet
 ### Crew component research follow-up — 2026-11-07
 
 See [modern component research](crew-components-research-2026-11-07.md) for the expanded comparison of Magic UI, Aceternity, Motion Primitives, shadcn/cmdk, Base UI, React Aria, Radix, Motion, Paper and WAI patterns, including upstream license links and explicit adopt/defer decisions. Original implementation only; no imported component source.
+
+### Actual linked components — 2026-11-07 clarification
+
+Captain requires the source components, not reference-only equivalents. [Upstream integration](crew-components-upstream.md) records actual Magic UI, Motion Primitives, Aceternity, shadcn/cmdk and Paper components, pinned package versions/source hashes, preserved terms and Sunny-specific accessibility/event adaptations. This supersedes the earlier decision to defer these dependencies.

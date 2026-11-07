@@ -81,7 +81,7 @@ async function check({js,wait,fill,select,click,nav,screenshot,win,localFixture}
  assert.equal(await js('document.querySelectorAll(".local-crew-messages article").length'),1,'cancelled reply adds no assistant message');
  await js(`document.querySelector('[aria-label="Close profile"]').focus()`);
  win.webContents.sendInputEvent({type:'keyDown',keyCode:'Escape'});win.webContents.sendInputEvent({type:'keyUp',keyCode:'Escape'});
- await wait('!document.querySelector(".crew-journal")');assert.equal(await js('document.activeElement.className'),'journal-open','Escape returns focus');
+ await wait('!document.querySelector(".crew-journal")');assert.equal(await js('document.activeElement===document.querySelector("[data-crew-id=franky] .journal-open")'),true,'Escape returns focus');
  await nav('Home');
 }
 module.exports={fixture,check};

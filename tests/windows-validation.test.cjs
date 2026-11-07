@@ -4,6 +4,27 @@ const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 const {execFileSync,spawnSync}=require('node:child_process');
 const {validationEnvironment}=require('../scripts/validate-windows.cjs');
 
+test('CI shard arguments cover both fixture files once without concurrent test files',t=>{
+ const {testArguments}=require('../scripts/validate-windows.cjs');
+ assert.equal('node '+testArguments([]).join(' '),require('../package.json').scripts.test,'validation retains the full npm test command');
+ for(const value of ['--test-shard=0/2','--test-shard=1/3','--test-shard','--test-shard=1/2x'])assert.throws(()=>testArguments([value]),/two CI shards/);
+ assert.throws(()=>testArguments(['--test-shard=1/2','--test-shard=2/2']),/two CI shards/);
+ const root=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'sunny-shards-'));
+ t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+ for(const name of ['first','second'])fs.writeFileSync(path.join(root,name+'.test.cjs'),`require('node:test')('${name}',()=>{});`);
+ const env={...process.env};delete env.NODE_TEST_CONTEXT;
+ const names=[];
+ for(const shard of [1,2]){
+  const args=testArguments([`--test-shard=${shard}/2`]);
+  // Node options must precede the glob; trailing options silently do not shard it.
+  args[args.length-1]='*.test.cjs';
+  const result=spawnSync(process.execPath,args,{cwd:root,env,encoding:'utf8',windowsHide:true,timeout:15000});
+  assert.equal(result.status,0,result.stdout+result.stderr);assert.match(result.stdout,/# tests 1\b/);
+  names.push(...[...result.stdout.matchAll(/^ok \d+ - (first|second)$/gm)].map(match=>match[1]));
+ }
+ assert.deepEqual(names.sort(),['first','second']);
+});
+
 test('validation expands short TEMP paths before real workspace and fixture admission',t=>{
  const dir=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'sunny validation temporary directory-'));
  t.after(()=>fs.rmSync(dir,{recursive:true,force:true,maxRetries:5,retryDelay:100}));

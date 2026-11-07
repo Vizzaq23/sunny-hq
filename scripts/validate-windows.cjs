@@ -13,6 +13,12 @@ function validationEnvironment(env = process.env, temporaryRoot = os.tmpdir()) {
   for (const key of Object.keys(result)) if (['TEMP', 'TMP'].includes(key.toUpperCase())) delete result[key];
   return {...result, TEMP: temporary, TMP: temporary};
 }
+function testArguments(args = process.argv.slice(2)) {
+  const options = args.filter(arg => arg.startsWith('--test-shard'));
+  if (options.length && (options.length !== 1 || !/^--test-shard=[12]\/2$/.test(options[0])))
+    throw Error('Validation supports the complete suite or one of the two CI shards (1/2, 2/2).');
+  return ['--test', '--test-concurrency=1', '--test-reporter=tap', ...options, 'tests/*.test.cjs'];
+}
 const git = (...args) => {
   const result = spawnSync('git', args, {cwd: root, encoding: 'utf8', windowsHide: true});
   if (result.status !== 0) throw Error(`git ${args.join(' ')} failed: ${result.stderr || result.error}`);
@@ -66,6 +72,8 @@ async function main() {
     report.steps.push(step); save(); return step.passed;
   }
   try {
+    const testArgs = testArguments();
+    report.testShard = testArgs.find(arg => arg.startsWith('--test-shard='))?.split('=')[1] || null;
     report.source = preflight(); save();
     if (process.argv.includes('--preflight')) { report.preflightOnly = true; return; }
     const npm = process.env.npm_execpath;
@@ -73,7 +81,7 @@ async function main() {
     if (!await run('install', process.execPath, [npm, 'ci', '--no-audit', '--no-fund'], 10 * 60_000)) return;
     // Electron 44's locked package exposes an installer CLI, not a postinstall.
     if (!await run('electron-install', process.execPath, ['node_modules/electron/install.js'], 10 * 60_000)) return;
-    await run('tests', process.execPath, [npm, 'test'], 75 * 60_000);
+    await run('tests', process.execPath, testArgs, 75 * 60_000);
     if (report.steps.some(step => step.error === 'TIMEOUT_CLEANUP_FAILED')) throw Error('Owned process cleanup failed; stop before starting another check.');
     const built = await run('build', process.execPath, [npm, 'run', 'build'], 10 * 60_000);
     if (built) {
@@ -98,4 +106,4 @@ async function main() {
   }
 }
 if (require.main === module) main();
-module.exports = {preflight, validationEnvironment};
+module.exports = {preflight, validationEnvironment, testArguments};

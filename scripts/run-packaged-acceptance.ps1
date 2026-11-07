@@ -39,6 +39,9 @@ function Write-PrivateManifest([string]$ManifestFile,[string]$Content){
   $empty.Dispose()
   # Protect the new empty file before it contains the nonce. Do not reapply ACLs on restart.
   $privateAcl=[Security.AccessControl.FileSecurity]::new()
+  # Elevated Windows tokens can default new-file ownership to Administrators.
+  # Establish the required user owner only for this newly created empty file.
+  $privateAcl.SetOwner($identity)
   $privateAcl.SetAccessRuleProtection($true,$false)
   $privateAcl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new($identity,'FullControl','Allow'))
   $privateAcl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new([Security.Principal.SecurityIdentifier]::new('S-1-5-18'),'FullControl','Allow'))

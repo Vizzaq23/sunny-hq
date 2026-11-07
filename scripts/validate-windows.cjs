@@ -1,8 +1,18 @@
 // Complete-checkout validation only. Never launches the daily app or a provider.
 const fs = require('node:fs');
 const path = require('node:path');
+const os = require('node:os');
 const {spawn, spawnSync} = require('node:child_process');
 const root = path.resolve(__dirname, '..');
+function validationEnvironment(env = process.env, temporaryRoot = os.tmpdir()) {
+  // Hosted Windows TEMP may contain RUNNER~1. Git expands that alias while
+  // Node's non-native realpath preserves it. Seed fixtures with one physical
+  // spelling; retain every application ownership/junction guard unchanged.
+  const temporary = fs.realpathSync.native(temporaryRoot);
+  const result = {...env};
+  for (const key of Object.keys(result)) if (['TEMP', 'TMP'].includes(key.toUpperCase())) delete result[key];
+  return {...result, TEMP: temporary, TMP: temporary};
+}
 const git = (...args) => {
   const result = spawnSync('git', args, {cwd: root, encoding: 'utf8', windowsHide: true});
   if (result.status !== 0) throw Error(`git ${args.join(' ')} failed: ${result.stderr || result.error}`);
@@ -11,13 +21,15 @@ const git = (...args) => {
 function preflight() {
   if (process.platform !== 'win32' || Number(process.versions.node.split('.')[0]) !== 24)
     throw Error('Use Windows and Node 24. No platform or sandbox bypass is supported.');
+  // Fail before installation/the long suite if the exact playable runtime is absent.
+  const runtime = require('../desktop/playable-launches.cjs').runtimeIdentity();
   if (git('rev-parse', '--is-shallow-repository') !== 'false') throw Error('Fetch complete history (fetch-depth: 0).');
   for (const ref of ['5b70fb2:desktop/missions.cjs', '289731d:desktop/mission-profile.cjs']) git('cat-file', '-e', ref);
   // Verify tracked files exist, including binary art; Git attributes retain frozen fixture bytes.
   const files = git('ls-files', '-z').split('\0').filter(Boolean);
   for (const file of files) if (!fs.existsSync(path.join(root, file))) throw Error(`Missing tracked file: ${file}`);
   if (git('status', '--porcelain', '--untracked-files=normal')) throw Error('Commit the candidate first; validation requires a clean checkout.');
-  return {commit: git('rev-parse', 'HEAD'), node: process.version, platform: process.platform, trackedFiles: files.length};
+  return {commit: git('rev-parse', 'HEAD'), node: process.version, platform: process.platform, trackedFiles: files.length, runtime};
 }
 async function main() {
   const output = path.join(root, '.sunny-dev', 'pr-validation', new Date().toISOString().replaceAll(':', '-'));
@@ -30,7 +42,7 @@ async function main() {
     console.log(`Running ${name}; log: ${path.join(output, `${name}.log`)}`);
     let result;
     try { result = await new Promise(resolve => {
-      const childEnv = {...process.env, ...env};
+      const childEnv = {...validationEnvironment(), ...env};
       // Electron treats even an empty value as Node mode. Native checks must
       // remove inherited case variants rather than set this flag to ''.
       if (name === 'native') for (const key of Object.keys(childEnv)) {
@@ -86,4 +98,4 @@ async function main() {
   }
 }
 if (require.main === module) main();
-module.exports = {preflight};
+module.exports = {preflight, validationEnvironment};

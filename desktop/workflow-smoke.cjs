@@ -138,12 +138,21 @@ app.whenReady().then(async()=>{
   }
   assert.equal(await js('document.querySelector(".helm-workspace").dataset.motion'),'reduced');
   assert.equal(await js('getComputedStyle(document.querySelector(".helm-scene"),"::before").animationName'),'none');
-  state.settings.reducedMotion=false;emit();await wait('document.querySelector(".helm-workspace").dataset.motion==="full"');
-  assert.equal(await js('getComputedStyle(document.querySelector(".helm-scene"),"::before").animationName'),'helm-tide');
-  await click('.helm-sea-toggle');assert.equal(await js('getComputedStyle(document.querySelector(".helm-scene"),"::before").animationName'),'none');
-  await click('.helm-sea-toggle');
   win.webContents.debugger.attach('1.3');
-  try{await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});await wait('document.querySelector(".helm-workspace").dataset.motion==="reduced"');assert.equal(await js('getComputedStyle(document.querySelector(".helm-scene"),"::before").animationName'),'none');}
+  try{
+   // The hosted desktop may already request reduced motion. Explicitly exercise
+   // both OS preferences in this fixture window, never change the host setting.
+   const motion=async value=>win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value}]});
+   await motion('no-preference');
+   assert.equal(await js('document.querySelector(".helm-workspace").dataset.motion'),'reduced','application preference wins with OS motion enabled');
+   state.settings.reducedMotion=false;emit();await wait('document.querySelector(".helm-workspace").dataset.motion==="full"');
+   assert.equal(await js('getComputedStyle(document.querySelector(".helm-scene"),"::before").animationName'),'helm-tide');
+   await click('.helm-sea-toggle');assert.equal(await js('getComputedStyle(document.querySelector(".helm-scene"),"::before").animationName'),'none');
+   await click('.helm-sea-toggle');
+   await motion('reduce');await wait('document.querySelector(".helm-workspace").dataset.motion==="reduced"');assert.equal(await js('getComputedStyle(document.querySelector(".helm-scene"),"::before").animationName'),'none');
+   state.settings.reducedMotion=true;emit();await wait('document.querySelector(".helm-workspace").dataset.motion==="reduced"');
+   assert.equal(await js('getComputedStyle(document.querySelector(".helm-scene"),"::before").animationName'),'none','both preferences reduce motion');
+  }
   finally{await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia',{features:[]});win.webContents.debugger.detach();}
   state.settings.reducedMotion=true;emit();await wait('document.querySelector(".helm-workspace").dataset.motion==="reduced"');
   const originalDeckTask={title:state.tasks[0].title,updatedAt:state.tasks[0].updatedAt};state.tasks[0].title='Fixture live deck update';state.tasks[0].updatedAt=Date.now();emit();

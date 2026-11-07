@@ -25,7 +25,8 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: '24'
+          # Playable acceptance executes a byte-pinned Node 24.18.0 runtime.
+          node-version: '24.18.0'
           cache: npm
       - name: Complete checkout, tests, build and hidden native workflow
         run: npm run validate:windows

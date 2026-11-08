@@ -263,4 +263,3 @@ The existing trusted-release gate still blocks supervised execution. Completing 
 
 ## Reviewed execution handoff continuity — 2026-11-08
 Pending handoffs retain the captain-selected brief and reserved mission/run references before calling the existing goal path. The saved brief is inspectable; unknown outcomes remain fenced after restart and cannot silently launch again. Older handoffs explicitly lack a recorded snapshot. This does not open the execution gate or establish a completed live journey. See [M3 design and evidence](crew-workflow-m3.md).
-

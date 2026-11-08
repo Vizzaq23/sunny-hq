@@ -13,12 +13,12 @@ const labels={
  'interrupt-requested':'Local stop requested; remote completion is not implied',
  'turn-started':'Provider turn started',
  'turn-completed':'Provider turn ended; mission acceptance is separate',
- 'command-started':'Provider reported command start',
- 'command-completed':'Provider reported command completion',
+ 'command-started':'Provider opened a command item; execution is not yet proven',
+ 'command-completed':'Provider closed a command item; inspect its recorded outcome',
  'result-recorded':'Reply recorded; inspect it in the conversation',
  'approval-conflict':'Conflicting pending request; connection invalidated'
 };
-const outcomes=new Set(['working','waiting','idle','unknown','finished','failed','interrupted','completed','inProgress','accept','decline','cancel']);
+const outcomes=new Set(['working','waiting','idle','unknown','finished','failed','interrupted','completed','inProgress','accept','decline','declined','cancel']);
 function ref(value){return typeof value==='string'||typeof value==='number'?createHash('sha256').update(String(value)).digest('hex').slice(0,24):null;}
 function time(value){return Number.isFinite(value)&&value>=0&&value<=8640000000000000?value:null;}
 function hash(value){return typeof value==='string'&&/^[a-f0-9]{24}$/.test(value)?value:null;}
@@ -72,7 +72,7 @@ function timeline(state,input,{now=Date.now(),persistence='unknown'}={}){
   const recorded=(Array.isArray(task.diagnosticObservations)?task.diagnosticObservations:[]).some(e=>e?.kind==='approval-requested'&&e.requestRef===ref(a.id));
   const call=require('./run-presentation.cjs').callBinding(state,a),link=binding(task);
   if(call?.attemptId&&call.attemptId!=='none')link.attemptRef=ref(call.attemptId);
-  if(!recorded)add({id:ref('pending:'+a.id),...link,turnRef:ref(a.turnId),requestRef:ref(a.id),source:'pending-approval',sourceRef:ref(a.id),time:time(a.createdAt),kind:'approval-requested',label:labels['approval-requested'],outcome:'waiting',basis:'snapshot'});
+  if(!recorded)add({id:ref('pending:'+a.id),...link,turnRef:ref(a.turnId),requestRef:ref(a.id),itemRef:ref(a.params?.itemId),source:'pending-approval',sourceRef:ref(a.id),time:time(a.createdAt),kind:'approval-requested',label:labels['approval-requested'],outcome:'waiting',basis:'snapshot'});
  }
  const missionLabels={MISSION_CREATED:'Mission brief saved',MISSION_STARTED:'Mission attempt started',TASK_ASSIGNED:'Crew assignment recorded',CONNECTION_UNCERTAIN:'Mission connection uncertain',MISSION_COMPLETE:'Mission completion recorded; inspect the acceptance receipt',CHANGES_REQUESTED:'Captain requested changes',MISSION_FAILED:'Mission failure recorded',APPROVAL_REQUESTED:'Mission waiting for permission',RESULT_SELECTED:'Result selected for review',TEST_PASSED:'Recorded check passed',TEST_FAILED:'Recorded check failed'};
  for(const m of missions){

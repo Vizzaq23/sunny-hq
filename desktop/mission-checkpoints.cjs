@@ -70,7 +70,12 @@ async function advance(delivery,runId,deliveryId){
   },'mission',{validate:validateBatch});hub.gate.release(lock);hub.wakeCrewScheduler(runId);
  }catch(error){
   const {pending,intentDurable}=lifecycle,current=service.run(runId),record=pending&&current.combinedChecks?.find(c=>c.id===pending.id);
-  if(pending&&(intentDurable||record||storageUncertain(error)||error.durable)){const retained=record||{...pending};if(!record)(current.combinedChecks??=[]).push(retained);retained.state='unknown';const control=service.commands.get(pending.id)||{id:pending.id,reservationId:lock,runId,workspaceId:workspace.id,kind:'check',exited:false};control.state='unknown';service.commands.set(pending.id,control);current.phase='unknown';hub.markDirty();try{await hub.persist('mission');}catch{}error.uncertain=true;}
+  if(pending&&(intentDurable||record||storageUncertain(error)||error.durable)){
+   const control=service.commands.get(pending.id)||{id:pending.id,reservationId:lock,runId,workspaceId:workspace.id,kind:'check',exited:false};control.state='unknown';service.commands.set(pending.id,control);error.uncertain=true;
+   // Recovery is an authority mutation too. A delivery response may already be
+   // validating its captured run; never change that live run outside the queue.
+   try{await hub.missionMutation(book=>{const r=book.data.runs.find(r=>r.id===runId),retained=r.combinedChecks?.find(c=>c.id===pending.id);if(retained)retained.state='unknown';else (r.combinedChecks??=[]).push({...pending,state:'unknown'});r.phase='unknown';r.readiness=null;r.revision++;},'mission');}catch{/* Keep the unknown controller and reservation if recovery cannot be saved. */}
+  }
   else if(storageUncertain(error)||error.durable){hub.gate.reserve(lock,project.path,{projectId:run.projectId,runId,integrating:true});error.uncertain=true;}
   else hub.gate.release(lock);throw error;
  }

@@ -42,3 +42,23 @@ test('ordinary three-wave wider owner hands distinct child regions through two r
  await f.until(()=>f.hub.state.runs[0].deliveries[0].productionWave.operation?.wave===1||f.hub.state.runs[0].deliveries[0].productionWave.checkpoints.length===2,60000);await f.until(()=>f.hub.state.runs[0].deliveries[0].productionWave.checkpoints.length===2,60000);await f.until(()=>f.turns.length===4,60000);const run=f.hub.state.runs[0],d=run.deliveries[0],second=d.productionWave.checkpoints[1],last=f.turns[3],rootC=last.request.cwd,c=run.assignments.find(a=>a.id==='c');assert.equal(d.productionWave.active,2);assert.equal(d.productionWave.checkpoints.length,2);assert.deepEqual(f.snapshot().missionBook.runs[0].deliveries[0].productionWave.checkpoints,[first,second]);assert.deepEqual(d.productionWave.checkpoints[0],first);assert.notEqual(second.source.headCommit,first.source.headCommit);assert.equal(f.git(rootC,['rev-parse','HEAD']),second.source.headCommit);assert.equal(c.baseCommit,second.source.headCommit);assert.equal(c.checkpointBinding.checkpointId,second.id);assert.deepEqual(c.ownershipTransfers,[{fromAssignmentId:'a',fromWorkspaceId:first.prefix[0].workspaceId,source:first.prefix[0].source,newBase:second.source.headCommit}]);assert.deepEqual(b.ownershipTransfers,run.assignments.find(a=>a.id==='b').ownershipTransfers);assert.equal(require(path.join(rootC,'src/a/middle.cjs'))(),43);assert.equal(new Set([rootA,rootB,rootC]).size,3);assert.equal(run.workspaces.length,4);assert.equal(run.counters.launches,4);assert.equal(run.authorHistory.length,3);assert.deepEqual(run.integrations.map(op=>op.id),second.integrationIds);assert.deepEqual(first.integrationIds,second.integrationIds.slice(0,1));assert.deepEqual(second.prefix.map(p=>p.id),['a','b']);assert.equal(run.combinedChecks.length,4);for(const cp of [first,second]){assert.equal(cp.checkIds.length,2);for(const id of cp.checkIds){const check=run.combinedChecks.find(check=>check.id===id);assert.equal(check.state,'completed');assert.equal(check.result.status,'passed');assert.deepEqual(check.source,cp.source);}}assert.doesNotThrow(()=>require('../desktop/supervision-schema.cjs').validateSupervisedRun(run));assert.equal(run.verification,undefined);
  fs.mkdirSync(path.join(rootC,'src/b'));fs.writeFileSync(path.join(rootC,'src/b/final.cjs'),"module.exports=()=>require('../a/middle.cjs')()*2;\n");assert.equal(require(path.join(rootC,'src/b/final.cjs'))(),86);f.git(rootC,['add','src/b']);f.git(rootC,['commit','-m','Actual sibling-region contribution']);const lastHead=f.git(rootC,['rev-parse','HEAD']);assert.notEqual(lastHead,second.source.headCommit);await f.notify(last);const completed=f.hub.state.runs[0];assert.equal(completed.assignments.find(a=>a.id==='c').sourceResult.headCommit,lastHead);assert.deepEqual(completed.deliveries[0].productionWave.checkpoints,[first,second]);assert.equal(completed.authorHistory.length,3);assert.ok(completed.authorHistory.every(a=>[author.threadId,middle.threadId,last.threadId].includes(a.threadId)));t.diagnostic(JSON.stringify({prefixes:[first.source.headCommit,second.source.headCommit],cHead:lastHead,roots:completed.workspaces.length,launches:completed.counters.launches,authors:completed.authorHistory.length,checks:completed.combinedChecks.length}));await f.hub.close();await pending;
 });
+
+test('checkpoint failure recovery serializes behind an already prepared authority commit',{timeout:180000},async t=>{
+ let f,changed=false,overlap;
+ f=await setup(t,{afterPersist:image=>{
+  const r=image.missionBook?.runs[0];
+  if(changed||!r?.deliveries?.[0]?.productionWave?.operation||!r.combinedChecks?.some(c=>c.kind==='build'&&c.state==='completed'))return;
+  changed=true;f.hub.state.runs[0].grant.maxLaunches--;
+  // Prepare the next legitimate commit before the failed check's catch handler runs.
+  // Yield its validation so an out-of-queue recovery write deterministically collides.
+  overlap=f.hub.missionMutation(book=>{book.data.runs[0].revision++;},'mission',{validate:async stage=>{if(stage==='before')await new Promise(setImmediate);}}).then(()=>({passed:true}),error=>({error:error.message}));
+ }});
+ const pending=f.deliver();await f.finish();const out=await pending;
+ assert.ok(changed);assert.deepEqual(await overlap,{passed:true});
+ assert.ok(['blocked','unknown'].includes(out.status),JSON.stringify(out));
+ f.noSuccessors();const run=f.hub.state.runs[0];
+ assert.equal(run.deliveries[0].productionWave.checkpoints.length,0);
+ assert.equal(run.readiness,null);assert.equal(run.phase,'unknown');
+ assert.ok(run.combinedChecks.some(c=>c.kind==='build'&&c.state==='unknown'));
+ assert.equal(f.snapshot().missionBook.runs[0].phase,'unknown');
+});

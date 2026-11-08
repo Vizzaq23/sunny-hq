@@ -1,0 +1,32 @@
+✖ checkpoint failure recovery serializes behind an already prepared authority commit (111692.1248ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 111826.1476
+
+✖ failing tests:
+
+test at tests\checkpoint-journey-faults.test.cjs:46:1
+✖ checkpoint failure recovery serializes behind an already prepared authority commit (111692.1248ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   error: 'Run changed during persistence. Inspect the current revision.'
+  -   passed: true
+    }
+  
+      at TestContext.<anonymous> (C:\Users\Quintin\Documents\GitHub\sunny-hq\.sunny-dev\diagnostic-timeline\tests\checkpoint-journey-faults.test.cjs:57:28)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { error: 'Run changed during persistence. Inspect the current revision.' },
+    expected: { passed: true },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

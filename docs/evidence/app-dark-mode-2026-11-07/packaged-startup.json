@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "status": "completed",
+  "accepted": true,
+  "cleanup": "observed",
+  "lastStage": "scan-enter",
+  "elapsedMs": 7903,
+  "scenario": "startup"
+}

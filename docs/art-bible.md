@@ -136,3 +136,7 @@ Original ship/room art and atlas bytes remain unchanged. The existing Luffy room
 ## Crew wanted posters and captain panel — 2026-11-07
 
 The [crew map](crew-map-2026-11-07.md) separates Luffy’s navy/brass captain panel from equal-sized core specialist cards. Existing studio portraits retain their geometry. Original restrained CSS fibers and a small decorative sea porthole add parchment/ocean atmosphere without new assets. Beams are finite event cues; all effects respect pause and reduced motion. No atlas or room-floor changes.
+
+## Manga-inspired wanted posters — 2026-11-07
+
+Crew directory cards use an original printed-poster composition: oversized serif WANTED masthead, framed existing portrait, DEAD OR ALIVE, uppercase name and a Grand Line dossier imprint. These are decorative fiction, not work status or a claimed canon bounty. Actual status and direct controls remain below the poster heading. Luffy retains a distinct captain area with a compact poster. Existing atlas remains unchanged; portraits retain 4:5 geometry at160x200 (captain96x120). Actual PaperTexture remains behind HTML text.

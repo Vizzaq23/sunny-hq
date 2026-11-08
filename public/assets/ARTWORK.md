@@ -165,3 +165,7 @@ Existing studio CrewPortrait and crew badges are reused unchanged. The crew map,
 ## 2026-11-07 — actual Paper shader integration
 
 The earlier `parchment-grain.svg` custom approximation is removed. `PaperTexture` and `Water` are imported from the real Apache-2.0 `@paper-design/shaders-react` package. `crew-ocean.svg` is original Sunny vector art authored as the local image input for Water and its GPU-loss still fallback; no external artwork is fetched at runtime. Existing crew portraits and atlas geometry are unchanged. Upstream source/terms and packaged notices: [actual component integration](../../docs/crew-components-upstream.md).
+
+## 2026-11-07 — wanted-poster directory
+
+Original CSS/HTML poster framing and serif typography reuse existing crew-sheet.png unchanged. No manga panels, new third-party images or fake monetary/status data are introduced. Existing PaperTexture and Motion Primitives profile components remain in use; see docs/art-bible.md.

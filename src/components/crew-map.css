@@ -102,3 +102,28 @@
 .ship-event-log .aceternity-timeline-ink{width:2px;background:linear-gradient(to top,#aa8149,#257c85,transparent)}
 .ship-event-log .log-entry-icon{display:none}
 @media(max-width:600px){.ship-event-log .aceternity-timeline-marker{flex-basis:28px}.ship-event-log .aceternity-timeline-date{display:none}.ship-event-log .aceternity-timeline-date-mobile{display:block;font-size:13px;margin:0 0 8px;font-family:inherit}.ship-event-log .aceternity-timeline-entry{gap:12px}.voyage-ui .crew-page .crew-card.specialist-card{min-height:450px}}
+
+/* Manga-inspired printed wanted posters. Real work state stays below the fictional masthead. */
+.voyage-ui .crew-page .crew-card.specialist-card{padding:18px 20px 14px;border:1px solid #947b51;border-top:1px solid #947b51;border-radius:2px;background-color:#ebd9b3;box-shadow:inset 0 0 24px #92714030,2px 4px 0 #553b221c;min-height:650px;color:#392c20}
+.voyage-ui .crew-page .crew-card.specialist-card:before{content:'';position:absolute;inset:7px;width:auto;height:auto;border-radius:0;background:none;border:1px solid #9f835f70;pointer-events:none;z-index:-1}
+.voyage-ui .crew-page .crew-card.specialist-card:after{display:none}
+.crew-page .crew-card .crew-number{display:none}
+.crew-card.specialist-card .paper-material{opacity:.72;mix-blend-mode:multiply}
+.crew-card.specialist-card .wanted-stamp,.captain-wanted .wanted-stamp{font-family:Georgia,'Times New Roman',serif;font-weight:900;letter-spacing:.025em;line-height:1;color:#3b2a1b;font-size:clamp(46px,5vw,70px);margin:0 0 12px;display:block;width:100%;text-shadow:1px 0 currentColor,-1px 0 currentColor}
+.wanted-photo{display:flex;align-items:center;justify-content:center;width:100%;height:210px;box-sizing:border-box;overflow:hidden;border:3px double #69503a;background:linear-gradient(135deg,#b8a58140,#e8dfcc,#ab947640);box-shadow:inset 0 0 25px #58412425}
+.voyage-ui .crew-page .crew-card.specialist-card .wanted-photo .crew-directory-portrait{width:160px;height:200px;flex:none;border-radius:0;mix-blend-mode:multiply;filter:sepia(.38) saturate(.65) contrast(1.08)}
+.crew-card .wanted-decree{font-family:Georgia,'Times New Roman',serif;font-size:21px;font-weight:700;letter-spacing:.13em;line-height:1.2;margin:12px 0 3px;color:#493422}
+.voyage-ui .crew-page .crew-card.specialist-card h3{font-family:Georgia,'Times New Roman',serif;font-size:35px;font-weight:900;text-transform:uppercase;line-height:1.15;letter-spacing:.025em;margin:4px 0 10px;color:#39291d}
+.wanted-imprint{display:block;width:100%;border-top:2px solid #796143;border-bottom:1px solid #796143;padding:8px 0;margin-bottom:12px;font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:.18em;font-weight:700;color:#59432d}
+.crew-card.specialist-card .crew-card-state{margin:0 0 8px;background:#fff8e9;border-color:#9a886c;color:#493e2f;font-size:12px}
+.voyage-ui .crew-page .crew-card.specialist-card h4{font-size:12px;letter-spacing:.055em;color:#58422e;line-height:1.5}
+.voyage-ui .crew-page .crew-card.specialist-card p{font-size:12px;color:#5c503f;margin:6px 0 10px;line-height:1.5}
+.crew-card.specialist-card .crew-profile-trigger>small{font-size:11px;color:#625541}
+.crew-card.specialist-card .profile-open-label{border-color:#8e7754;background:#f8efdc;color:#453322;border-radius:2px;margin-top:12px;font-size:12px}
+.crew-card.specialist-card .crew-advanced{border-top:0;margin-top:4px;color:#5e4a33}
+.captain-wanted{flex:0 0 130px;width:130px;display:flex;align-items:center;flex-direction:column;padding:9px 8px;background:#ead7b0;border:3px double #92774d;box-shadow:2px 3px 0 #0002;color:#39291d}
+.captain-wanted .wanted-stamp{font-size:21px;margin-bottom:7px;letter-spacing:0;text-align:center}
+.crew-captain .captain-wanted .crew-directory-portrait{width:96px;height:120px;border:1px solid #876c4b;border-radius:0;filter:sepia(.38) saturate(.65);mix-blend-mode:multiply}
+.captain-wanted .wanted-decree{font:700 10px/1.3 Georgia,serif;letter-spacing:.06em;margin-top:7px}.captain-wanted strong{font:900 11px/1.5 Georgia,serif;text-align:center}
+@media(hover:hover) and (pointer:fine){.crew-card.specialist-card .crew-profile-trigger:hover .profile-open-label{background:#ead5ac}}
+@media(max-width:600px){.crew-card.specialist-card .wanted-stamp{font-size:58px}.captain-wanted{flex-basis:auto}.voyage-ui .crew-page .crew-card.specialist-card{padding-inline:18px}}

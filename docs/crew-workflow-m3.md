@@ -1,5 +1,45 @@
 # M3 — Continuous crew workflow (2026-11-08)
 
+## Local release qualification — completed run, release blocked
+
+The separately packaged candidate from clean `50bb8c432d1dc87004ab23af41a516a0bb5f2670` completed the local matrix: **12 accepted, 6 failed, all 18 with observed cleanup and zero remaining owned processes**. This is a failed release qualification, not completion of M3. The execution gate remains closed in both source and the actual archive. No M4 work, installation, daily-profile change, provider connection, test weakening or application-code change was made during this qualification.
+
+[Machine-readable qualification evidence](evidence/crew-workflow-m3-2026-11-08/release-qualification.json) contains supervisor/job receipts, phase outcomes, raw timing metrics, assertion outcomes, bounded progress and hashes/locations of retained raw artifacts. The candidate is `.sunny-dev/m3-release-candidate/win-unpacked`; raw evidence and disposable profiles are `.sunny-dev/m3-release-qualification`. All cases ran sequentially through the existing `scripts/packaged-supervisor.cjs` and atomic Windows Job harness. No failed batch was replaced with a selected passing rerun.
+
+Fresh build/typecheck and unpacked Windows x64 packaging passed. Application fingerprint remains `7e152a4211b00556ecdc5b11fcfef2330604d32a31365c69b4231d551f57be10`, matching the previously validated application. The prior 1,762-test/full-native evidence below still applies to unchanged application inputs; the full source suite was not rerun for documentation-only changes. Electron is 44.4.3; the candidate's Authenticode status is **NotSigned**, so no signed-installer qualification is claimed.
+
+- EXE SHA-256: `eb8f6085fe5c438fa75d75ef95a49a6eeb994a217626e7fcf0255032a6dc6a67`.
+- ASAR SHA-256: `d05918304e26e0c78340c68b8fa3039b757c776292d97f3490b4fda81f56016f`.
+- Packed closed-gate module SHA-256: `92b0fa1237bcc772160abd0555bb40dfbb45cada1c2924899fca6f66bf0855c8`.
+
+| Qualification | Result |
+| --- | --- |
+| Startup, renderer crash, main restart, worker loss, write failure, lost acknowledgement, pending approval, pending check, normal quit | All nine accepted; real packaged persistence/IPC with offline provider boundary |
+| Playable result | Accepted across two processes: real local fixture interaction, Stop, feedback retention and restart; synthetic review metadata, no human mission acceptance |
+| Run-status UI | Failed in phase one: `.run-status` never showed `Crew working`; later states/restart not reached |
+| User reduced motion, OS reduced motion, audio | All three failed restoring Franky room after source review; acceptance/cue/motion/audio conclusions not earned |
+| Two-build journey/cue | Failed at unchanged 300,000 ms deadline (supervisor elapsed 300,080 ms); first reviewed runtime stopped and feedback attempt started, second full journey not completed |
+| Ordered controls, 1 / 10 MiB | Both accepted with all 20 Stop + 20 approval measurements, six warmups and full-state readback |
+| Ordered controls, 30 MiB | Failed approval p95 limit; all 40 operations and correctness checks completed, no control-effect failures |
+
+| History | Stop p95 (ms) | Approval p95 (ms) | Maximum continuous main timer excess (ms) | Outcome |
+| --- | ---: | ---: | ---: | --- |
+| 1 MiB | 65.0 | 64.2 | 17.01 | Pass |
+| 10 MiB | 69.6 | 93.3 | 30.29 | Pass |
+| 30 MiB | 191.9 | 263.2 | 81.68 | Fail: approval p95 must be <200 |
+
+Supplementary timer maxima also stayed below 100 ms. Historical failures are retained; these fresh results do not imply a paired performance speedup or waive the failed 30 MiB gate. The evidence writer correctly refused a passing phase receipt for that case. Expected rejection logs within the passing playable scenario are separate from its accepted supervisor result.
+
+### Findings and remaining work within M3
+
+Source inspection explains the room-restoration failure: `src/App.tsx` initializes the view to Home and restores a saved workbench on startup, but does not select Ship for saved `surface: franky`; `inFrankyRoom` requires Ship. The three failed cases reached `source-reviewed` at 98.128, 91.689 and 93.077 seconds respectively, then timed out in `waitForRenderer` after setting Franky context and reloading. This was an inner readiness failure, not their 120-second outer limit. Separately, the run UI fixture expects the status panel immediately after reload while the current app only renders that panel on Missions. Fix and verify navigation/restoration and explicit fixture navigation without removing the behavior assertions; these are not accepted UI checks.
+
+The two-build case recorded first source review at 206.223 seconds, runtime stopped at 214.517 seconds and feedback started at 219.683 seconds. The outer deadline expired before the second completion. A [bounded read-only observation](evidence/crew-workflow-m3-2026-11-08/qualification-cue-observation.json) records the first completed delivery and second collecting delivery; it contains identities/status only, no prompts. It is an intermediate observation, not a restart or completion claim. Investigate the time distribution before attempting a performance repair; keep the existing deadline.
+
+Remaining release requirements include repairing/requalifying these six failures, a separately admitted native stopped-profile capture, real-provider containment/pending-request replay proof, hosted CI eligibility, and the separate human release decision. `stopped-profile-copy` uses a distinct native capture protocol and is not admitted by the ordinary packaged wrapper; no capability was fabricated and no daily profile was stopped/copied for this run. The saved GitHub billing/account-admission annotation remains an external blocker; this local qualification did not recheck billing or modify account settings. No new real-provider or continuous human-accepted crew journey is claimed.
+
+Reproduction: build with the documented direct Node/npm CLI, then `node node_modules/electron-builder/cli.js --dir --win --x64 --config.directories.output=.sunny-dev/m3-release-candidate`. For each case create fresh disjoint profile/output directories and invoke `node scripts/packaged-supervisor.cjs` with absolute `--exe`, `--asar`, `--profile`, `--out`, plus `--scenario`, `--mib`, and `--timeout-ms`. This matrix used 300000 for ordered controls and journey-cue, 120000 for other cases; controls used 1/10/30 MiB, other cases 1 MiB. Never reuse a consumed fixture profile or install this failed candidate as a qualification step.
+
 ## Verified handoff milestone; live M3 remains blocked
 
 Clean implementation `df3288ac1dcdfd3a38a4528efecdf09569896bb3` passed **1,762 local tests**, zero failures/cancellations/skips, clean dependency installation, build/typecheck, all **68 native workflow checks**, and the dedicated council UI fixture. All 1,745 M2 top-level results remain, with seven handoff regressions added. Native results are explicitly synthetic; the clean-candidate mobile screenshot was visually inspected. [Final receipt](evidence/crew-workflow-m3-2026-11-08/verification-final.json), [test parity](evidence/crew-workflow-m3-2026-11-08/test-parity.json), [saved brief screenshot](evidence/crew-workflow-m3-2026-11-08/council-handoff-snapshot-mobile.png). Build fingerprint: `7e152a4211b00556ecdc5b11fcfef2330604d32a31365c69b4231d551f57be10`.
@@ -55,4 +95,4 @@ This implementation checkpoint's pending source validation is superseded by the 
 
 ### Remaining exact-package qualification inventory
 
-The existing private packaged-acceptance entry point supplies `startup`, `renderer-crash`, `main-restart`, `worker-loss`, `write-failure`, `lost-ack`, `pending-approval`, `pending-check`, `normal-quit`, `ordered-control`, `run-ui`, `playable`, `stopped-profile-copy`, and the fixed `journey-cue`, `journey-motion-user`, `journey-motion-system`, `journey-audio` scenarios. Their existing scenario/phase/size/nonce and cleanup rules remain authoritative. Historical large-history control-latency and two-build-journey failures are not fresh passes for this source. This task did not build or qualify a new release package; those checks and real-provider containment evidence remain explicit prerequisites, not inferred from ordinary native workflow success.
+The existing private packaged-acceptance entry point supplies `startup`, `renderer-crash`, `main-restart`, `worker-loss`, `write-failure`, `lost-ack`, `pending-approval`, `pending-check`, `normal-quit`, `ordered-control`, `run-ui`, `playable`, `stopped-profile-copy`, and the fixed `journey-cue`, `journey-motion-user`, `journey-motion-system`, `journey-audio` scenarios. Their existing scenario/phase/size/nonce and cleanup rules remain authoritative. This was the inventory before qualification; the fresh exact-package outcomes and remaining requirements are recorded above. Ordinary native workflow success does not replace them.

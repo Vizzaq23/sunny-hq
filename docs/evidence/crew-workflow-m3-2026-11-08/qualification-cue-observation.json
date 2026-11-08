@@ -1,0 +1,97 @@
+{
+  "observedAt": "2026-11-08T23:41:02.893Z",
+  "source": "read-only synthetic fixture database",
+  "runs": [
+    {
+      "id": "108d2874-0f61-49c2-8bdc-c976ef6bfd34",
+      "phase": "waiting",
+      "deliveries": [
+        {
+          "id": "35ad8731-5888-4d7f-b65d-f4ab067eda4d",
+          "stage": "completed",
+          "attemptId": "d0dce5e9-f4be-4275-adce-7c7768a28895",
+          "resultId": "bab4c59e-9d73-4229-b67d-3e6b46290b2a",
+          "continuationState": "completed",
+          "playableStage": "validation-bound"
+        },
+        {
+          "id": "8e09bb64-5569-41d5-835e-f2fbcb20916e",
+          "stage": "collecting",
+          "attemptId": "1b0e6300-f8b9-45d3-9f21-61c1d0e63245",
+          "playableStage": "production"
+        }
+      ],
+      "assignments": [
+        {
+          "id": "journey-1-alpha",
+          "state": "finished"
+        },
+        {
+          "id": "journey-1-beta",
+          "state": "finished"
+        },
+        {
+          "id": "journey-1-review-one",
+          "state": "finished"
+        },
+        {
+          "id": "journey-1-review-two",
+          "state": "finished"
+        },
+        {
+          "id": "journey-2-alpha",
+          "state": "queued"
+        },
+        {
+          "id": "journey-2-beta",
+          "state": "queued"
+        },
+        {
+          "id": "journey-2-review-one",
+          "state": "queued"
+        },
+        {
+          "id": "journey-2-review-two",
+          "state": "queued"
+        }
+      ]
+    }
+  ],
+  "missions": [
+    {
+      "id": "d74139ae-7da9-49ba-bc98-4b0681bfc284",
+      "status": "RUNNING",
+      "attemptId": "1b0e6300-f8b9-45d3-9f21-61c1d0e63245"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "c116f79b-b4e0-40cc-add9-ecb211a2adff",
+      "status": "working"
+    },
+    {
+      "id": "0f63d255-684e-4534-8c86-894db1ce9c68",
+      "status": "finished"
+    },
+    {
+      "id": "f3472850-e5c4-4134-aa64-03c0a4cc018f",
+      "status": "finished"
+    },
+    {
+      "id": "b4a140e2-2958-4e74-8642-db102ea65760",
+      "status": "finished"
+    },
+    {
+      "id": "ff529ffb-6d91-4873-8ec6-71ba511800cc",
+      "status": "finished"
+    },
+    {
+      "id": "37f7ca77-cee3-40ee-b838-1528b48332e4",
+      "status": "finished"
+    },
+    {
+      "id": "558a890c-3d81-4886-89a5-59a50897e135",
+      "status": "finished"
+    }
+  ]
+}

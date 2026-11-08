@@ -146,3 +146,5 @@ Wanted poster refinement (2026-11-07): full rectangular portrait plates, canonic
 Print refinement (2026-11-07): compact portrait sheets use OFL Alfa Slab One/IM Fell English rather than Georgia, weathered paper and tighter display typography; work controls sit below the paper. Original portrait crops remain. See wanted-poster-references.md; no exact anime-font or image-replica claim.
 
 Captain poster partial refinement (2026-11-07): enlarged high-contrast Libre Bodoni lettering and full name. Gear 5 recreation rejected by image tool; existing portrait remains and is not an exact canon match. Branch SVG masks exclude entire cards so lines cannot show through transparent paper/control layers.
+
+2026-11-07 sourced captain poster: user-directed local use of a complete online Gear 5 3-billion-Berry poster replaces the prior HTML reconstruction. Preserve original proportions and pixels; no official manga-scan or redistribution-license claim. See wanted-poster-references.md for source and rights limits.

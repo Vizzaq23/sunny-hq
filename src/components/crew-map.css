@@ -193,3 +193,7 @@
 .captain-wanted .wanted-bounty{font-size:24px;letter-spacing:.07em;line-height:1.3;margin:2px 0 4px}
 .captain-wanted .wanted-imprint b{font-family:'Libre Bodoni',serif;font-size:23px}.captain-wanted .wanted-imprint small{font-size:5px}
 @media(max-width:600px){.captain-wanted{flex-basis:auto;width:180px;padding:9px}.captain-wanted .wanted-photo{height:120px}.captain-wanted .wanted-decree{font-size:12px}.captain-wanted .wanted-bounty{font-size:18px}.captain-wanted .wanted-imprint b{font-size:16px}.captain-wanted .wanted-imprint small{font-size:4px}}
+
+/* Complete sourced poster: retain its printed lettering, colors and aspect ratio. */
+.captain-wanted.captain-wanted-image{padding:0;background:none;box-shadow:0 3px 5px #0003}
+.captain-wanted-image img{display:block;width:100%;height:auto;max-width:100%;filter:none;object-fit:contain}

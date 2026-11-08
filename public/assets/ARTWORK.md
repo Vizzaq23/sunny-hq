@@ -169,3 +169,6 @@ The earlier `parchment-grain.svg` custom approximation is removed. `PaperTexture
 ## 2026-11-07 — wanted-poster directory
 
 Original CSS/HTML poster framing and serif typography reuse existing crew-sheet.png unchanged. No manga panels, new third-party images or fake monetary/status data are introduced. Existing PaperTexture and Motion Primitives profile components remain in use; see docs/art-bible.md.
+
+## wanted-allies.png — 2026-11-07
+Generated original portrait atlas, 1254×1254, 2 columns × 2 rows: Law, Ace / Vivi, Perona. Source: C:/Users/Quintin/.codex/generated_images/01a1b7ef-2f6d-7933-b1d7-ba8c4f8b8d3b/exec-58def0c7-c170-4adf-857c-f8c4b7e29857.png. Image-generation prompt requested full-bleed chest-up manga/anime ink portraits, sky/ocean backgrounds, warm restrained colors and no text/margins/circular masks. No commercial reference asset copied. Used only in poster frames; existing animated atlases unchanged. Main-crew replacement generation was rejected; the existing crew-sheet.png remains unchanged and is cropped via CSS to fill the rectangular frames. See docs/wanted-poster-references.md for canonical bounty data and distinctions from official poster photographs.

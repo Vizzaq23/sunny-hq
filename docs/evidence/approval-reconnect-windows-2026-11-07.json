@@ -1,0 +1,167 @@
+{
+  "sourceCommit": "0cc37423bfab7bf078f63c11625092d309b46028",
+  "runUrl": "https://github.com/Vizzaq23/sunny-hq/actions/runs/42431544377",
+  "conclusion": "success",
+  "executionGateOpen": false,
+  "baselineTopLevelTestsRetained": 1727,
+  "addedTopLevelTests": [
+    "edited command answers cannot approve the unchanged provider command",
+    "explicit worker continuation reasserts its sandbox and approval boundary",
+    "explicit captain continuation reasserts its sandbox and approval boundary",
+    "conflicting duplicate RPC cannot retain approval for a different command",
+    "live probe permits only its intact fixture under a known local shell",
+    "approval pending persistence rejects disconnect before provider output",
+    "approval pending persistence rejects resolved before provider output",
+    "approval pending persistence rejects superseded before provider output"
+  ],
+  "shards": [
+    {
+      "summary": {
+        "passed": true,
+        "liveProviderProof": false,
+        "output": "D:\\a\\sunny-hq\\sunny-hq\\.sunny-dev\\pr-validation\\2026-11-08T00-50-23.930Z",
+        "steps": [
+          {
+            "name": "install",
+            "passed": true,
+            "exitCode": 0,
+            "elapsedMs": 30921
+          },
+          {
+            "name": "electron-install",
+            "passed": true,
+            "exitCode": 0,
+            "elapsedMs": 4584
+          },
+          {
+            "name": "tests",
+            "passed": true,
+            "exitCode": 0,
+            "elapsedMs": 3440164
+          },
+          {
+            "name": "build",
+            "passed": true,
+            "exitCode": 0,
+            "elapsedMs": 53027
+          },
+          {
+            "name": "native",
+            "passed": true,
+            "exitCode": 0,
+            "elapsedMs": 101440
+          }
+        ],
+        "testShard": "1/2",
+        "source": {
+          "commit": "0cc37423bfab7bf078f63c11625092d309b46028",
+          "node": "v24.18.0",
+          "platform": "win32",
+          "trackedFiles": 735,
+          "runtime": {
+            "executable": "C:\\hostedtoolcache\\windows\\node\\24.18.0\\x64\\node.exe",
+            "version": "24.18.0",
+            "sha256": "9a4eb5f1c29c6a2e93852ead46b999e284a6a5ca8bab4d4e241d587d025a52de",
+            "runnerSha256": "0bef86a6513470b0c4c2c794faa80c328862f9b4a9f34122cdf4f69c5cbffb6e"
+          }
+        },
+        "build": {
+          "appVersion": "0.11.0",
+          "buildId": "169eb1e178e023172f42c380b743ae420f5681896c3b4ed462e83d653b58999a",
+          "fingerprintKind": "source-inputs-sha256",
+          "sourceCommit": "0cc37423bfab7bf078f63c11625092d309b46028",
+          "sourceDirty": false
+        },
+        "native": {
+          "passed": true,
+          "hidden": true,
+          "syntheticTransport": true,
+          "liveProviderProof": false
+        }
+      },
+      "tests": {
+        "tests": 892,
+        "pass": 892,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "testLogSha256": "0e670148bc573f7abb3507543cf4cfc0353b668dc0c42e5fa725a6a12838d7a3"
+    },
+    {
+      "summary": {
+        "passed": true,
+        "liveProviderProof": false,
+        "output": "D:\\a\\sunny-hq\\sunny-hq\\.sunny-dev\\pr-validation\\2026-11-08T00-50-20.765Z",
+        "steps": [
+          {
+            "name": "install",
+            "passed": true,
+            "exitCode": 0,
+            "elapsedMs": 24798
+          },
+          {
+            "name": "electron-install",
+            "passed": true,
+            "exitCode": 0,
+            "elapsedMs": 4499
+          },
+          {
+            "name": "tests",
+            "passed": true,
+            "exitCode": 0,
+            "elapsedMs": 1997022
+          },
+          {
+            "name": "build",
+            "passed": true,
+            "exitCode": 0,
+            "elapsedMs": 48093
+          },
+          {
+            "name": "native",
+            "passed": true,
+            "exitCode": 0,
+            "elapsedMs": 94471
+          }
+        ],
+        "testShard": "2/2",
+        "source": {
+          "commit": "0cc37423bfab7bf078f63c11625092d309b46028",
+          "node": "v24.18.0",
+          "platform": "win32",
+          "trackedFiles": 735,
+          "runtime": {
+            "executable": "C:\\hostedtoolcache\\windows\\node\\24.18.0\\x64\\node.exe",
+            "version": "24.18.0",
+            "sha256": "9a4eb5f1c29c6a2e93852ead46b999e284a6a5ca8bab4d4e241d587d025a52de",
+            "runnerSha256": "0bef86a6513470b0c4c2c794faa80c328862f9b4a9f34122cdf4f69c5cbffb6e"
+          }
+        },
+        "build": {
+          "appVersion": "0.11.0",
+          "buildId": "169eb1e178e023172f42c380b743ae420f5681896c3b4ed462e83d653b58999a",
+          "fingerprintKind": "source-inputs-sha256",
+          "sourceCommit": "0cc37423bfab7bf078f63c11625092d309b46028",
+          "sourceDirty": false
+        },
+        "native": {
+          "passed": true,
+          "hidden": true,
+          "syntheticTransport": true,
+          "liveProviderProof": false
+        }
+      },
+      "tests": {
+        "tests": 853,
+        "pass": 853,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "testLogSha256": "21a2c6a737799be6fd62cac19af2bc0203d3d28018bfefb76f85086a7a6e2942"
+    }
+  ]
+}

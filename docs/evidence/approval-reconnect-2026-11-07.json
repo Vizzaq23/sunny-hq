@@ -1,0 +1,325 @@
+{
+  "version": 1,
+  "startedAt": "2026-11-08T00:49:53.280Z",
+  "source": "real-provider",
+  "liveProviderProof": true,
+  "pendingReplayVerified": false,
+  "passed": true,
+  "executionGateOpen": false,
+  "cases": [
+    {
+      "name": "accept-duplicate-edited",
+      "events": [
+        {
+          "kind": "client-request",
+          "connection": 1,
+          "method": "thread/start"
+        },
+        {
+          "kind": "client-request",
+          "connection": 1,
+          "method": "turn/start",
+          "threadId": "01a1b8a2-1bbb-7040-8582-efebd37e6098"
+        },
+        {
+          "kind": "request",
+          "connection": 1,
+          "rpcId": 0,
+          "method": "item/commandExecution/requestApproval",
+          "threadId": "01a1b8a2-1bbb-7040-8582-efebd37e6098",
+          "turnId": "01a1b8a2-24ba-7c10-b112-f61d8cad825d",
+          "commandSha256": "627e68ee4309fa0d8428c2d750e2b8bf073dc878a030754805881d7079006726"
+        },
+        {
+          "kind": "resolved",
+          "connection": 1,
+          "requestId": 0,
+          "threadId": "01a1b8a2-1bbb-7040-8582-efebd37e6098"
+        },
+        {
+          "kind": "turn-completed",
+          "connection": 1,
+          "turnId": "01a1b8a2-24ba-7c10-b112-f61d8cad825d",
+          "status": "completed"
+        }
+      ],
+      "passed": true,
+      "model": "gpt-6.1-sol",
+      "threadId": "01a1b8a2-1bbb-7040-8582-efebd37e6098",
+      "approvalPolicy": "on-request",
+      "sandbox": {
+        "type": "readOnly",
+        "networkAccess": false
+      },
+      "turnId": "01a1b8a2-24ba-7c10-b112-f61d8cad825d",
+      "requestId": 0,
+      "approvalId": "4f5b64ad-e9fe-4bcb-ba4a-2b7504653dbc",
+      "commandSha256": "627e68ee4309fa0d8428c2d750e2b8bf073dc878a030754805881d7079006726",
+      "editedResponseRejected": true,
+      "duplicateResponseRejected": true,
+      "effectCount": 1,
+      "responses": [
+        {
+          "connection": 1,
+          "rpcId": 0,
+          "result": {
+            "decision": "accept"
+          }
+        }
+      ],
+      "taskStatus": "finished",
+      "ownedProcessesExited": true,
+      "finalEffectCount": 1
+    },
+    {
+      "name": "decline",
+      "events": [
+        {
+          "kind": "client-request",
+          "connection": 1,
+          "method": "thread/start"
+        },
+        {
+          "kind": "client-request",
+          "connection": 1,
+          "method": "turn/start",
+          "threadId": "01a1b8a2-4ae8-7350-ac8e-b74bafeb29cb"
+        },
+        {
+          "kind": "request",
+          "connection": 1,
+          "rpcId": 0,
+          "method": "item/commandExecution/requestApproval",
+          "threadId": "01a1b8a2-4ae8-7350-ac8e-b74bafeb29cb",
+          "turnId": "01a1b8a2-544b-7072-b567-f07c7da20494",
+          "commandSha256": "627e68ee4309fa0d8428c2d750e2b8bf073dc878a030754805881d7079006726"
+        },
+        {
+          "kind": "resolved",
+          "connection": 1,
+          "requestId": 0,
+          "threadId": "01a1b8a2-4ae8-7350-ac8e-b74bafeb29cb"
+        },
+        {
+          "kind": "turn-completed",
+          "connection": 1,
+          "turnId": "01a1b8a2-544b-7072-b567-f07c7da20494",
+          "status": "completed"
+        }
+      ],
+      "passed": true,
+      "model": "gpt-6.1-sol",
+      "threadId": "01a1b8a2-4ae8-7350-ac8e-b74bafeb29cb",
+      "approvalPolicy": "on-request",
+      "sandbox": {
+        "type": "readOnly",
+        "networkAccess": false
+      },
+      "turnId": "01a1b8a2-544b-7072-b567-f07c7da20494",
+      "requestId": 0,
+      "approvalId": "c7b2f86f-f4b0-497a-9da6-75b80f7fbcd9",
+      "commandSha256": "627e68ee4309fa0d8428c2d750e2b8bf073dc878a030754805881d7079006726",
+      "effectCount": 0,
+      "responses": [
+        {
+          "connection": 1,
+          "rpcId": 0,
+          "result": {
+            "decision": "decline"
+          }
+        }
+      ],
+      "taskStatus": "finished",
+      "ownedProcessesExited": true,
+      "finalEffectCount": 0
+    },
+    {
+      "name": "interrupt-pending",
+      "events": [
+        {
+          "kind": "client-request",
+          "connection": 1,
+          "method": "thread/start"
+        },
+        {
+          "kind": "client-request",
+          "connection": 1,
+          "method": "turn/start",
+          "threadId": "01a1b8a2-740f-7093-97c2-c7cad1615f11"
+        },
+        {
+          "kind": "request",
+          "connection": 1,
+          "rpcId": 0,
+          "method": "item/commandExecution/requestApproval",
+          "threadId": "01a1b8a2-740f-7093-97c2-c7cad1615f11",
+          "turnId": "01a1b8a2-7c35-7e20-897d-7b6aa4b462c6",
+          "commandSha256": "627e68ee4309fa0d8428c2d750e2b8bf073dc878a030754805881d7079006726"
+        },
+        {
+          "kind": "client-request",
+          "connection": 1,
+          "method": "turn/interrupt",
+          "threadId": "01a1b8a2-740f-7093-97c2-c7cad1615f11"
+        },
+        {
+          "kind": "turn-completed",
+          "connection": 1,
+          "turnId": "01a1b8a2-7c35-7e20-897d-7b6aa4b462c6",
+          "status": "interrupted"
+        },
+        {
+          "kind": "resolved",
+          "connection": 1,
+          "requestId": 0,
+          "threadId": "01a1b8a2-740f-7093-97c2-c7cad1615f11"
+        }
+      ],
+      "passed": true,
+      "model": "gpt-6.1-sol",
+      "threadId": "01a1b8a2-740f-7093-97c2-c7cad1615f11",
+      "approvalPolicy": "on-request",
+      "sandbox": {
+        "type": "readOnly",
+        "networkAccess": false
+      },
+      "turnId": "01a1b8a2-7c35-7e20-897d-7b6aa4b462c6",
+      "requestId": 0,
+      "approvalId": "efc3da85-ae1a-4396-8f45-b59c512249f0",
+      "commandSha256": "627e68ee4309fa0d8428c2d750e2b8bf073dc878a030754805881d7079006726",
+      "staleResponseRejected": true,
+      "effectCount": 0,
+      "responses": [],
+      "taskStatus": "interrupted",
+      "ownedProcessesExited": true,
+      "finalEffectCount": 0
+    },
+    {
+      "name": "disconnect-pending",
+      "events": [
+        {
+          "kind": "client-request",
+          "connection": 1,
+          "method": "thread/start"
+        },
+        {
+          "kind": "client-request",
+          "connection": 1,
+          "method": "turn/start",
+          "threadId": "01a1b8a2-9170-7300-9b19-2a63fdf57ed7"
+        },
+        {
+          "kind": "request",
+          "connection": 1,
+          "rpcId": 0,
+          "method": "item/commandExecution/requestApproval",
+          "threadId": "01a1b8a2-9170-7300-9b19-2a63fdf57ed7",
+          "turnId": "01a1b8a2-9965-7d52-a0c1-4763ee3b4f43",
+          "commandSha256": "627e68ee4309fa0d8428c2d750e2b8bf073dc878a030754805881d7079006726"
+        },
+        {
+          "kind": "client-request",
+          "connection": 2,
+          "method": "thread/read",
+          "threadId": "01a1b8a2-9170-7300-9b19-2a63fdf57ed7"
+        },
+        {
+          "kind": "explicit-new-turn",
+          "connection": 2
+        },
+        {
+          "kind": "client-request",
+          "connection": 2,
+          "method": "thread/resume",
+          "threadId": "01a1b8a2-9170-7300-9b19-2a63fdf57ed7"
+        },
+        {
+          "kind": "resume-policy",
+          "connection": 2,
+          "approvalPolicy": "on-request",
+          "approvalsReviewer": "user",
+          "sandbox": {
+            "type": "workspaceWrite",
+            "writableRoots": [],
+            "networkAccess": true,
+            "excludeTmpdirEnvVar": false,
+            "excludeSlashTmp": false
+          }
+        },
+        {
+          "kind": "client-request",
+          "connection": 2,
+          "method": "turn/start",
+          "threadId": "01a1b8a2-9170-7300-9b19-2a63fdf57ed7"
+        },
+        {
+          "kind": "request",
+          "connection": 2,
+          "rpcId": 0,
+          "method": "item/commandExecution/requestApproval",
+          "threadId": "01a1b8a2-9170-7300-9b19-2a63fdf57ed7",
+          "turnId": "01a1b8a2-ef72-7202-8085-6bf376ffd52c",
+          "commandSha256": "627e68ee4309fa0d8428c2d750e2b8bf073dc878a030754805881d7079006726"
+        },
+        {
+          "kind": "resolved",
+          "connection": 2,
+          "requestId": 0,
+          "threadId": "01a1b8a2-9170-7300-9b19-2a63fdf57ed7"
+        },
+        {
+          "kind": "turn-completed",
+          "connection": 2,
+          "turnId": "01a1b8a2-ef72-7202-8085-6bf376ffd52c",
+          "status": "completed"
+        }
+      ],
+      "passed": true,
+      "model": "gpt-6.1-sol",
+      "threadId": "01a1b8a2-9170-7300-9b19-2a63fdf57ed7",
+      "approvalPolicy": "on-request",
+      "sandbox": {
+        "type": "readOnly",
+        "networkAccess": false
+      },
+      "turnId": "01a1b8a2-9965-7d52-a0c1-4763ee3b4f43",
+      "requestId": 0,
+      "approvalId": "5c5fc230-ade7-41ab-ac8c-b175e35f5502",
+      "commandSha256": "627e68ee4309fa0d8428c2d750e2b8bf073dc878a030754805881d7079006726",
+      "staleResponseRejected": true,
+      "reservationRetained": true,
+      "savedHubRestartVerified": true,
+      "reconciledStatus": "interrupted",
+      "reconciledTurnId": "01a1b8a2-9965-7d52-a0c1-4763ee3b4f43",
+      "replayedRequests": [],
+      "observationSeconds": 15,
+      "noAutomaticRetry": true,
+      "freshApproval": {
+        "id": "7c1d310c-1416-44ea-854a-aac44c684778",
+        "rpcId": 0,
+        "turnId": "01a1b8a2-ef72-7202-8085-6bf376ffd52c",
+        "commandSha256": "627e68ee4309fa0d8428c2d750e2b8bf073dc878a030754805881d7079006726"
+      },
+      "freshExplicitDecisionVerified": true,
+      "effectCount": 1,
+      "responses": [
+        {
+          "connection": 2,
+          "rpcId": 0,
+          "result": {
+            "decision": "accept"
+          }
+        }
+      ],
+      "taskStatus": "finished",
+      "ownedProcessesExited": true,
+      "finalEffectCount": 1
+    }
+  ],
+  "sourceCommit": "0cc37423bfab7bf078f63c11625092d309b46028",
+  "sourceDirty": false,
+  "cliVersion": "codex-cli 0.160.1",
+  "cliSha256": "9e7c59c05cc1ce5677b1f94e835b2ac038ca3be14504e78d558eacdb0ea3f55d",
+  "completeMatrix": true,
+  "completedAt": "2026-11-08T00:50:56.882Z"
+}

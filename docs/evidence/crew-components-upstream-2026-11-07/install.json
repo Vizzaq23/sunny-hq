@@ -1,0 +1,53 @@
+{
+  "installedPath": "C:\\Users\\Quintin\\AppData\\Local\\Programs\\Sunny HQ\\versions\\0.11.0-crew-components-5684601",
+  "verifiedFiles": 252,
+  "build": {
+    "appVersion": "0.11.0",
+    "buildId": "10dc08f2e7e2bdb919d3e958e548d83073d4592e017a2a8848d4415f25dc3afa",
+    "fingerprintKind": "source-inputs-sha256",
+    "sourceCommit": "568460175a50693b11b11f78b29dd7067aa87cf6",
+    "sourceDirty": false
+  },
+  "asarSha256": "a761470066edf58004962248dab33f7fac0c7c528610d0ce065a46a43d157b7d",
+  "installerSha256": "3a8f7859f65769002261ba697e9f2f9265c08a131baec11304632041847603c2",
+  "backup": {
+    "path": "C:\\Users\\Quintin\\AppData\\Local\\Sunny HQ Backups\\before-crew-components-5684601-1794098118360",
+    "integrity": "ok"
+  },
+  "date": "2026-11-07",
+  "installMethod": "Versioned packaged distribution; Start Menu and Desktop shortcuts updated and read back",
+  "previousVersion": "0.11.0-studio-c6aa0ca",
+  "checks": {
+    "build": "passed",
+    "installedFileHashes": 252,
+    "sourceNotices": "present in ASAR",
+    "startup": {
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "launch-return",
+      "elapsedMs": 7690,
+      "scenario": "startup"
+    },
+    "rendererCrash": {
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "acceptance-enter",
+      "elapsedMs": 7203,
+      "scenario": "renderer-crash"
+    },
+    "pendingApproval": {
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "acceptance-enter",
+      "elapsedMs": 6621,
+      "scenario": "pending-approval"
+    }
+  },
+  "activation": "New executable launched but existing studio-c6aa0ca instance retained the single-instance session. Native UI confirmed old version. User must Quit through Sunny tray and reopen updated shortcut. No forced termination or real work started."
+}

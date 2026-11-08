@@ -12,3 +12,7 @@ Source branch: codex/crew-map, based on 3fdeeb5. Production source fingerprint: 
 Screenshots were inspected directly: crew-map-desktop.png, upstream-morph-pointer.png, captains-orders.png, crew-map-log.png, crew-map-phone.png, crew-map-zoom.png, upstream-mission-paper.png, upstream-zoro-paper.png and upstream-water-fallback.png. Materials stay behind readable HTML controls. Saved fixture evidence is explicitly synthetic, not a live-provider or acceptance claim.
 
 No installed-app/release validation, screen-reader speech audit, push, merge or application installation was performed. Source and licensing adaptations are documented in ../../crew-components-upstream.md and ../../licenses/crew-components/sources.json. Aceternity source-release restrictions remain applicable.
+
+## User-authorized installation
+
+On 2026-11-07 the captain explicitly requested build and installation. Clean source5684601 packaged successfully with fingerprint10dc08f2e7e2bdb919d3e958e548d83073d4592e017a2a8848d4415f25dc3afa. Versioned installation,252file hash verification, source/license packaging, atomic SQLite backup integrity and Start Menu/Desktop targets verified. Exact-package startup, renderer-crash and pending-approval checks passed. See [install.json](install.json). The older studio instance remains running; Quit through its tray menu and reopen the updated shortcut to activate the new version. No forced termination or real mission was performed.

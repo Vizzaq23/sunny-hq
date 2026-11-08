@@ -55,7 +55,7 @@ async function check({js,wait,fill,select,click,nav,screenshot,win,localFixture}
  await screenshot('crew-primary-roster.png');
  assert.equal(await js('document.querySelector(".crew-extra-roster").open'),false);assert.equal(await js('document.querySelectorAll(".crew-extra-roster .crew-card").length'),4);
  assert.match(await js('document.querySelector(".crew-reporter").textContent'),/Morgans.*sanitized/s);
- await js('(()=>{const card=Array.from(document.querySelectorAll(".core-crew-grid>.crew-card")).find(card=>card.querySelector("h3").textContent==="Brook");card.querySelector(".journal-open").focus();card.querySelector(".journal-open").click();})()');
+ await js('(()=>{const card=document.querySelector(".core-crew-grid>[data-crew-id=brook]");card.querySelector(".journal-open").focus();card.querySelector(".journal-open").click();})()');
  await wait('Boolean(document.querySelector(".local-crew-panel"))');
  await screenshot('crew-profile-purpose.png');
  assert.ok(await js(`Boolean(document.querySelector('[aria-label="Ask Brook"]'))`),'profile opens directly to its specialist conversation');

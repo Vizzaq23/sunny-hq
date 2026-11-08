@@ -1,0 +1,11 @@
+{
+  "destination": "C:\\Users\\Quintin\\AppData\\Local\\Programs\\Sunny HQ\\versions\\0.11.0-print-b959b78",
+  "verifiedFiles": 252,
+  "build": {
+    "appVersion": "0.11.0",
+    "buildId": "9e8f013906bcd74c0cb1ac8c5183e95865a0f99d289d2b67c489096507b1e45c",
+    "fingerprintKind": "source-inputs-sha256",
+    "sourceCommit": "b959b7865eb4113936823d13960b9197b3558d1b",
+    "sourceDirty": false
+  }
+}

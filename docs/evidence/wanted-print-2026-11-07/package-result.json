@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "status": "completed",
+  "accepted": true,
+  "cleanup": "observed",
+  "lastStage": "process-exit",
+  "elapsedMs": 8668,
+  "scenario": "startup"
+}

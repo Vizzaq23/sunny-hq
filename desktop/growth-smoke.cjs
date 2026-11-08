@@ -3,7 +3,7 @@ const pause=ms=>new Promise(r=>setTimeout(r,ms));
 module.exports=async({win,hub,handle})=>{
  const note=await handle('crew:note',{crewId:'chopper',text:'Synthetic fixture: prefer short explanations.'});
  await win.webContents.executeJavaScript(`Array.from(document.querySelectorAll('.sidebar button')).find(b=>b.textContent.trim()==='Crew').click()`);await pause(250);
- await win.webContents.executeJavaScript(`Array.from(document.querySelectorAll('.crew-card')).find(c=>c.querySelector('h3').textContent==='Chopper').querySelector('.journal-open').click()`);await pause(250);
+ await win.webContents.executeJavaScript(`document.querySelector('.crew-card[data-crew-id=chopper]').querySelector('.journal-open').click()`);await pause(250);
  assert.match(await win.webContents.executeJavaScript(`document.querySelector('.crew-journal').innerText`),/short explanations/);
  await handle('crew:note',{crewId:'chopper',id:note.id,text:'Synthetic correction: detailed explanations.'});await pause(150);
  const corrected=await win.webContents.executeJavaScript(`document.querySelector('.crew-journal').innerText`);assert.match(corrected,/detailed explanations/);assert.doesNotMatch(corrected,/prefer short/);

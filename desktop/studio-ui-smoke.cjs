@@ -32,7 +32,7 @@ async function check({js,wait,fill,select,click,nav,screenshot,win,state,emit,to
   win.setSize(1440,1050);await wait('innerWidth>1000');
   await nav('Crew');await fill('[aria-label="Find a Straw Hat specialist"]','accessibility');
   await wait('document.querySelectorAll(".core-crew-grid>.crew-card").length===1');
-  assert.equal(await js('document.querySelector(".core-crew-grid h3").textContent'),'Sanji');
+  assert.equal(await js('document.querySelector(".core-crew-grid .crew-card").dataset.crewId'),'sanji');
   await fill('[aria-label="Find a Straw Hat specialist"]','no-such-specialist');
   await wait('Boolean(document.querySelector(".crew-page .projects-empty"))');
   await click('.crew-page .projects-empty button');

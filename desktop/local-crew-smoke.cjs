@@ -22,7 +22,7 @@ function fixture(state,emit){
 async function check({js,wait,fill,select,click,nav,screenshot,win,localFixture}){
  await nav('Crew');
  await wait('Boolean(document.querySelector(".crew-grid"))');
- const open=()=>js(`(()=>{const button=Array.from(document.querySelectorAll('.crew-card')).find(c=>c.querySelector('h3').textContent==='Franky').querySelector('.journal-open');button.focus();button.click();})()`);
+ const open=()=>js(`(()=>{const button=document.querySelector('.crew-card[data-crew-id=franky]').querySelector('.journal-open');button.focus();button.click();})()`);
  await open();
  await wait('Boolean(document.querySelector(".crew-journal"))');
  assert.ok(await js('(()=>{const rect=document.querySelector(".crew-journal").getBoundingClientRect();return rect.top>=0&&rect.bottom<=innerHeight&&document.querySelector("dialog.journal-backdrop").matches(":modal");})()'),'journal stays in the viewport and makes the background inert');

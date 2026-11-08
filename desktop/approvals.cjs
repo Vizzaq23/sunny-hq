@@ -32,6 +32,8 @@ function approvalResult(approval,input,task,now=Date.now()){
  if(!task||!ACTIVE.has(task.status)||task.id!==approval.taskId||task.projectId!==approval.projectId||task.threadId!==approval.threadId||task.executionId!==approval.executionId||(approval.turnId!==null&&task.turnId!==approval.turnId))throw Error('This approval is no longer valid for the current task or turn.');
  if(decision==='accept'&&now>=approval.expiresAt)throw Error('This approval expired. Decline it and ask the crew to request the action again.');
  if(answers!==undefined){object(answers,'answers');if(JSON.stringify(answers).length>100000)throw Error('Answers are too long.');}
+ if(!['item/tool/requestUserInput','mcpServer/elicitation/request'].includes(approval.method)&&answers&&Object.keys(answers).length)
+  throw Error('Approval answers cannot replace the requested command or permissions. Decline and request a new action.');
  if(approval.method==='item/tool/requestUserInput'){
   if(decision==='decline')return {answers:{}};
   const questions=new Set((approval.params.questions||[]).map(q=>q.id));

@@ -19,6 +19,20 @@ test('unowned provider approval is rejected without offering authority',t=>{
  const {hub,rejected,request}=fixture(t);request(1,{threadId:'foreign'});
  assert.equal(hub.state.approvals.length,0);assert.equal(rejected.length,1);
 });
+test('edited command answers cannot approve the unchanged provider command',async t=>{
+ const {hub,sent,request}=fixture(t);request();const id=hub.state.approvals[0].id;
+ await assert.rejects(hub.respond({id,decision:'accept',answers:{command:'different command'}}),/cannot replace|not supported/i);
+ await assert.rejects(hub.respond({id,decision:'accept',command:'different command'}),/Unknown approval response field/);
+ assert.deepEqual(sent,[]);assert.equal(hub.state.approvals[0].params.command,'npm test');
+ await hub.respond({id,decision:'accept',answers:{}});assert.deepEqual(sent,[{id:1,result:{decision:'accept'}}]);
+});
+for(const captain of [false,true])test('explicit '+(captain?'captain':'worker')+' continuation reasserts its sandbox and approval boundary',async t=>{
+ const {hub,task}=fixture(t),calls=[];task.status='interrupted';hub.ensure=async()=>{};hub.client.connected=true;
+ if(captain)Object.assign(task,{crewId:'luffy',captain:true,captainVersion:3});
+ hub.client.request=async(method,params)=>{calls.push({method,params});if(method==='config/read')return {config:{}};if(method==='thread/resume')return {thread:{id:task.threadId}};if(method==='turn/start')return {turn:{id:'fresh-turn'}};throw Error('Unexpected fixture call '+method);};
+ await hub.send(task.id,'Explicit new fixture turn');const resume=calls.find(c=>c.method==='thread/resume');assert.ok(resume);
+ assert.equal(resume.params.sandbox,captain?'read-only':'workspace-write');assert.equal(resume.params.approvalPolicy,captain?'never':'on-request');assert.equal(resume.params.approvalsReviewer,'user');assert.equal(calls.filter(c=>c.method==='turn/start').length,1);
+});
 test('nullable elicitation cannot bind to a task without a valid thread',t=>{
  const {hub,task,sent,rejected}=fixture(t);task.status='starting';
  for(const threadId of [undefined,null,'',' ',42,'x'.repeat(201)]){
@@ -35,6 +49,13 @@ test('reused RPC IDs cannot replay a previously displayed approval',async t=>{
  const {hub,sent,request}=fixture(t);request();const old=hub.state.approvals[0];await hub.respond({id:old.id,decision:'decline'});
  request();assert.notEqual(hub.state.approvals[0].id,old.id);
  await assert.rejects(()=>hub.respond({id:old.id,decision:'accept'}),/no longer/i);assert.equal(sent.length,1);
+});
+test('conflicting duplicate RPC cannot retain approval for a different command',async t=>{
+ const {hub,sent,request}=fixture(t);hub.client.connected=true;request();const a=hub.state.approvals[0];
+ request();assert.equal(hub.state.approvals.length,1);assert.equal(hub.state.approvals[0],a);
+ request(1,{command:'different command'});
+ await assert.rejects(hub.respond({id:a.id,decision:'accept'}),/no longer pending|no longer valid/);
+ assert.deepEqual(sent,[]);assert.equal(hub.state.codex.status,'disconnected');
 });
 test('resolving one of several requests keeps the task waiting',async t=>{
  const {hub,task,request}=fixture(t);request(1);request(2);

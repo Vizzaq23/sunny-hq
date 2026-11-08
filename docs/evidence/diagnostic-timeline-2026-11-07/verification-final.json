@@ -41,7 +41,7 @@
   "aggregate": {
     "attempts": 2,
     "stepsRecorded": false,
-    "cause": "Unverified: job did not record steps; connector cannot read check annotations. Both validation shards passed.",
+    "cause": "GitHub refused to start the job: recent account payments failed or spending limit needs attention (see aggregate-annotation.json).",
     "logsAvailable": false,
     "conclusion": "failure"
   },

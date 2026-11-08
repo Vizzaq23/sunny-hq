@@ -9,15 +9,24 @@ async function check({js,wait,fill,click,nav,screenshot,win,state,emit,projectio
  assert.equal(await js('document.querySelectorAll(".ship-event-log").length'),1,'exactly one ship log');
  try{await wait('Boolean(document.querySelector("[data-component=paper-water] canvas"))');}catch(error){console.log('WATER_STATE '+await js('document.querySelector("[data-component=paper-water]").dataset.materialState'));throw error;}
  assert.ok(await js('Boolean(document.querySelector("[data-component=paper-water] [data-paper-shader]")?.paperShaderMount)'),'actual Paper Water mount');
- await wait('Boolean(document.querySelector("[data-component=paper-texture] canvas"))');
+ await js('document.querySelector(".ship-event-log").scrollIntoView({block:"center",behavior:"instant"})');
+ await wait('Boolean(document.querySelector(".ship-event-log [data-component=paper-texture] canvas"))');
+ await js('document.querySelector(".crew-captain").scrollIntoView({block:"center",behavior:"instant"})');
  assert.equal(await js('document.querySelectorAll("[data-upstream=magic-ui-animated-beam]").length'),9);
  await wait('document.querySelectorAll(".crew-beam-base mask [data-crew-occluder]").length===90');
  assert.ok(await js(`(()=>{const root=document.querySelector('.crew-map').getBoundingClientRect(),cards=[...document.querySelectorAll('.crew-captain,.core-crew-grid>[data-crew-id]')];return [...document.querySelectorAll('.crew-beam-base')].every(beam=>beam.querySelector('g').hasAttribute('mask')&&cards.every((card,index)=>{const bounds=card.getBoundingClientRect(),mask=beam.querySelectorAll('[data-crew-occluder]')[index];return Math.abs(+mask.getAttribute('x')-(bounds.left-root.left))<1&&Math.abs(+mask.getAttribute('y')-(bounds.top-root.top))<1&&+mask.getAttribute('width')>=bounds.width-.5&&+mask.getAttribute('height')>=bounds.height-.5;}));})()`),'beam masks exclude entire captain and specialist cards, including transparent controls');
  await js('document.fonts.ready');
- assert.ok(await js(`document.fonts.check('24px "Alfa Slab One"')&&document.fonts.check('24px "IM Fell English"')`),'offline poster fonts loaded');
- assert.ok(await js('(()=>{const sheet=document.querySelector(".core-crew-grid .wanted-sheet"),heading=sheet.querySelector(".wanted-lettering"),name=sheet.querySelector(".wanted-name");return heading.getBoundingClientRect().height>50&&name.getBoundingClientRect().height>25&&sheet.scrollWidth<=sheet.clientWidth+1})()'),'poster typography has readable dimensions without overflow');
+ await wait('Array.from(document.querySelectorAll(".core-crew-grid .sourced-wanted-poster")).every(img=>img.complete&&img.naturalWidth>0)');
+ assert.equal(await js('document.querySelectorAll(".core-crew-grid .sourced-wanted-poster").length'),9,'all nine specialists use complete sourced posters');
+ assert.ok(await js('Array.from(document.querySelectorAll(".core-crew-grid .wanted-sheet")).every(sheet=>sheet.scrollWidth<=sheet.clientWidth+1)'), 'sourced sheets do not overflow');
  await screenshot('crew-map-desktop.png');
  await js('document.querySelector(".core-crew-grid").scrollIntoView({block:"start",behavior:"instant"})');await screenshot('crew-map-cards.png');
+ for(const id of ['sanji','franky']){await js(`document.querySelector('[data-crew-id=${id}]').scrollIntoView({block:'start',behavior:'instant'})`);await screenshot('crew-posters-'+id+'-row.png');}
+ await js('document.querySelector(".crew-extra-roster").open=true;document.querySelector(".crew-extra-roster").scrollIntoView({block:"start",behavior:"instant"})');
+ await wait('Array.from(document.querySelectorAll(".crew-extra-roster .sourced-wanted-poster")).every(img=>img.complete&&img.naturalWidth>0)');
+ assert.equal(await js('document.querySelectorAll(".crew-extra-roster .sourced-wanted-poster").length'),2,'Law and Ace have sourced posters');
+ assert.equal(await js('document.querySelectorAll(".crew-extra-roster .poster-unverified").length'),2,'unknown canon posters are clearly labelled');
+ await screenshot('crew-posters-allies.png');await js('document.querySelector("[data-crew-id=perona]").scrollIntoView({block:"start",behavior:"instant"})');await screenshot('crew-posters-perona.png');await js('document.querySelector(".crew-extra-roster").open=false');
  await js('document.querySelector("[data-crew-id=franky] .journal-open").focus();document.querySelector("[data-crew-id=franky] .journal-open").click()');
  await wait('Boolean(document.querySelector(".journal-backdrop[open] .profile-assignment"))');
  assert.equal(await js('document.querySelector(".crew-journal nav button[aria-pressed=true]").textContent'),'Overview');

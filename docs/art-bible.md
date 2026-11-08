@@ -148,3 +148,5 @@ Print refinement (2026-11-07): compact portrait sheets use OFL Alfa Slab One/IM 
 Captain poster partial refinement (2026-11-07): enlarged high-contrast Libre Bodoni lettering and full name. Gear 5 recreation rejected by image tool; existing portrait remains and is not an exact canon match. Branch SVG masks exclude entire cards so lines cannot show through transparent paper/control layers.
 
 2026-11-07 sourced captain poster: user-directed local use of a complete online Gear 5 3-billion-Berry poster replaces the prior HTML reconstruction. Preserve original proportions and pixels; no official manga-scan or redistribution-license claim. See wanted-poster-references.md for source and rights limits.
+
+2026-11-07: all nine core specialists plus Law/Ace now use unmodified sourced full posters, with no extra weathering; Vivi/Perona use explicitly non-canon crew-profile sheets. See wanted-poster-references.md and assets/wanted/sources.json. Full-poster proportions, equal core cards and direct profile controls are retained.

@@ -16,3 +16,10 @@ export function WantedBounty({crew}:{crew:Crew}){
  const bounty=bounties[crew.id];
  return <span className="wanted-reward"><span className="wanted-bounty" aria-label={bounty?`${bounty.toLocaleString('en-US')} Berries, ${crew.id==='ace'?'last known':'story'} bounty`:'Bounty not published'}>{bounty?<><span className="berry-symbol" aria-hidden="true">฿</span>{bounty.toLocaleString('en-US')}<span aria-hidden="true">-</span></>:'UNKNOWN'}</span><span className="wanted-imprint"><small>{bounty?(crew.id==='ace'?'LAST KNOWN BOUNTY • BERRIES':'ISSUED BY THE WORLD GOVERNMENT • BERRIES'):'BOUNTY NOT PUBLISHED'}<br/>GRAND LINE · SUNNY ARCHIVE</small><b aria-hidden="true">MARINE</b></span></span>;
 }
+
+const sourcedPosters=new Set(['zoro','nami','usopp','sanji','chopper','robin','franky','brook','jinbe','law','ace']);
+export function hasSourcedPoster(crew:Crew){return sourcedPosters.has(crew.id);}
+export function SourcedWantedPoster({crew}:{crew:Crew}){
+ const description=crew.id==='franky'?'The Thousand Sunny appears in Franky’s poster photograph. ':crew.id==='brook'?'Soul King concert-style poster. ':'';
+ return <img className="sourced-wanted-poster" src={`${import.meta.env.BASE_URL}assets/wanted/${crew.id}.jpg`} width={800} height={1171} alt={`Wanted poster of ${posterName(crew)}. ${description}Dead or alive. ${crew.id==='ace'?'Last known':'Story'} bounty: ${bounties[crew.id].toLocaleString('en-US')} Berries.`}/>;
+}

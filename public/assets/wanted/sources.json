@@ -1,0 +1,72 @@
+{
+  "retrieved": "2026-11-07",
+  "scope": "User-requested local build. No open redistribution license verified. Retailer reproductions; not pixel-identical manga scans. Do not publish as Sunny-owned or open-licensed art.",
+  "images": [
+    {
+      "id": "zoro",
+      "url": "https://gear5world.com/en/products/affiche-one-piece-wanted-roronoa-zoro",
+      "image": "https://cdn.shopify.com/s/files/1/0770/3425/8763/files/affiche_one_piece_wanted_roronoa_zoro.jpg?v=1737373433",
+      "sha256": "55ea74dcf0bb6385e1ce5ba76421fd17b36f8026dad37889181b92822036aac5"
+    },
+    {
+      "id": "nami",
+      "url": "https://gear5world.com/en/products/nami-wanted-affiche-one-piece",
+      "image": "https://cdn.shopify.com/s/files/1/0770/3425/8763/files/nami_one_piece_affiche_wanted.jpg?v=1737373185",
+      "sha256": "bd9ddbebdc048e81c1aac210bfe708f89100cc68cb8c37dc5bc4ea6cfe92ca51"
+    },
+    {
+      "id": "sanji",
+      "url": "https://gear5world.com/en/products/affiche-one-piece-wanted-sanji",
+      "image": "https://cdn.shopify.com/s/files/1/0770/3425/8763/files/affiche_vinsmoke_sanji_one_piece_wanted.jpg?v=1737373479",
+      "sha256": "20965e984e95214626f7ef9ddd9412cdd4566b4bb402cc126a48c23b20a02703"
+    },
+    {
+      "id": "usopp",
+      "url": "https://gear5world.com/en/products/affiche-one-piece-wanted-god-usopp",
+      "image": "https://cdn.shopify.com/s/files/1/0770/3425/8763/files/affiche_god_usopp_dressrosa_one_piece_wanted.jpg?v=1737372871",
+      "sha256": "74ebdfc286abf3c0ba0789b265b05d39827fcdda10d404329122672aeb97dde4"
+    },
+    {
+      "id": "chopper",
+      "url": "https://gear5world.com/en/products/affiche-one-piece-wanted-chopper",
+      "image": "https://cdn.shopify.com/s/files/1/0770/3425/8763/files/affiche_wanted_chopper_one_piece.jpg?v=1737372640",
+      "sha256": "efc1bc4c1ea7423d630e86f680796796d6d639249c6108ce8c6740af5a88b8f5"
+    },
+    {
+      "id": "robin",
+      "url": "https://gear5world.com/en/products/affiche-one-piece-wanted-nico-robin",
+      "image": "https://cdn.shopify.com/s/files/1/0770/3425/8763/files/affiche_nico_robin_one_piece_poster.jpg?v=1737373356",
+      "sha256": "cdded98f45731c8b1961e9e39acbbea7cc5c63950129c96d5b266258b677651e"
+    },
+    {
+      "id": "franky",
+      "url": "https://gear5world.com/en/products/affiche-wanted-one-piece-franky-sunny",
+      "image": "https://cdn.shopify.com/s/files/1/0770/3425/8763/files/affiche_sunny_go_navire_one_piece_mugiwara.jpg?v=1737373561",
+      "sha256": "15e4a171dde9eb68ff5e466dd00f2c25fe4fa20f4e5dc71c72f970c2a535b88f"
+    },
+    {
+      "id": "brook",
+      "url": "https://gear5world.com/en/products/affiche-one-piece-wanted-brook",
+      "image": "https://cdn.shopify.com/s/files/1/0770/3425/8763/files/affiche_brook_wanted_one_piece.jpg?v=1737372486",
+      "sha256": "06fb8ecd01b25c6a2ae41b14ec114d3d31247211a7b8f421c8d84e14a91ea15c"
+    },
+    {
+      "id": "jinbe",
+      "url": "https://gear5world.com/en/products/affiche-one-piece-wanted-jinbei",
+      "image": "https://cdn.shopify.com/s/files/1/0770/3425/8763/files/affiche_onepiece_wanted_jinbe.jpg?v=1737373026",
+      "sha256": "3b0505921d48c62730c3d678901e58bcda02599cd22dcd76c64c1be749b63326"
+    },
+    {
+      "id": "law",
+      "url": "https://gear5world.com/en/products/affiche-one-piece-wanted-trafalgar-law",
+      "image": "https://cdn.shopify.com/s/files/1/0770/3425/8763/files/affiche_trafalgar_law_one_piece_wanted.jpg?v=1737373540",
+      "sha256": "653303018b26843ef3f162933a24257851c2e66869c8795b17cfa231f9b2e6c6"
+    },
+    {
+      "id": "ace",
+      "url": "https://gear5world.com/en/products/affiche-one-piece-wanted-portgas-d-ace",
+      "image": "https://cdn.shopify.com/s/files/1/0770/3425/8763/files/affiche_portgas_d_ace_one_piece.jpg?v=1737373382",
+      "sha256": "2badff1ce9e8e19faab4e544e84d48b4c4a9e423fd26cfbc6f4ce480587be1e3"
+    }
+  ]
+}

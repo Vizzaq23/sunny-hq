@@ -25,3 +25,4 @@ import './views/projects.css';
 import './studio.css';
 
 import './components/crew-map.css';
+import './components/crew-dark.css';

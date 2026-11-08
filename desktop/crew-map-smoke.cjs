@@ -1,6 +1,21 @@
 const assert=require('node:assert/strict');
 async function check({js,wait,fill,click,nav,screenshot,win,state,emit,projection}){
  await nav('Crew');
+ await wait('document.documentElement.dataset.crewAppearance==="dark"');
+ assert.equal(await js('document.querySelector(".crew-appearance-toggle").getAttribute("aria-pressed")'),'true');
+ await js('document.querySelector(".crew-appearance-toggle").focus()');
+ win.webContents.sendInputEvent({type:'keyDown',keyCode:'Space'});win.webContents.sendInputEvent({type:'keyUp',keyCode:'Space'});
+ await wait('document.documentElement.dataset.crewAppearance==="light"');
+ assert.equal(await js('localStorage.getItem("sunny.crew-appearance.v1")'),'light','keyboard toggle saves appearance');
+ await nav('Home');assert.equal(await js('document.documentElement.dataset.crewAppearance'),undefined,'Crew appearance does not leak into other pages');
+ await nav('Crew');await wait('document.documentElement.dataset.crewAppearance==="light"');
+ await js('document.querySelector(".crew-appearance-toggle").click()');await wait('document.documentElement.dataset.crewAppearance==="dark"');
+ assert.equal(await js('localStorage.getItem("sunny.crew-appearance.v1")'),'dark');
+ await js('window.__appearanceSetItem=Storage.prototype.setItem;Storage.prototype.setItem=function(){throw new Error("fixture storage denied")};document.querySelector(".crew-appearance-toggle").click()');
+ await wait('document.querySelector(".crew-appearance-control [role=status]")?.textContent.includes("could not be saved")');
+ await js('Storage.prototype.setItem=window.__appearanceSetItem;delete window.__appearanceSetItem;document.querySelector(".crew-appearance-toggle").click()');
+ await wait('document.documentElement.dataset.crewAppearance==="dark"&&!document.querySelector(".crew-appearance-control [role=status]")');
+ assert.ok(await js(`(()=>{const linear=v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4},lum=c=>{const rgb=c.match(/[\\d.]+/g).slice(0,3).map(Number).map(linear);return .2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2]},selectors=['.wanted-work h4','.wanted-work p','.wanted-work>small','.profile-open-label','.crew-card-state','.crew-advanced>summary'];return [...document.querySelectorAll(selectors.map(x=>'.core-crew-grid '+x).join(','))].every(el=>{let parent=el,bg;while(parent){bg=getComputedStyle(parent).backgroundColor;if(bg!=='rgba(0, 0, 0, 0)'&&bg!=='transparent')break;parent=parent.parentElement;}const a=lum(getComputedStyle(el).color),b=lum(bg);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05)>=4.5;});})()`),'poster work text has at least 4.5:1 effective contrast');
  await wait('document.querySelectorAll(".crew-beams .crew-beam-base").length===9');
  assert.equal(await js('document.querySelectorAll(".crew-captain").length'),1);
  assert.equal(await js('document.querySelectorAll(".core-crew-grid>.crew-card").length'),9);
@@ -19,7 +34,7 @@ async function check({js,wait,fill,click,nav,screenshot,win,state,emit,projectio
  await wait('Array.from(document.querySelectorAll(".core-crew-grid .sourced-wanted-poster")).every(img=>img.complete&&img.naturalWidth>0)');
  assert.equal(await js('document.querySelectorAll(".core-crew-grid .sourced-wanted-poster").length'),9,'all nine specialists use complete sourced posters');
  assert.ok(await js('Array.from(document.querySelectorAll(".core-crew-grid .wanted-sheet")).every(sheet=>sheet.scrollWidth<=sheet.clientWidth+1)'), 'sourced sheets do not overflow');
- await screenshot('crew-map-desktop.png');
+ await js('document.getElementById("sunny-main").scrollTo({top:0,behavior:"instant"})');await screenshot('crew-map-desktop.png');
  await js('document.querySelector(".core-crew-grid").scrollIntoView({block:"start",behavior:"instant"})');await screenshot('crew-map-cards.png');
  for(const id of ['sanji','franky']){await js(`document.querySelector('[data-crew-id=${id}]').scrollIntoView({block:'start',behavior:'instant'})`);await screenshot('crew-posters-'+id+'-row.png');}
  await js('document.querySelector(".crew-extra-roster").open=true;document.querySelector(".crew-extra-roster").scrollIntoView({block:"start",behavior:"instant"})');

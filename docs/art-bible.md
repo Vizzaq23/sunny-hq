@@ -150,3 +150,5 @@ Captain poster partial refinement (2026-11-07): enlarged high-contrast Libre Bod
 2026-11-07 sourced captain poster: user-directed local use of a complete online Gear 5 3-billion-Berry poster replaces the prior HTML reconstruction. Preserve original proportions and pixels; no official manga-scan or redistribution-license claim. See wanted-poster-references.md for source and rights limits.
 
 2026-11-07: all nine core specialists plus Law/Ace now use unmodified sourced full posters, with no extra weathering; Vivi/Perona use explicitly non-canon crew-profile sheets. See wanted-poster-references.md and assets/wanted/sources.json. Full-poster proportions, equal core cards and direct profile controls are retained.
+
+2026-11-07 Crew appearance: optional default-dark navy board with larger 14px role/body copy, 13px setup/status text, bordered work panels and gold focus indicators. Sourced poster pixels remain unmodified. Native profile dialogs keep readable light surfaces. See crew-appearance.md for scope, renderer preference and rollback.

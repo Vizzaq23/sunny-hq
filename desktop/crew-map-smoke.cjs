@@ -11,6 +11,9 @@ async function check({js,wait,fill,click,nav,screenshot,win,state,emit,projectio
  assert.ok(await js('Boolean(document.querySelector("[data-component=paper-water] [data-paper-shader]")?.paperShaderMount)'),'actual Paper Water mount');
  await wait('Boolean(document.querySelector("[data-component=paper-texture] canvas"))');
  assert.equal(await js('document.querySelectorAll("[data-upstream=magic-ui-animated-beam]").length'),9);
+ await js('document.fonts.ready');
+ assert.ok(await js(`document.fonts.check('24px "Alfa Slab One"')&&document.fonts.check('24px "IM Fell English"')`),'offline poster fonts loaded');
+ assert.ok(await js('(()=>{const sheet=document.querySelector(".core-crew-grid .wanted-sheet"),heading=sheet.querySelector(".wanted-lettering"),name=sheet.querySelector(".wanted-name");return heading.getBoundingClientRect().height>50&&name.getBoundingClientRect().height>25&&sheet.scrollWidth<=sheet.clientWidth+1})()'),'poster typography has readable dimensions without overflow');
  await screenshot('crew-map-desktop.png');
  await js('document.querySelector(".core-crew-grid").scrollIntoView({block:"start",behavior:"instant"})');await screenshot('crew-map-cards.png');
  await js('document.querySelector("[data-crew-id=franky] .journal-open").focus();document.querySelector("[data-crew-id=franky] .journal-open").click()');

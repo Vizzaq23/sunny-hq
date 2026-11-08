@@ -141,3 +141,42 @@
 .captain-wanted .wanted-photo{height:145px;flex:none;background-repeat:no-repeat;filter:sepia(.2) saturate(.75)}
 .captain-wanted .wanted-bounty{font-size:16px;margin:4px 0}.captain-wanted .wanted-imprint{margin:0;padding-bottom:0;border:0}.captain-wanted .wanted-imprint b{font-size:13px}.captain-wanted .wanted-imprint small{font-size:7px}
 @media(max-width:600px){.captain-wanted{flex-basis:auto}.voyage-ui .crew-page .crew-card.specialist-card h3{font-size:26px}.wanted-bounty{font-size:26px}}
+
+/* Printed poster face, with Sunny work controls beneath the sheet. */
+@font-face{font-family:'Alfa Slab One';src:url('/fonts/alfa-slab-one.ttf') format('truetype');font-display:swap}
+@font-face{font-family:'IM Fell English';src:url('/fonts/im-fell-english.ttf') format('truetype');font-display:swap}
+.voyage-ui .crew-map .core-crew-grid{grid-template-columns:repeat(3,minmax(0,1fr));max-width:1100px;margin-inline:auto;gap:30px}
+.voyage-ui .crew-page .crew-card.specialist-card{padding:0;border:0;background:transparent;box-shadow:none;min-height:0}
+.voyage-ui .crew-page .crew-card.specialist-card:before{display:none}
+.wanted-sheet{position:relative;isolation:isolate;display:block;width:100%;padding:13px 15px 9px;box-sizing:border-box;background:#dcc69c;color:#35271c;box-shadow:0 3px 5px #39271938,inset 0 0 25px #78502150;clip-path:polygon(0 .6%,8% 0,21% .3%,38% 0,56% .4%,72% 0,89% .5%,100% .2%,99.7% 23%,100% 46%,99.6% 71%,100% 99.5%,83% 100%,63% 99.6%,41% 100%,22% 99.7%,0 100%,.4% 77%,0 52%,.3% 26%)}
+.wanted-sheet:after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 0 0,#64451f25,transparent 24%),radial-gradient(ellipse at 100% 100%,#64451f30,transparent 25%),linear-gradient(89deg,transparent 48.8%,#67492810 49.5%,#fff9df28 50%,transparent 50.7%);mix-blend-mode:multiply}
+.wanted-sheet .paper-material{opacity:.48;mix-blend-mode:multiply}
+.wanted-lettering{display:block;width:100%;height:auto;overflow:visible;fill:currentColor;margin:0 0 5px}
+.wanted-lettering text{font-family:'Alfa Slab One',Georgia,serif;font-size:83px;font-weight:400}
+.crew-card.specialist-card .wanted-photo{aspect-ratio:1.32;border:1px solid #554631;filter:sepia(.48) saturate(.62) contrast(.95);mix-blend-mode:multiply}
+.crew-card.specialist-card .wanted-decree{display:block;font:400 clamp(18px,2vw,26px)/1.1 'IM Fell English',serif;letter-spacing:.055em;margin:10px 0 0}
+.voyage-ui .crew-page .crew-card.specialist-card h3{display:block;min-height:0;margin:0;width:100%;line-height:1}
+.wanted-name{display:block;width:100%;height:auto;fill:currentColor}.wanted-name text{font-family:'IM Fell English',serif;font-weight:400;font-size:41px}
+.wanted-sheet .wanted-bounty{font-family:'IM Fell English',serif;font-weight:400;font-size:clamp(24px,2.9vw,37px);line-height:1.05;letter-spacing:.015em;margin:0 0 6px}
+.berry-symbol{text-decoration:none;display:inline-block;margin-right:.15em;font-family:'IM Fell English',serif}
+.wanted-sheet .wanted-imprint{border:0;margin:0;padding:0;align-items:flex-end;gap:5px}
+.wanted-imprint small{font-family:'IM Fell English',serif;font-weight:400;font-size:6px;line-height:1.3;letter-spacing:.04em;max-width:54%}
+.wanted-imprint b{font-family:'IM Fell English',serif;font-size:26px;font-weight:400;letter-spacing:.025em}
+.wanted-work{display:flex;flex:1;flex-direction:column;align-items:center;width:100%;padding:15px 6px 0;box-sizing:border-box}
+.crew-card.specialist-card .wanted-work .crew-card-state{margin:0 0 6px}
+.voyage-ui .crew-page .crew-card.specialist-card .wanted-work h4{font-size:12px;margin:0;color:#314554}
+.voyage-ui .crew-page .crew-card.specialist-card .wanted-work p{font-size:12px;margin:7px 0;color:#526574;flex:0;line-height:1.45}
+.wanted-work>small{font-size:11px;color:#65717a;margin-top:auto}
+.crew-card.specialist-card .wanted-work .profile-open-label{background:#fffdf7;margin-top:10px;padding:10px;color:#324955;border-color:#b8b7a8}
+.crew-card.specialist-card .crew-advanced{margin-top:4px;padding-bottom:0}
+.captain-wanted{background:#dcc69c;border:0;box-shadow:inset 0 0 18px #78502150,0 3px 5px #0003;padding:10px;gap:0}
+.captain-wanted .wanted-lettering{margin-bottom:3px}.captain-wanted .wanted-photo{filter:sepia(.48) saturate(.62);height:118px;mix-blend-mode:multiply;border:1px solid #554631}
+.captain-wanted .wanted-decree,.captain-wanted strong,.captain-wanted .wanted-bounty{font-family:'IM Fell English',serif;font-weight:400}
+.captain-wanted strong{font-size:14px;line-height:1.2}.captain-wanted .wanted-decree{margin:6px 0 2px;font-size:12px}.captain-wanted .wanted-bounty{font-size:19px}.captain-wanted .wanted-imprint small{font-size:4px}.captain-wanted .wanted-imprint b{font-size:14px}
+@media(max-width:1000px){.voyage-ui .crew-map .core-crew-grid{grid-template-columns:repeat(2,minmax(0,1fr));max-width:760px}.wanted-sheet .wanted-bounty{font-size:34px}}
+@media(max-width:600px){.voyage-ui .crew-map .core-crew-grid{grid-template-columns:minmax(0,1fr);max-width:350px}.voyage-ui .crew-page .crew-card.specialist-card{padding:0}.wanted-sheet .wanted-bounty{font-size:34px}.crew-card.specialist-card .wanted-decree{font-size:24px}}
+.voyage-ui .crew-page .crew-card.specialist-card svg.wanted-lettering,.voyage-ui .crew-page .captain-wanted svg.wanted-lettering{width:100%;height:auto;max-width:none;aspect-ratio:360/94;flex:none}
+.voyage-ui .crew-page .crew-card.specialist-card svg.wanted-name{width:100%;height:auto;max-width:none;aspect-ratio:360/48;flex:none}
+.crew-profile-trigger .wanted-sheet [data-slot]{width:100%}
+.wanted-sheet,.captain-wanted{background-color:#e5d3ad}
+.crew-card.specialist-card .wanted-photo,.captain-wanted .wanted-photo{mix-blend-mode:normal;filter:sepia(.25) saturate(.72) contrast(.98)}

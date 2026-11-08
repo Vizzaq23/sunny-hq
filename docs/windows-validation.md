@@ -2,6 +2,8 @@
 
 Scope: repair the Windows validation environment and prove the integrated baseline. The supervised execution release gate remains closed; no M1/live-provider work is included. Base: `c6aa0cab7893068c73a07ca16f12e6d4c9fe75b2` (PR #20 integration). Work occurs on `codex/windows-ci-baseline-20261107` in an isolated checkout. The separate saved seven-part roadmap is preserved in the planning checkout.
 
+**M0 passed.** Implementation candidate `614b9233b335d687446da7e2e2aebb49e9d53bc8` passed complete hosted Windows validation. This establishes the baseline only; it does not admit supervised execution or establish real-provider approval/reconnect reliability.
+
 ## Original failure
 
 [Run 42331703723](https://github.com/Vizzaq23/sunny-hq/actions/runs/42331703723), artifact `13560002433`: Windows Server 2025, Git 2.56.0.windows.4, Node 24.22.2. Installation and build passed. Tests timed out after 4,500,186 ms, with 1,335 passing and 100 failing reported results before truncation (not the complete suite total). Native workflow separately timed out waiting for full motion.
@@ -39,4 +41,20 @@ Diagnostic profile: `.sunny-dev/checkpoint-profile.json` and `.sunny-dev/checkpo
 
 Candidate `49afc8e` completed local clean validation: 1,735 tests passed, zero failures/cancellations/skips, tests 4,337,232 ms; install, build/typecheck and native all passed. Receipt: `.sunny-dev/pr-validation/2026-11-07T22-07-17.712Z/summary.json`. [Hosted run 42418976564](https://github.com/Vizzaq23/sunny-hq/actions/runs/42418976564) passed installation, build and native but tests timed out at 4,500,401 ms after 1,509 reported top-level results, with one manifest ACL failure. Downloaded receipts: `.sunny-dev/ci-final-49afc8e/`. This is not a green hosted baseline.
 
-The remaining manifest failure occurs at the strict owner/ACL check: newly created files did not explicitly set their owner, and elevated Windows tokens can default to Administrators. The creation path now sets the current user as owner on the new empty file before private content is written. Existing-file validation remains strict; no ownership repair occurs on restart. Hosted validation must verify this fix. The remaining suite exceeded the single hosted runner's capacity despite continued progress; two isolated CI shards retain every test and serial execution within each checkout, rather than increasing deadlines or sharing a concurrently mutated checkout. A regression verifies both shards cover disjoint fixture files exactly once and rejects invalid shard selections. Final revised-candidate hosted evidence is pending. M0 remains open and M1 remains out of scope.
+The remaining manifest failure occurs at the strict owner/ACL check: newly created files did not explicitly set their owner, and elevated Windows tokens can default to Administrators. The creation path now sets the current user as owner on the new empty file before private content is written. Existing-file validation remains strict; no ownership repair occurs on restart. Final hosted validation verifies this fix. The remaining suite exceeded the single hosted runner's capacity despite continued progress; two isolated CI shards retain every test and serial execution within each checkout, rather than increasing deadlines or sharing a concurrently mutated checkout. A regression verifies both shards cover disjoint fixture files exactly once and rejects invalid shard selections. Another verifies current-user ownership and rejection of widened existing permissions without changing content or repairing the ACL.
+
+## Final baseline receipts
+
+[Hosted run 42425354801](https://github.com/Vizzaq23/sunny-hq/actions/runs/42425354801) passed both matrix jobs and the aggregate `Windows tests and build` check on implementation candidate `614b923`. Each job independently passed clean locked installation, Electron installation, tests, production build/typecheck and hidden native workflow.
+
+| Receipt | Tests passed | Test duration | Failures / cancelled / skipped |
+| --- | ---: | ---: | --- |
+| Windows shard 1/2 | 781 | 3,437,964 ms (57m 18s) | 0 / 0 / 0 |
+| Windows shard 2/2 | 956 | 1,644,232 ms (27m 24s) | 0 / 0 / 0 |
+| Complete suite | **1,737** | Separate isolated machines | **0 / 0 / 0** |
+
+Compared the multiset of top-level passing test names with the earlier complete local run: all 1,725 prior results remain, plus exactly the two new manifest/shard regressions, producing 1,727 top-level results and 1,737 tests including nested tests. No prior result is missing. Both receipts identify Node 24.18.0 with the approved hash, the exact clean source commit, and build fingerprint `24d28ba29fe404d99900b488d3209528e2b9293d620bce2f62cd33ee1a474bbc`.
+
+Downloaded hosted receipts, complete TAP logs and native screenshots: `.sunny-dev/ci-final-614b923/shard-1/` and `shard-2/` in this worktree. Hosted artifact retention is 14 days; these local copies retain the evidence beyond that window. The final candidate also passed local production build/typecheck and the full 68-check native workflow at `.sunny-dev/m0-native-614b923/`. Native receipts explicitly state `hidden: true`, `syntheticTransport: true`, `liveProviderProof: false`.
+
+No tests were disabled and no deadlines increased. The default unsharded validation still runs the full serial test command. `LIVE_SUPERVISION_ADMITTED=false` is unchanged. No M1 work, merge, installed-app update or production-profile change occurred. The planning checkout's 150-line roadmap addition and other worktrees remain untouched. Next milestone, only when requested: M1 real-provider approval/reconnect verification; keep the separate execution release gate closed.

@@ -48,13 +48,14 @@ class MissionBook {
   if(mission.events.length>500)mission.events.splice(0,mission.events.length-500);
   if(mission.seenEventIds)mission.seenEventIds=mission.seenEventIds.filter(id=>mission.events.some(event=>event.id===id));
  }
- create(input){
+ create(input,reservedId){
   if(!input||typeof input!=='object'||Array.isArray(input))throw Error('Invalid mission brief.');
   if(Object.keys(input).some(k=>!['projectId','title','objective','acceptanceCriteria','completionBoundary'].includes(k)))throw Error('Unknown mission field.');
   if(!Array.isArray(input.acceptanceCriteria)||!input.acceptanceCriteria.length||input.acceptanceCriteria.length>20)throw Error('Provide 1–20 acceptance criteria.');
   const completionBoundary=input.completionBoundary||'review';
   if(!['review','merge'].includes(completionBoundary))throw Error('Choose review or merge as the completion boundary.');
-  const mission={id:randomUUID(),projectId:text(input.projectId,'project',200),title:text(input.title,'title',200),objective:text(input.objective,'objective',100000),acceptanceCriteria:input.acceptanceCriteria.map(c=>text(c,'acceptance criteria',2000)),completionBoundary,status:'DRAFT',connection:'connected',revision:0,createdAt:Date.now(),updatedAt:Date.now(),taskIds:[],attempts:[],artifacts:[],events:[]};
+  if(reservedId!==undefined&&(!require('./council-handoff.cjs').uuid(reservedId)||this.data.missions.some(m=>m.id===reservedId)))throw Error('Invalid or existing reserved mission identity.');
+  const mission={id:reservedId||randomUUID(),projectId:text(input.projectId,'project',200),title:text(input.title,'title',200),objective:text(input.objective,'objective',100000),acceptanceCriteria:input.acceptanceCriteria.map(c=>text(c,'acceptance criteria',2000)),completionBoundary,status:'DRAFT',connection:'connected',revision:0,createdAt:Date.now(),updatedAt:Date.now(),taskIds:[],attempts:[],artifacts:[],events:[]};
   this.record(mission,'MISSION_CREATED');this.data.missions.unshift(mission);return mission;
  }
  markSignalSeen(id,revision,eventId){

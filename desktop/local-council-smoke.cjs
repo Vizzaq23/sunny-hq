@@ -48,6 +48,19 @@ async function check({js,wait,fill,select,click,nav,screenshot,win,localFixture}
  await nav('The Island');await nav('Home');await wait('Boolean(document.querySelector(".local-captain"))');
  assert.equal(await js('document.querySelector(".local-captain select").value'),'studio','selected captain project survives island navigation');
  assert.ok(await js('Array.from(document.querySelectorAll(".local-captain button")).find(b=>b.textContent==="Start Codex work").disabled'),'release-gated execution is disabled before a launch');
+ // Presentation-only saved receipt: no fixture admission or provider work.
+ const selected=localFixture.hub.state.localCrew.councils.at(-1);
+ selected.handoff={...require('./council-handoff.cjs').create({title:'Synthetic reviewed brief',objective:'Only the captain-selected fixture scope.',acceptanceCriteria:['Preserve the exact selected criterion.'],completionBoundary:'review'}),status:'unknown'};localFixture.hub.changed();
+ await wait('Array.from(document.querySelectorAll("summary")).some(e=>e.textContent==="Inspect the saved execution brief")');
+ await js('(()=>{const summary=Array.from(document.querySelectorAll("summary")).find(e=>e.textContent==="Inspect the saved execution brief");let parent=summary.parentElement.parentElement;while(parent){if(parent.tagName==="DETAILS")parent.open=true;parent=parent.parentElement;}summary.focus();})()');
+ win.focus();win.webContents.focus();win.webContents.sendInputEvent({type:'keyDown',keyCode:'Enter'});win.webContents.sendInputEvent({type:'char',keyCode:'\r'});win.webContents.sendInputEvent({type:'keyUp',keyCode:'Enter'});
+ await wait('Array.from(document.querySelectorAll("details")).some(d=>d.open&&d.querySelector("summary")?.textContent==="Inspect the saved execution brief")');
+ assert.match(await js('document.querySelector(".local-captain").textContent'),/Only the captain-selected fixture scope/);
+ assert.match(await js('document.querySelector(".local-captain").textContent'),/not proof of execution or acceptance/);
+ const receiptSize=win.getSize();win.setSize(480,850);await wait('innerWidth<500');
+ await js('Array.from(document.querySelectorAll("summary")).find(e=>e.textContent==="Inspect the saved execution brief").scrollIntoView({block:"start"})');
+ assert.ok(await js('document.documentElement.scrollWidth<=innerWidth'),'saved brief fits narrow viewport');await screenshot('council-handoff-snapshot-mobile.png');
+ win.setSize(...receiptSize);delete selected.handoff;localFixture.hub.changed();await wait('Array.from(document.querySelectorAll(".local-captain button")).some(b=>b.textContent==="Start Codex work")');
  await js('document.querySelector(".local-captain").scrollIntoView({block:"start"});document.querySelector(".local-captain>details").open=false;');await screenshot('local-captain-desktop.png');
  const [width,height]=win.getSize();win.setSize(480,850);await wait('innerWidth<500');
  assert.ok(await js('document.documentElement.scrollWidth<=innerWidth'),'captain fits narrow viewport');await screenshot('local-captain-compact.png');win.setSize(width,height);await wait('innerWidth>1000');

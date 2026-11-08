@@ -260,3 +260,7 @@ Implementation checkpoint `fdeeb0bd32733b8854fad4cb821d4e961c8a679e` on `codex/s
 The actual separate development app remains open with the updated runtime. A fresh-topic TCG Coach question recalled the explicitly saved correction accurately, without dispatching specialists: council `1efd8232-25bc-4c17-bc84-3a65bf760956` retained the 2 MiB guard, read409/write413 and existing ID/integrity/version contracts. Both the displayed reply and saved record were checked. Franky's existing instructions remain unchanged, all15 profiles are present, all four optional residents are recruited and scheduling remains paused. The installed daily application/profile is unchanged.
 
 The existing trusted-release gate still blocks supervised execution. Completing local advice, receiving Zoro's review or passing source tests does not grant release admission. No TCG source changes, automatic weight training, push or merge were performed in this council evaluation. Keep the rejected TCG advice and earlier full-suite failures as negative evidence when assessing reliability.
+
+## Reviewed execution handoff continuity — 2026-11-08
+Pending handoffs retain the captain-selected brief and reserved mission/run references before calling the existing goal path. The saved brief is inspectable; unknown outcomes remain fenced after restart and cannot silently launch again. Older handoffs explicitly lack a recorded snapshot. This does not open the execution gate or establish a completed live journey. See [M3 design and evidence](crew-workflow-m3.md).
+

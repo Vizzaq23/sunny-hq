@@ -152,3 +152,5 @@ Captain poster partial refinement (2026-11-07): enlarged high-contrast Libre Bod
 2026-11-07: all nine core specialists plus Law/Ace now use unmodified sourced full posters, with no extra weathering; Vivi/Perona use explicitly non-canon crew-profile sheets. See wanted-poster-references.md and assets/wanted/sources.json. Full-poster proportions, equal core cards and direct profile controls are retained.
 
 2026-11-07 Crew appearance: optional default-dark navy board with larger 14px role/body copy, 13px setup/status text, bordered work panels and gold focus indicators. Sourced poster pixels remain unmodified. Native profile dialogs keep readable light surfaces. See crew-appearance.md for scope, renderer preference and rollback.
+
+2026-11-07 correction: dark appearance now belongs to the entire app, controlled in Settings > Experience. Shared navy surfaces cover navigation, workspaces, library, missions, island controls, profiles, logs and dialogs; Monaco follows the same choice. Artwork/poster pixels stay unchanged. This supersedes the Crew-only scope above.

@@ -1,3 +1,4 @@
+import {useAppearance} from './useAppearance';
 import {QuickSwitcher} from './components/QuickSwitcher';
 import type {WorkReportResult} from './shared';
 export type ReportViewState={result:WorkReportResult|null;draft:string;dirty:boolean;title:string};
@@ -27,6 +28,7 @@ const Workbench=lazy(()=>import('./views/Workbench').then(module=>({default:modu
 type WorkspaceInit={runId?:string;taskId?:string;projectId?:string;missionId?:string;attemptId?:string;crewId?:CrewId;prompt?:string;draftKey?:string};
 const viewTitles:Record<ViewId,{title:string;subtitle:string}>={home:{title:'Luffy',subtitle:'Your captain and crew'},news:{title:"Morgans' blimp",subtitle:'The flying press'},island:{title:'The Island',subtitle:'Your growing AI world'},ship:{title:'The Sunny',subtitle:'Command deck'},projects:{title:'Projects',subtitle:'Local cargo'},crew:{title:'Crew',subtitle:'Your specialists'},missions:{title:'Missions',subtitle:'Templates & routes'},library:{title:'Library',subtitle:'Obsidian knowledge'},tools:{title:'Tools',subtitle:'Workshop'},inbox:{title:'Inbox',subtitle:'Mission signals'},settings:{title:'Settings',subtitle:"Captain's quarters"}};
 export default function App(){
+ const appearance=useAppearance();
  const sunny=useSunny(),{snapshot,invoke,toast}=sunny;
  const attentionCount=workEntries(snapshot.missions??[],snapshot.tasks,snapshot).filter(entry=>entry.phase==='attention'||entry.phase==='review').length;
  const [sceneExpanded,setSceneExpanded]=useState(()=>!window.matchMedia('(max-width:640px)').matches);
@@ -96,7 +98,7 @@ export default function App(){
      {view==='library'?<LibraryView projects={snapshot.projects} activeProjectId={activeProjectId} invoke={invoke} toast={toast} onAskRobin={(projectId,prompt,draftKey)=>openWorkspace({projectId,crewId:'robin',prompt,draftKey})}/>:null}
      {view==='tools'?<ToolsView tools={snapshot.tools} projects={snapshot.projects} desktop={sunny.desktop} invoke={invoke} toast={toast}/>:null}
      {view==='inbox'?<InboxView onCaptain={()=>navigate('home')} projects={snapshot.projects} approvals={snapshot.approvals} tasks={snapshot.tasks} automations={snapshot.automations} desktop={sunny.desktop} invoke={invoke} onOpen={taskId=>openWorkspace({taskId})}/>:null}
-     {view==='settings'?<SettingsView onLocal={()=>navigate('crew')} snapshot={snapshot} invoke={invoke} mergeSnapshot={sunny.mergeSnapshot} toast={toast}/>:null}
+     {view==='settings'?<SettingsView appearance={appearance} onLocal={()=>navigate('crew')} snapshot={snapshot} invoke={invoke} mergeSnapshot={sunny.mergeSnapshot} toast={toast}/>:null}
     </>}
    </main><details className="logbook-dock"><summary><span>Captain’s log</span><small>Saved work &amp; review</small>{attentionCount>0?<b>{attentionCount} need attention</b>:null}</summary><CaptainLog snapshot={snapshot} context={context} onContext={selectContext} onOpenResult={taskId=>openWorkspace({taskId})} onRequestChanges={missionId=>{const mission=snapshot.missions?.find(m=>m.id===missionId);if(mission)selectContext({projectId:mission.projectId,runId:mission.runId,missionId,attemptId:mission.activeAttemptId,surface:'deck',returnTo:{view:'ship',missionId,projectId:mission.projectId}});}} invoke={invoke}/></details></div>
   </div><Toasts items={sunny.toasts} onDismiss={sunny.dismissToast}/>

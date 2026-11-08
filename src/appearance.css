@@ -1,0 +1,54 @@
+/* Shared night palette. Artwork, canvases and embedded previews retain their own colors. */
+html[data-appearance=dark]{color-scheme:dark;background:#0b1625;color:#e6eef8;--ink:#e6eef8;--muted:#bdcede;--ivory:#0b1625;--paper:#172b42;--line:#526c84;--teal:#93d8db;--coral:#f5ac98;--gold:#f1d397}
+html[data-appearance=dark] .app-shell{--studio-ink:#e6eef8;--studio-muted:#bdcede;--studio-paper:#172b42;--studio-canvas:#0b1625;--studio-line:#526c84;--studio-blue:#b8defa;--studio-red:#dc7c74;--quarters-ink:#e6eef8;--quarters-muted:#bdcede;--quarters-paper:#172b42;--quarters-line:#526c84}
+html[data-appearance=dark] :is(body,.loading-deck,.main-shell,.journey-surface,.main-panel,.workbench,.workbench-body,.work-content,.page){background-color:#0b1625;color:#e6eef8}
+html[data-appearance=dark] :is(.settings-section,.infra-panel,.tool-card,.project-card,.projects-empty,.project-inspector,.project-detail,.mission-card,.mission-brief,.mission-log,.mission-engineering,.mission-result-option,.mission-selected-result,.inbox-item,.inbox-list,.inbox-detail,.library-sidebar,.library-content,.note-preview,.notes-list,.local-captain,.captain-watch,.captain-course,.local-council-summary,.watch-list>li,.home-tracked-work,.home-conversations,.crew-journal,.crew-journal-body,.crew-journal-header,.crew-journal-tabs,.crew-journal-panel,.crew-profile,.local-crew-panel,.settings-card,.quick-switcher,.quick-switch-dialog,.command-dialog,.modal,.dialog,.toast,.work-entry,.chat-pane,.work-pane,.workbench-head,.work-tabs,.file-tree,.file-editor,.git-pane,.chat-composer,.message,.mission-board,.command-deck,.deck-panel,.mission-context,.captain-log-body,.captain-log-content,.privacy-note,.local-setup-note){background-color:#172b42!important;background-image:none!important;color:#e6eef8;border-color:#526c84!important}
+html[data-appearance=dark] :is(.watch-boundary,.watch-source,.local-captain>small,.captain-starters button,.watch-filters button,.watch-open,.workspace-return,.workspace-draft-status,.setting-row,.tool-logo,.project-meta,.project-facts,.mission-context-bar){background-color:#20394f!important;color:#d4e0ef!important;border-color:#526c84!important}
+html[data-appearance=dark] :is(.app-shell,dialog,[role=dialog],.loading-deck) :is(h1,h2,h3,h4,h5,b,strong,label,summary):not(.wanted-sheet *):not(.captain-wanted *){color:#edf3fc!important}
+html[data-appearance=dark] :is(.app-shell,dialog,[role=dialog],.loading-deck) :is(p,small,dt,dd,time):not(.wanted-sheet *):not(.captain-wanted *):not(.captain-hero-art *){color:#c9d8e8!important}
+html[data-appearance=dark] :is(.app-shell,dialog,[role=dialog]) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,select){background-color:#102238!important;color:#e6eef8!important;border-color:#7892ab!important}
+html[data-appearance=dark] :is(input,textarea)::placeholder{color:#b9cbdf!important;opacity:1}
+html[data-appearance=dark] :is(.app-shell,dialog,[role=dialog]) :is(button,.button,.profile-open-label):not(.wanted-sheet *):not(.crew-profile-trigger):not(.world-destination):not(.island-building){background-color:#254761;color:#edf3fc;border-color:#7892ab}
+html[data-appearance=dark] :is(.app-shell,dialog,[role=dialog]) :is(.primary-button,.launch-submit,.local-captain-actions button[type=submit]){background:#285875!important;color:#fff7e8!important;border-color:#86a8c2!important}
+html[data-appearance=dark] :is(.app-shell,dialog,[role=dialog]) button[aria-pressed=true],html[data-appearance=dark] .appearance-toggle[aria-pressed=true]{background:#355976;color:#ffe1a3;border-color:#e4be72;box-shadow:inset 0 0 0 1px #e4be72}
+html[data-appearance=dark] :is(button,summary,select,input,textarea,a):focus-visible{outline:3px solid #ffdc84!important;outline-offset:3px}
+html[data-appearance=dark] :is(.app-shell,dialog,[role=dialog]) a{color:#a8d9ff}
+html[data-appearance=dark] .voyage-ui .eyebrow{color:#f1d397}
+html[data-appearance=dark] .voyage-ui .journey-surface>.page>.page-intro:before{background-image:linear-gradient(90deg,#172c43 0%,#172c43f5 48%,#172c4380 100%),var(--voyage-art)}
+html[data-appearance=dark] .voyage-ui .projects-heading{background-image:linear-gradient(90deg,#172c43 35%,#172c43ed 60%,#172c4380),url('/assets/project-quarters.png')}
+html[data-appearance=dark] :is(dialog,[role=dialog]){background:#172b42;color:#e6eef8;border-color:#7892ab;--studio-ink:#e6eef8;--studio-muted:#bdcede;--studio-paper:#172b42;--studio-line:#526c84;--studio-blue:#b8defa}
+html[data-appearance=dark] dialog::backdrop{background:#020b16bb}
+html[data-appearance=dark] :is(.paper-material){opacity:.035;mix-blend-mode:normal}
+html[data-appearance=dark] .wanted-sheet .paper-material{opacity:1}
+html[data-appearance=dark] :is(pre,code){background-color:#0b192b;color:#e2ebf7}
+html[data-appearance=dark] :is(.setting-row,.crew-journal section,.crew-journal article){border-color:#526c84}
+html[data-appearance=dark] .crew-journal{color-scheme:dark}
+.appearance-control{gap:20px}.appearance-control>span{flex:1}.appearance-control small{display:block}.appearance-toggle{min-width:72px;min-height:44px}
+/* Legacy panels share the same palette as the main shell. */
+html[data-appearance=dark] :is(.home-connection,.projects-search,.search-box,.library-layout,.library-browser,.library-welcome,.library-coverage,.note-editor,.library-note-head,.library-editor-wrap,.crew-assignments,.crew-assignment,.journal-memories article,.journal-discussions article,.journal-note,.journal-explanation,.local-crew-state,.local-crew-setup,.local-captain-setup,.helm-inspector,.helm-tabs,.helm-panel-content,.crew-run-panel,.island-roster-details,.island-project-doors,.island-map-toolbar,.island-map-footer,.island-control,.island-control>header,.island-control>nav,.island-job-card,.island-job-form,.island-empty,.island-resident-list,.morgans-sidebar,.morgans-story,.morgans-toolbar,.morgans-filters,.morgans-add,.morgans-report,.morgans-report-head,.morgans-report-evidence,.morgans-report-draft,.morgans-report-controls,.morgans-report-coverage,.morgans-notice,.mission-start,.start-fields,.composer,.composer-foot,.pane-toolbar,.preview-bar,.preview-empty,.approval-card,.approval-evidence,.task-recovery,.file-load-error,.room-starters,.room-layout-toolbar,.mission-execution-bar,.mission-status,.message-text,.project-chip,.run-roster li,.run-budgets>div){background:#172b42!important;color:#e6eef8!important;border-color:#526c84!important}
+html[data-appearance=dark] :is(.projects-toolbar>span,.project-category,.project-activity-label,.watch-label,.room-sound-volume output,.helm-state,.muted,.note-type){color:#c9d8e8!important}
+html[data-appearance=dark] :is(.project-activity-label.attention,.watch-list [data-kind=approval] .watch-label,.watch-list [data-kind=unknown] .watch-label){color:#ffdda0!important}
+html[data-appearance=dark] .project-activity-label.working{color:#9ee8cd!important}
+html[data-appearance=dark] :is(.deck-crew,.island-actors button,.morgans-blimp,.crew-profile-trigger){background-color:transparent!important;border-color:transparent!important}
+html[data-appearance=dark] :is(.deck-speech,.morgans-blimp>span){background:#17334b!important;color:#eff5ff!important;border-color:#7892ab!important}
+html[data-appearance=dark] .crew-directory-portrait{mix-blend-mode:normal;background-color:#f5e9ce;border-radius:8px}
+html[data-appearance=dark] dialog.journal-backdrop{background:transparent;border:0}
+html[data-appearance=dark] .sidebar :is(.main-nav>button,.sidebar-foot>button){background:transparent}
+html[data-appearance=dark] .sidebar :is(.main-nav>button.active,.sidebar-foot>button.active){background:#284b69}
+html[data-appearance=dark] :is(.app-shell,dialog) button:disabled{opacity:.65}
+html[data-appearance=dark] :is(.empty-state,.profile-assignment,.profile-work-empty,.profile-work-record,.profile-output,.world-roster-card,.island-map-panel,.morgans-masthead,.morgans-sidebar>section,.morgans-sidebar>div){background:#172b42!important;color:#e6eef8!important;border-color:#526c84!important}
+html[data-appearance=dark] .voyage-ui .page-intro{background-color:#172b42!important}
+html[data-appearance=dark] .morgans-masthead h2 span{color:#f1d397}
+/* Workspaces and each crew station remain readable beside their unchanged room art. */
+html[data-appearance=dark] :is(.crew-station-panel,.workspace-room-state,.station-tabs,.station-content,.station-content section,.station-content article,.station-content li,.station-content blockquote,.station-content dl,.station-content dl>div,.station-objective,.station-latest,.station-excerpt,.station-record,.station-empty,.station-review,.station-chart,.station-chart-foot,.station-clinic,.station-reading,.station-lab,.station-lab-tools,.station-service,.station-studio,.station-watch-summary,.station-bridge,.station-desk){background-color:#172b42!important;background-image:none!important;color:#e6eef8!important;border-color:#526c84!important}
+html[data-appearance=dark] :is(.station-stamp,.station-bearing,.station-state-copy,.workspace-room-state span,.composer-foot,.project-chip,.mission-status-heading,.message header){color:#c9d8e8!important}
+html[data-appearance=dark] :is(.approval-card,.task-recovery,.file-load-error,[role=alert]){border-color:#d4ac6e!important}
+html[data-appearance=dark] :is(.approve){background:#215548!important;color:#c7f4e5!important}
+html[data-appearance=dark] :is(.interrupt-button,.run-stop,.room-stop-all){background:#62313b!important;color:#ffdadc!important}
+html[data-appearance=dark] .appearance-control small{max-width:none}
+html[data-appearance=dark] :is(.workbench,.workbench-body,.conversation,.messages,.chat-messages,.room-layout-toggle,.workbench-crew){background:#102238!important;color:#e6eef8!important;border-color:#526c84!important}
+html[data-appearance=dark] :is(.pane-toolbar span,.composer-foot span,.workbench-crew select,.station-volume,.station-bearing){color:#c9d8e8!important}
+html[data-appearance=dark] .sidebar :is(.main-nav>button,.sidebar-foot>button){background:transparent!important}
+html[data-appearance=dark] .sidebar :is(.main-nav>button.active,.sidebar-foot>button.active){background:#284b69!important}
+html[data-appearance=dark] :is(.captain-log,.captain-current,.captain-empty,.captain-queue,.captain-selected-result,.captain-criteria,.captain-acceptance,.captain-goal,.captain-goal-details,.captain-goal-full,.captain-request-changes,.franky-work-status,.franky-den-den,.recovery-screen){background:#172b42!important;color:#e6eef8!important;border-color:#526c84!important}
+html[data-appearance=dark] :is(.captain-stage,.captain-log-status,.captain-goal-preview){color:#c9d8e8!important}

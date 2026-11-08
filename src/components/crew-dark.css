@@ -1,9 +1,9 @@
-/* Crew-only appearance. Poster artwork and native profile dialogs stay unfiltered. */
+/* Crew card readability within the shared app appearance. Poster artwork stays unfiltered. */
 .crew-directory-toolbar{flex-wrap:wrap}
-.crew-appearance-control{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.crew-appearance-toggle{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:44px;padding:9px 16px;border:1px solid #667c8e;border-radius:8px;background:#fffdf6;color:#183247;font-size:14px;font-weight:600;cursor:pointer}
-.crew-appearance-toggle span{font-size:20px;line-height:1}
-.crew-appearance-control small{max-width:220px;font-size:12px}
+.appearance-control{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.appearance-toggle{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:44px;padding:9px 16px;border:1px solid #667c8e;border-radius:8px;background:#fffdf6;color:#183247;font-size:14px;font-weight:600;cursor:pointer}
+.appearance-toggle span{font-size:20px;line-height:1}
+.appearance-control small{font-size:12px}
 .voyage-ui .crew-page .crew-card.specialist-card .wanted-work{padding:18px 16px 14px;gap:4px}
 .voyage-ui .crew-page .crew-card.specialist-card .wanted-work h4{font-size:14px;font-weight:700;line-height:1.5}
 .voyage-ui .crew-page .crew-card.specialist-card .wanted-work p{font-size:14px;line-height:1.65;margin:8px 0 16px}
@@ -13,48 +13,48 @@
 .crew-page .crew-advanced>summary:before{content:'▸'}
 .crew-page .crew-advanced[open]>summary:before{content:'▾'}
 
-html[data-crew-appearance=dark]{color-scheme:dark;background:#0b1625}
-html[data-crew-appearance=dark] .app-shell{background:#0b1625;color:#e6eef8;--studio-muted:#becddd;--studio-paper:#14263a;--studio-line:#526c84;--studio-blue:#c5def5}
-html[data-crew-appearance=dark] .voyage-ui :is(.main-panel,#sunny-main,.crew-page){background:#0b1625;color:#e6eef8}
-html[data-crew-appearance=dark] .voyage-ui .topbar{background:#122338;border-bottom-color:#40566e;color:#e6eef8}
-html[data-crew-appearance=dark] .voyage-ui .topbar h1{color:#f0f5fc}
-html[data-crew-appearance=dark] .voyage-ui .topbar :is(.top-action,.status-pill){background:#203a51;border-color:#5b7890;color:#e5eef7}
-html[data-crew-appearance=dark] .voyage-ui .crew-page .page-intro{background:#172c43;border-color:#4a647d}
-html[data-crew-appearance=dark] .voyage-ui .journey-surface>.crew-page>.page-intro:before{background-image:linear-gradient(90deg,#172c43 0%,#172c43f5 50%,#172c4399 100%),var(--voyage-art)}
-html[data-crew-appearance=dark] .voyage-ui .crew-page .page-intro :is(h2,p){color:#e4edf7}
-html[data-crew-appearance=dark] .voyage-ui .crew-page .primary-button{background:#285875;border-color:#86a8c2;color:#fff7e8}
-html[data-crew-appearance=dark] .voyage-ui .crew-page .primary-button:hover{background:#356c8d}
-html[data-crew-appearance=dark] .crew-page .eyebrow{color:#f1d397}
-html[data-crew-appearance=dark] .crew-page :is(.crew-directory-toolbar>span,.crew-map-key){color:#c5d4e5}
-html[data-crew-appearance=dark] .crew-page :is(.projects-search,.crew-appearance-toggle,.crew-map-key button){background:#192f46;border-color:#7189a2;color:#e6eef8}
-html[data-crew-appearance=dark] .crew-page .projects-search input{color:#edf3fb;background:transparent}
-html[data-crew-appearance=dark] .crew-page input::placeholder{color:#b9cbdf;opacity:1}
-html[data-crew-appearance=dark] .crew-appearance-toggle[aria-pressed=true]{border-color:#e4be72;box-shadow:inset 0 0 0 1px #e4be72;color:#ffe1a3}
-html[data-crew-appearance=dark] .voyage-ui .crew-page .crew-card.specialist-card{background:transparent}
-html[data-crew-appearance=dark] .voyage-ui .crew-page .wanted-work{background:#172b42;border:1px solid #58718b;border-top:0}
-html[data-crew-appearance=dark] .voyage-ui .crew-page .crew-card.specialist-card .wanted-work h4{color:#ffe0a1}
-html[data-crew-appearance=dark] .voyage-ui .crew-page .crew-card.specialist-card .wanted-work p{color:#d4e0ef}
-html[data-crew-appearance=dark] .voyage-ui .crew-page .wanted-work>small{color:#bdcede}
-html[data-crew-appearance=dark] .voyage-ui .crew-page .crew-card.specialist-card .profile-open-label{background:#2b506d;border:1px solid #82acc9;color:#fff4da}
-html[data-crew-appearance=dark] .crew-page .crew-profile-trigger:hover .profile-open-label{background:#365f7f}
-html[data-crew-appearance=dark] .crew-page .crew-advanced{background:#172b42;border:1px solid #58718b;border-top:0;border-radius:0 0 9px 9px;color:#d7e6f5}
-html[data-crew-appearance=dark] .crew-page .crew-advanced>summary{color:#d7e6f5;font-size:14px}
-html[data-crew-appearance=dark] .crew-page .crew-advanced>button{background:#29475f;color:#eef4fb;border-color:#839bb2;min-height:44px}
-html[data-crew-appearance=dark] .crew-page .crew-advanced>button:disabled{color:#b9c6d4;background:#223449;opacity:1}
-html[data-crew-appearance=dark] .crew-page .crew-card.specialist-card .crew-card-state{color:#e0eaf7;background:#29415b;border-color:#7b94ac;font-size:13px;font-weight:600}
-html[data-crew-appearance=dark] .crew-page .crew-card.specialist-card .crew-card-state.working{color:#bdf4df;background:#174c43;border-color:#69c5a8}
-html[data-crew-appearance=dark] .crew-page .crew-card.specialist-card .crew-card-state:is(.approval,.input,.unknown){color:#ffe3a7;background:#553e1e;border-color:#c69d55}
-html[data-crew-appearance=dark] .crew-page .crew-card.specialist-card .crew-card-state.failed{color:#ffd0cf;background:#5b2b32;border-color:#d28a94}
-html[data-crew-appearance=dark] .crew-page :is(button,summary,select,input):focus-visible{outline:3px solid #ffdc84;outline-offset:4px}
-html[data-crew-appearance=dark] .voyage-ui .crew-extra-roster{background:#102034;border-color:#526c84}
-html[data-crew-appearance=dark] .voyage-ui .crew-extra-roster>summary{color:#f4dba6}
-html[data-crew-appearance=dark] .crew-extra-roster>p{color:#c5d4e5}
-html[data-crew-appearance=dark] .crew-page .ship-event-log{background:#152a40;border-color:#58718b;color:#e6eef8}
-html[data-crew-appearance=dark] .ship-event-log>.paper-material{opacity:.035;mix-blend-mode:normal}
-html[data-crew-appearance=dark] .ship-event-log :is(p,small,time,label,.ship-log-count,.aceternity-timeline-date,.aceternity-timeline-date-mobile){color:#c5d4e5}
-html[data-crew-appearance=dark] .ship-event-log :is(h3,h4,strong,summary){color:#edf3fc}
-html[data-crew-appearance=dark] .ship-event-log :is(button,select,.ship-log-search,.aceternity-timeline-dot){background:#203b54;border-color:#7892ab;color:#ecf2fb}
-html[data-crew-appearance=dark] .voyage-ui .crew-page .ship-log-search input{background:transparent;color:#ecf2fb}
-html[data-crew-appearance=dark] .ship-event-log .log-entry-label{color:#d9e8f8}
-html[data-crew-appearance=dark] .crew-journal{color-scheme:light}
-@media(max-width:600px){.crew-appearance-control{width:100%}.crew-appearance-toggle{width:100%}}
+html[data-appearance=dark]{color-scheme:dark;background:#0b1625}
+html[data-appearance=dark] .app-shell{background:#0b1625;color:#e6eef8;--studio-muted:#becddd;--studio-paper:#14263a;--studio-line:#526c84;--studio-blue:#c5def5}
+html[data-appearance=dark] .voyage-ui :is(.main-panel,#sunny-main,.crew-page){background:#0b1625;color:#e6eef8}
+html[data-appearance=dark] .voyage-ui .topbar{background:#122338;border-bottom-color:#40566e;color:#e6eef8}
+html[data-appearance=dark] .voyage-ui .topbar h1{color:#f0f5fc}
+html[data-appearance=dark] .voyage-ui .topbar :is(.top-action,.status-pill){background:#203a51;border-color:#5b7890;color:#e5eef7}
+html[data-appearance=dark] .voyage-ui .crew-page .page-intro{background:#172c43;border-color:#4a647d}
+html[data-appearance=dark] .voyage-ui .journey-surface>.crew-page>.page-intro:before{background-image:linear-gradient(90deg,#172c43 0%,#172c43f5 50%,#172c4399 100%),var(--voyage-art)}
+html[data-appearance=dark] .voyage-ui .crew-page .page-intro :is(h2,p){color:#e4edf7}
+html[data-appearance=dark] .voyage-ui .crew-page .primary-button{background:#285875;border-color:#86a8c2;color:#fff7e8}
+html[data-appearance=dark] .voyage-ui .crew-page .primary-button:hover{background:#356c8d}
+html[data-appearance=dark] .crew-page .eyebrow{color:#f1d397}
+html[data-appearance=dark] .crew-page :is(.crew-directory-toolbar>span,.crew-map-key){color:#c5d4e5}
+html[data-appearance=dark] .crew-page :is(.projects-search,.appearance-toggle,.crew-map-key button){background:#192f46;border-color:#7189a2;color:#e6eef8}
+html[data-appearance=dark] .crew-page .projects-search input{color:#edf3fb;background:transparent}
+html[data-appearance=dark] .crew-page input::placeholder{color:#b9cbdf;opacity:1}
+html[data-appearance=dark] .appearance-toggle[aria-pressed=true]{border-color:#e4be72;box-shadow:inset 0 0 0 1px #e4be72;color:#ffe1a3}
+html[data-appearance=dark] .voyage-ui .crew-page .crew-card.specialist-card{background:transparent}
+html[data-appearance=dark] .voyage-ui .crew-page .wanted-work{background:#172b42;border:1px solid #58718b;border-top:0}
+html[data-appearance=dark] .voyage-ui .crew-page .crew-card.specialist-card .wanted-work h4{color:#ffe0a1}
+html[data-appearance=dark] .voyage-ui .crew-page .crew-card.specialist-card .wanted-work p{color:#d4e0ef}
+html[data-appearance=dark] .voyage-ui .crew-page .wanted-work>small{color:#bdcede}
+html[data-appearance=dark] .voyage-ui .crew-page .crew-card.specialist-card .profile-open-label{background:#2b506d;border:1px solid #82acc9;color:#fff4da}
+html[data-appearance=dark] .crew-page .crew-profile-trigger:hover .profile-open-label{background:#365f7f}
+html[data-appearance=dark] .crew-page .crew-advanced{background:#172b42;border:1px solid #58718b;border-top:0;border-radius:0 0 9px 9px;color:#d7e6f5}
+html[data-appearance=dark] .crew-page .crew-advanced>summary{color:#d7e6f5;font-size:14px}
+html[data-appearance=dark] .crew-page .crew-advanced>button{background:#29475f;color:#eef4fb;border-color:#839bb2;min-height:44px}
+html[data-appearance=dark] .crew-page .crew-advanced>button:disabled{color:#b9c6d4;background:#223449;opacity:1}
+html[data-appearance=dark] .crew-page .crew-card.specialist-card .crew-card-state{color:#e0eaf7;background:#29415b;border-color:#7b94ac;font-size:13px;font-weight:600}
+html[data-appearance=dark] .crew-page .crew-card.specialist-card .crew-card-state.working{color:#bdf4df;background:#174c43;border-color:#69c5a8}
+html[data-appearance=dark] .crew-page .crew-card.specialist-card .crew-card-state:is(.approval,.input,.unknown){color:#ffe3a7;background:#553e1e;border-color:#c69d55}
+html[data-appearance=dark] .crew-page .crew-card.specialist-card .crew-card-state.failed{color:#ffd0cf;background:#5b2b32;border-color:#d28a94}
+html[data-appearance=dark] .crew-page :is(button,summary,select,input):focus-visible{outline:3px solid #ffdc84;outline-offset:4px}
+html[data-appearance=dark] .voyage-ui .crew-extra-roster{background:#102034;border-color:#526c84}
+html[data-appearance=dark] .voyage-ui .crew-extra-roster>summary{color:#f4dba6}
+html[data-appearance=dark] .crew-extra-roster>p{color:#c5d4e5}
+html[data-appearance=dark] .crew-page .ship-event-log{background:#152a40;border-color:#58718b;color:#e6eef8}
+html[data-appearance=dark] .ship-event-log>.paper-material{opacity:.035;mix-blend-mode:normal}
+html[data-appearance=dark] .ship-event-log :is(p,small,time,label,.ship-log-count,.aceternity-timeline-date,.aceternity-timeline-date-mobile){color:#c5d4e5}
+html[data-appearance=dark] .ship-event-log :is(h3,h4,strong,summary){color:#edf3fc}
+html[data-appearance=dark] .ship-event-log :is(button,select,.ship-log-search,.aceternity-timeline-dot){background:#203b54;border-color:#7892ab;color:#ecf2fb}
+html[data-appearance=dark] .voyage-ui .crew-page .ship-log-search input{background:transparent;color:#ecf2fb}
+html[data-appearance=dark] .ship-event-log .log-entry-label{color:#d9e8f8}
+
+@media(max-width:600px){.appearance-control{width:100%}.appearance-toggle{width:100%}}

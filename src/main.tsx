@@ -26,3 +26,4 @@ import './studio.css';
 
 import './components/crew-map.css';
 import './components/crew-dark.css';
+import './appearance.css';

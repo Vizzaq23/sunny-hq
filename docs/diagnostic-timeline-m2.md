@@ -1,5 +1,17 @@
 # M2 — Ship's diagnostic timeline, 2026-11-07
 
+## Final application evidence — 2026-11-08
+
+Implementation `b1e2d441f47691261ec937e93f4d9c2bcf076b04` passed **1,755 tests** (798 + 957), with zero failures, cancellations or skips, both clean Node 24.18 installs, builds/typechecks and hidden native workflows. All 1,735 M1 top-level tests remain, with nine diagnostic regressions and one deterministic checkpoint-race regression added. See the [final verification receipt](evidence/diagnostic-timeline-2026-11-07/verification-final.json) and its two shard summaries.
+
+The [final real Codex receipt](evidence/diagnostic-timeline-2026-11-07/live-checkpoint-fixed.json) was captured on that clean source: all four approval/reconnect cases passed, fixture effects were 1/0/0/1, and all owned processes exited. SHA256: `c8c6b7725fdb304234434084983421bbaa313effaa1f3015f58df4efd9f795e0`. Pending approval replay remains unverified; reconstruction of the saved Hub is not an installed-desktop restart claim.
+
+Both hosted builds have fingerprint `13f10935e05e7320b11c95035c3737f68052c6d6d0db5055066ece303f54ee13`; local build/typecheck passed with `78f59ce169e93c039b4414baf83084e93e5b56c7aa84de148529a1d4f95e5ee7`. These identify different checkout bytes; no byte-identical local/hosted build claim is made.
+
+**CI status limitation:** [run 42446494984](https://github.com/Vizzaq23/sunny-hq/actions/runs/42446494984) is still marked failed because its separate aggregate job recorded no steps and had no retrievable logs, both initially and on an aggregate-only retry. Both actual validation shards are successful. The cause is unverified: the available connector cannot read check annotations and the browser is signed out. No check was disabled or bypassed; the workflow itself is not reported green. This outstanding hosting status must be resolved before any release decision.
+
+The execution gate remains false. No installation, merge, deployment or daily-profile changes were made. M3 may begin its separately authorized audit/development with this limitation recorded; it receives no execution-release authorization. The sections below retain the design and investigation history; earlier pending checkpoints are superseded by this final evidence.
+
 Implementation decision, before code: extend the verified M1 source `7d82c77` in an isolated worktree. Keep `LIVE_SUPERVISION_ADMITTED=false`. No new provider, service, telemetry dependency or lifecycle authority.
 
 ## Sources and privacy boundary

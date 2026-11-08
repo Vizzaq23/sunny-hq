@@ -1,0 +1,61 @@
+{
+  "pendingReplayVerified": false,
+  "sourceCommit": "b1e2d441f47691261ec937e93f4d9c2bcf076b04",
+  "fullTestSuitePassed": true,
+  "liveReceiptSha256": "c8c6b7725fdb304234434084983421bbaa313effaa1f3015f58df4efd9f795e0",
+  "runUrl": "https://github.com/Vizzaq23/sunny-hq/actions/runs/42446494984",
+  "missingBaselineTests": [],
+  "shards": [
+    {
+      "passed": true,
+      "buildId": "13f10935e05e7320b11c95035c3737f68052c6d6d0db5055066ece303f54ee13",
+      "summary": "windows-shard-1.json",
+      "counts": {
+        "pass": 798,
+        "cancelled": 0,
+        "fail": 0,
+        "tests": 798,
+        "skipped": 0
+      },
+      "shard": 1,
+      "testsLogSha256": "f325466cf6a975405210c64aa15f8c410c656f87a58fe08e13ebdb0da21be301"
+    },
+    {
+      "passed": true,
+      "buildId": "13f10935e05e7320b11c95035c3737f68052c6d6d0db5055066ece303f54ee13",
+      "summary": "windows-shard-2.json",
+      "counts": {
+        "pass": 957,
+        "cancelled": 0,
+        "fail": 0,
+        "tests": 957,
+        "skipped": 0
+      },
+      "shard": 2,
+      "testsLogSha256": "5329c8cb2967f71ac7892aa9e76340660006589cf54f8fab8238589b4443bf09"
+    }
+  ],
+  "liveReceipt": "live-checkpoint-fixed.json",
+  "finalTopLevelCount": 1745.0,
+  "baselineTopLevelCount": 1735.0,
+  "aggregate": {
+    "attempts": 2,
+    "stepsRecorded": false,
+    "cause": "Unverified: job did not record steps; connector cannot read check annotations. Both validation shards passed.",
+    "logsAvailable": false,
+    "conclusion": "failure"
+  },
+  "executionGateOpen": false,
+  "addedTests": [
+    "a command item opened then declined does not claim execution or acceptance",
+    "stale provider items are not attributed to the current execution and missing turn stays unknown",
+    "observation retention, deduplication and malformed diagnostics cannot manufacture success",
+    "diagnostic read never calls provider and reports unsaved storage without a success claim",
+    "unknown times and ambiguous attempts remain explicitly unknown",
+    "checkpoint failure recovery serializes behind an already prepared authority commit",
+    "diagnostic projection and export never include free text or sensitive paths",
+    "Hub M1 journey retains redacted requests, one decision, uncertainty and reconciliation across restart",
+    "diagnostic scope rejects forged project, task, mission, raw detail and oversized limits",
+    "recorded check success is distinct from a captain acceptance receipt"
+  ]
+}

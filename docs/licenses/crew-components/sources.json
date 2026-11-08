@@ -7,7 +7,7 @@
       "path": "src/components/vendor/animated-beam.tsx",
       "license": "MIT",
       "upstreamSha256": "6afa2ee1d01694a428eb8517d48deebe5c6b532dc0ee871800bb9d92aae43e79",
-      "adaptedSha256": "49751a118a6dd25e1400ef5c12beee49684f96d89d4c07c451ac52285238ae34"
+      "adaptedSha256": "8d5989d168e7ed6e3c0f1e2ce3c9a679576458e6ab1296db3ff9b9eaed41f56e"
     },
     {
       "name": "aceternity-timeline",

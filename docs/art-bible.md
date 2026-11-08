@@ -144,3 +144,5 @@ Crew directory cards use an original printed-poster composition: oversized serif
 Wanted poster refinement (2026-11-07): full rectangular portrait plates, canonical story bounty amounts and MARINE footer replace the dossier imprint. Core art uses internal-cell CSS crops; allies use a separate generated 2x2 portrait atlas. See [reference and provenance decisions](wanted-poster-references.md).
 
 Print refinement (2026-11-07): compact portrait sheets use OFL Alfa Slab One/IM Fell English rather than Georgia, weathered paper and tighter display typography; work controls sit below the paper. Original portrait crops remain. See wanted-poster-references.md; no exact anime-font or image-replica claim.
+
+Captain poster partial refinement (2026-11-07): enlarged high-contrast Libre Bodoni lettering and full name. Gear 5 recreation rejected by image tool; existing portrait remains and is not an exact canon match. Branch SVG masks exclude entire cards so lines cannot show through transparent paper/control layers.

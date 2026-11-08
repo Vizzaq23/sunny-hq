@@ -56,6 +56,7 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
   const id = useId()
   const [pathD, setPathD] = useState("")
   const [svgDimensions, setSvgDimensions] = useState({ width: 0, height: 0 })
+  const [occluders, setOccluders] = useState<{x:number;y:number;width:number;height:number}[]>([])
 
   // Calculate the gradient coordinates based on the reverse prop
   const gradientCoordinates = reverse
@@ -82,6 +83,10 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
         const svgWidth = containerRect.width
         const svgHeight = containerRect.height
         setSvgDimensions({ width: svgWidth, height: svgHeight })
+        if(route === "crew") setOccluders(Array.from(containerRef.current.querySelectorAll('.crew-captain,.core-crew-grid>[data-crew-id]')).map(element=>{
+          const rect=element.getBoundingClientRect();
+          return {x:rect.left-containerRect.left,y:rect.top-containerRect.top,width:rect.width,height:rect.height};
+        }))
 
         const startX =
           rectA.left - containerRect.left + rectA.width / 2 + startXOffset
@@ -115,6 +120,7 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
     // Observe the container element
     if (containerRef.current) {
       resizeObserver.observe(containerRef.current)
+      if(route === "crew") containerRef.current.querySelectorAll('.crew-captain,.core-crew-grid>[data-crew-id]').forEach(element=>resizeObserver.observe(element))
     }
 
     // Call the updatePath initially to set the initial path
@@ -150,6 +156,8 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
       )}
       viewBox={`0 0 ${svgDimensions.width} ${svgDimensions.height}`}
     >
+      {route === "crew" && <defs><mask id={`${id}-cards`} maskUnits="userSpaceOnUse" x="0" y="0" width={svgDimensions.width} height={svgDimensions.height} style={{maskType:'luminance'}}><rect width={svgDimensions.width} height={svgDimensions.height} fill="white" stroke="none"/>{occluders.map((rect,index)=><rect key={index} {...rect} fill="black" stroke="none" data-crew-occluder="true"/>)}</mask></defs>}
+      <g mask={route === "crew"?`url(#${id}-cards)`:undefined}>
       <path
         d={pathD}
         stroke={pathColor}
@@ -165,6 +173,7 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
         strokeLinecap="round"
       />
       }
+      </g>
       {active && <defs>
         <motion.linearGradient
           className="transform-gpu"

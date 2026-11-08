@@ -180,3 +180,16 @@
 .crew-profile-trigger .wanted-sheet [data-slot]{width:100%}
 .wanted-sheet,.captain-wanted{background-color:#e5d3ad}
 .crew-card.specialist-card .wanted-photo,.captain-wanted .wanted-photo{mix-blend-mode:normal;filter:sepia(.25) saturate(.72) contrast(.98)}
+
+/* Luffy reference layout: high-contrast type and a contained poster, not a badge. */
+@font-face{font-family:'Libre Bodoni';src:url('/fonts/libre-bodoni.ttf') format('truetype');font-weight:400 700;font-display:swap}
+.captain-wanted{flex-basis:240px;width:240px;padding:12px;background:#e4d0a4;isolation:isolate}
+.captain-wanted .wanted-lettering text{font-family:'Libre Bodoni',serif;font-weight:700;font-size:88px}
+.captain-wanted .wanted-photo{height:160px}
+.captain-wanted .wanted-decree{font-family:'Libre Bodoni',serif;font-weight:700;font-size:17px;letter-spacing:.08em;margin:8px 0 2px}
+.captain-poster-name{display:block;width:100%}
+.voyage-ui .crew-page .captain-wanted svg.wanted-name{display:block;width:100%;height:auto;max-width:none;aspect-ratio:360/48}
+.captain-wanted .wanted-name text{font-family:'Libre Bodoni',serif;font-weight:700}
+.captain-wanted .wanted-bounty{font-size:24px;letter-spacing:.07em;line-height:1.3;margin:2px 0 4px}
+.captain-wanted .wanted-imprint b{font-family:'Libre Bodoni',serif;font-size:23px}.captain-wanted .wanted-imprint small{font-size:5px}
+@media(max-width:600px){.captain-wanted{flex-basis:auto;width:180px;padding:9px}.captain-wanted .wanted-photo{height:120px}.captain-wanted .wanted-decree{font-size:12px}.captain-wanted .wanted-bounty{font-size:18px}.captain-wanted .wanted-imprint b{font-size:16px}.captain-wanted .wanted-imprint small{font-size:4px}}

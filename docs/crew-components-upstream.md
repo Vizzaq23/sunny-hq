@@ -38,3 +38,5 @@ Revert this integration commit and restore its package-lock.json, then npm ci/bu
 ## Verification
 
 Validation receipts and current limits are recorded in [the evidence record](evidence/crew-components-upstream-2026-11-07/README.md): build/typecheck, 1,740 full-suite tests, 17 focused tests, dedicated native crew-map fixture and 68-check native workflow all passed. Earlier screenshot directories describe the older reference-only versions and must not be used as evidence of actual upstream integration.
+
+2026-11-07 beam visibility correction: crew-route base and active paths share an SVG luminance mask excluding the complete captain and specialist card rectangles. Bounds are remeasured with ResizeObserver on the container and each card. This prevents lines showing through any transparent paper/control layers without changing event eligibility or upstream Motion animation. Adapted hash refreshed.

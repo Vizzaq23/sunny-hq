@@ -74,12 +74,14 @@ async function handle(action,args={},surface='hub'){
  require('./workspace-routing.cjs').validateWorkspaceRoute(action,args);
  require('./task-commands.cjs').validateTaskCommand(action,args);
  require('./supervision-commands.cjs').validateSupervisionCommand(action,args);
- if(hub?.quiescing&&!['snapshot','workspace:get','app:export','mission:resultStatus','transcript:page','run:inspect'].includes(action))throw Error('Sunny is stopping and storage needs attention. Keep this window open to copy or export drafts before restarting.');
+ if(hub?.quiescing&&!['snapshot','workspace:get','app:export','mission:resultStatus','transcript:page','run:inspect','diagnostics:timeline','diagnostics:copy'].includes(action))throw Error('Sunny is stopping and storage needs attention. Keep this window open to copy or export drafts before restarting.');
  switch(action){
  case 'result:play':{const receipt=await require('./playable-launches.cjs').launchPlayable(args,{hub,stageRoot:path.join(dataDir,'playable-builds'),openPreview:({origin,entrypoint})=>require('./playable-preview.cjs').openPlayablePreview({BrowserWindow,session,parent:win,origin,entrypoint,fixture:fixture?.scenario==='playable'||fixture?.scenario==='journey-cue'})});return require('./playable-receipts.cjs').publicReceipt(receipt);}
  case 'result:stop':return require('./playable-launches.cjs').stopPlayable(args,{hub});
  case 'result:feedback':{const receipt=await require('./playable-launches.cjs').recordPlayableFeedback(args,{hub});return {id:receipt.id,launchId:receipt.launchId,resultId:receipt.resultId,resultSha256:receipt.resultSha256,improvement:receipt.improvement,attemptOutcome:receipt.attemptOutcome};}
  case 'snapshot':return publicState();
+ case 'diagnostics:timeline':return hub.diagnosticTimeline(args);
+ case 'diagnostics:copy':{const report=hub.diagnosticTimeline(args);require('electron').clipboard.writeText(JSON.stringify(report,null,2));return {copied:true};}
  case 'run:ackCall':return hub.ackCall(args);
  case 'goal:start':{const result=await hub.startGoal(args);return {...result,run:publicTransport.runReply(result.run),task:result.task?publicTransport.taskReply(result.task):undefined};}
  case 'run:create':return publicTransport.runReply(await hub.createRun(args));

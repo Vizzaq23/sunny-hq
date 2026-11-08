@@ -24,7 +24,9 @@ const projection=require('./state-projection.cjs').createStateProjection();
 const emit=()=>win.webContents.send('sunny:event',projection.event('snapshot',state));
 const localFixture=require('./local-crew-smoke.cjs').fixture(state,emit);
 const toolLaunches=[];
+let diagnosticCopy;
 ipcMain.handle('sunny:invoke',async(_event,action,args)=>{
+ if(action==='diagnostics:timeline'||action==='diagnostics:copy'){const report=require('./diagnostic-timeline.cjs').timeline(state,args,{persistence:state.persistence.state});if(action==='diagnostics:copy'){diagnosticCopy=JSON.stringify(report);return {copied:true};}return report;}
  if(action==='tools:open'){toolLaunches.push({...args});return;}
  if(action.startsWith('localCrew:')||action.startsWith('localCouncil:'))return localFixture.invoke(action,args);
  if(action==='transcript:page')return projection.page(state,args);
@@ -82,6 +84,9 @@ app.whenReady().then(async()=>{
  };
  try{
   await win.loadFile(path.join(root,process.argv.includes('--shipboard-baseline')?'.sunny-dev/baseline-dist':'dist','index.html'));await wait('Boolean(document.querySelector(".local-captain"))');await nav('The Sunny');await wait('Boolean(document.querySelector(".helm-workspace"))');await screenshot('command-deck.png');
+  const diagnosticsResult=await require('./diagnostic-smoke.cjs').check({js,wait,select,click,screenshot,win,state,copy:()=>diagnosticCopy,captures:process.argv.includes('--diagnostics-captures')});
+  fs.writeFileSync(path.join(output,'diagnostics-result.json'),JSON.stringify(diagnosticsResult));
+  if(process.argv.includes('--diagnostics-captures'))return;
   if(process.argv.includes('--studio-captures')){
    await require('./studio-ui-smoke.cjs').check({js,wait,fill,select,click,nav,screenshot,win,state,emit,toolLaunches});
    fs.writeFileSync(path.join(output,'studio-result.json'),JSON.stringify({passed:true,syntheticTransport:true,liveProviderProof:false,checks:['crew-specialty-search-and-reset','tool-search-and-reset','tool-launch-selected-project','home-draft-preservation','desktop-laptop-phone-layout','supporting-destination-layouts','home-200-percent-zoom','user-and-system-reduced-motion','local-ship-art-loaded']}));

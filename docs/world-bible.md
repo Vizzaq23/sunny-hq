@@ -1,5 +1,9 @@
 # Sunny world bible
 
+## Ship's diagnostics — 2026-11-07
+
+Captain's log includes a scoped, read-only diagnostic timeline. It projects existing mission/check/result records and bounded text-free task observations. Permission submission, provider execution and captain acceptance stay distinct; uncertain work never gains a completion cue. Titles and private bodies are omitted, source references are hashed, and private conversation/mission navigation remains explicit. No new art, animation, execution authority or service. See [M2's design, retention and validation evidence](diagnostic-timeline-m2.md).
+
 ## Studio dashboard — 2026-11-06
 
 Home places the captain's brief beside the existing authoritative watch on wide

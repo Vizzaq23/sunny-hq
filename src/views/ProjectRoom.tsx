@@ -10,7 +10,7 @@ import {roomCrew,roomSignals} from '../roomActivity';
 import {MissionBoard} from './MissionBoard';
 import './project-room.css';
 type Invoke=<T=unknown>(action:string,args?:unknown)=>Promise<T>;
-export function ProjectRoom({projectId,snapshot,invoke,onBack,onOpen,onCrew,onBriefings}:{projectId:string;snapshot:Snapshot;invoke:Invoke;onBack:()=>void;onOpen:(taskId:string)=>void;onCrew:(crewId:string)=>void;onBriefings:()=>void}){
+export function ProjectRoom({backLabel="Return to the island",projectId,snapshot,invoke,onBack,onOpen,onCrew,onBriefings}:{backLabel?:string;projectId:string;snapshot:Snapshot;invoke:Invoke;onBack:()=>void;onOpen:(taskId:string)=>void;onCrew:(crewId:string)=>void;onBriefings:()=>void}){
  const project=snapshot.projects.find(p=>p.id===projectId),[board,setBoard]=useState(false),[position,setPosition]=useState({x:ROOM_BOARD_X,y:74}),[error,setError]=useState('');
  const [paused,setPaused]=useState(false);
  const [markingSignal,setMarkingSignal]=useState(false),[onlyUnseen,setOnlyUnseen]=useState(false);
@@ -24,8 +24,8 @@ export function ProjectRoom({projectId,snapshot,invoke,onBack,onOpen,onCrew,onBr
  const approvals=snapshot.approvals.filter(a=>tasks.some(t=>t.id===a.taskId));
  const active=tasks.filter(t=>['starting','working','waiting','unknown'].includes(t.status));
  const move=(dx:number,dy:number)=>setPosition(p=>moveRoomCaptain(p,dx,dy));
- if(!project)return <section className="page"><h2>Project unavailable</h2><button className="small-button" onClick={onBack}>Return to the island</button></section>;
- return <section className="page project-room"><header className="page-intro"><div><span className="eyebrow">Project quarters</span><h2>{project.name}</h2><p>{active.length} active crew tasks · {missions.length} missions · {approvals.length} requests need you</p></div><button className="small-button" onClick={onBack}>Return to the island</button></header>
+ if(!project)return <section className="page"><h2>Project unavailable</h2><button className="small-button project-room-back" onClick={onBack}>{backLabel}</button></section>;
+ return <section className="page project-room"><header className="page-intro"><div><span className="eyebrow">Project quarters</span><h2>{project.name}</h2><p>{active.length} active crew tasks · {missions.length} missions · {approvals.length} requests need you</p></div><button className="small-button project-room-back" onClick={onBack}>{backLabel}</button></header>
   <div className="room-signals" aria-label="Project attention">{approvals.map(a=><button key={a.id} onClick={()=>a.taskId&&onOpen(a.taskId)}>Review crew request</button>)}{active.map(t=><div key={t.id}><button onClick={()=>onOpen(t.id)}>{t.title} · {t.status}</button><button onClick={()=>void invoke('task:interrupt',{taskId:t.id}).catch(e=>setError(String(e)))}>Stop task</button></div>)}</div>
   {error?<p role="alert">{error}</p>:null}
   <div className="project-room-scene" tabIndex={0} aria-label="Project room. Arrow keys move the captain. Enter near the board opens missions." onKeyDown={e=>{if(e.target!==e.currentTarget)return;const steps:Record<string,[number,number]>={ArrowLeft:[-4,0],ArrowRight:[4,0],ArrowUp:[0,-4],ArrowDown:[0,4]};if(steps[e.key]){e.preventDefault();move(...steps[e.key]);}else if(e.key==='Enter'&&nearRoomBoard(position)){e.preventDefault();setBoard(true);}}}>

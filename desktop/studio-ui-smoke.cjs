@@ -5,7 +5,7 @@ async function check({js,wait,fill,select,click,nav,screenshot,win,state,emit,to
  await wait('Boolean(document.querySelector(".captain-dashboard"))');
  await js('document.getElementById("sunny-main").scrollTo({top:0,behavior:"instant"})');
  assert.equal(await js('document.querySelectorAll(".captain-watch").length'),1);
- assert.ok(await js('document.querySelector(".captain-hero-art img").complete&&document.querySelector(".captain-hero-art img").naturalWidth>0'));
+ assert.ok(await js('document.querySelector(".harbor-ship .ship-art img").complete&&document.querySelector(".harbor-ship .ship-art img").naturalWidth>0'));
  const originalMotion=state.settings.reducedMotion;
  try{
   state.settings.reducedMotion=false;emit();

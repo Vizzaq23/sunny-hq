@@ -161,3 +161,7 @@ Captain poster partial refinement (2026-11-07): enlarged high-contrast Libre Bod
 2026-11-07 Crew appearance: optional default-dark navy board with larger 14px role/body copy, 13px setup/status text, bordered work panels and gold focus indicators. Sourced poster pixels remain unmodified. Native profile dialogs keep readable light surfaces. See crew-appearance.md for scope, renderer preference and rollback.
 
 2026-11-07 correction: dark appearance now belongs to the entire app, controlled in Settings > Experience. Shared navy surfaces cover navigation, workspaces, library, missions, island controls, profiles, logs and dialogs; Monaco follows the same choice. Artwork/poster pixels stay unchanged. This supersedes the Crew-only scope above.
+
+## Harbor composition — 2026-11-09
+
+The opening harbor reuses the existing transparent ship texture, unmodified island-world illustration and full wanted posters. The island image is cropped and softly masked in CSS beside the ship; its embedded distant ship is outside the visible crop. Ship and actors retain the same3:2 rectangle and existing foot anchors. Ocean lines are decorative CSS and stop under reduced motion, crew pause and hidden-document state. Replay portraits are a separate recorded scene with excerpts, not live-actor relocation. No atlas, asset bytes, perspective contract or license status changes. See [studio design](sunny-studio-design.md#harbor-opening-workspace--2026-11-09).

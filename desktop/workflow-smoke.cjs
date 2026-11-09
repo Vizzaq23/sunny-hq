@@ -90,6 +90,7 @@ app.whenReady().then(async()=>{
  };
  try{
   await win.loadFile(path.join(root,process.argv.includes('--shipboard-baseline')?'.sunny-dev/baseline-dist':'dist','index.html'));await wait('Boolean(document.querySelector(".local-captain"))');await nav('The Sunny');await wait('Boolean(document.querySelector(".helm-workspace"))');await wait('Boolean(document.querySelector(".ship-art img")?.complete&&document.querySelector(".ship-art img")?.naturalWidth)');await require('./ship-scene-smoke.cjs').check({js,wait});await screenshot('command-deck.png');
+  if(process.argv.includes('--harbor-only')){const result=await require('./harbor-smoke.cjs').check({js,wait,select,click,nav,screenshot,win,state,emit});fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result));console.log('SUNNY_HARBOR '+JSON.stringify(result));return;}
   if(process.argv.includes('--accepted-work')){const result=await require('./accepted-work-smoke.cjs').check({js,wait,select,fill,click,nav,screenshot,win,state,emit,projection});fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result));console.log('SUNNY_ACCEPTED_WORK '+JSON.stringify(result));return;}
   if(process.argv.includes('--review-table')){const result=await require('./review-table-smoke.cjs').check({js,wait,select,click,screenshot,win,state,emit});fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result));console.log('SUNNY_REVIEW_TABLE '+JSON.stringify(result));return;}
   if(process.argv.includes('--handoff-parcels')){const result=await require('./handoff-parcels-smoke.cjs').check({js,wait,fill,select,click,nav,screenshot,win,state,emit});fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result));console.log('SUNNY_HANDOFFS '+JSON.stringify(result));return;}
@@ -127,7 +128,7 @@ app.whenReady().then(async()=>{
     await screenshot(name+'-zoom.png');win.webContents.setZoomFactor(1);win.setSize(1440,1050);await delay(200);
    };
    await nav('Home');await js('document.querySelectorAll(".home-page details[open]").forEach(d=>d.open=false)');
-   await captureSizes('design-home','.home-heading');
+   await captureSizes('design-home','.harbor-heading');
    await click('[data-watch-id="task:design"] .watch-open');await wait('Boolean(document.querySelector(".approval-card"))');
    await captureSizes('design-approval','.approval-card');
    win.webContents.debugger.attach('1.3');
@@ -181,6 +182,7 @@ app.whenReady().then(async()=>{
   if(process.argv.includes('--local-crew-only')){await require('./local-crew-smoke.cjs').check({js,wait,fill,select,click,nav,screenshot,win,localFixture});fs.writeFileSync(path.join(output,'local-crew-result.json'),JSON.stringify({passed:true,syntheticModel:true}));console.log('SUNNY_LOCAL_CREW passed (synthetic model)');return;}
   assert.equal(await js('document.querySelectorAll(".home-task").length'),4,'newer snapshot wins over stale initial response');
   // Captain's watch follows streamed facts and only navigates to the guarded request.
+  await click('.harbor-captain');
   await wait('Boolean(document.querySelector(".captain-watch"))');
   assert.equal(await js('document.querySelectorAll(".watch-list li").length'),4);
   assert.equal(await js('document.querySelector("[data-watch-id$=design] .watch-label").textContent'),'Permission requested');

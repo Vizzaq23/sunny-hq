@@ -186,3 +186,15 @@ Screen-reader testing,
 hosted CI, separately admitted native recovery and continuous real-provider
 release acceptance remain unverified. `LIVE_SUPERVISION_ADMITTED=false` remains
 unchanged. This update is not a production-release claim.
+
+## Harbor opening workspace — 2026-11-09
+
+The captain authorized the [world-focus plan](world-focus-plan.md). Home now centers the existing cutaway Sunny beside an illustrated project island, with destination selection, wanted profiles on crew selection, station links and a contextual recorded-handoff panel. Captain composition/watch remain in an expandable desk; attention has a direct harbor control. The existing command deck, Grand Line chart, workbench and M1–M7 surfaces remain available.
+
+The implementation composes existing 2D assets and retains one 3:2 frame for ship art and actors. An alternative new illustration/3D camera was deferred because the admitted art already supports a closer view without changing atlas or path contracts. The island is a project destination metaphor, not a newly generated map for each folder. No schema, provider or authority changes.
+
+Handoff replay is explicit, bounded and sourced from retained excerpts. Its separate replay layer cannot move live actors or mark work complete. Reduced motion keeps the records and controls available. Nonmodal detail panels make the obscured scene inert; native wanted profiles retain Escape/focus return. Clip containment prevents detail scrolling from shifting the ship. Existing fixture watch checks now explicitly open the captain desk before focusing its controls.
+
+Exploratory checks: 38 focused motion/handoff/navigation tests passed; build/typecheck, 68-check core workflow and 13 harbor checks passed. Harbor checks cover desktop/compact/phone geometry, wanted profile focus, exact project navigation and return, light/dark contrast, pause and explicit replay. Forty-frame observations in the same fixture showed about16.7ms median frame spacing for both original command deck and harbor; this is not a live-performance guarantee. Complete clean candidate/package verification remains pending. Raw exploratory evidence: .sunny-dev/harbor-preview-5 and .sunny-dev/harbor-full-preview-2. Original failed exploratory checks are retained.
+
+Rollback: revert this focused presentation change or return shortcuts to the retained prior local package. Preserve newer profile data. No new art bytes or commercial rights claims.

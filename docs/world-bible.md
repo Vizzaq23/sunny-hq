@@ -196,3 +196,9 @@ The captain hierarchy retains equal specialist posters and real-state labels. Po
 ### Actual upstream materials and interactions — 2026-11-07
 
 The [upstream integration](crew-components-upstream.md) supersedes the custom research-pass effects: Magic UI beams project genuine delegation, Motion Primitives profiles retain Sunny native modal behavior, Aceternity Timeline renders saved evidence, and shadcn Command owns command navigation. Actual PaperTexture replaces the static grain on posters/logs/briefs/Zoro ledger; actual Paper Water replaces the CSS sea, with a local still image on GPU loss and reduced-motion/visibility controls. No work state, authority, room geometry or sprite atlas changes.
+
+## Harbor entry — 2026-11-09
+
+Home now presents Sunny beside the selected project's island. The island opens that registered project's quarters and returns to the harbor with focus restored. Crew open wanted profiles; the station list retains direct work access. The captain desk opens on demand and a direct attention control reaches real pending work. Existing chart districts and the command deck remain accessible.
+
+The handoff panel projects retained M5 records in a separate explicitly recorded replay. Excerpts retain their source below the scene; no reply, acceptance, travel progress or provider action is invented. See [implementation and verification](sunny-studio-design.md#harbor-opening-workspace--2026-11-09).

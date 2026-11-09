@@ -1,3 +1,4 @@
+import {SourcedWantedPoster,hasSourcedPoster,WantedPortrait} from './WantedPoster';
 import {MorphingDialogContent,MorphingDialogTitle} from './vendor/morphing-dialog';
 import {useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {X,BookOpen,MessageCircle,Trash2,Pencil,Send} from 'lucide-react';
@@ -7,7 +8,7 @@ import {CrewPortrait} from './Chrome';
 import {CrewProfileOverview} from './CrewProfileOverview';
 import {LocalCrewPanel} from './LocalCrewPanel';
 type Invoke=<T=unknown>(action:string,args?:unknown)=>Promise<T>;
-export function CrewJournal({morph=false,animateEntrance=false,onOpenTask,onOpenRoom,initialProjectId,initialTab='memory',crewId,snapshot,invoke,onClose}:{morph?:boolean;animateEntrance?:boolean;onOpenTask?:(id:string)=>void;onOpenRoom?:(id:string)=>void;initialProjectId?:string;initialTab?:'overview'|'memory'|'relationships'|'local';crewId:CrewId;snapshot:Snapshot;invoke:Invoke;onClose:()=>void}){
+export function CrewJournal({showWanted=false,morph=false,animateEntrance=false,onOpenTask,onOpenRoom,initialProjectId,initialTab='memory',crewId,snapshot,invoke,onClose}:{showWanted?:boolean;morph?:boolean;animateEntrance?:boolean;onOpenTask?:(id:string)=>void;onOpenRoom?:(id:string)=>void;initialProjectId?:string;initialTab?:'overview'|'memory'|'relationships'|'local';crewId:CrewId;snapshot:Snapshot;invoke:Invoke;onClose:()=>void}){
  const Content=morph?MorphingDialogContent:'section';
  const crew=CREW_BY_ID.get(crewId)!;
  const profile=snapshot.growth?.profiles[crewId];
@@ -27,6 +28,7 @@ export function CrewJournal({morph=false,animateEntrance=false,onOpenTask,onOpen
   <div hidden={tab==='overview'||tab==='local'} className="growth-meter"><span style={{width:`${Math.min(100,((profile?.xp??0)-20*(level-1)**2)/(20*level**2-20*(level-1)**2)*100)}%`}}/></div>
   <nav aria-label="Profile sections"><button className={tab==='overview'?'active':''} aria-pressed={tab==='overview'} onClick={()=>setTab('overview')}>Overview</button><button className={tab==='memory'?'active':''} aria-pressed={tab==='memory'} onClick={()=>setTab('memory')}><BookOpen/>Memories</button><button className={tab==='relationships'?'active':''} aria-pressed={tab==='relationships'} onClick={()=>setTab('relationships')}><MessageCircle/>Crew relationships</button><button className={tab==='local'?'active':''} aria-pressed={tab==='local'} onClick={()=>setTab('local')}>Local profile</button></nav>
   <div className="journal-scroll">
+   {showWanted&&tab==='overview'?<div className="harbor-wanted">{crew.id==='luffy'?<img src={import.meta.env.BASE_URL+'assets/luffy-gear5-wanted.jpg'} alt="Monkey D. Luffy’s wanted poster · story bounty 3 billion Berries"/>:hasSourcedPoster(crew)?<SourcedWantedPoster crew={crew}/>:<WantedPortrait crew={crew}/>}</div>:null}
    {tab==='overview'?<CrewProfileOverview crew={crew} snapshot={snapshot} initialProjectId={initialProjectId} onTask={onOpenTask?id=>{if(note.trim()&&!window.confirm('Discard this unsaved journal note?'))return;onClose();onOpenTask(id);}:undefined} onRoom={onOpenRoom?()=>{if(note.trim()&&!window.confirm('Discard this unsaved journal note?'))return;onClose();onOpenRoom(crewId);}:undefined}/>:null}
    {tab==='memory'||tab==='relationships'?<p className="journal-explanation">Experience reflects shared conversations, not a more powerful model. {crew.name} keeps their core personality while using remembered preferences and past discussions.</p>:null}
    <div hidden={tab!=='local'}><LocalCrewPanel initialProjectId={initialProjectId} key={crewId} crewId={crewId} name={crew.name} snapshot={snapshot} invoke={invoke}/></div>{tab==='memory'?<>

@@ -22,6 +22,16 @@
 .crew-conversation>footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-top:18px}
 .crew-conversation>footer button{background:#fff5dc;border:1px solid #a67d48;padding:8px 12px;border-radius:3px;color:#513a25}
 .crew-conversation button:disabled{opacity:.5;cursor:not-allowed}
+.relay-deck{position:relative;isolation:isolate;min-height:340px;background:#176575;overflow:hidden;border:1px solid #8f754e;border-radius:10px;display:grid;grid-template-columns:1fr 56px 1fr;align-items:center;padding:50px 24px 65px;gap:10px}
+.relay-deck-art{position:absolute;inset:0;z-index:-1;width:100%;height:100%;object-fit:cover;opacity:.3}
+.relay-replay-label{position:absolute;top:12px;left:12px;background:#153b42;color:#fff4d8;padding:7px 10px;border-radius:4px;font-size:12px}
+.relay-actor{display:flex;flex-direction:column;align-items:center;gap:8px;position:relative}.relay-actor>strong{background:#153b42;color:#fff8df;padding:4px 12px;border-radius:5px;font:22px Bangers,Georgia,serif}.relay-actor .crew-directory-portrait{width:76px;height:95px;filter:drop-shadow(0 5px 4px #17262d80)}
+.relay-short-bubble{background:#fff9e9;color:#403120;border:2px solid #816540;border-radius:12px;padding:10px;font-size:13px;max-width:210px;text-align:center}
+.relay-parcel-icon{font-size:42px;color:#fff3c5;text-shadow:0 3px 5px #192e35;text-align:center}.relay-replay{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);white-space:nowrap;background:#fff5dc;color:#44331e;border:1px solid #8a693a;border-radius:6px;padding:8px 14px}.relay-replay-note{font-size:12px;color:#654c30}
+@media(prefers-reduced-motion:no-preference){.voyage-ui:not(.reduce-motion) .relay-deck[data-playing=true] .relay-parcel-icon{animation:relay-parcel 1.6s ease-in-out both}.voyage-ui:not(.reduce-motion) .relay-deck[data-playing=true] .relay-sender{animation:relay-face 1.6s ease-in-out}.voyage-ui:not(.reduce-motion) .relay-deck[data-playing=true] .relay-recipient{animation:relay-face 1.6s ease-in-out reverse}}
+@keyframes relay-parcel{0%{transform:translateX(-90px) rotate(-12deg)}50%{transform:translateY(-25px)}100%{transform:translateX(90px) rotate(12deg)}}
+@keyframes relay-face{0%,100%{transform:none}40%{transform:translateX(7px) rotate(3deg)}}
+@media(max-width:520px){.relay-deck{padding-inline:8px;grid-template-columns:minmax(0,1fr) 30px minmax(0,1fr)}.relay-short-bubble{font-size:12px;padding:7px}.relay-actor>strong{font-size:19px}.relay-parcel-icon{font-size:30px}}
 @media(prefers-reduced-motion:no-preference){.voyage-ui:not(.reduce-motion) .relay-bubble{animation:relay-speak 180ms ease-out}}
 @keyframes relay-speak{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 @media(max-width:650px){.crew-conversation{padding:14px}.relay-scene{padding:12px}.relay-speaker{grid-template-columns:60px minmax(0,1fr);gap:12px}.relay-portrait .crew-directory-portrait{width:56px;height:70px}.relay-portrait>strong{font-size:20px}.relay-to{grid-template-columns:minmax(0,1fr) 60px}.relay-bubble{padding:12px}.relay-bubble .handoff-payload{font-size:14px}.crew-conversation>footer button{flex:1 1 140px}}

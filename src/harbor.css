@@ -1,0 +1,42 @@
+/* One shared 3:2 rectangle owns the ship art and its actor coordinates. */
+.voyage-ui .home-page:has(.harbor-world){padding:16px 22px;max-width:none}
+.harbor-world{position:relative;border:1px solid #4e7c80;border-radius:18px;overflow:clip;background:#123c45;color:#fff4da;box-shadow:0 12px 38px #102c3920}
+.harbor-heading{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:18px 24px;background:#143c43;color:#fff4da}
+.harbor-heading .eyebrow{color:#e8c686}.harbor-heading h2{font:clamp(25px,2.7vw,40px)/1.1 Bangers,Georgia,serif;margin:6px 0 0;color:#fff4da}
+.harbor-project{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;max-width:45%}
+.harbor-project select,.harbor-mission select{min-height:42px;max-width:100%;background:#fff9e9;color:#263f40;border:1px solid #8bb4af;border-radius:6px;padding:8px}
+.harbor-scene{height:clamp(340px,calc(100vh - 410px),620px);position:relative;isolation:isolate;background:#328b9b;overflow:clip}
+.harbor-water{position:absolute;inset:0;background:radial-gradient(ellipse at 20% 75%,#70bac1 0%,#308e9d 45%,#125566 100%)}
+.harbor-water:after{content:'';position:absolute;inset:0;background:repeating-radial-gradient(ellipse at 70% 60%,transparent 0 40px,#e5ffed20 41px 42px,transparent 44px 65px);opacity:.45}
+.harbor-island-art{position:absolute;right:-2%;top:0;width:54%;height:85%;overflow:hidden;mask-image:linear-gradient(to left,#000 65%,transparent),linear-gradient(to bottom,#000 70%,transparent);mask-composite:intersect;opacity:.98}
+.harbor-island-art img{height:125%;width:auto;max-width:none;position:absolute;right:0;top:0}
+.harbor-destination{position:absolute;right:22px;top:22px;width:clamp(190px,24%,300px);z-index:7;text-align:left;padding:16px;border:1px solid #e6cb91;border-radius:10px;background:#153d44;color:#fff7df;box-shadow:0 6px 22px #102f4650}
+.harbor-destination>span{display:flex;align-items:center;gap:8px;font-size:12px;color:#ffe0a3}.harbor-destination strong{display:block;font:26px/1.15 Bangers,Georgia,serif;margin:8px 0;overflow-wrap:anywhere}.harbor-destination small{display:flex;gap:5px;align-items:center;color:#e0efdf}.harbor-destination:disabled{opacity:1;cursor:default}
+.harbor-world .harbor-ship.helm-scene{position:absolute;inset:0 20% 0 0;background:none;container-type:size;display:flex;align-items:center;justify-content:center;overflow:clip}
+.harbor-world .harbor-ship .compact-ship{height:100%;width:100%;padding:0;background:transparent;overflow:clip}
+.harbor-world .harbor-ship .compact-ship .ship-board{width:min(100cqw,150cqh);aspect-ratio:3/2;height:auto;min-width:0;max-height:none;flex:none;box-shadow:none}
+.harbor-world .harbor-ship .ship-art img{filter:drop-shadow(0 18px 16px #062c4360)}
+.harbor-caption{position:absolute;right:22px;bottom:22px;max-width:23%;pointer-events:none;text-align:right;text-shadow:0 2px 5px #072c3d}
+.harbor-caption>span{display:block;font:24px/1.1 Bangers,Georgia,serif;letter-spacing:1px}.harbor-caption small{display:block;margin-top:7px;font-size:12px;line-height:1.5;color:#fff9e8}
+.harbor-actions{display:flex;gap:8px;flex-wrap:wrap;padding:14px 18px;background:#143c43}
+.harbor-actions button,.harbor-detail button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:9px 14px;border:1px solid #769c99;background:#234c52;color:#fff6df;border-radius:7px;font-size:13px}
+.harbor-actions .harbor-captain{background:#ffe1a5;color:#382c20;border-color:#ffe1a5;font-weight:700}
+.harbor-actions button[aria-expanded=true]{background:#fff4d7;color:#243d40}.harbor-world :focus-visible{outline:3px solid #ffd166;outline-offset:3px}
+.harbor-detail{position:absolute;z-index:9;top:100px;right:16px;bottom:78px;width:min(510px,calc(100% - 32px));overflow:auto;padding:20px 24px;background:#f9f3e5;color:#253f42;border:1px solid #70928d;border-radius:12px;box-shadow:0 10px 35px #05263370;scroll-margin:16px;overscroll-behavior:contain}
+.harbor-detail>header{position:sticky;top:-20px;z-index:3;display:flex;justify-content:space-between;align-items:center;gap:12px;background:inherit;padding:10px 0}.harbor-detail h3{margin:0;font-size:20px}
+.harbor-roster{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:16px}.harbor-roster article{padding:10px;border:1px solid #b8c7bb;border-radius:8px;display:flex;flex-direction:column;gap:8px}
+.harbor-roster article button:first-child{display:flex;flex-direction:column;align-items:start;background:#fff8e5;color:#293d3f}.harbor-roster strong{font:24px Bangers,Georgia,serif}.harbor-roster span{font-size:12px}
+.harbor-mission{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:18px 0}
+.harbor-wanted{width:min(240px,75%);margin:0 auto 24px}.harbor-wanted>img{display:block;width:100%;height:auto}
+.harbor-captain-desk{margin:18px 0;border:1px solid var(--studio-border,#bcb6a7);border-radius:12px;overflow:hidden}.harbor-captain-desk>summary{padding:16px 20px;font-weight:700;cursor:pointer;min-height:48px}.harbor-captain-desk[open]>.captain-dashboard{padding:16px}.harbor-captain-desk .home-connection{margin:16px}
+@media(min-width:901px){.voyage-ui[data-view=home]:has(.harbor-world) .topbar{display:none}}
+.voyage-ui[data-view=home]:has(.harbor-world) .voyage-bar:not(:has(.voyage-actions button:enabled)) :is(.voyage-actions,.voyage-handoffs){display:none}
+html[data-appearance=dark] .harbor-detail{background:#172b42;color:#e6eef8;border-color:#7892ab}
+html[data-appearance=dark] .harbor-roster article{border-color:#7892ab}
+html[data-appearance=dark] .harbor-roster article button:first-child{background:#23445b;color:#f4f1df}
+.harbor-world .harbor-detail .handoff-parcels>header h2{font-size:22px}
+@media(prefers-reduced-motion:no-preference){.voyage-ui:not(.reduce-motion) .harbor-world[data-hidden=false]:not(:has(.life-paused)) .harbor-water:after{animation:harbor-tide 12s ease-in-out infinite alternate}}
+@keyframes harbor-tide{from{transform:translateX(-8px) scale(1.03)}to{transform:translateX(8px) scale(1.03)}}
+@media(max-width:900px){.harbor-detail{top:150px;bottom:120px}}
+@media(max-width:900px){.harbor-heading{align-items:start;padding:16px;flex-direction:column;gap:12px}.harbor-project{max-width:100%}.harbor-scene{height:480px}.harbor-world .harbor-ship.helm-scene{inset:80px 0 0}.harbor-island-art{width:65%;height:65%}.harbor-destination{top:12px;right:12px;padding:10px;width:210px}.harbor-destination strong{font-size:23px;margin:4px 0}.harbor-caption{display:none}.harbor-actions{padding:12px}.harbor-actions button{flex:1 1 170px}}
+@media(max-width:520px){.voyage-ui .home-page:has(.harbor-world){padding:10px}.harbor-scene{height:390px}.harbor-world .harbor-ship.helm-scene{inset:105px -2% 0}.harbor-heading h2{font-size:29px}.harbor-project{width:100%}.harbor-project select{flex:1;min-width:0}.harbor-island-art{width:85%;height:65%}.harbor-destination{width:200px}.harbor-detail{padding:14px}.harbor-actions button{flex:1 1 135px}.harbor-world .deck-name{max-width:80px}.harbor-world .crew-life-controls{bottom:0}.harbor-world .crew-life-controls select{max-width:145px}}

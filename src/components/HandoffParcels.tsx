@@ -11,6 +11,9 @@ function Payload({value}:{value:HandoffExcerpt|null}){
 function crewName(id:string|undefined){return CREW.find(crew=>crew.id===id)?.name??id??'Not recorded';}
 function HandoffConversation({report,onOpen}:{report:HandoffReport;onOpen:(taskId:string)=>void}){
  const [selected,setSelected]=useState('');
+ const [replay,setReplay]=useState(0),[playing,setPlaying]=useState(false);
+ useEffect(()=>{setPlaying(false);setReplay(0);},[selected]);
+ useEffect(()=>{if(!playing)return;const timer=setTimeout(()=>setPlaying(false),1800);return()=>clearTimeout(timer);},[playing,replay]);
  const index=Math.max(0,report.parcels.findIndex(parcel=>parcel.id===selected));
  const parcel=report.parcels[index];
  if(!parcel)return null;
@@ -18,6 +21,15 @@ function HandoffConversation({report,onOpen}:{report:HandoffReport;onOpen:(taskI
  return <section className="crew-conversation" aria-label="Crew handoff conversation">
   <header><span className="eyebrow">On deck · Recorded exchange</span><h3>Pass it to the crew.</h3><p>Step through saved results and briefs. These are recorded excerpts, not a live chat.</p></header>
   <nav className="relay-chapters" aria-label="Choose a recorded handoff">{report.parcels.map((item,i)=><button key={item.id} type="button" aria-pressed={item.id===parcel.id} onClick={()=>setSelected(item.id)}>{i+1}. {crewName(item.from?.crewId)} → {crewName(item.to?.crewId)}</button>)}</nav>
+  <div className="relay-deck" aria-label="Recorded handoff replay" data-playing={playing} key={parcel.id+':'+replay}>
+   <img className="relay-deck-art" src={import.meta.env.BASE_URL+'assets/ship-deck.png'} alt="" aria-hidden="true"/>
+   <span className="relay-replay-label">Recorded exchange · {report.historical?'historical attempt':'current attempt'}</span>
+   <div className="relay-actor relay-sender">{from?<CrewPortrait crew={from}/>:<span>?</span>}<strong>{crewName(parcel.from?.crewId)}</strong><span className="relay-short-bubble">{parcel.result?'Result excerpt: '+parcel.result.text.slice(0,100)+(parcel.result.text.length>100?'…':''):'No result recorded.'}</span></div>
+   <span className="relay-parcel-icon" aria-hidden="true">✉</span>
+   <div className="relay-actor relay-recipient">{to?<CrewPortrait crew={to}/>:<span>?</span>}<strong>{crewName(parcel.to?.crewId)}</strong><span className="relay-short-bubble">{parcel.brief?'Brief excerpt: '+parcel.brief.text.slice(0,100)+(parcel.brief.text.length>100?'…':''):'No brief recorded.'}</span></div>
+   <button className="relay-replay" type="button" disabled={!from||!to} onClick={()=>{setReplay(n=>n+1);setPlaying(true);}}>Replay parcel exchange</button>
+  </div>
+  <p className="relay-replay-note">Visual replay of saved records. Read the attributed excerpts below; shortened excerpts do not represent a new conversation.</p>
   <div className="relay-scene" aria-live="polite" aria-atomic="true">
    <article className="relay-speaker relay-from"><div className="relay-portrait">{from?<CrewPortrait crew={from}/>:<span className="relay-unknown">?</span>}<strong>{crewName(parcel.from?.crewId)}</strong></div><div className="relay-bubble"><span className="eyebrow">Recorded result</span><Payload value={parcel.result}/>{parcel.result?<small>{parcel.result.attribution}</small>:null}</div></article>
    <div className="relay-pass" aria-hidden="true">↓ &nbsp; HANDOFF &nbsp; ↓</div>

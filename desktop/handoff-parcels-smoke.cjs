@@ -1,0 +1,30 @@
+const assert=require('node:assert/strict');
+async function check({js,wait,fill,select,click,nav,screenshot,win,state,emit}){
+ const stages=['plan','work','validate','review'],crew=['nami','franky','usopp','zoro'];
+ const tasks=stages.map((id,i)=>({id:'parcel-'+id,title:crew[i]+' recorded work',projectId:'studio',crewId:crew[i],parentTaskId:'captain',status:'finished',createdAt:1,updatedAt:2,messages:[{id:id+'-brief',role:'user',text:'Recorded assignment: '+id,time:1},{id:id+'-result',role:'assistant',text:'Generated '+id+' result; inspect the evidence.',time:2}]}));
+ state.tasks.push(...tasks);
+ const a={id:'parcel-attempt',taskId:'captain',taskIds:['captain',...tasks.map(t=>t.id)],status:'running',startedAt:1,workflow:{complete:true,stages:stages.map((id,i)=>({id,taskId:tasks[i].id,status:'complete'}))}};
+ const mission={id:'parcel-mission',projectId:'studio',title:'Recorded crew relay',objective:'Build and verify a bounded change',acceptanceCriteria:['Inspect receipts'],completionBoundary:'review',status:'RUNNING',connection:'connected',revision:1,createdAt:1,updatedAt:1,taskIds:[...a.taskIds],activeAttemptId:a.id,attempts:[a],artifacts:[{id:'parcel-files',kind:'git',projectId:'studio',attemptId:a.id,commit:'fixture-commit',paths:['src/crew.ts'],recordedAt:2},{id:'parcel-check',kind:'check',projectId:'studio',attemptId:a.id,commit:'fixture-commit',script:'test',status:'passed',exitCode:0,durationMs:12,recordedAt:2}],events:[]};
+ state.missions.push(mission);emit();await select('[aria-label="Selected voyage mission"]',mission.id);await wait('document.querySelector(".voyage-summary").textContent.includes("Attempt 1")');
+ await nav('The Sunny');await click('.voyage-actions button:nth-child(3)');await wait('Boolean(document.querySelector(".composer textarea"))');await fill('.composer textarea','Keep my M5 draft');
+ const key=keyCode=>{win.webContents.sendInputEvent({type:'keyDown',keyCode});if(keyCode==='Enter')win.webContents.sendInputEvent({type:'char',keyCode:'\r'});win.webContents.sendInputEvent({type:'keyUp',keyCode});};
+ await js('document.querySelector(".voyage-handoffs").focus()');key('Enter');await wait('document.querySelectorAll(".handoff-parcel").length===3');
+ assert.deepEqual(await js('Array.from(document.querySelectorAll(".handoff-parcel summary strong"),e=>e.textContent)'),['Nami → Franky','Franky → Usopp','Usopp → Zoro']);
+ await js('document.querySelector(".handoff-parcel summary").focus()');key('Enter');await wait('document.querySelector(".handoff-parcel").open');
+ assert.match(await js('document.querySelector(".handoff-detail").textContent'),/Recorded assignment: work/);
+ assert.match(await js('document.querySelector(".handoff-detail").textContent'),/Generated plan result/);
+ assert.match(await js('document.querySelector(".handoff-evidence").textContent'),/fixture-commit/);
+ await screenshot('handoffs-desktop.png');
+ await click('.handoff-parcels>header>button');await wait('document.querySelectorAll(".handoff-parcel").length===3');
+ key('Escape');await wait('!document.querySelector(".voyage-dialog").open');await wait('document.activeElement.className==="voyage-handoffs"');assert.equal(await js('document.querySelector(".composer textarea").value'),'Keep my M5 draft');
+ await click('.voyage-handoffs');await wait('document.querySelectorAll(".handoff-parcel").length===3');await click('.handoff-parcel summary');await click('.handoff-actions button:last-child');await wait('document.querySelector(".workbench").dataset.crewId==="franky"');assert.equal(state.workspace.context.attemptId,a.id);
+ await click('.voyage-handoffs');await wait('document.querySelectorAll(".handoff-parcel").length===3');
+ mission.activeAttemptId='later-attempt';mission.revision++;emit();await wait('document.querySelector(".handoff-identity")?.textContent.includes("Historical attempt")');
+ tasks[0].messages=[];mission.revision++;emit();await wait('document.querySelector(".handoff-identity")?.textContent.includes("revision 3")');await click('.handoff-parcel summary');assert.match(await js('document.querySelector(".handoff-detail").textContent'),/Not recorded/);
+ win.setSize(400,900);await wait('innerWidth<450');await screenshot('handoffs-compact.png');assert.ok(await js('document.querySelector(".voyage-dialog").scrollWidth<=document.querySelector(".voyage-dialog").clientWidth'));
+ win.setSize(1440,1050);win.webContents.setZoomFactor(2);await screenshot('handoffs-200-percent.png');assert.ok(await js('document.querySelector(".voyage-dialog").scrollWidth<=document.querySelector(".voyage-dialog").clientWidth'));win.webContents.setZoomFactor(1);
+ a.workflow=undefined;mission.revision++;emit();await wait('Boolean(document.querySelector(".handoff-empty"))');assert.match(await js('document.querySelector(".handoff-empty").textContent'),/No crew handoffs recorded/);
+ state.settings.reducedMotion=false;emit();await wait('!document.querySelector(".app-shell").classList.contains("reduce-motion")');assert.ok(await js('Boolean(document.querySelector(".handoff-empty"))'));
+ return {passed:true,hidden:!win.isVisible(),syntheticTransport:true,liveProviderProof:false,checks:['three-recorded-role-handoffs','exact-brief-and-attributed-result','attempt-source-and-check-receipts','refresh-no-duplicates','keyboard-disclosure','Escape-focus-draft-return','scoped-task-navigation','historical-attempt','missing-result','compact','200-percent','no-records','reduced-and-normal-motion-information']};
+}
+module.exports={check};

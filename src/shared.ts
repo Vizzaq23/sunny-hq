@@ -14,6 +14,17 @@ export interface MissionResultStatus {epoch:string;missionId:string;revision:num
 export interface PlayableResultSummary {source:{baseCommit:string;headCommit:string;fingerprint:string;artifactHashes:{path:string;sha256:string}[]};build:{program:string;args:string[]};runtime:string;toolchain:string;entrypoint:string;artifactCount:number;totalBytes:number;limitations:string[];candidateEligible:boolean;candidateBlockers:string[];ready:boolean;readinessBlockers:string[];missingCheckIds:string[];}
 export interface ResultStatusEntry {key:string;state:'loading'|'ready'|'error';status?:MissionResultStatus;error?:string;retry?:()=>void;}
 export interface Message {id:string;role:'user'|'assistant'|'system';text:string;time:number;}
+export interface HandoffExcerpt {text:string;limited:boolean;}
+export interface HandoffParcel {
+ id:string;basis:string;from:{id:string;crewId:string;status:string}|null;to:{id:string;crewId:string;status:string}|null;assignmentId:string|null;
+ brief:(HandoffExcerpt & {source:'recipient-message'|'assignment-objective';messageId:string|null})|null;
+ result:(HandoffExcerpt & {messageId:string|null;attribution:string})|null;recordedAt:number|null;
+ source:{commit:string|null;fingerprint:string|null;files:{path:string;sha256:string|null}[];limited:boolean}|null;
+}
+export interface HandoffReport {
+ version:1;projectId:string;missionId:string;attemptId:string;revision:number;runRevision:number|null;historical:boolean;requestedChanges:HandoffExcerpt|null;
+ parcels:HandoffParcel[];evidence:{id:string;kind:'git'|'check';commit:string|null;fingerprint:string|null;recordedAt:number|null;paths:string[];limited:boolean;script:string|null;status:string|null;exitCode:number|null;durationMs:number|null}[];limited:boolean;coverage:string;
+}
 export interface DiagnosticEntry {id:string;kind:string;label:string;time:number|null;outcome:string;basis:string;source:string;sourceRef:string|null;projectRef:string|null;taskRef?:string|null;missionRef?:string|null;attemptRef?:string|null;executionRef?:string|null;turnRef?:string|null;requestRef?:string|null;itemRef?:string|null;exitCode?:number;}
 export interface DiagnosticTimeline {version:1;generatedAt:number;projectRef:string;privacy:string;ordering:string;coverage:string;persistence:string;truncated:boolean;retainedEntries:number;observationLimit:number;droppedObservations:number;tasksWithoutObservations:number;entries:DiagnosticEntry[];}
 export type MissionResultRef={kind:'reply';taskId:string;messageId:string;sha256:string}|{kind:'deliverable'|'playable';artifactId:string;sha256:string};

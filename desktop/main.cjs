@@ -90,6 +90,7 @@ async function handle(action,args={},surface='hub'){
  case 'run:inspect':return publicTransport.runReply(hub.inspectRun(args));
  case 'transcript:page':return publicTransport.page(args);
  case 'mission:resultStatus':return publicTransport.resultStatus(args);
+ case 'mission:handoffs':return require('./handoff-parcels.cjs').query(hub.state,args);
  case 'mission:prepareMerge':return hub.merger.act(args,'prepare');
  case 'mission:submitMerge':return hub.merger.act(args,'submit');
  case 'mission:recheckMerge':return hub.merger.act(args,'recheck');

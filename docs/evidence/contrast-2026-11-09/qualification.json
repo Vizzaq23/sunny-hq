@@ -1,0 +1,266 @@
+{
+  "date": "2026-11-09",
+  "scope": "Dark appearance local-advice banner only",
+  "applicationCommit": "ff08a25c488a8f1ae39cc637136e0cf31ef7ee51",
+  "fullValidation": {
+    "passed": false,
+    "tests": 1802,
+    "pass": 1799,
+    "fail": 3,
+    "failures": [
+      "not ok 747 - Git evidence fingerprints actual dirty and untracked content",
+      "not ok 1575 - second required reviewer malformed blocks the exact continuation",
+      "not ok 1594 - uncertain durable selection reopens without replaying delivery effects"
+    ],
+    "steps": [
+      {
+        "name": "install",
+        "passed": true,
+        "exitCode": 0,
+        "elapsedMs": 16054
+      },
+      {
+        "name": "electron-install",
+        "passed": true,
+        "exitCode": 0,
+        "elapsedMs": 1212
+      },
+      {
+        "name": "tests",
+        "passed": false,
+        "exitCode": 1,
+        "elapsedMs": 1717788
+      },
+      {
+        "name": "build",
+        "passed": true,
+        "exitCode": 0,
+        "elapsedMs": 18642
+      },
+      {
+        "name": "native",
+        "passed": true,
+        "exitCode": 0,
+        "elapsedMs": 79700
+      }
+    ]
+  },
+  "contrast": {
+    "passed": true,
+    "syntheticFixture": true,
+    "results": [
+      {
+        "theme": "dark",
+        "status": "ready",
+        "colors": [
+          {
+            "text": "Luffy replied",
+            "color": "rgb(237, 243, 252)",
+            "background": "rgb(23, 43, 66)",
+            "ratio": 12.889310579298495
+          },
+          {
+            "text": "Sunny Studio · Sample task: review the shipboard interface.",
+            "color": "rgb(230, 238, 248)",
+            "background": "rgb(23, 43, 66)",
+            "ratio": 12.288947500834439
+          },
+          {
+            "text": "Local advice only. No implementation or acceptance is implied.",
+            "color": "rgb(201, 216, 232)",
+            "background": "rgb(23, 43, 66)",
+            "ratio": 9.907279461588123
+          },
+          {
+            "text": "Return to Luffy",
+            "color": "rgb(237, 243, 252)",
+            "background": "rgb(37, 71, 97)",
+            "ratio": 8.746187942762473
+          }
+        ]
+      },
+      {
+        "theme": "dark",
+        "status": "working",
+        "colors": [
+          {
+            "text": "Local crew at work",
+            "color": "rgb(237, 243, 252)",
+            "background": "rgb(23, 43, 66)",
+            "ratio": 12.889310579298495
+          },
+          {
+            "text": "Sunny Studio · Sample task: review the shipboard interface.",
+            "color": "rgb(230, 238, 248)",
+            "background": "rgb(23, 43, 66)",
+            "ratio": 12.288947500834439
+          },
+          {
+            "text": "Waiting for Luffy’s plan",
+            "color": "rgb(201, 216, 232)",
+            "background": "rgb(23, 43, 66)",
+            "ratio": 9.907279461588123
+          },
+          {
+            "text": "Step in with Luffy",
+            "color": "rgb(237, 243, 252)",
+            "background": "rgb(37, 71, 97)",
+            "ratio": 8.746187942762473
+          },
+          {
+            "text": "Stop crew",
+            "color": "rgb(237, 243, 252)",
+            "background": "rgb(37, 71, 97)",
+            "ratio": 8.746187942762473
+          }
+        ]
+      },
+      {
+        "theme": "light",
+        "status": "ready",
+        "colors": [
+          {
+            "text": "Luffy replied",
+            "color": "rgb(41, 62, 53)",
+            "background": "rgb(255, 245, 216)",
+            "ratio": 10.521666096836256
+          },
+          {
+            "text": "Sunny Studio · Sample task: review the shipboard interface.",
+            "color": "rgb(41, 62, 53)",
+            "background": "rgb(255, 245, 216)",
+            "ratio": 10.521666096836256
+          },
+          {
+            "text": "Local advice only. No implementation or acceptance is implied.",
+            "color": "rgb(41, 62, 53)",
+            "background": "rgb(255, 245, 216)",
+            "ratio": 10.521666096836256
+          },
+          {
+            "text": "Return to Luffy",
+            "color": "rgb(85, 59, 36)",
+            "background": "rgb(255, 250, 240)",
+            "ratio": 9.907377819353275
+          }
+        ]
+      },
+      {
+        "theme": "light",
+        "status": "working",
+        "colors": [
+          {
+            "text": "Local crew at work",
+            "color": "rgb(41, 62, 53)",
+            "background": "rgb(255, 245, 216)",
+            "ratio": 10.521666096836256
+          },
+          {
+            "text": "Sunny Studio · Sample task: review the shipboard interface.",
+            "color": "rgb(41, 62, 53)",
+            "background": "rgb(255, 245, 216)",
+            "ratio": 10.521666096836256
+          },
+          {
+            "text": "Waiting for Luffy’s plan",
+            "color": "rgb(41, 62, 53)",
+            "background": "rgb(255, 245, 216)",
+            "ratio": 10.521666096836256
+          },
+          {
+            "text": "Step in with Luffy",
+            "color": "rgb(85, 59, 36)",
+            "background": "rgb(255, 250, 240)",
+            "ratio": 9.907377819353275
+          },
+          {
+            "text": "Stop crew",
+            "color": "rgb(85, 59, 36)",
+            "background": "rgb(255, 250, 240)",
+            "ratio": 9.907377819353275
+          }
+        ]
+      }
+    ]
+  },
+  "packagedStartup": {
+    "sourceCommit": "ff08a25c488a8f1ae39cc637136e0cf31ef7ee51",
+    "passed": true,
+    "cases": [
+      {
+        "name": "startup-1",
+        "receipt": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "platform-launch-requested",
+          "elapsedMs": 5901,
+          "scenario": "startup"
+        }
+      }
+    ],
+    "stage": "finished"
+  },
+  "nativeCoreChecks": 68,
+  "installation": {
+    "version": "0.11.0-contrast-ff08a25",
+    "packageFilesVerified": 253,
+    "profileBackupFilesVerified": 107,
+    "shortcutsVerified": true,
+    "nativeWindowInspected": true,
+    "realMissionStarted": false
+  },
+  "reruns": {
+    "gitFixture": "1 pass, 0 fail unchanged",
+    "deliveryCases": "2 pass, 0 fail unchanged; earlier isolated reviewer rerun also failed",
+    "rootCause": "Intermittent failure cause not established; full run is not green"
+  },
+  "releaseGateChanged": false,
+  "artifacts": [
+    {
+      "path": ".sunny-dev/pr-validation/2026-11-09T18-52-40.828Z/summary.json",
+      "sha256": "2f54ad03159f477795b8b437623e9d25239d7c1ff5d28044dd9572fcae8ee732"
+    },
+    {
+      "path": ".sunny-dev/pr-validation/2026-11-09T18-52-40.828Z/tests.log",
+      "sha256": "03918c2c4cdbce9bb2a822ead35f3fc3c5578e1aedc8b78b16141dbc3dd6efda"
+    },
+    {
+      "path": ".sunny-dev/contrast-preview/contrast-result.json",
+      "sha256": "08900a9c837f8f6fd05068f93206718f2005b1b4e79a98b22fb03af20b2c68c5"
+    },
+    {
+      "path": ".sunny-dev/contrast-preview/banner-dark-ready.png",
+      "sha256": "42f41a25abfeb0dde95ef8e744f2e6d713154ccf8fa391cf64fc0318dedd7db5"
+    },
+    {
+      "path": ".sunny-dev/contrast-preview/banner-dark-compact.png",
+      "sha256": "41ee58511df55f26bd9209e8a1531cfeebe29951661ef749fce3719d04e2545b"
+    },
+    {
+      "path": ".sunny-dev/contrast-package/summary.json",
+      "sha256": "0d0477ac4b83bee1957a570525582c883827a44c823832a1633b8e8da7b9058f"
+    },
+    {
+      "path": ".sunny-dev/contrast-package/core.log",
+      "sha256": "200d86f75e08ad8d32eb30d81edd7c1ee875526b95e6dc50b9e951202c2e25de"
+    },
+    {
+      "path": ".sunny-dev/local-contrast-install.json",
+      "sha256": "81effcf1d754e254669953412fb851ea05200f333f3323026072ec0d9da88fac"
+    },
+    {
+      "path": ".sunny-dev/contrast-git-fixture-rerun.log",
+      "sha256": "06fc5b5e6eb0f8dfd5b70f572b6b01a133048d01530efeaff48384f67ad30a45"
+    },
+    {
+      "path": ".sunny-dev/contrast-reviewer-rerun.log",
+      "sha256": "da4de87b89a3dc4ff0ef43f20bf2c8eecb37cc9da0645d2511327d9cfbf2c32d"
+    },
+    {
+      "path": ".sunny-dev/contrast-delivery-rerun.log",
+      "sha256": "e9bdf96798b29aff6c541d40a6d90a786a166045593dc437ac3fed2cd672e1d5"
+    }
+  ]
+}

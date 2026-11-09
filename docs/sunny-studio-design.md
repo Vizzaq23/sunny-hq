@@ -180,8 +180,9 @@ Rollback: quit Sunny normally and point the shortcuts back to the retained
 work. Local installation receipts and backup location are in
 `.sunny-dev/local-wanted-install.json`. No storage migration or authority change.
 
-The installed local-advice banner still has weak secondary-text contrast in
-dark mode; it is separate from the repaired ship geometry. Screen-reader testing,
+The local-advice banner's weak secondary-text contrast in dark mode was corrected
+in the subsequent `ff08a25` update; see [appearance verification](crew-appearance.md).
+Screen-reader testing,
 hosted CI, separately admitted native recovery and continuous real-provider
 release acceptance remain unverified. `LIVE_SUPERVISION_ADMITTED=false` remains
 unchanged. This update is not a production-release claim.

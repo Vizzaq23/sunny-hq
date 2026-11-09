@@ -65,3 +65,4 @@ html[data-appearance=dark] .voyage-ui .home-heading .captain-welcome>.eyebrow{co
 html[data-appearance=dark] .voyage-ui .captain-hero-art{background:#f5e7c9;border-radius:3px}
 html[data-appearance=dark] :is(.criterion-row,.shelf-entry pre){background:#102238;color:#e6eef8;border-color:#7892ab}
 html[data-appearance=dark] .voyage-ui.continuous-shell .topbar{background:#172b42;border-color:#526c84}
+html[data-appearance=dark] .voyage-ui .projects-heading{background-color:#172b42}

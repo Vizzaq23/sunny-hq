@@ -22,7 +22,10 @@ function fixture(state,emit){
 async function check({js,wait,fill,select,click,nav,screenshot,win,localFixture}){
  await nav('Crew');
  await wait('Boolean(document.querySelector(".crew-grid"))');
- const open=()=>js(`(()=>{const button=document.querySelector('.crew-card[data-crew-id=franky]').querySelector('.journal-open');button.focus();button.click();})()`);
+ const open=async()=>{await js(`(()=>{const button=document.querySelector('.crew-card[data-crew-id=franky]').querySelector('.journal-open');button.focus();button.click();})()`);await wait('Boolean(document.querySelector(".crew-journal"))');};
+ // A close click can precede the modal's unmount on a slow renderer. Observe
+ // that boundary before reopening so draft restoration uses a fresh profile.
+ const close=async()=>{await click('[aria-label="Close profile"]');await wait('!document.querySelector(".crew-journal")');};
  await open();
  await wait('Boolean(document.querySelector(".crew-journal"))');
  assert.ok(await js('(()=>{const rect=document.querySelector(".crew-journal").getBoundingClientRect();return rect.top>=0&&rect.bottom<=innerHeight&&document.querySelector("dialog.journal-backdrop").matches(":modal");})()'),'journal stays in the viewport and makes the background inert');
@@ -69,13 +72,13 @@ async function check({js,wait,fill,select,click,nav,screenshot,win,localFixture}
  await select('[aria-label="Specialist project"]','launch');assert.equal(await js('document.querySelectorAll(".local-crew-messages article").length'),0,'other project does not inherit messages');
  assert.equal(await js(`document.querySelector('[aria-label="Source file path"]').value`),'','project switch resets source selection');
  await fill('[aria-label="Ask Franky"]','Unsent project draft');await fill('[aria-label="Personal instructions"]','Unsent developer guidelines');
- await click('[aria-label="Close profile"]');
+ await close();
  await open();
  await js(`Array.from(document.querySelectorAll('.crew-journal nav button')).find(b=>b.textContent==='Local profile').click()`);
  await select('[aria-label="Specialist project"]','launch');assert.equal(await js(`document.querySelector('[aria-label="Ask Franky"]').value`),'Unsent project draft');
  assert.equal(await js(`document.querySelector('[aria-label="Personal instructions"]').value`),'Unsent developer guidelines');assert.ok(await js('document.querySelector(".local-crew-panel button[type=submit]").disabled'),'unsaved guidelines gate inference');await button('Save local setup');await wait('!document.querySelector(".local-crew-panel button[type=submit]").disabled');
  localFixture.hold(true);await button('Ask locally');await wait('document.querySelector(".local-crew-panel").textContent.includes("Stop local reply")');
- await click('[aria-label="Close profile"]');await open();await js(`Array.from(document.querySelectorAll('.crew-journal nav button')).find(b=>b.textContent==='Local profile').click()`);
+ await close();await open();await js(`Array.from(document.querySelectorAll('.crew-journal nav button')).find(b=>b.textContent==='Local profile').click()`);
  await wait('document.querySelector(".local-crew-panel").textContent.includes("Stop other local reply")');await button('Stop other local reply');
  await select('[aria-label="Specialist project"]','launch');await wait('document.querySelector(".local-crew-panel").textContent.includes("Reply interrupted")');localFixture.hold(false);
  assert.equal(await js('document.querySelectorAll(".local-crew-messages article").length'),1,'cancelled reply adds no assistant message');

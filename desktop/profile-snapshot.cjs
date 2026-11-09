@@ -7,6 +7,22 @@ function read(value,key){const d=Object.getOwnPropertyDescriptor(value,key);if(!
 function keys(value,validate=true){const proto=Object.getPrototypeOf(value);if(!Array.isArray(value)&&!ArrayBuffer.isView(value)&&proto!==Object.prototype&&proto!==null)throw Error('Unsupported profile object');const result=Object.keys(value);if(validate)for(const key of result){const d=Object.getOwnPropertyDescriptor(value,key);if(!d||!own(d,'value'))throw Error('Profile accessors are not supported');}return result;}
 function put(target,key,value){if(key==='__proto__')Object.defineProperty(target,key,{value,enumerable:true,writable:true,configurable:true});else target[key]=value;}
 function captureProfile(value){
+ // Ordinary profile trees are shallow. Avoid one traversal-frame allocation per
+ // message while retaining the iterative path for arbitrarily deep profiles.
+ const copies=new WeakMap(),active=new WeakSet(),deep={};
+ function copy(value,depth){
+  value=jsonDate(value);if(!object(value))return scalar(value);
+  if(depth>128)throw deep;
+  if(active.has(value))throw Error('Cyclic profile');
+  if(copies.has(value))return copies.get(value);
+  const target=Array.isArray(value)?new Array(value.length):{},propertyKeys=keys(value,false);
+  copies.set(value,target);active.add(value);
+  for(const key of propertyKeys)put(target,key,copy(read(value,key),depth+1));
+  active.delete(value);return target;
+ }
+ try{return copy(value,0);}catch(error){if(error===deep)return captureIterative(value);throw error;}
+}
+function captureIterative(value){
  value=jsonDate(value);
  if(!object(value))return scalar(value);
  const copies=new WeakMap(),active=new WeakSet(),root=Array.isArray(value)?new Array(value.length):{},stack=[{source:value,target:root,keys:keys(value,false),index:0}];copies.set(value,root);active.add(value);

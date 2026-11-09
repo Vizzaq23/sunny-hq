@@ -20,7 +20,7 @@ function rosterKeyboard(surface,{slice=false}={}){
   return {buttons,querySelector:selector=>{assert.equal(selector,'[data-world-destination]');return buttons.find(button=>button.dataset.worldDestination);},querySelectorAll:selector=>{assert.equal(selector,'button');return buttons;}};
  });
  const before={},controls=[before,...cards.flatMap(card=>card.buttons)],document={activeElement:null,querySelectorAll:selector=>{assert.equal(selector,surface+' .world-roster-card');return cards;},querySelector:selector=>{
-  if(selector===(surface==='.island-page'?'.island-intro .primary-button':'.room-movement button:last-child'))return before;
+  if(selector===(surface==='.island-page'?'.island-roster-details > summary':'.room-movement button:last-child'))return before;
   const match=selector.match(/\.world-roster-card:nth-child\((\d+)\) > button:nth-of-type\((\d+)\)$/);assert.ok(match,'unexpected predecessor selector: '+selector);return cards[Number(match[1])-1].buttons[Number(match[2])-1];
  }};
  const tabThenEnter=id=>{

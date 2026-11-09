@@ -4,6 +4,17 @@ async function git(root,args){const physical=canonical(root);const stamp=identit
 function identity(root){return [root,path.join(root,'.git')].map(file=>{const stat=fs.lstatSync(file);if(stat.isSymbolicLink())throw Error('Workspace metadata is a symbolic alias.');return [stat.dev,stat.ino,stat.birthtimeMs,stat.isFile()?fs.readFileSync(file,'utf8'):null];}).map(JSON.stringify).join(':');}
 function canonical(root){const resolved=path.resolve(root),physical=fs.realpathSync(resolved);if(!same(resolved,physical))throw Error('Workspace root is a junction or symbolic alias.');return physical;}
 async function common(root){return fs.realpathSync(path.resolve(root,await git(root,['rev-parse','--git-common-dir'])));}
+async function workspaceIdentity(root,baseCommit){
+ const fields=(await git(root,['rev-parse','--git-common-dir','--show-toplevel','--verify',baseCommit+'^{commit}'])).split(/\r?\n/);
+ if(fields.length!==3)throw Error('Workspace identity response changed.');
+ return {common:fs.realpathSync(path.resolve(root,fields[0])),top:fields[1],base:fields[2]};
+}
+function managedCommon(root){
+ const match=/^gitdir: (.+)\s*$/.exec(fs.readFileSync(path.join(root,'.git'),'utf8'));
+ if(!match)throw Error('Managed Git metadata changed.');
+ const gitDir=fs.realpathSync(path.resolve(root,match[1]));
+ return fs.realpathSync(path.resolve(gitDir,fs.readFileSync(path.join(gitDir,'commondir'),'utf8').trim()));
+}
 async function verifyWorkspace(ref,project){
  if(!ref||ref.projectId!==project.id||!['ready','active'].includes(ref.state))throw Error('Execution workspace is missing or unresolved.');
  const root=canonical(ref.canonicalRoot);if(ref.legacy){if(!same(root,canonical(project.path)))throw Error('Original workspace changed.');return;}
@@ -11,14 +22,16 @@ async function verifyWorkspace(ref,project){
  if(!/^[a-f0-9]{40,64}$/.test(ref.baseCommit))throw Error('Workspace base changed.');
  // Independent read-only checks share one wait, but every child must settle before
  // returning. No result is cached across verification or privileged operations.
- const checks=await Promise.allSettled([common(root),common(project.path),git(root,['rev-parse','--show-toplevel']),git(root,['branch','--show-current']),git(root,['rev-parse',ref.baseCommit+'^{commit}']),git(root,['merge-base','--is-ancestor',ref.baseCommit,'HEAD'])]);
+ const checks=await Promise.allSettled([workspaceIdentity(root,ref.baseCommit),common(project.path),git(root,['branch','--show-current']),git(root,['merge-base','--is-ancestor',ref.baseCommit,'HEAD'])]);
  const failed=checks.find(check=>check.status==='rejected');if(failed)throw failed.reason;
- const [workspaceCommon,projectCommon,top,branch,base]=checks.map(check=>check.value);
+ const [workspace,projectCommon,branch]=checks.map(check=>check.value),{common:workspaceCommon,top,base}=workspace;
  if(!same(workspaceCommon,ref.gitCommonDir)||!same(projectCommon,ref.gitCommonDir))throw Error('Workspace Git ownership changed.');
  if(top.toLowerCase()!==root.replace(/\\/g,'/').toLowerCase())throw Error('Workspace root changed.');
  if(branch!==ref.branch)throw Error('Workspace branch ownership changed.');
  if(base!==ref.baseCommit)throw Error('Workspace base changed.');
- if(!same(canonical(ref.canonicalRoot),root)||!same(await common(root),ref.gitCommonDir)||identity(root)!==stamp||metadataSignature(ref)!==metadata)throw Error('Workspace changed during verification.');
+ // Re-read the physical managed-worktree pointer and common directory after all
+ // Git children settle. No subprocess or cached identity is needed for this fence.
+ if(!same(canonical(ref.canonicalRoot),root)||!same(managedCommon(root),ref.gitCommonDir)||identity(root)!==stamp||metadataSignature(ref)!==metadata)throw Error('Workspace changed during verification.');
 }
 function resolveExecutionRoot(selection,state){
  if(!selection||Object.keys(selection).some(k=>!['projectId','taskId','workspaceId','runId'].includes(k))||Object.values(selection).some(v=>typeof v!=='string'||!v||v.length>200||v.includes('\0')))throw Error('Invalid execution selection.');

@@ -35,3 +35,15 @@ test('actual Hub selects integrity before review, exposes sanitized candidate, r
  fs.writeFileSync(path.join(f.root,'source.txt'),'dirty');await assert.rejects(f.hub.inspectSelectedPlayableResult(input()),/dirty|stale/);fs.writeFileSync(path.join(f.root,'source.txt'),'protected original');assert.equal((await f.hub.inspectSelectedPlayableResult(input())).summary.ready,true);
  await f.hub.acceptMission({...input(),criteria:[true]});assert.equal(f.mission().status,'COMPLETE');assert.equal(f.mission().acceptance.resultSha256,artifact.sha256);assert.equal(fs.readFileSync(path.join(f.project.path,'source.txt'),'utf8'),'protected original');assert.equal(new (require('../desktop/missions.cjs').MissionBook)(f.hub.missionBook.data).get(f.mission().id).acceptance.resultSha256,artifact.sha256);
 });
+
+test('hash-only binary inspection preserves exact bytes, bounded reads and mutation fences',t=>{
+ const f=fixture(t),file=path.join(f.root,'large.bin'),bytes=Buffer.alloc(3*1024*1024+17,53);fs.writeFileSync(file,bytes);
+ const original=fs.readSync;let largest=0;
+ fs.readSync=function(fd,buffer,offset,length,position){largest=Math.max(largest,buffer.length);return original.call(fs,fd,buffer,offset,length,position);};
+ try{const result=api().hashBinary(f.root,'large.bin',bytes.length);assert.deepEqual(result,{filePath:'large.bin',bytes:bytes.length,sha256:sha(bytes)});assert.ok(largest<=1024*1024);assert.equal(api().readBinary(f.root,'large.bin',bytes.length).sha256,result.sha256);}finally{fs.readSync=original;}
+ assert.throws(()=>api().hashBinary(f.root,'large.bin',bytes.length-1),/bounds/);
+ let changed=false;fs.readSync=function(...args){const count=original.apply(fs,args);if(!changed){changed=true;fs.appendFileSync(file,'changed');}return count;};
+ try{assert.throws(()=>api().hashBinary(f.root,'large.bin',bytes.length),/changed/);}finally{fs.readSync=original;}
+ fs.writeFileSync(path.join(f.root,'empty.bin'),'');assert.equal(api().hashBinary(f.root,'empty.bin').sha256,sha(Buffer.alloc(0)));
+ fs.linkSync(file,path.join(f.root,'linked.bin'));assert.throws(()=>api().hashBinary(f.root,'linked.bin',bytes.length+7),/linked/);
+});

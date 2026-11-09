@@ -19,7 +19,7 @@ function progressJSON(value){const json=JSON.stringify(value,null,2);assert.ok(B
 function rosterTabPredecessor(document,surface,id){
  const cards=[...document.querySelectorAll(surface+' .world-roster-card')],index=cards.findIndex(card=>card.querySelector('[data-world-destination]')?.dataset.worldDestination===id);
  if(index<0)throw Error('Missing roster destination: '+id);
- if(index===0)return surface==='.island-page'?'.island-intro .primary-button':'.room-movement button:last-child';
+ if(index===0)return surface==='.island-page'?'.island-roster-details > summary':'.room-movement button:last-child';
  const buttons=[...cards[index-1].querySelectorAll('button')],prior=buttons.findLastIndex(button=>!button.disabled&&button.tabIndex>=0);
  if(prior<0)throw Error('Missing focusable predecessor for: '+id);
  return surface+' .world-roster-card:nth-child('+index+') > button:nth-of-type('+(prior+1)+')';
@@ -94,7 +94,7 @@ async function run(o){
  };
  const focusEnter=async(selector)=>{await reachable(selector);await js(`document.querySelector(${JSON.stringify(selector)}).focus()`);await key('Enter','Enter');};
  const nav=async(label)=>{await js(`(()=>{const b=[...document.querySelectorAll('.main-nav button')].find(x=>x.textContent.trim()===${JSON.stringify(label)});if(!b)throw Error('Missing navigation: '+${JSON.stringify(label)});b.focus();})()`);await key('Enter','Enter');};
- const island=async()=>{await nav('The Island');await wait(`Boolean(document.querySelector('.island-page:not(.project-room)'))`);};
+ const island=async()=>{await nav('The Island');await wait(`Boolean(document.querySelector('.island-page:not(.project-room)'))`);if(!await js(`document.querySelector('.island-roster-details')?.open`))await focusEnter('.island-roster-details > summary');await wait(`document.querySelector('.island-roster-details')?.open===true`);};
  const quarters=async()=>{await js(`document.querySelector('.island-project-doors summary').focus()`);await key('Enter','Enter');await wait(`Boolean(document.querySelector('.island-project-doors nav button'))`);await js(`document.querySelector('.island-project-doors nav button').focus()`);await key('Enter','Enter');await wait(`Boolean(document.querySelector('.project-room'))`);};
  const workshop=async()=>{await nav('The Sunny');await wait(`Boolean([...document.querySelectorAll('.workspace-return')].find(b=>b.textContent.includes("Open Franky's workshop")))`);await js(`([...document.querySelectorAll('.workspace-return')].find(b=>b.textContent.includes("Open Franky's workshop"))).focus()`);await key('Enter','Enter');await wait(`Boolean(document.querySelector('.franky-workshop'))`);await awaitWorkspaceSurface(trustedInvoke,win,'franky');};
  const revealScene=async surface=>{const art=surface==='island'?'.island-art':surface==='quarters'?'.room-illustration':'.franky-room-art';await js(`(()=>{const target=document.querySelector(${JSON.stringify(art)});if(!target)throw Error('Missing scene art');target.scrollIntoView({block:'start',inline:'center',behavior:'instant'});})()`);await pause(80);};

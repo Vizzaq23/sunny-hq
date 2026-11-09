@@ -96,3 +96,15 @@ This implementation checkpoint's pending source validation is superseded by the 
 ### Remaining exact-package qualification inventory
 
 The existing private packaged-acceptance entry point supplies `startup`, `renderer-crash`, `main-restart`, `worker-loss`, `write-failure`, `lost-ack`, `pending-approval`, `pending-check`, `normal-quit`, `ordered-control`, `run-ui`, `playable`, `stopped-profile-copy`, and the fixed `journey-cue`, `journey-motion-user`, `journey-motion-system`, `journey-audio` scenarios. Their existing scenario/phase/size/nonce and cleanup rules remain authoritative. This was the inventory before qualification; the fresh exact-package outcomes and remaining requirements are recorded above. Ordinary native workflow success does not replace them.
+
+## 2026-11-08 qualification repair candidate
+
+The failed exact-package measurements above remain retained. Restore the saved Franky/workbench host on startup and preserve the selected run. The run-UI fixture now enters Missions after reload and opens the island roster with Enter before testing its real tab order; all status, geometry, focus, scope and keyboard assertions remain.
+
+Performance repairs batch independent Git identity reads while retaining fresh metadata/common-directory fences, stream runtime hashes in at most 1 MiB buffers with the same path/identity/mutation checks, and capture ordinary shallow profile trees without per-node traversal frames. Deep trees fall back to the existing iterative capture. No schema, timeout, percentile threshold or admission change. These are candidate optimizations, not a claimed release pass.
+
+Focused checks: 9 work-context, 18 world-fixture and 41 snapshot/JSON/store/playable/workspace regression tests passed. New cases cover deep alias/accessor handling, bounded complete-file hashing and mutation rejection, and common-directory changes after Git replies. Logs remain in ignored .sunny-dev-m3-*-tests.log and .sunny-dev-m3-perf-regressions.log.
+
+An intermediate package passed journey-motion-user in 95.431 seconds, but run-ui still failed at the then-closed island roster and journey-cue still exceeded its unchanged 300-second deadline. That package predates the final roster, streaming, capture and metadata-fence changes; it is not final qualification. Latest source needs fresh full tests/build/native and exact-package qualification.
+
+Captain confirmed hosting billing eligibility is resolved and authorized retrying CI when fixes are ready. Hold the public announcement until full release qualification; proceed to M4 only after M3 prerequisites. LIVE_SUPERVISION_ADMITTED remains false. No install, merge or live admission is claimed.

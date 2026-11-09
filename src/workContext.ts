@@ -1,4 +1,7 @@
 import type {Mission,MissionResultRef,MissionResultStatus,Snapshot,WorkContext} from './shared';
+export function restoredWorkView(context:WorkContext|null):'home'|'ship'{
+ return context?.surface==='franky'||context?.surface==='workbench'?'ship':'home';
+}
 export function taskWorkSelection(snapshot:Snapshot,init:{projectId?:string;runId?:string;missionId?:string;attemptId?:string;taskId?:string},context:WorkContext|null){
  const task=snapshot.tasks.find(t=>t.id===init.taskId),runId=init.runId??task?.runId;const ancestry:string[]=[];let owner=task;while(owner&&!ancestry.includes(owner.id)){ancestry.push(owner.id);owner=snapshot.tasks.find(t=>t.id===owner?.parentTaskId);}
  const mission=snapshot.missions?.find(m=>init.missionId?m.id===init.missionId:(!runId||m.runId===runId)&&m.taskIds.some(id=>ancestry.includes(id)))??(runId&&context?.runId===runId?snapshot.missions?.find(m=>m.id===context.missionId&&m.runId===runId):undefined);

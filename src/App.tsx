@@ -21,7 +21,7 @@ import {CaptainLog} from './components/CaptainLog';
 import {FrankyWorkshop} from './components/FrankyWorkshop';
 import {projectMission} from './missionProjection';
 import {roomRequest,crewSceneProjection} from './roomActivity';
-import {resolveWorkContext,workspaceReturnTarget,taskWorkSelection} from './workContext';
+import {resolveWorkContext,workspaceReturnTarget,taskWorkSelection,restoredWorkView} from './workContext';
 import {updateWorkspace} from './useDraft';
 const Workbench=lazy(()=>import('./views/Workbench').then(module=>({default:module.Workbench})));
 type WorkspaceInit={runId?:string;taskId?:string;projectId?:string;missionId?:string;attemptId?:string;crewId?:CrewId;prompt?:string;draftKey?:string};
@@ -40,7 +40,7 @@ export default function App(){
  const rememberOpener=()=>{opener.current=document.activeElement instanceof HTMLElement?document.activeElement:null;const id=opener.current?.dataset.worldDestination;openerDestination.current=id?{id,roomProjectId}:null;};
  const restoreFocus=()=>requestAnimationFrame(()=>{if(opener.current?.isConnected){opener.current.focus();return;}const saved=openerDestination.current;const roster=saved?document.querySelectorAll<HTMLElement>(`${saved.roomProjectId?'.project-room':'.island-page'} .world-roster [data-world-destination]`):[];const destination=Array.from(roster).find(button=>button.dataset.worldDestination===saved?.id);(destination??document.querySelector<HTMLElement>('.captain-review-mission,.work-entry,.workspace-return'))?.focus();});
  const persistContext=(next:WorkContext|null)=>{setContext(next);setActiveProjectId(next?.projectId);setContextError('');if(window.sunny)void updateWorkspace(invoke,{context:next}).catch(error=>setContextError(`Navigation is unsaved: ${error instanceof Error?error.message:String(error)}`));};
- useEffect(()=>{if(!sunny.ready||initialized.current)return;initialized.current=true;const saved=snapshot.workspace?.context??null;setContext(saved);setActiveProjectId(saved?.projectId);if(saved?.surface==='workbench')setWorkspace({projectId:saved.projectId,missionId:saved.missionId,attemptId:saved.attemptId,taskId:saved.taskId});},[sunny.ready,snapshot.workspace]);
+ useEffect(()=>{if(!sunny.ready||initialized.current)return;initialized.current=true;const saved=snapshot.workspace?.context??null;setContext(saved);setActiveProjectId(saved?.projectId);setView(restoredWorkView(saved));if(saved?.surface==='workbench')setWorkspace({projectId:saved.projectId,runId:saved.runId,missionId:saved.missionId,attemptId:saved.attemptId,taskId:saved.taskId});},[sunny.ready,snapshot.workspace]);
  const [reportView,setReportView]=useState<ReportViewState>({result:null,draft:'',dirty:false,title:'Morgans work report'});
  useEffect(()=>{if(!reportView.dirty)return;const warn=(event:BeforeUnloadEvent)=>{event.preventDefault();event.returnValue='';};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[reportView.dirty]);
  const navigate=(next:ViewId)=>{if(!guard.current())return;if(next==='news')rememberOpener();if(workspace){returnView.current=view;setWorkspace(null);}setView(next);setRoomProjectId(next==='island'&&view==='news'?openerDestination.current?.roomProjectId:undefined);setMenu(false);if(next==='island'&&view==='news')restoreFocus();};

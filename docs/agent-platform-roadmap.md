@@ -92,6 +92,8 @@ Exit: reviewed continuous-journey evidence and a separate explicit release/admis
 
 Add one shared strip across full-app rooms/work views, showing selected project, mission, current attempt, actual active crew and attention needed. Use canonical mission state; navigation selection is not a new work tracker.
 
+2026-11-08 local implementation checkpoint: `31852db` passed clean Windows installation, all 1,771 tests, build and the hidden native workflow. Supplemental voyage checks cover historical/missing attempts, keyboard actions and dialog/navigation draft preservation. See [M4 evidence and qualification limits](voyage-bar-m4.md). The captain authorized this implementation while M3 was blocked; M3 prerequisites and release admission remain unresolved, so local validation is not full milestone acceptance.
+
 Acceptance criteria:
 
 - Room navigation preserves selected mission/attempt, draft and return location. Original brief and review are directly reachable with a reliable return action.

@@ -84,7 +84,7 @@ app.whenReady().then(async()=>{
  };
  try{
   await win.loadFile(path.join(root,process.argv.includes('--shipboard-baseline')?'.sunny-dev/baseline-dist':'dist','index.html'));await wait('Boolean(document.querySelector(".local-captain"))');await nav('The Sunny');await wait('Boolean(document.querySelector(".helm-workspace"))');await screenshot('command-deck.png');
-  if(process.argv.includes('--voyage-bar')){const result=await require('./voyage-bar-smoke.cjs').check({js,wait,select,click,nav,screenshot,win,state,emit});fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result));console.log('SUNNY_VOYAGE '+JSON.stringify(result));return;}
+  if(process.argv.includes('--voyage-bar')){const result=await require('./voyage-bar-smoke.cjs').check({js,wait,fill,select,click,nav,screenshot,win,state,emit});fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result));console.log('SUNNY_VOYAGE '+JSON.stringify(result));return;}
   const diagnosticsResult=await require('./diagnostic-smoke.cjs').check({js,wait,select,click,screenshot,win,state,copy:()=>diagnosticCopy,captures:process.argv.includes('--diagnostics-captures')});
   fs.writeFileSync(path.join(output,'diagnostics-result.json'),JSON.stringify(diagnosticsResult));
   if(process.argv.includes('--diagnostics-captures'))return;

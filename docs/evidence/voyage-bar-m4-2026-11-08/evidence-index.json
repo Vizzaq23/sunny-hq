@@ -1,0 +1,42 @@
+{
+  "sourceCommit": "31852db6051cd48f481d66d20197c5f2760d7e17",
+  "sourceRun": ".sunny-dev/pr-validation/2026-11-09T02-33-35.332Z",
+  "logs": [
+    {
+      "file": "install.log",
+      "bytes": 1301,
+      "sha256": "f1e808a7cf32b63afcfddc9ae8d4098b8cfed0c62e3b7025fde2fc5dabb8873d"
+    },
+    {
+      "file": "tests.log",
+      "bytes": 392288,
+      "sha256": "6f1ab72da1a97fde5c695a5c73924d4ef087343bdeccc9efbfc5c72531108cdb"
+    },
+    {
+      "file": "build.log",
+      "bytes": 8529,
+      "sha256": "8a921a9d13609f58ffa06371366b10977376d35c6aedf5394c7e87d94fc175c3"
+    },
+    {
+      "file": "native.log",
+      "bytes": 6979,
+      "sha256": "590e2a3744764a24c6d97fdfcda2400b42ca6e37d9929989a1e38d034f6cd5f1"
+    }
+  ],
+  "tests": {
+    "failed": 0,
+    "total": 1771,
+    "skipped": 0,
+    "passed": 1771
+  },
+  "reviewedScreenshots": [
+    "voyage-working.png",
+    "voyage-approval.png",
+    "voyage-unknown.png",
+    "voyage-finished.png",
+    "voyage-compact.png",
+    "voyage-200-percent.png"
+  ],
+  "syntheticTransport": true,
+  "liveProviderProof": false
+}

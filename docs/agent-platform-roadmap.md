@@ -2,7 +2,7 @@
 
 ## Current delivery roadmap — 2026-11-07
 
-**Status: local implementation through M7; milestone/release acceptance remains gated.** The captain originally requested all seven parts in dependency order, then authorized M4–M7 implementation while M3 remained blocked. See the [combined qualification checkpoint](crew-voyage-qualification-2026-11-09.md) for exact revisions, passes and unresolved prerequisites. This section is the current delivery plan; older phases below remain historical context. Preserve Sunny's crew identity and existing runtime. No additional agent framework is needed.
+**Status: local implementation through M7; milestone/release acceptance remains gated.** The captain originally requested all seven parts in dependency order, then authorized M4–M7 implementation while M3 remained blocked. See the [combined qualification checkpoint](crew-voyage-qualification-2026-11-09.md) for exact revisions, passes and unresolved prerequisites. Final clean candidate `ccb702c` passed 1,794 tests, build, 124 native checks and all 18 contained package cases; hosted/live release qualification remains separate. This section is the current delivery plan; older phases below remain historical context. Preserve Sunny's crew identity and existing runtime. No additional agent framework is needed.
 
 ### Verified baseline and CI failures
 

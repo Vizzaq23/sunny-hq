@@ -2,6 +2,19 @@
 
 Branch: `codex/finish-crew-voyage-20261108`, isolated checkout `.sunny-dev/voyage-bar-m4`. M7 is the last planned delivery stage. M4–M7 are locally implemented; this does not satisfy the separate M3 live-journey and release prerequisites.
 
+## Final clean candidate — passed
+
+Candidate **`ccb702cfbdfd411372563665d06ed38c4bb34149`** passed the complete clean Windows validation and all **18/18** contained package cases. Every package case confirmed cleanup. The [final qualification receipt](evidence/crew-voyage-2026-11-09/final-qualification.json) records exact source/build/package hashes, checks, timings and screenshot hashes.
+
+- Node 24.18.0 locked installation and Electron 44.4.3 installation passed.
+- **1,794 tests passed**, zero failures, skips or cancellations; full suite 1,569.487 seconds.
+- Build/typecheck passed in 17.547 seconds. Clean build fingerprint: `7a3fcc070574e65f36fda0efa62b667f9ef502353c05ff399779a578a12e37eb`.
+- **124 native checks passed**: 68 core plus M4 17, M5 13, M6 11 and M7 15.
+- Package matrix passed all nine recovery cases, ordered controls at 1/10/30 MiB, run UI, playable results, continuous synthetic journey, user/system reduced motion and audio. At 30 MiB, Stop p95 was **93.8 ms** and approval p95 **139.4 ms**, with zero operation failures and the unchanged 200 ms limit.
+- The packaged world fixture recorded 67 cases and 112 samples with no reported errors. All three enlarged quarters station controls were reachable. Final M5 disclosure, M6 table, M7 preview and scrolled 200% station captures were visually inspected and saved beside the receipt. Earlier compact idle/working/reduced-motion views were also inspected.
+
+Raw final baseline: `.sunny-dev/pr-validation/2026-11-09T05-28-41.703Z`. Raw package matrix: `.sunny-dev/final-world-qualification`. The package matrix finished at `2026-11-09T06:05:07.674Z`. Documentation/evidence-only commits after this candidate do not claim a new binary validation. The older failures and partial checkpoints below are retained history, not outstanding local failures.
+
 ## Combined implementation baseline
 
 Clean candidate `f84feacfab44de0488f7dfebeeb05c2c5a2b8959` passed Node 24.18.0 locked installation, all **1,794 tests** (zero failed/skipped/cancelled), build/typecheck and **68** hidden native workflow checks. Full tests took 1,582.510 seconds. Build fingerprint: `1a6aec694aac3a044ccd7a90d58f2c29fe939607ee8dd39a45f0d0beaecbd47d`. Raw receipt: `.sunny-dev/pr-validation/2026-11-09T04-43-59.851Z/summary.json` inside the isolated checkout.

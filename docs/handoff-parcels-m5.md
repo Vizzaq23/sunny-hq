@@ -24,4 +24,4 @@ An initial unit fixture accidentally shared the mission/attempt task-ID array; c
 
 Full combined-source tests/native validation remain pending. No live execution, release qualification, installation or M5 prerequisite acceptance is claimed.
 
-2026-11-09 update: the combined M4–M7 baseline passed 1,794 tests, build and 124 native checks. Later exact-package results and responsive-world corrections are recorded in the [current qualification checkpoint](crew-voyage-qualification-2026-11-09.md); the older pending statements above describe their dated checkpoints. Live/release prerequisites remain separate.
+2026-11-09 update: the final clean M4–M7 candidate ccb702c passed 1,794 tests, build, 124 native checks and all 18 contained package cases. Exact-package results and responsive-world corrections are recorded in the [current qualification checkpoint](crew-voyage-qualification-2026-11-09.md); the older pending statements above describe their dated checkpoints. Live/release prerequisites remain separate.

@@ -2,7 +2,7 @@
 
 ## Current delivery roadmap — 2026-11-07
 
-**Status: planned, not implemented.** The captain requested all seven parts in dependency order before code changes. This section is the current delivery plan; older phases below remain historical context. Preserve Sunny's crew identity and existing runtime. No additional agent framework is needed.
+**Status: local implementation through M7; milestone/release acceptance remains gated.** The captain originally requested all seven parts in dependency order, then authorized M4–M7 implementation while M3 remained blocked. See the [combined qualification checkpoint](crew-voyage-qualification-2026-11-09.md) for exact revisions, passes and unresolved prerequisites. This section is the current delivery plan; older phases below remain historical context. Preserve Sunny's crew identity and existing runtime. No additional agent framework is needed.
 
 ### Verified baseline and CI failures
 
@@ -104,7 +104,7 @@ Acceptance criteria:
 
 ### M5 — Visible handoff parcels (part 3)
 
-2026-11-08 implementation: local commit b978883, 83 focused regressions and 13 hidden native checks passed. See [M5 implementation and evidence](handoff-parcels-m5.md). Full combined verification and M3 prerequisite qualification remain pending.
+2026-11-08 implementation: local commit b978883, 83 focused regressions and 13 hidden native checks passed. See [M5 implementation and evidence](handoff-parcels-m5.md). The combined implementation baseline passed; see the [current qualification checkpoint](crew-voyage-qualification-2026-11-09.md) for later layout checks and unresolved M3 prerequisites.
 
 Present recorded transitions as compact parcels referencing sender/recipient roles, attempt/revision, bounded brief and actual changed files/check receipts. Link existing detail views instead of duplicating transcripts.
 
@@ -118,7 +118,7 @@ Acceptance criteria:
 
 ### M6 — Zoro's review table (part 4)
 
-2026-11-08 implementation: local commit a952863, 78 focused regressions and 11 hidden native checks passed. See [M6 implementation and evidence](review-table-m6.md). Captain acceptance remains explicit; full combined verification and prerequisites remain pending.
+2026-11-08 implementation: local commit a952863, 78 focused regressions and 11 hidden native checks passed. See [M6 implementation and evidence](review-table-m6.md). Captain acceptance remains explicit. See the [current combined qualification checkpoint](crew-voyage-qualification-2026-11-09.md).
 
 Map every original criterion to the reviewed attempt's file/source revision, check receipt, reviewer observation and unresolved issue. Reuse acceptance/revision guards in `desktop/missions.cjs` and existing result binding.
 
@@ -133,7 +133,7 @@ Acceptance criteria:
 
 ### M7 — Robin's accepted-work shelf (part 5)
 
-2026-11-08 implementation: read-only hash-bound shelf implemented without a storage migration; 29 focused tests and 13 hidden native checks passed. See [M7 snapshot contract and evidence](accepted-work-m7.md). It verifies retained accepted bytes and reports changed/missing content; it does not create an independent byte archive. Full combined verification and prerequisites remain pending.
+2026-11-08 implementation: read-only hash-bound shelf implemented without a storage migration; 29 focused tests and 13 hidden native checks passed. See [M7 snapshot contract and evidence](accepted-work-m7.md). It verifies retained accepted bytes and reports changed/missing content; it does not create an independent byte archive. See the [current combined qualification checkpoint](crew-voyage-qualification-2026-11-09.md) for passes and outstanding prerequisites.
 
 Index only captain-accepted results, searchable and grouped by project, using existing durable acceptance/result references and integrity hashes. The shelf index is rebuildable, not an independent acceptance database.
 

@@ -171,3 +171,7 @@ The captain and watch stations include a crew relay when their selected task bel
 ## Captain's shipboard panel pass — 2026-11-06
 
 The current Luffy-first home, captain's watch, crew roster, ten rooms and captain log gain shared ink framing, blue/cream surfaces and locally bundled display/UI type. The Den Den Mushi approval label uses a phone icon, readable evidence and larger approve/decline controls; response semantics do not change. Existing task/mission/attempt projections remain authoritative. No new route percentage, celebration, simulated work, world actor or backend action is introduced. The installed open-water package is separate and unchanged. See [isolated source-build evidence and limitations](shipboard-design-2026-11-06.md).
+
+## World sizing below the voyage bar — 2026-11-09
+
+The island viewport now uses the actual journey-surface height and remains pannable. Quarters and Franky’s workshop preserve full 3:2 artwork while fitting beneath persistent navigation; enlarged quarters text retains enough canvas width and scrolls instead of crushing labels. Existing sprites, foot anchors, world state and motion controls are unchanged. See [qualification and retained failures](crew-voyage-qualification-2026-11-09.md).

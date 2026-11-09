@@ -23,3 +23,5 @@ The read-only query and voyage-bar dialog are implemented. Build/typecheck and 8
 An initial unit fixture accidentally shared the mission/attempt task-ID array; correcting that fixture preserved the cross-attempt rejection assertion. The initial native revision-refresh wait dereferenced the intentionally removed old report during loading; the wait now tolerates the loading state. Neither failure changed application authority or assertions. Raw failed runs remain in ignored scratch.
 
 Full combined-source tests/native validation remain pending. No live execution, release qualification, installation or M5 prerequisite acceptance is claimed.
+
+2026-11-09 update: the combined M4–M7 baseline passed 1,794 tests, build and 124 native checks. Later exact-package results and responsive-world corrections are recorded in the [current qualification checkpoint](crew-voyage-qualification-2026-11-09.md); the older pending statements above describe their dated checkpoints. Live/release prerequisites remain separate.

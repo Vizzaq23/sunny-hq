@@ -39,3 +39,5 @@ Added waiting-state coverage, historical and missing attempt review guards, nati
 Remaining qualification: M3's continuous live journey, latency and hosted-validation prerequisites remain unresolved. Screen-reader testing remains unperformed. Do not open execution admission or announce full M4 acceptance on this receipt alone.
 
 Rollback: revert the supplemental fixture/evidence commit first, then `31852db` to remove the bar and its fixture/harness changes. There is no data migration; existing saved workspace context remains compatible. This continuation changes only fixture coverage, documentation and evidence. The complete suite/build receipt applies to `31852db`; supplemental fixture edits were verified by the targeted native run rather than claiming another full-suite run.
+
+2026-11-09 update: the combined M4–M7 baseline passed 1,794 tests, build and 124 native checks. Later exact-package results and responsive-world corrections are recorded in the [current qualification checkpoint](crew-voyage-qualification-2026-11-09.md); the older pending statements above describe their dated checkpoints. Live/release prerequisites remain separate.

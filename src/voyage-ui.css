@@ -35,7 +35,7 @@
 .voyage-ui .top-action{background:#245963;color:#fff5de;border-color:#245963;border-radius:6px;padding:10px 16px}
 .voyage-ui .status-pill{border-radius:5px;font-size:11px;background:#eee7d5;color:#695632}
 .voyage-ui .continuous-content{display:flex;flex-direction:column;overflow:hidden;min-height:0}
-.voyage-ui .journey-surface{flex:1;min-height:0;overflow:auto;scrollbar-color:#bbae91 transparent;background:radial-gradient(ellipse at top right,#e6e8d8,transparent 60%),#f4eddd;scroll-padding:24px}
+.voyage-ui .journey-surface{flex:1;min-height:0;overflow:auto;container-type:size;scrollbar-color:#bbae91 transparent;background:radial-gradient(ellipse at top right,#e6e8d8,transparent 60%),#f4eddd;scroll-padding:24px}
 .voyage-ui .journey-surface:focus-visible{outline:3px solid #b65b2e;outline-offset:-3px}
 .voyage-ui .page{padding:28px 32px 44px;max-width:1600px;animation:none}
 .voyage-ui .journey-surface>.page>.page-intro,.voyage-ui .home-heading{position:relative;isolation:isolate;min-height:235px;align-items:center;overflow:hidden;padding:32px;margin:0 0 28px;border:1px solid #c9ba99;border-radius:14px;background:#f9f1df;box-shadow:0 6px 20px #183e4510;gap:20px}

@@ -5,9 +5,9 @@ function identity(root){return [root,path.join(root,'.git')].map(file=>{const st
 function canonical(root){const resolved=path.resolve(root),physical=fs.realpathSync(resolved);if(!same(resolved,physical))throw Error('Workspace root is a junction or symbolic alias.');return physical;}
 async function common(root){return fs.realpathSync(path.resolve(root,await git(root,['rev-parse','--git-common-dir'])));}
 async function workspaceIdentity(root,baseCommit){
- const fields=(await git(root,['rev-parse','--git-common-dir','--show-toplevel','--verify',baseCommit+'^{commit}'])).split(/\r?\n/);
- if(fields.length!==3)throw Error('Workspace identity response changed.');
- return {common:fs.realpathSync(path.resolve(root,fields[0])),top:fields[1],base:fields[2]};
+ const fields=(await git(root,['rev-parse','--git-common-dir','--show-toplevel',baseCommit+'^{commit}','--symbolic-full-name','HEAD'])).split(/\r?\n/);
+ if(fields.length!==4||!fields[3].startsWith('refs/heads/'))throw Error('Workspace branch or identity response changed.');
+ return {common:fs.realpathSync(path.resolve(root,fields[0])),top:fields[1],base:fields[2],branch:fields[3].slice('refs/heads/'.length)};
 }
 function managedCommon(root){
  const match=/^gitdir: (.+)\s*$/.exec(fs.readFileSync(path.join(root,'.git'),'utf8'));
@@ -22,9 +22,9 @@ async function verifyWorkspace(ref,project){
  if(!/^[a-f0-9]{40,64}$/.test(ref.baseCommit))throw Error('Workspace base changed.');
  // Independent read-only checks share one wait, but every child must settle before
  // returning. No result is cached across verification or privileged operations.
- const checks=await Promise.allSettled([workspaceIdentity(root,ref.baseCommit),common(project.path),git(root,['branch','--show-current']),git(root,['merge-base','--is-ancestor',ref.baseCommit,'HEAD'])]);
+ const checks=await Promise.allSettled([workspaceIdentity(root,ref.baseCommit),common(project.path),git(root,['merge-base','--is-ancestor',ref.baseCommit,'HEAD'])]);
  const failed=checks.find(check=>check.status==='rejected');if(failed)throw failed.reason;
- const [workspace,projectCommon,branch]=checks.map(check=>check.value),{common:workspaceCommon,top,base}=workspace;
+ const [workspace,projectCommon]=checks.map(check=>check.value),{common:workspaceCommon,top,base,branch}=workspace;
  if(!same(workspaceCommon,ref.gitCommonDir)||!same(projectCommon,ref.gitCommonDir))throw Error('Workspace Git ownership changed.');
  if(top.toLowerCase()!==root.replace(/\\/g,'/').toLowerCase())throw Error('Workspace root changed.');
  if(branch!==ref.branch)throw Error('Workspace branch ownership changed.');

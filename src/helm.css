@@ -52,3 +52,11 @@
 .toast>span{flex:1;min-width:0}.toast>button{display:grid;place-items:center;flex:none;min-width:32px;min-height:32px;margin:-4px -6px -4px 0;border:1px solid #ffffff70;border-radius:6px;background:transparent;color:inherit}
 .toast>button:focus-visible{outline:3px solid #ffe1a9;outline-offset:2px}
 @media(max-width:900px){.voyage-ui.continuous-shell>.sidebar .main-nav{overflow-y:auto;overflow-x:hidden}.voyage-ui.continuous-shell>.sidebar .main-nav>button{flex:none;max-width:none;font-size:14px}.nav-more{display:block;align-self:auto}.voyage-ui .nav-more>button{flex-direction:row;justify-content:flex-start;width:100%;min-height:44px;font-size:14px}.nav-more-links{position:static;width:100%;box-shadow:none;margin-top:5px}.nav-more>button em{position:static;margin-left:auto}}
+
+/* Text enlargement must grow the desktop header instead of clipping labels. */
+@media(min-width:901px){
+ .voyage-ui.continuous-shell>.sidebar{height:auto;flex-shrink:0}
+ .voyage-ui.continuous-shell>.sidebar .main-nav{flex-wrap:wrap}
+ .voyage-ui.continuous-shell>.sidebar .main-nav>button{flex:0 0 auto;max-width:none}
+ .voyage-ui.continuous-shell>.sidebar .main-nav>button>span{white-space:nowrap;overflow-wrap:normal}
+}

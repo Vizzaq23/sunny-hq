@@ -10,6 +10,7 @@ function assert(action,args,manifest){
  if(action==='workspace:update'){const c=args.context;if(!m||!c||Object.keys(args).some(k=>!['context','expectedRevision'].includes(k))||c.projectId!==run.projectId||c.runId!==run.id||c.missionId!==m.id||c.attemptId!==m.activeAttemptId||!['deck','franky','workbench'].includes(c.surface)||c.taskId&&!hub.state.tasks.some(t=>t.id===c.taskId&&t.projectId===run.projectId))deny();return;}
  if(action==='workspace:claimAcceptanceCue'){if(!m?.acceptance||Object.keys(args).length!==1||args.acceptanceId!==m.acceptance.id)deny();return;}
  if(action==='mission:resultStatus'){if(args.missionId!==m?.id||args.projectId!==run?.projectId)deny();return;}
+ if(['mission:handoffs','mission:reviewEvidence'].includes(action)){require('./handoff-parcels.cjs').selection(hub.state,args);if(args.missionId!==m?.id||args.projectId!==run?.projectId)deny();return;}
  if(action==='transcript:page'){if(!hub.state.tasks.some(t=>t.id===args.taskId&&t.projectId===run?.projectId))deny();return;}
  if(manifest.phase!==1||!m||!run)deny();
  if(action==='mission:accept'){if(state.accepted||args.missionId!==m.id||args.resultId!==m.selectedResult?.id||args.resultSha256!==m.selectedResult?.ref.sha256||!Array.isArray(args.criteria)||!args.criteria.every(v=>v===true))deny();state.accepted=true;return;}

@@ -25,6 +25,13 @@ export interface HandoffReport {
  version:1;projectId:string;missionId:string;attemptId:string;revision:number;runRevision:number|null;historical:boolean;requestedChanges:HandoffExcerpt|null;
  parcels:HandoffParcel[];evidence:{id:string;kind:'git'|'check';commit:string|null;fingerprint:string|null;recordedAt:number|null;paths:string[];limited:boolean;script:string|null;status:string|null;exitCode:number|null;durationMs:number|null}[];limited:boolean;coverage:string;
 }
+export interface CriterionEvidenceReport {
+ projectId:string;missionId:string;attemptId:string;revision:number;historical:boolean;resultId:string|null;resultSha256:string|null;source:{commit:string|null;fingerprint:string|null}|null;evidenceBound:boolean;limited:boolean;
+ rows:{index:number;criterion:string;criterionId:string|null;limited:boolean;
+ checks:{id:string;kind:string;status:string;sourceMatches:boolean;commit:string|null;evidenceRef:string|null;justification:string|null}[];
+ reviews:{id:string;taskId:string;decision:string;sourceMatches:boolean;time:number;limited:boolean;findings:{id:string;severity:string;status:string;text:string|null;path:string|null}[]}[];
+ captain:{id:string;decision:string;confirmed:boolean;note:string|null;time:number;reviewedRevision:number}|null;}[];
+}
 export interface DiagnosticEntry {id:string;kind:string;label:string;time:number|null;outcome:string;basis:string;source:string;sourceRef:string|null;projectRef:string|null;taskRef?:string|null;missionRef?:string|null;attemptRef?:string|null;executionRef?:string|null;turnRef?:string|null;requestRef?:string|null;itemRef?:string|null;exitCode?:number;}
 export interface DiagnosticTimeline {version:1;generatedAt:number;projectRef:string;privacy:string;ordering:string;coverage:string;persistence:string;truncated:boolean;retainedEntries:number;observationLimit:number;droppedObservations:number;tasksWithoutObservations:number;entries:DiagnosticEntry[];}
 export type MissionResultRef={kind:'reply';taskId:string;messageId:string;sha256:string}|{kind:'deliverable'|'playable';artifactId:string;sha256:string};

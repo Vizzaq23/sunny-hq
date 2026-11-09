@@ -5,7 +5,7 @@ const unique=values=>values.length===1?values[0]:undefined;
 const list=value=>Array.isArray(value)?value:[];
 function excerpt(value,max){return typeof value==='string'&&value.trim()?{text:value.slice(0,max),limited:value.length>max}:null;}
 function identity(task){return task?{id:task.id,crewId:task.crewId,status:task.status}:null;}
-function query(state,args){
+function selection(state,args){
  const keys=['projectId','missionId','attemptId','revision'];
  if(!args||typeof args!=='object'||Array.isArray(args)||Object.keys(args).length!==keys.length||Object.keys(args).some(key=>!keys.includes(key))||!keys.slice(0,3).every(key=>validId(args[key]))||!Number.isSafeInteger(args.revision)||args.revision<0)throw Error('Invalid handoff selection.');
  if(!unique(list(state.projects).filter(p=>p.id===args.projectId)))throw Error('Handoff project unavailable.');
@@ -15,6 +15,10 @@ function query(state,args){
  const attempt=unique(list(mission.attempts).filter(a=>a.id===args.attemptId));
  if(!attempt)throw Error('Selected handoff attempt unavailable.');
  const run=unique(list(state.runs).filter(r=>r.id===mission.runId&&r.projectId===mission.projectId&&list(r.missionIds).includes(mission.id)));
+ return {mission,attempt,run};
+}
+function query(state,args){
+ const {mission,attempt,run}=selection(state,args);
  const tasks=list(state.tasks),members=new Set(list(attempt.taskIds).filter(id=>list(mission.taskIds).includes(id)));
  function taskFor(id){
   const task=unique(tasks.filter(t=>t.id===id&&t.projectId===mission.projectId&&!t.external));
@@ -61,4 +65,4 @@ function query(state,args){
   requestedChanges:excerpt(attempt.requestedChanges,2000),parcels,evidence,limited:omitted>0||artifacts.filter(a=>['git','check'].includes(a.kind)).length>32,
   coverage:'Recorded relationships and retained payloads. These records do not prove that predecessor output was forwarded verbatim. File references are not opened or reverified by this view.'};
 }
-module.exports={query};
+module.exports={query,selection};

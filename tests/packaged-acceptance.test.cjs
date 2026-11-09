@@ -20,6 +20,29 @@ test('fixture admission rejects junction aliases and manifest scripts',t=>{
 });
 test('packaged frozen workload preserves exact bytes and real profile validity',()=>{assert.equal(typeof packaged.loadFrozenFixture,'function');const state=packaged.loadFrozenFixture(1);assert.equal(state.missionBook.workspace.drafts[0].id,'draft-brief');assert.ok(state.tasks.length);assert.equal(require('../desktop/mission-profile.cjs').inspectMissionProfile(state).mode,'v3');});
 const {spawn}=require('node:child_process');
+test('private manifest sets the user owner and refuses widened existing permissions',t=>{
+ const dir=root(t),manifest=path.join(dir,'private.json'),driver=path.resolve(__dirname,'../scripts/run-packaged-acceptance.ps1'),quote=value=>"'"+value.replaceAll("'","''")+"'";
+ const script=`
+$ErrorActionPreference='Stop'
+$tokens=$null;$errors=$null
+$ast=[System.Management.Automation.Language.Parser]::ParseFile(${quote(driver)},[ref]$tokens,[ref]$errors)
+$fn=$ast.Find({param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq 'Write-PrivateManifest'},$true)
+. ([scriptblock]::Create($fn.Extent.Text))
+$manifest=${quote(manifest)}
+Write-PrivateManifest $manifest 'original'
+$acl=Get-Acl -LiteralPath $manifest
+if($acl.GetOwner([Security.Principal.SecurityIdentifier]).Value -ne [Security.Principal.WindowsIdentity]::GetCurrent().User.Value){throw 'wrong owner'}
+& icacls.exe $manifest /grant '*S-1-1-0:R' | Out-Null
+if($LASTEXITCODE -ne 0){throw 'fixture ACL mutation failed'}
+$rejected=$false
+try{Write-PrivateManifest $manifest 'must-not-write'}catch{if($_.Exception.Message -notmatch 'Private manifest .*changed'){throw};$rejected=$true}
+if(-not $rejected -or [IO.File]::ReadAllText($manifest) -ne 'original'){throw 'existing manifest protection bypassed'}
+if(@((Get-Acl -LiteralPath $manifest).GetAccessRules($true,$true,[Security.Principal.SecurityIdentifier])).Count -ne 3){throw 'existing permissions silently repaired'}
+'PRIVATE_MANIFEST_REJECTED'
+`;
+ const pwsh=(process.env.PATH||'').split(path.delimiter).map(directory=>path.join(directory,'pwsh.exe')).find(candidate=>fs.existsSync(candidate));assert.ok(pwsh);
+ const result=require('node:child_process').execFileSync(pwsh,['-NoLogo','-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(script,'utf16le').toString('base64')],{windowsHide:true,encoding:'utf8',timeout:15000});assert.match(result,/PRIVATE_MANIFEST_REJECTED/);
+});
 function runSourceMain(args){return new Promise((resolve,reject)=>{const child=spawn(process.execPath,['-e',`const fs=require('node:fs'),packaged=require(process.argv[1]);(async()=>{const manifest=packaged.admitFixture(JSON.parse(process.argv[2]));const hub=await packaged.bootFixtureHub(manifest);console.log(JSON.stringify(packaged.durableIdentity(hub)));if(manifest.phase===1){await hub.persist('workspace');process.exit(73);}await hub.close();})().catch(error=>{console.error(error);process.exit(1)});`,file,JSON.stringify(args)],{windowsHide:true,stdio:['ignore','pipe','pipe']});let out='',err='';child.stdout.on('data',chunk=>out+=chunk);child.stderr.on('data',chunk=>err+=chunk);child.on('error',reject);child.on('exit',code=>resolve({code,out,err}));});}
 test('actual source main exit and relaunch retains durable drafts results and uncertain reservations',async t=>{
  const dir=root(t),profile=path.join(dir,'profile'),out=path.join(dir,'out');fs.mkdirSync(profile);fs.mkdirSync(out);const nonce='b'.repeat(64),manifest=path.join(dir,'fixture.json');

@@ -1,6 +1,8 @@
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),cp=require('node:child_process');
 const {readBinary,LIMITS}=require('./playable-results.cjs');const sha=v=>crypto.createHash('sha256').update(v).digest('hex');
-const POLICY=Object.freeze({executable:'C:\\Program Files\\nodejs\\node.exe',version:'24.18.0',sha256:'9a4eb5f1c29c6a2e93852ead46b999e284a6a5ca8bab4d4e241d587d025a52de'});
+// Headless validation uses its explicitly launched Node, including tool-cache installs.
+// Electron retains the installed runtime path. Both must pass the same byte/version pin.
+const POLICY=Object.freeze({executable:process.versions.electron?'C:\\Program Files\\nodejs\\node.exe':fs.realpathSync.native(process.execPath),version:'24.18.0',sha256:'9a4eb5f1c29c6a2e93852ead46b999e284a6a5ca8bab4d4e241d587d025a52de'});
 const owned=new WeakMap();function sessions(hub){if(!owned.has(hub))owned.set(hub,new Map());return owned.get(hub);}
 function ownedSession(hub,id){return sessions(hub).get(id);}
 function fields(v,required,optional=[]){if(!v||typeof v!=='object'||Array.isArray(v)||required.some(k=>!Object.hasOwn(v,k))||Object.keys(v).some(k=>!required.includes(k)&&!optional.includes(k)))throw Error('Invalid playable command');for(const k of required.filter(k=>k.endsWith('Id')))if(typeof v[k]!=='string'||!v[k]||v[k].length>200)throw Error('Invalid playable ID');if(!Number.isSafeInteger(v.expectedRevision)||v.expectedRevision<0)throw Error('Invalid playable revision');}

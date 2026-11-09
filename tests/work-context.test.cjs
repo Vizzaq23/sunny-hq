@@ -45,3 +45,14 @@ test('same mission opened from a visible new origin owns Back while embedded tas
  const embedded={...context,surface:'workbench',returnTo:{...context.returnTo,view:'island'}};
  assert.deepEqual(workspaceReturnTarget(embedded,{...selection,taskId:'nami'},'ship',true),embedded.returnTo,'an in-workbench task switch must still return to the original island');
 });
+
+test('saved room and workbench restore their host without replacing the selected attempt',()=>{
+ const {restoredWorkView}=require('../src/workContext.ts');
+ const context={projectId:'p',runId:'r',missionId:'m',attemptId:'old-attempt',surface:'franky',returnTo:{view:'missions'}};
+ const before=structuredClone(context);
+ assert.equal(restoredWorkView(context),'ship');
+ assert.deepEqual(context,before);
+ assert.equal(restoredWorkView({...context,surface:'workbench'}),'ship');
+ assert.equal(restoredWorkView({...context,surface:'deck'}),'home');
+ assert.equal(restoredWorkView(null),'home');
+});

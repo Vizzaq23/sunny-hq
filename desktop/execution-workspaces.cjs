@@ -3,7 +3,28 @@ const same=(a,b)=>path.resolve(a).toLowerCase()===path.resolve(b).toLowerCase();
 async function git(root,args){const physical=canonical(root);const stamp=identity(root);const result=(await runFile('git',args,{cwd:root,encoding:'utf8',windowsHide:true,timeout:10000,maxBuffer:4*1024*1024})).stdout.trim();if(!same(canonical(root),physical)||identity(root)!==stamp)throw Error('Workspace identity changed during Git operation.');return result;}
 function identity(root){return [root,path.join(root,'.git')].map(file=>{const stat=fs.lstatSync(file);if(stat.isSymbolicLink())throw Error('Workspace metadata is a symbolic alias.');return [stat.dev,stat.ino,stat.birthtimeMs,stat.isFile()?fs.readFileSync(file,'utf8'):null];}).map(JSON.stringify).join(':');}
 function canonical(root){const resolved=path.resolve(root),physical=fs.realpathSync(resolved);if(!same(resolved,physical))throw Error('Workspace root is a junction or symbolic alias.');return physical;}
-async function common(root){return fs.realpathSync(path.resolve(root,await git(root,['rev-parse','--git-common-dir'])));}
+async function common(root){
+ const physical=canonical(root),stamp=identity(root),directory=path.join(root,'.git'),pointer=path.join(directory,'commondir');
+ // A plain repository owns its .git directory directly. Linked or unusual
+ // layouts still use Git; no identity is retained across calls or effects.
+ if(fs.lstatSync(directory).isDirectory()&&!fs.existsSync(pointer)){
+  const result=fs.realpathSync(directory);
+  if(!same(canonical(root),physical)||identity(root)!==stamp||fs.existsSync(pointer))throw Error('Project Git ownership changed during reading.');
+  return result;
+ }
+ return fs.realpathSync(path.resolve(root,await git(root,['rev-parse','--git-common-dir'])));
+}
+async function workspaceIdentity(root,baseCommit){
+ const fields=(await git(root,['rev-parse','--git-common-dir','--show-toplevel',baseCommit+'^{commit}','--symbolic-full-name','HEAD'])).split(/\r?\n/);
+ if(fields.length!==4||!fields[3].startsWith('refs/heads/'))throw Error('Workspace branch or identity response changed.');
+ return {common:fs.realpathSync(path.resolve(root,fields[0])),top:fields[1],base:fields[2],branch:fields[3].slice('refs/heads/'.length)};
+}
+function managedCommon(root){
+ const match=/^gitdir: (.+)\s*$/.exec(fs.readFileSync(path.join(root,'.git'),'utf8'));
+ if(!match)throw Error('Managed Git metadata changed.');
+ const gitDir=fs.realpathSync(path.resolve(root,match[1]));
+ return fs.realpathSync(path.resolve(gitDir,fs.readFileSync(path.join(gitDir,'commondir'),'utf8').trim()));
+}
 async function verifyWorkspace(ref,project){
  if(!ref||ref.projectId!==project.id||!['ready','active'].includes(ref.state))throw Error('Execution workspace is missing or unresolved.');
  const root=canonical(ref.canonicalRoot);if(ref.legacy){if(!same(root,canonical(project.path)))throw Error('Original workspace changed.');return;}
@@ -11,14 +32,16 @@ async function verifyWorkspace(ref,project){
  if(!/^[a-f0-9]{40,64}$/.test(ref.baseCommit))throw Error('Workspace base changed.');
  // Independent read-only checks share one wait, but every child must settle before
  // returning. No result is cached across verification or privileged operations.
- const checks=await Promise.allSettled([common(root),common(project.path),git(root,['rev-parse','--show-toplevel']),git(root,['branch','--show-current']),git(root,['rev-parse',ref.baseCommit+'^{commit}']),git(root,['merge-base','--is-ancestor',ref.baseCommit,'HEAD'])]);
+ const checks=await Promise.allSettled([workspaceIdentity(root,ref.baseCommit),common(project.path),git(root,['merge-base','--is-ancestor',ref.baseCommit,'HEAD'])]);
  const failed=checks.find(check=>check.status==='rejected');if(failed)throw failed.reason;
- const [workspaceCommon,projectCommon,top,branch,base]=checks.map(check=>check.value);
+ const [workspace,projectCommon]=checks.map(check=>check.value),{common:workspaceCommon,top,base,branch}=workspace;
  if(!same(workspaceCommon,ref.gitCommonDir)||!same(projectCommon,ref.gitCommonDir))throw Error('Workspace Git ownership changed.');
  if(top.toLowerCase()!==root.replace(/\\/g,'/').toLowerCase())throw Error('Workspace root changed.');
  if(branch!==ref.branch)throw Error('Workspace branch ownership changed.');
  if(base!==ref.baseCommit)throw Error('Workspace base changed.');
- if(!same(canonical(ref.canonicalRoot),root)||!same(await common(root),ref.gitCommonDir)||identity(root)!==stamp||metadataSignature(ref)!==metadata)throw Error('Workspace changed during verification.');
+ // Re-read the physical managed-worktree pointer and common directory after all
+ // Git children settle. No subprocess or cached identity is needed for this fence.
+ if(!same(await common(project.path),ref.gitCommonDir)||!same(canonical(ref.canonicalRoot),root)||!same(managedCommon(root),ref.gitCommonDir)||identity(root)!==stamp||metadataSignature(ref)!==metadata)throw Error('Workspace changed during verification.');
 }
 function resolveExecutionRoot(selection,state){
  if(!selection||Object.keys(selection).some(k=>!['projectId','taskId','workspaceId','runId'].includes(k))||Object.values(selection).some(v=>typeof v!=='string'||!v||v.length>200||v.includes('\0')))throw Error('Invalid execution selection.');

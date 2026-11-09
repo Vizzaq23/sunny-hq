@@ -7,17 +7,20 @@ function fields(v,keys){if(!v||typeof v!=='object'||Array.isArray(v)||Object.key
 function list(v,max){if(!Array.isArray(v)||v.length>max||Array.from({length:v.length},(_,i)=>i).some(i=>!Object.hasOwn(v,i)))throw Error('Invalid playable manifest list.');}
 function relative(v){if(!text(v,1000)||v.includes('\\')||/[\0:~]/.test(v)||path.isAbsolute(v)||v.split('/').some(p=>!p||p==='.'||p==='..'||/[. ]$/.test(p)||/^(\.git|\.codex|\.agents|\.ssh|\.aws|node_modules)$/i.test(p)||/^\.env/i.test(p)||/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(p)))throw Error('Protected or invalid playable path.');return v;}
 const stamp=s=>JSON.stringify([s.dev,s.ino,s.birthtimeMs,s.size,s.mtimeMs,s.ctimeMs,s.nlink]);
-function readBinary(root,name,limit=LIMITS.file){
+function inspectBinary(root,name,limit,includeContent){
  relative(name);const base=require('./execution-workspaces.cjs').canonical(root),chain=[];let file=base;
  const rootStat=fs.lstatSync(base);chain.push([base,stamp(rootStat)]);
  for(const part of name.split('/')){file=path.join(file,part);const s=fs.lstatSync(file);if(s.isSymbolicLink()||!require('./execution-workspaces.cjs').same(fs.realpathSync(file),file))throw Error('Playable links or junctions are not supported.');chain.push([file,stamp(s)]);}
  const fd=fs.openSync(file,fs.constants.O_RDONLY|(fs.constants.O_NOFOLLOW||0));
  try{const before=fs.fstatSync(fd);if(!before.isFile()||before.nlink!==1||before.size>limit||stamp(fs.lstatSync(file))!==stamp(before))throw Error('Playable file is linked, changed or exceeds bounds.');
- const content=Buffer.alloc(before.size+1);let bytes=0,n;while(bytes<content.length&&(n=fs.readSync(fd,content,bytes,content.length-bytes,null)))bytes+=n;
+ const content=Buffer.alloc(includeContent?before.size+1:Math.min(before.size+1,1024*1024)),hash=createHash('sha256');let bytes=0,n;
+ while(bytes<before.size+1){const offset=includeContent?bytes:0;n=fs.readSync(fd,content,offset,Math.min(content.length-offset,before.size+1-bytes),null);if(!n)break;hash.update(content.subarray(offset,offset+n));bytes+=n;}
  if(bytes!==before.size||stamp(fs.fstatSync(fd))!==stamp(before)||chain.some(([p,s])=>stamp(fs.lstatSync(p))!==s||fs.lstatSync(p).isSymbolicLink()||!require('./execution-workspaces.cjs').same(fs.realpathSync(p),p)))throw Error('Playable path or bytes changed during reading.');
- return {filePath:name,bytes,sha256:createHash('sha256').update(content.subarray(0,bytes)).digest('hex'),content:content.subarray(0,bytes)};
+ return {filePath:name,bytes,sha256:hash.digest('hex'),...(includeContent?{content:content.subarray(0,bytes)}:{})};
  }finally{fs.closeSync(fd);}
 }
+function readBinary(root,name,limit=LIMITS.file){return inspectBinary(root,name,limit,true);}
+function hashBinary(root,name,limit=LIMITS.file){return inspectBinary(root,name,limit,false);}
 function validateManifest(m,authority){
  fields(m,['version','runId','missionId','attemptId','producerTaskId','workspaceId','source','build','toolchain','runtime','artifacts','entrypoint','cwd','environment','requiredCheckIds','limitations','producedAt']);
  if(![1,2].includes(m.version)||m.runtime!=='node-http'||m.cwd!=='.'||!Number.isSafeInteger(m.producedAt)||m.producedAt<0)throw Error('Unsupported playable runtime or version.');
@@ -59,4 +62,4 @@ function evaluateCandidate({run,source,tasks}){
  if(run.ordinary){const d=run.deliveries?.find(d=>d.epochId===run.currentEpoch?.id&&d.selectedResult?.id===run.verification.resultId);if(!d||d.stage!=='completed'||d.continuation?.state!=='completed'||tasks?.find(t=>t.id===d.continuation.taskId)?.status!=='finished'||d.reviewAssignmentIds.some(id=>{const a=run.assignments.find(a=>a.id===id);return a?.state!=='finished'||tasks?.find(t=>t.id===a.taskId)?.status!=='finished';}))blockers.push('Source review and provider completion are pending.');}
  return {eligible:!blockers.length,blockers};
 }
-module.exports={LIMITS,relative,readBinary,validateManifest,validatePlayableArtifact,inspectPlayableBytes,inspectPlayableManifest,evaluateCandidate,runtimeBlockers,sourceReadiness};
+module.exports={LIMITS,relative,readBinary,hashBinary,validateManifest,validatePlayableArtifact,inspectPlayableBytes,inspectPlayableManifest,evaluateCandidate,runtimeBlockers,sourceReadiness};

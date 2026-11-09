@@ -13,7 +13,7 @@ function initialCouncils(saved){
   id:bounded(value.id,100),projectId:bounded(value.projectId,200),objective:bounded(value.objective,6000),status:ACTIVE.has(value.status)?'interrupted':STATES.has(value.status)?value.status:'interrupted',
   createdAt:Number.isFinite(value.createdAt)?value.createdAt:0,updatedAt:Number.isFinite(value.updatedAt)?value.updatedAt:0,concurrency:value.concurrency===2?2:1,
   plan:bounded(value.plan,4000),summary:bounded(value.summary,16000),model:bounded(value.model,200),error:ACTIVE.has(value.status)?'Sunny restarted. Start a new council when ready.':bounded(value.error,500),
-  ...(value.handoff&&typeof value.handoff==='object'?{handoff:{status:value.handoff.status==='pending'?'unknown':bounded(value.handoff.status,30),missionId:bounded(value.handoff.missionId,100),runId:bounded(value.handoff.runId,100),taskId:bounded(value.handoff.taskId,100),error:bounded(value.handoff.error,500),time:Number.isFinite(value.handoff.time)?value.handoff.time:0}}:{}),
+  ...(value.handoff&&typeof value.handoff==='object'?{handoff:{status:value.handoff.status==='pending'?'unknown':bounded(value.handoff.status,30),missionId:bounded(value.handoff.missionId,100),runId:bounded(value.handoff.runId,100),taskId:bounded(value.handoff.taskId,100),error:bounded(value.handoff.error,500),time:Number.isFinite(value.handoff.time)?value.handoff.time:0,...require('./council-handoff.cjs').restore(value.handoff)}}:{}),
   ...(value.report&&typeof value.report==='object'?{report:{status:value.report.status==='working'?'interrupted':bounded(value.report.status,30),text:bounded(value.report.text,16000),model:bounded(value.report.model,200),error:bounded(value.report.error,500),time:Number.isFinite(value.report.time)?value.report.time:0}}:{}),
   ...(value.review&&typeof value.review==='object'?{review:{status:value.review.status==='working'?'interrupted':bounded(value.review.status,30),text:bounded(value.review.text,16000),model:bounded(value.review.model,200),error:bounded(value.review.error,500)}}:{}),
   synthesisLimited:value.synthesisLimited===true,...(typeof value.parentId==='string'?{parentId:bounded(value.parentId,100),contextLimited:value.contextLimited===true}:{}),
@@ -92,11 +92,12 @@ class LocalCouncil{
   if(this.active||this.reporter||this.hub.localCrew.active||this.hub.localCrew.saving)throw Error('Wait for local work to settle before starting Codex work.');
   if(this.hub.state.codex?.status!=='connected')throw Error('Connect Codex in the full Sunny app before starting execution. Local advice remains available.');
   this.hub.assertSupervisedExecutionAdmission?.();
-  record.handoff={status:'pending',time:Date.now()};
+  record.handoff=require('./council-handoff.cjs').create({title,objective,acceptanceCriteria,completionBoundary:'review'});
   try{await this.save();}catch(error){if(!error.durable&&!error.uncertain)delete record.handoff;else record.handoff.status='unknown';throw error;}
   try{
-   const result=await this.hub.startGoal({projectId:record.projectId,title,objective,acceptanceCriteria,completionBoundary:'review'});
-   record.handoff={status:result.started?'started':'blocked',missionId:result.mission.id,runId:result.run.id,taskId:result.task?.id||'',error:bounded(result.error,500),time:Date.now()};
+   const result=await this.hub.startGoal({projectId:record.projectId,title,objective,acceptanceCriteria,completionBoundary:'review'},{councilId:record.id});
+   if(result.mission?.id!==record.handoff.missionId||result.run?.id!==record.handoff.runId)throw Error('Execution returned a different handoff identity.');
+   record.handoff={...record.handoff,status:result.started?'started':'blocked',taskId:result.task?.id||'',error:bounded(result.error,500),time:Date.now()};
    await this.save();return {...record.handoff};
   }catch(error){record.handoff.status='unknown';record.handoff.error='Execution may have been created. Inspect tracked work before another launch. '+String(error.message||error).slice(0,300);if(!error.durable&&!error.uncertain)try{await this.save();}catch{}this.hub.publishSnapshot?.();throw error;}
  }

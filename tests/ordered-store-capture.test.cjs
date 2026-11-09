@@ -67,6 +67,16 @@ test('failed_waiting_capture_does_not_replace_accepted_checkpoint',{timeout:1500
  await assert.rejects(store.barrier({...image('invalid'),nonCloneable:()=>{}},'mission'),error=>error.name==='DataCloneError');
  held.release();await first;assert.equal((await waiting).stateSha256,digest(expected));await store.close();assert.deepEqual((await open(f)).load(),expected);
 });
+for(const kind of ['sqlite','json'])test('queued_partial_capture_retains_base_and_rejects_accessors_without_invoking '+kind,{timeout:15000},async t=>{
+ const f=fixture(t,kind),held=gate(f),store=await open(f,{workerFactory:held.factory}),original=image('base'),first=store.barrier(original,'dispatch');await held.committed;
+ const partial={opaque:{nested:{text:'captured'}}},expected={...structuredClone(original),...structuredClone(partial)},waiting=store.checkpoint(partial);
+ partial.opaque.nested.text='mutated';original.tasks[0].messages[0].text='changed base';
+ let reads=0;const invalid={};Object.defineProperty(invalid,'opaque',{enumerable:true,get(){reads++;return {};}});
+ await assert.rejects(store.barrier(invalid,'mission'),/accessors/);assert.equal(reads,0);
+ const nested={opaque:{}};Object.defineProperty(nested.opaque,'nested',{enumerable:true,get(){reads++;return {};}});
+ await assert.rejects(store.barrier(nested,'mission'),/accessors/);assert.equal(reads,0);
+ held.release();await first;assert.equal((await waiting).stateSha256,digest(expected));await store.close();assert.deepEqual((await open(f)).load(),expected);
+});
 test('queued_postMessage_failure_rejects_pending_flush_and_reports_uncertainty',{timeout:15000},async t=>{
  const f=fixture(t),held=gate(f,{throwSequence:2}),store=await open(f,{workerFactory:held.factory}),saved=image('durable first'),first=store.barrier(saved,'dispatch');await held.committed;
  const second=store.barrier(image('not sent'),'mission'),flushing=store.flush();const failedSecond=assert.rejects(second,error=>error.code==='COMMIT_UNCERTAIN'&&error.sequence===2&&typeof error.epoch==='string');const failedFlush=assert.rejects(flushing,error=>error.code==='COMMIT_UNCERTAIN');

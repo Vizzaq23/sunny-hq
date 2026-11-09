@@ -1,0 +1,11 @@
+✔ checkpoint rejects metadata change across completed-check durability (114743.1491ms)
+✔ checkpoint rejects grant change across completed-check durability (112603.7842ms)
+✔ checkpoint failure recovery serializes behind an already prepared authority commit (113769.1323ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 341244.4622

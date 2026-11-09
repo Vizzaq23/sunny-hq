@@ -35,3 +35,11 @@ test('captures supported native values with their existing JSON representation',
 test('deep changed profiles fall back safely without overflowing the diff stack',()=>{
  const root={};let cursor=root;for(let i=0;i<1500;i++)cursor=cursor.child={};cursor.value='old';const base=sealProfileSnapshot(captureProfile(root));cursor.value='new';const update=diffProfile(base,root,{baseGeneration:3});assert.equal(update.kind,'full');const result=applyProfileUpdate(base,update,{generation:3});let leaf=result;for(let i=0;i<1500;i++)leaf=leaf.child;assert.equal(leaf.value,'new');
 });
+
+test('deep capture fallback preserves cross-branch aliases and still refuses accessors without reading them',()=>{
+ const shared={text:'retained'},source={first:shared};let cursor=source;for(let i=0;i<180;i++)cursor=cursor.child={};cursor.alias=shared;
+ const captured=captureProfile(source);let leaf=captured;for(let i=0;i<180;i++)leaf=leaf.child;
+ assert.equal(leaf.alias,captured.first);shared.text='mutated';assert.equal(leaf.alias.text,'retained');
+ let invoked=false;Object.defineProperty(cursor,'bad',{enumerable:true,get(){invoked=true;return 'unsafe';}});
+ assert.throws(()=>captureProfile(source),/accessor/);assert.equal(invoked,false);
+});

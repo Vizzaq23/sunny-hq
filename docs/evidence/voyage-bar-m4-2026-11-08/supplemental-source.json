@@ -1,0 +1,17 @@
+{
+  "baseCommit": "31852db6051cd48f481d66d20197c5f2760d7e17",
+  "output": "C:\\Users\\Quintin\\Documents\\GitHub\\sunny-hq\\.sunny-dev\\voyage-bar-m4\\.sunny-dev\\workflow-check\\2026-11-09T04-03-58.577Z",
+  "fixtureFiles": [
+    {
+      "path": "desktop/voyage-bar-smoke.cjs",
+      "sha256": "d713032585d8912be95b1ad55f5646edd8a0bec7c509f024f55b4a9addcc684b"
+    },
+    {
+      "path": "desktop/workflow-smoke.cjs",
+      "sha256": "c4c54bb852ed2332cd5949209811e594599f33733ea76db75f863aae1b2ac0df"
+    }
+  ],
+  "applicationSourceUnchanged": true,
+  "priorFailedProbe": ".sunny-dev/workflow-check/2026-11-09T04-03-10.605Z/result.json",
+  "priorFailureReason": "Enter input lacked the char event required for native button activation; fixture corrected to match existing keyboard helpers."
+}

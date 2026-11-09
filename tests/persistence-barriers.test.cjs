@@ -25,6 +25,17 @@ function fixture(t,initial={}){
 }
 function acceptance(hub){const mission=hub.state.missions[0];return {missionId:mission.id,revision:mission.revision,resultId:mission.selectedResult.id,resultSha256:mission.selectedResult.ref.sha256,criteria:[true]};}
 
+for(const boundary of ['disconnect','resolved','superseded'])test('approval pending persistence rejects '+boundary+' before provider output',async t=>{
+ const f=fixture(t,{tasks:[{id:'approval-race',projectId:'p',crewId:'franky',threadId:'race-thread',turnId:'race-turn',status:'idle',messages:[]}]}),task=f.hub.state.tasks[0],responses=[];task.status='working';
+ f.hub.client.respond=(rpcId,result)=>responses.push({rpcId,result});
+ f.hub.request({id:19,method:'item/commandExecution/requestApproval',params:{threadId:task.threadId,turnId:task.turnId,command:'synthetic only'}});
+ const pending=f.hub.respond({id:f.hub.state.approvals[0].id,decision:'accept'});pending.catch(()=>{});await tick();assert.equal(f.submissions.length,1);
+ if(boundary==='disconnect')f.hub.client.disconnect('fixture connection loss');
+ else if(boundary==='resolved')await f.hub.notification({method:'serverRequest/resolved',params:{threadId:task.threadId,requestId:19}});
+ else task.turnId='replacement-turn';
+ await f.settle();await assert.rejects(pending,/no longer pending|no longer valid/);assert.deepEqual(responses,[]);
+});
+
 test('no_dispatch_or_acceptance_before_durable_receipt: dispatch',async t=>{
  const f=fixture(t),pending=f.hub.start({projectId:'p',crewId:'franky',prompt:'Synthetic transport only'});pending.catch(()=>{});await tick();
  assert.ok(f.submissions.length,'dispatch must submit an intent');assert.deepEqual(f.dispatch,[],'provider dispatch must wait for a durable receipt');await f.settle();await pending;

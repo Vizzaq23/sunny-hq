@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-09",
+  "kind": "exploratory-layout-check",
+  "sourceBase": "f84feacfab44de0488f7dfebeeb05c2c5a2b8959",
+  "sourceDirty": true,
+  "passed": true,
+  "liveProviderProof": false,
+  "receipt": {
+    "version": 1,
+    "status": "completed",
+    "accepted": true,
+    "cleanup": "observed",
+    "lastStage": "scan-exit",
+    "elapsedMs": 94458,
+    "scenario": "run-ui"
+  },
+  "build": {
+    "appVersion": "0.11.0",
+    "buildId": "1b4c7a019f28959d40523df84e5f99f7f194621fb6651f2ed49e02954af2881e",
+    "fingerprintKind": "source-inputs-sha256",
+    "sourceCommit": "f84feacfab44de0488f7dfebeeb05c2c5a2b8959",
+    "sourceDirty": true
+  },
+  "rawOutput": ".sunny-dev/world-viewport-text/run-ui-1/out",
+  "images": [
+    {
+      "file": "world-idle-island-compact.png",
+      "sha256": "ef2eff42de45a4bd7e219ab33c426a1de1615bb8bf14a6f0e83e9f1dfc33bfc8"
+    },
+    {
+      "file": "world-working-quarters-compact.png",
+      "sha256": "4597635af91140fb0c08d71d592abfe1a8520f882652c65beb3af7857ed17596"
+    },
+    {
+      "file": "world-system-reduced-working.png",
+      "sha256": "a16a5485302176d31462bfd1b755faa96e51f84feab6840bb1d09ed0a5bef83c"
+    }
+  ],
+  "limits": "Final clean candidate verification pending. Additional station reachability assertion added after this exploratory run."
+}

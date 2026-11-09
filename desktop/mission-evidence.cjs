@@ -37,20 +37,27 @@ function executeCheck(node,npm,script,cwd,timeout=120000,deps={}){
 }
 class MissionEvidence {
  constructor({git='git',runtime=npmRuntime,execute=executeCheck}={}){this.git=git;this.runtime=runtime;this.execute=execute;}
- async runtimeIdentity(){const runtime=this.runtime(),read=require('./playable-results.cjs').readBinary,node=read(path.dirname(runtime.node),path.basename(runtime.node),128*1024*1024),npm=read(path.dirname(runtime.npm),path.basename(runtime.npm),1024*1024);const version=(await runFile(runtime.node,['--version'],{windowsHide:true,encoding:'utf8',timeout:10000,env:{...process.env,ELECTRON_RUN_AS_NODE:'1'}})).stdout.trim();if(!/^v24\.\d+\.\d+$/.test(version))throw Error('Unsupported build runtime');return {nodeVersion:version.slice(1),nodeSha256:node.sha256,npmSha256:npm.sha256};}
- assertRuntime(identity){const runtime=this.runtime(),read=require('./playable-results.cjs').readBinary;if(read(path.dirname(runtime.node),path.basename(runtime.node),128*1024*1024).sha256!==identity.nodeSha256||read(path.dirname(runtime.npm),path.basename(runtime.npm),1024*1024).sha256!==identity.npmSha256)throw Error('Pinned build runtime changed');return runtime;}
+ async runtimeIdentity(){const runtime=this.runtime(),read=require('./playable-results.cjs').hashBinary,node=read(path.dirname(runtime.node),path.basename(runtime.node),128*1024*1024),npm=read(path.dirname(runtime.npm),path.basename(runtime.npm),1024*1024);const version=(await runFile(runtime.node,['--version'],{windowsHide:true,encoding:'utf8',timeout:10000,env:{...process.env,ELECTRON_RUN_AS_NODE:'1'}})).stdout.trim();if(!/^v24\.\d+\.\d+$/.test(version))throw Error('Unsupported build runtime');return {nodeVersion:version.slice(1),nodeSha256:node.sha256,npmSha256:npm.sha256};}
+ assertRuntime(identity){const runtime=this.runtime(),read=require('./playable-results.cjs').hashBinary;if(read(path.dirname(runtime.node),path.basename(runtime.node),128*1024*1024).sha256!==identity.nodeSha256||read(path.dirname(runtime.npm),path.basename(runtime.npm),1024*1024).sha256!==identity.npmSha256)throw Error('Pinned build runtime changed');return runtime;}
  async command(root,args){return (await runFile(this.git,args,{cwd:root,windowsHide:true,encoding:'utf8',maxBuffer:8*1024*1024,timeout:15000})).stdout;}
  async gitState(root){
   const actual=fs.realpathSync.native(root),repo=fs.realpathSync.native((await this.command(actual,['rev-parse','--show-toplevel'])).trim());
   const normalize=p=>process.platform==='win32'?p.toLowerCase():p;
   if(normalize(repo)!==normalize(actual))throw Error('Register the repository root before collecting mission evidence.');
-  const flags=await this.command(actual,['ls-files','-v','-z']);
-  if(flags.split('\0').some(row=>row&&(/^[a-z]/.test(row)||row.startsWith('S '))))throw Error('Remove assume-unchanged or skip-worktree index flags before verifying this mission.');
-  const index=await this.command(actual,['ls-files','--stage','-z']);
-  if(index.split('\0').some(row=>row.startsWith('160000 ')))throw Error('Submodule evidence is not supported yet. Verify the submodule repository separately.');
-  const commit=(await this.command(actual,['rev-parse','HEAD'])).trim(),branch=(await this.command(actual,['branch','--show-current'])).trim();
-  const status=await this.command(actual,['status','--porcelain=v1','-z','--untracked-files=all']);
-  const diff=await this.command(actual,['diff','HEAD','--no-ext-diff','--no-textconv','--binary']);
+  // These read-only queries are independent once repository membership is known.
+  // Settle every child even on failure; never cache across a freshness boundary.
+  const reads=await Promise.allSettled([
+   this.command(actual,['ls-files','-v','--stage','-z']),
+   this.command(actual,['rev-parse','HEAD','--symbolic-full-name','HEAD']),
+   this.command(actual,['status','--porcelain=v1','-z','--untracked-files=all']),
+   this.command(actual,['diff','HEAD','--no-ext-diff','--no-textconv','--binary'])
+  ]);
+  const failed=reads.find(read=>read.status==='rejected');if(failed)throw failed.reason;
+  const [index,identity,status,diff]=reads.map(read=>read.value),entries=index.split('\0').filter(Boolean);
+  if(entries.some(row=>/^[a-z]/.test(row)||row.startsWith('S ')))throw Error('Remove assume-unchanged or skip-worktree index flags before verifying this mission.');
+  if(entries.some(row=>row.slice(2).startsWith('160000 ')))throw Error('Submodule evidence is not supported yet. Verify the submodule repository separately.');
+  const fields=identity.trim().split(/\r?\n/);if(fields.length!==2||!/^[a-f0-9]{40,64}$/.test(fields[0])||fields[1]!=='HEAD'&&!fields[1].startsWith('refs/heads/'))throw Error('Git source identity changed.');
+  const commit=fields[0],branch=fields[1]==='HEAD'?'':fields[1].slice('refs/heads/'.length);
   const hash=createHash('sha256').update(commit).update('\0').update(branch).update('\0').update(status).update('\0').update(diff),paths=[];
   const rows=status.split('\0');let bytes=0;
   for(let i=0;i<rows.length;i++){

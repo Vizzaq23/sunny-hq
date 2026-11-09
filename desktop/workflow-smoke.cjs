@@ -9,6 +9,7 @@ const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const now=Date.now();
 const task=(id,title,status,crewId='luffy',extra={})=>({id,title,status,crewId,projectId:'studio',createdAt:now-300000,updatedAt:now-30000,messages:[],threadId:'thread-'+id,turnId:'turn-'+id,...extra});
 const skillOption={id:'ecc-frontend-a11y',name:'ecc-frontend-a11y',category:'Engineering',purpose:'Check interactive UI access.',roles:['builder','designer','reviewer'],revision:'a'.repeat(64)};
+const approvalWire=[];
 const state={runs:[],workspace:emptyWorkspace(),persistence:{state:'saved',failures:0},missions:[],missionRoles:[],projects:[{id:'studio',name:'Sunny Studio',path:output,category:'development'},{id:'launch',name:'Launch planning',path:output,category:'creative'}],tasks:[
  task('captain','Polish the customer dashboard','working','luffy',{captain:true}),
  task('design','Refresh the dashboard layout','waiting','sanji',{parentTaskId:'captain'}),
@@ -23,7 +24,15 @@ const projection=require('./state-projection.cjs').createStateProjection();
 const emit=()=>win.webContents.send('sunny:event',projection.event('snapshot',state));
 const localFixture=require('./local-crew-smoke.cjs').fixture(state,emit);
 const toolLaunches=[];
+let diagnosticCopy;
 ipcMain.handle('sunny:invoke',async(_event,action,args)=>{
+ if(action==='shelf:search')return require('./accepted-work.cjs').query(state,args);
+ if(action==='shelf:preview')return require('./accepted-work.cjs').preview({getState:()=>state},args);
+ if(action==='mission:handoffs')return require('./handoff-parcels.cjs').query(state,args);
+ if(action==='mission:reviewEvidence')return require('./review-table.cjs').query(state,args);
+ if(action==='mission:resultStatus')return {...await require('./mission-result-status.cjs').getMissionResultStatus({getState:()=>state},args),epoch:projection.epoch};
+ if(action==='mission:checks'){if(!state.missions.some(m=>m.id===args.missionId))throw Error('Fixture mission unavailable');return [];}
+ if(action==='diagnostics:timeline'||action==='diagnostics:copy'){const report=require('./diagnostic-timeline.cjs').timeline(state,args,{persistence:state.persistence.state});if(action==='diagnostics:copy'){diagnosticCopy=JSON.stringify(report);return {copied:true};}return report;}
  if(action==='tools:open'){toolLaunches.push({...args});return;}
  if(action.startsWith('localCrew:')||action.startsWith('localCouncil:'))return localFixture.invoke(action,args);
  if(action==='transcript:page')return projection.page(state,args);
@@ -38,7 +47,7 @@ ipcMain.handle('sunny:invoke',async(_event,action,args)=>{
  }
  if(action==='task:start'){starts++;await delay(startDelay);if(failStart)throw Error('Fixture: unable to connect');const next=task('new-'+starts,args.prompt,'working',args.crewId,{projectId:args.projectId,captain:args.crewId==='luffy',selectedSkills:args.selectedSkills?.map(choice=>({...skillOption,...choice})),messages:[{id:'user',role:'user',text:args.prompt,time:Date.now()}]});state.tasks.unshift(next);emit();return next;}
  if(action==='task:send'){const target=state.tasks.find(task=>task.id===args.taskId);target.status='working';target.messages.push({id:'followup',role:'user',text:args.prompt,time:Date.now()});const delta=projection.transcriptChanged(target);win.webContents.send('sunny:event',{type:'transcript:delta',epoch:delta.epoch,sequence:delta.sequence,data:delta});emit();return;}
- if(action==='approval:respond'){answers++;await delay(150);state.approvals=[];state.tasks.find(task=>task.id==='design').status='working';emit();return;}
+ if(action==='approval:respond'){const source=state.approvals.find(a=>a.id===args.id);if(!source)throw Error('This request is no longer pending.');const owner=state.tasks.find(t=>t.id===source.taskId),{createApproval,approvalResult}=require('./approvals.cjs'),bound=createApproval({id:source.id,method:source.method,params:{...source.params,threadId:owner.threadId,turnId:owner.turnId}},owner);const result=approvalResult(bound,args,owner);approvalWire.push({id:source.id,result});answers++;await delay(150);state.approvals=[];owner.status='working';emit();return;}
  if(action==='task:checkStatus'){if(failCheck)throw Error('Fixture: status check offline');const target=state.tasks.find(task=>task.id===args.taskId);target.status='working';target.error=undefined;emit();return target;}
  if(action==='task:interrupt'){stops++;state.tasks.find(task=>task.id===args.taskId).status='interrupted';state.tasks.find(task=>task.id===args.taskId).error=undefined;emit();return;}
  if(action==='files:list')return args.path===path.join(output,'nested')?[{name:'notes.txt',path:path.join(output,'nested','notes.txt'),directory:false}]:[{name:'nested',path:path.join(output,'nested'),directory:true},{name:'hello.txt',path:path.join(output,'hello.txt'),directory:false}];
@@ -81,6 +90,13 @@ app.whenReady().then(async()=>{
  };
  try{
   await win.loadFile(path.join(root,process.argv.includes('--shipboard-baseline')?'.sunny-dev/baseline-dist':'dist','index.html'));await wait('Boolean(document.querySelector(".local-captain"))');await nav('The Sunny');await wait('Boolean(document.querySelector(".helm-workspace"))');await screenshot('command-deck.png');
+  if(process.argv.includes('--accepted-work')){const result=await require('./accepted-work-smoke.cjs').check({js,wait,select,fill,click,nav,screenshot,win,state,emit,projection});fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result));console.log('SUNNY_ACCEPTED_WORK '+JSON.stringify(result));return;}
+  if(process.argv.includes('--review-table')){const result=await require('./review-table-smoke.cjs').check({js,wait,select,click,screenshot,win,state,emit});fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result));console.log('SUNNY_REVIEW_TABLE '+JSON.stringify(result));return;}
+  if(process.argv.includes('--handoff-parcels')){const result=await require('./handoff-parcels-smoke.cjs').check({js,wait,fill,select,click,nav,screenshot,win,state,emit});fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result));console.log('SUNNY_HANDOFFS '+JSON.stringify(result));return;}
+  if(process.argv.includes('--voyage-bar')){const result=await require('./voyage-bar-smoke.cjs').check({js,wait,fill,select,click,nav,screenshot,win,state,emit});fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result));console.log('SUNNY_VOYAGE '+JSON.stringify(result));return;}
+  const diagnosticsResult=await require('./diagnostic-smoke.cjs').check({js,wait,select,click,screenshot,win,state,copy:()=>diagnosticCopy,captures:process.argv.includes('--diagnostics-captures')});
+  fs.writeFileSync(path.join(output,'diagnostics-result.json'),JSON.stringify(diagnosticsResult));
+  if(process.argv.includes('--diagnostics-captures'))return;
   if(process.argv.includes('--studio-captures')){
    await require('./studio-ui-smoke.cjs').check({js,wait,fill,select,click,nav,screenshot,win,state,emit,toolLaunches});
    fs.writeFileSync(path.join(output,'studio-result.json'),JSON.stringify({passed:true,syntheticTransport:true,liveProviderProof:false,checks:['crew-specialty-search-and-reset','tool-search-and-reset','tool-launch-selected-project','home-draft-preservation','desktop-laptop-phone-layout','supporting-destination-layouts','home-200-percent-zoom','user-and-system-reduced-motion','local-ship-art-loaded']}));
@@ -138,12 +154,21 @@ app.whenReady().then(async()=>{
   }
   assert.equal(await js('document.querySelector(".helm-workspace").dataset.motion'),'reduced');
   assert.equal(await js('getComputedStyle(document.querySelector(".helm-scene"),"::before").animationName'),'none');
-  state.settings.reducedMotion=false;emit();await wait('document.querySelector(".helm-workspace").dataset.motion==="full"');
-  assert.equal(await js('getComputedStyle(document.querySelector(".helm-scene"),"::before").animationName'),'helm-tide');
-  await click('.helm-sea-toggle');assert.equal(await js('getComputedStyle(document.querySelector(".helm-scene"),"::before").animationName'),'none');
-  await click('.helm-sea-toggle');
   win.webContents.debugger.attach('1.3');
-  try{await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});await wait('document.querySelector(".helm-workspace").dataset.motion==="reduced"');assert.equal(await js('getComputedStyle(document.querySelector(".helm-scene"),"::before").animationName'),'none');}
+  try{
+   // The hosted desktop may already request reduced motion. Explicitly exercise
+   // both OS preferences in this fixture window, never change the host setting.
+   const motion=async value=>win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value}]});
+   await motion('no-preference');
+   assert.equal(await js('document.querySelector(".helm-workspace").dataset.motion'),'reduced','application preference wins with OS motion enabled');
+   state.settings.reducedMotion=false;emit();await wait('document.querySelector(".helm-workspace").dataset.motion==="full"');
+   assert.equal(await js('getComputedStyle(document.querySelector(".helm-scene"),"::before").animationName'),'helm-tide');
+   await click('.helm-sea-toggle');assert.equal(await js('getComputedStyle(document.querySelector(".helm-scene"),"::before").animationName'),'none');
+   await click('.helm-sea-toggle');
+   await motion('reduce');await wait('document.querySelector(".helm-workspace").dataset.motion==="reduced"');assert.equal(await js('getComputedStyle(document.querySelector(".helm-scene"),"::before").animationName'),'none');
+   state.settings.reducedMotion=true;emit();await wait('document.querySelector(".helm-workspace").dataset.motion==="reduced"');
+   assert.equal(await js('getComputedStyle(document.querySelector(".helm-scene"),"::before").animationName'),'none','both preferences reduce motion');
+  }
   finally{await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia',{features:[]});win.webContents.debugger.detach();}
   state.settings.reducedMotion=true;emit();await wait('document.querySelector(".helm-workspace").dataset.motion==="reduced"');
   const originalDeckTask={title:state.tasks[0].title,updatedAt:state.tasks[0].updatedAt};state.tasks[0].title='Fixture live deck update';state.tasks[0].updatedAt=Date.now();emit();
@@ -201,9 +226,13 @@ app.whenReady().then(async()=>{
   await fill('[aria-label="Search tasks"]','dashboard layout');await wait('document.querySelectorAll(".home-task").length===1');
   await click('.home-task-open');await wait('Boolean(document.querySelector(".approval-card"))');
   assert.equal(await js('document.querySelector(".workbench-head h2").textContent'),'Refresh the dashboard layout');
+  assert.equal(await js('document.querySelector(".approval-evidence pre").textContent'),state.approvals[0].params.command,'preview is the exact provider command');
+  assert.equal(await js('document.querySelectorAll(".approval-card input,.approval-card textarea,.approval-card [contenteditable=true]").length'),0,'command approval offers no replacement editor');
+  await assert.rejects(js(`window.sunny.invoke('approval:respond',${JSON.stringify({id:state.approvals[0].id,decision:'accept',answers:{command:'edited command'}})})`),/cannot replace/);assert.equal(approvalWire.length,0,'edited command produces no wire decision');
   await fill('.composer textarea','Keep this follow-up for Sanji');
   assert.equal(await js('document.querySelector(".composer-foot button").disabled'),true,'waiting task cannot send');
   await js('document.querySelector(".approve").click();document.querySelector(".approve").click()');await wait('!document.querySelector(".approval-card")');assert.equal(answers,1);
+  assert.deepEqual(approvalWire,[{id:'permission',result:{decision:'accept'}}],'read-only displayed command yields one decision-only response');
   await click('.captain-return');await wait('document.querySelector(".workbench-head h2").textContent==="Polish the customer dashboard"');
   await fill('.composer textarea','Keep a separate captain draft');await click('.crew-assignment');
   await wait('document.querySelector(".composer textarea").value==="Keep this follow-up for Sanji"');

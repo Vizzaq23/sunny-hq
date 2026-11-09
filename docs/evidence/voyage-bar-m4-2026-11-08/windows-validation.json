@@ -1,0 +1,63 @@
+{
+  "passed": true,
+  "liveProviderProof": false,
+  "output": "C:\\Users\\Quintin\\Documents\\GitHub\\sunny-hq\\.sunny-dev\\voyage-bar-m4\\.sunny-dev\\pr-validation\\2026-11-09T02-33-35.332Z",
+  "steps": [
+    {
+      "name": "install",
+      "passed": true,
+      "exitCode": 0,
+      "elapsedMs": 10757
+    },
+    {
+      "name": "electron-install",
+      "passed": true,
+      "exitCode": 0,
+      "elapsedMs": 1148
+    },
+    {
+      "name": "tests",
+      "passed": true,
+      "exitCode": 0,
+      "elapsedMs": 1450721
+    },
+    {
+      "name": "build",
+      "passed": true,
+      "exitCode": 0,
+      "elapsedMs": 16120
+    },
+    {
+      "name": "native",
+      "passed": true,
+      "exitCode": 0,
+      "elapsedMs": 78118
+    }
+  ],
+  "testShard": null,
+  "source": {
+    "commit": "31852db6051cd48f481d66d20197c5f2760d7e17",
+    "node": "v24.18.0",
+    "platform": "win32",
+    "trackedFiles": 785,
+    "runtime": {
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "version": "24.18.0",
+      "sha256": "9a4eb5f1c29c6a2e93852ead46b999e284a6a5ca8bab4d4e241d587d025a52de",
+      "runnerSha256": "0bef86a6513470b0c4c2c794faa80c328862f9b4a9f34122cdf4f69c5cbffb6e"
+    }
+  },
+  "build": {
+    "appVersion": "0.11.0",
+    "buildId": "a57e8dc041516d9e4a1cd8e5ddec5576d0634c0f783e4788862b2c69a15355c1",
+    "fingerprintKind": "source-inputs-sha256",
+    "sourceCommit": "31852db6051cd48f481d66d20197c5f2760d7e17",
+    "sourceDirty": false
+  },
+  "native": {
+    "passed": true,
+    "hidden": true,
+    "syntheticTransport": true,
+    "liveProviderProof": false
+  }
+}

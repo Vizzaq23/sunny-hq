@@ -14,6 +14,29 @@ export interface MissionResultStatus {epoch:string;missionId:string;revision:num
 export interface PlayableResultSummary {source:{baseCommit:string;headCommit:string;fingerprint:string;artifactHashes:{path:string;sha256:string}[]};build:{program:string;args:string[]};runtime:string;toolchain:string;entrypoint:string;artifactCount:number;totalBytes:number;limitations:string[];candidateEligible:boolean;candidateBlockers:string[];ready:boolean;readinessBlockers:string[];missingCheckIds:string[];}
 export interface ResultStatusEntry {key:string;state:'loading'|'ready'|'error';status?:MissionResultStatus;error?:string;retry?:()=>void;}
 export interface Message {id:string;role:'user'|'assistant'|'system';text:string;time:number;}
+export interface HandoffExcerpt {text:string;limited:boolean;}
+export interface HandoffParcel {
+ id:string;basis:string;from:{id:string;crewId:string;status:string}|null;to:{id:string;crewId:string;status:string}|null;assignmentId:string|null;
+ brief:(HandoffExcerpt & {source:'recipient-message'|'assignment-objective';messageId:string|null})|null;
+ result:(HandoffExcerpt & {messageId:string|null;attribution:string})|null;recordedAt:number|null;
+ source:{commit:string|null;fingerprint:string|null;files:{path:string;sha256:string|null}[];limited:boolean}|null;
+}
+export interface HandoffReport {
+ version:1;projectId:string;missionId:string;attemptId:string;revision:number;runRevision:number|null;historical:boolean;requestedChanges:HandoffExcerpt|null;
+ parcels:HandoffParcel[];evidence:{id:string;kind:'git'|'check';commit:string|null;fingerprint:string|null;recordedAt:number|null;paths:string[];limited:boolean;script:string|null;status:string|null;exitCode:number|null;durationMs:number|null}[];limited:boolean;coverage:string;
+}
+export interface AcceptedWorkEntry {projectId:string;missionId:string;title:string;revision:number;attemptId:string;acceptanceId:string;acceptedAt:number;resultId:string;resultSha256:string;kind:'reply'|'deliverable'|'playable';decisionId:string|null;recovery:boolean;}
+export interface AcceptedWorkPage {projectId:string;entries:AcceptedWorkEntry[];total:number;nextOffset:number|null;excluded:number;limited:boolean;scanned:number;}
+export interface AcceptedWorkPreview extends AcceptedWorkEntry {status:'verified'|'changed'|'unavailable';preview:string|null;sourceCommit:string|null;reason:string;}
+export interface CriterionEvidenceReport {
+ projectId:string;missionId:string;attemptId:string;revision:number;historical:boolean;resultId:string|null;resultSha256:string|null;source:{commit:string|null;fingerprint:string|null}|null;evidenceBound:boolean;limited:boolean;
+ rows:{index:number;criterion:string;criterionId:string|null;limited:boolean;
+ checks:{id:string;kind:string;status:string;sourceMatches:boolean;commit:string|null;evidenceRef:string|null;justification:string|null}[];
+ reviews:{id:string;taskId:string;decision:string;sourceMatches:boolean;time:number;limited:boolean;findings:{id:string;severity:string;status:string;text:string|null;path:string|null}[]}[];
+ captain:{id:string;decision:string;confirmed:boolean;note:string|null;time:number;reviewedRevision:number}|null;}[];
+}
+export interface DiagnosticEntry {id:string;kind:string;label:string;time:number|null;outcome:string;basis:string;source:string;sourceRef:string|null;projectRef:string|null;taskRef?:string|null;missionRef?:string|null;attemptRef?:string|null;executionRef?:string|null;turnRef?:string|null;requestRef?:string|null;itemRef?:string|null;exitCode?:number;}
+export interface DiagnosticTimeline {version:1;generatedAt:number;projectRef:string;privacy:string;ordering:string;coverage:string;persistence:string;truncated:boolean;retainedEntries:number;observationLimit:number;droppedObservations:number;tasksWithoutObservations:number;entries:DiagnosticEntry[];}
 export type MissionResultRef={kind:'reply';taskId:string;messageId:string;sha256:string}|{kind:'deliverable'|'playable';artifactId:string;sha256:string};
 export interface MissionResult {id:string;attemptId:string;producerTaskId:string;ref:MissionResultRef;selectedAt:number;}
 export interface MissionAcceptance {legacy?:false;id:string;actor:'captain';attemptId:string;reviewedRevision:number;resultId:string;resultSha256:string;criteria:boolean[];acceptedAt:number;prArtifactId?:string;}
@@ -36,7 +59,7 @@ export interface NewsItem {id:string;url:string;title:string;summary:string;why:
 export interface NewsState {items:NewsItem[];captureMode:string;lastCaptureAt:number|null;lastOrigin:string;preferences:{roles:string;location:string;topics:string};}
 export interface CrewReportEntry {id:string;description:string;source:string;time:number|null}
 export interface CrewReportPacket {version:1;runId:string;projectId:string;revision:number;time:number;confirmedEvidence:CrewReportEntry[];attributedClaims:CrewReportEntry[];failedChecks:CrewReportEntry[];unavailableServices:CrewReportEntry[]}
-export interface LocalCouncil {parentId?:string;contextLimited?:boolean;synthesisLimited?:boolean;review?:{status:string;text:string;model:string;error:string};report?:{status:string;text:string;model:string;error:string;time:number};handoff?:{status:string;missionId?:string;runId?:string;taskId?:string;error?:string;time:number};id:string;projectId:string;objective:string;status:string;createdAt:number;updatedAt:number;concurrency:number;plan:string;summary:string;model:string;error:string;contributions:{crewId:string;objective:string;status:string;model:string;text:string;error:string}[];}
+export interface LocalCouncil {parentId?:string;contextLimited?:boolean;synthesisLimited?:boolean;review?:{status:string;text:string;model:string;error:string};report?:{status:string;text:string;model:string;error:string;time:number};handoff?:{version?:2;reviewedBrief?:{title:string;objective:string;acceptanceCriteria:string[];completionBoundary:'review'};briefSha256?:string;status:string;missionId?:string;runId?:string;taskId?:string;error?:string;time:number};id:string;projectId:string;objective:string;status:string;createdAt:number;updatedAt:number;concurrency:number;plan:string;summary:string;model:string;error:string;contributions:{crewId:string;objective:string;status:string;model:string;text:string;error:string}[];}
 export interface LocalCrewSession {projectId:string;status:string;error?:string;messages:(Message & {model?:string})[];}
 export interface LocalSourcePreview {filePath:string;bytes:number;sha256:string;recordedAt:number;startLine:number;endLine:number;totalLines:number;truncated:boolean;text:string;}
 export interface LocalCrewProfile {model:string;skills:string[];instructions?:string;sessions:LocalCrewSession[];}

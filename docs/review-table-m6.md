@@ -1,0 +1,13 @@
+# M6 — Criterion evidence review — 2026-11-08
+
+Build the review table beside existing captain acceptance controls. Reuse `mission:reviewEvidence`, a bounded read-only query using M5's project/mission/attempt/revision validation. Each original criterion has a row, including missing mappings. Match supervised criterion IDs by unique exact criterion text, never by a guessed numeric position. Check receipts and generated reviewer findings are separate from recorded captain decisions. Source/result mismatches remain visible as stale; they cannot check a captain checkbox or grant acceptance.
+
+No persisted schema changes or migrations. Existing verification, reviews, decisions and result hashes remain authoritative. Existing main-process acceptance, stale revision, result hash, recovery and requested-change guards remain unchanged. Query reads no files and launches no work. Private raw check output/commands and provider sessions are excluded. At most 100 criteria, 16 check/review records per row and 16 findings per review, with explicit truncation.
+
+Alternative rejected: infer criterion success from generic green tests. Such artifacts remain attempt-level evidence until they have an explicit criterion binding. Missing or ambiguous mapping is Not recorded. Existing request-changes UI records actionable notes and creates a new attempt; this table links to existing source work rather than duplicating conversation state.
+
+Rollback removes the new query/table. Validate exact mappings, mismatched results/source/attempts, missing checks, generated claims vs captain decisions, restart/replay and bounded output. Native verification covers keyboard, empty/stale evidence, narrow/enlarged layouts and unchanged acceptance defaults. Full combined-source verification and M3 release prerequisites remain required.
+
+Status: implemented. 78 focused review, acceptance, handoff, IPC and package-scope tests passed; build/typecheck passed. Hidden native run 2026-11-09T04-20-38.248Z passed all 11 checks with no stderr. Compact screenshot inspected; desktop and 200% evidence retained in docs/evidence/review-table-m6-2026-11-08. Fixture transport is synthetic, not live-provider proof. Full combined validation and M3 prerequisites remain pending.
+
+2026-11-09 update: the final clean M4–M7 candidate ccb702c passed 1,794 tests, build, 124 native checks and all 18 contained package cases. Exact-package results and responsive-world corrections are recorded in the [current qualification checkpoint](crew-voyage-qualification-2026-11-09.md); the older pending statements above describe their dated checkpoints. Live/release prerequisites remain separate.

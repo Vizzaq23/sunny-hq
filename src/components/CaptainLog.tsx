@@ -6,6 +6,7 @@ import {projectMission} from '../missionProjection';
 import {projectRun} from '../runProjection';
 import {requestMissionResultStatus} from '../useMissionResultStatus';
 import {PlayableResult} from './PlayableResult';
+import {DiagnosticTimeline} from './DiagnosticTimeline';
 import './captain-log.css';
 type Invoke=<T=unknown>(action:string,args?:unknown)=>Promise<T>;
 const labels:Record<string,string>={DRAFT:'Brief saved — ready to send',RUNNING:'Crew working',WAITING_FOR_REVIEW:'Ready for captain review',NEEDS_USER:'Needs your input',FAILED:'Attempt failed',CANCELLED:'Stopped',BLOCKED:'Blocked',COMPLETE:'Accepted'};
@@ -30,6 +31,7 @@ export function CaptainLog({snapshot,context,onContext,onOpenResult,onRequestCha
  const openMission=()=>{if(mission&&context)onContext({...context,surface:'deck',taskId:undefined});};
  return <aside className="captain-log" aria-label="Captain log">
   <header><span className="eyebrow">Aboard the Sunny</span><h2>Captain's log</h2></header>
+  <DiagnosticTimeline snapshot={snapshot} projectId={context?.projectId} taskId={context?.taskId} missionId={context?.missionId} onOpenMission={id=>{const m=snapshot.missions?.find(m=>m.id===id);if(m)onContext({projectId:m.projectId,missionId:m.id,runId:m.runId,attemptId:m.activeAttemptId,surface:'deck',returnTo:{view:'ship',projectId:m.projectId,missionId:m.id}});}} onOpenTask={onOpenResult} invoke={invoke}/>
   {unavailable?<p className="captain-unavailable" role="alert">{unavailable}</p>:null}
   {mission?<section className="captain-current" data-mission-id={mission.id} data-attempt-id={attempt?.id}>
    <small>{snapshot.projects.find(p=>p.id===mission.projectId)?.name??'Project unavailable'}</small><h3>{mission.title}</h3>

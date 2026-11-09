@@ -1,0 +1,14 @@
+{
+  "baselineTopLevel": 1745.0,
+  "currentTopLevel": 1752.0,
+  "missing": [],
+  "added": [
+    "malformed saved reviewed brief remains fenced and legacy history is not backfilled",
+    "mismatched goal result cannot replace the reserved handoff identity",
+    "private goal binding rejects edited scope, collisions and public identity injection",
+    "reserved council identity reaches actual Hub mission and run creation without exporting advice",
+    "lost goal reply retains one reserved identity and brief across restart",
+    "renderer receives the reviewed snapshot but diagnostics never export its private text",
+    "normal closed admission creates no council receipt, mission, run or task"
+  ]
+}

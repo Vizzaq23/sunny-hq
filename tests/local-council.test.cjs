@@ -106,7 +106,7 @@ test('Morgans receives fixed sanitized statuses, never goal, code, reports or er
 });
 test('execution handoff uses reviewed user text, real goal path and one pending receipt',async()=>{
  const f=fixture();const record=await f.council.start({projectId:'p',objective:'Fix',crewIds:['franky']});f.hub.state.codex={status:'connected'};
- let received;f.hub.startGoal=async input=>{received=input;return {started:true,mission:{id:'m'},run:{id:'r'},task:{id:'t'}};};
+ let received;f.hub.startGoal=async input=>{received=input;return {started:true,mission:{id:record.handoff.missionId},run:{id:record.handoff.runId},task:{id:'t'}};};
  const args={id:record.id,title:'Fix utility',objective:'Only this reviewed scope.',acceptanceCriteria:['The regression passes.']};
  const result=await f.council.handoff(args);assert.equal(result.taskId,'t');assert.equal(received.objective,args.objective);assert.equal(received.completionBoundary,'review');assert.equal(received.projectId,'p');
  await assert.rejects(f.council.handoff(args),/already has/);

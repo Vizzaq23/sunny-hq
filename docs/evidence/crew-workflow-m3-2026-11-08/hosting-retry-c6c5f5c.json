@@ -1,0 +1,31 @@
+{
+  "observedAt": "2026-11-09T00:58:13.1162575Z",
+  "runUrl": "https://github.com/Vizzaq23/sunny-hq/actions/runs/42542606593",
+  "sourceCommit": "c6c5f5cf64c1b3e28531f1b0c7fbc11c49be3c5b",
+  "jobs": [
+    {
+      "id": 128920661500,
+      "name": "Windows tests and build (2/2)",
+      "conclusion": "failure",
+      "steps": []
+    },
+    {
+      "id": 128920661725,
+      "name": "Windows tests and build (1/2)",
+      "conclusion": "failure",
+      "steps": []
+    },
+    {
+      "id": 128920672023,
+      "name": "Windows tests and build",
+      "conclusion": "failure",
+      "steps": []
+    }
+  ],
+  "annotations": [
+    {
+      "annotation_level": "failure",
+      "message": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings"
+    }
+  ]
+}

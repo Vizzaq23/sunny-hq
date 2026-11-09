@@ -74,12 +74,14 @@ async function handle(action,args={},surface='hub'){
  require('./workspace-routing.cjs').validateWorkspaceRoute(action,args);
  require('./task-commands.cjs').validateTaskCommand(action,args);
  require('./supervision-commands.cjs').validateSupervisionCommand(action,args);
- if(hub?.quiescing&&!['snapshot','workspace:get','app:export','mission:resultStatus','transcript:page','run:inspect'].includes(action))throw Error('Sunny is stopping and storage needs attention. Keep this window open to copy or export drafts before restarting.');
+ if(hub?.quiescing&&!['snapshot','workspace:get','app:export','mission:resultStatus','transcript:page','run:inspect','diagnostics:timeline','diagnostics:copy'].includes(action))throw Error('Sunny is stopping and storage needs attention. Keep this window open to copy or export drafts before restarting.');
  switch(action){
  case 'result:play':{const receipt=await require('./playable-launches.cjs').launchPlayable(args,{hub,stageRoot:path.join(dataDir,'playable-builds'),openPreview:({origin,entrypoint})=>require('./playable-preview.cjs').openPlayablePreview({BrowserWindow,session,parent:win,origin,entrypoint,fixture:fixture?.scenario==='playable'||fixture?.scenario==='journey-cue'})});return require('./playable-receipts.cjs').publicReceipt(receipt);}
  case 'result:stop':return require('./playable-launches.cjs').stopPlayable(args,{hub});
  case 'result:feedback':{const receipt=await require('./playable-launches.cjs').recordPlayableFeedback(args,{hub});return {id:receipt.id,launchId:receipt.launchId,resultId:receipt.resultId,resultSha256:receipt.resultSha256,improvement:receipt.improvement,attemptOutcome:receipt.attemptOutcome};}
  case 'snapshot':return publicState();
+ case 'diagnostics:timeline':return hub.diagnosticTimeline(args);
+ case 'diagnostics:copy':{const report=hub.diagnosticTimeline(args);require('electron').clipboard.writeText(JSON.stringify(report,null,2));return {copied:true};}
  case 'run:ackCall':return hub.ackCall(args);
  case 'goal:start':{const result=await hub.startGoal(args);return {...result,run:publicTransport.runReply(result.run),task:result.task?publicTransport.taskReply(result.task):undefined};}
  case 'run:create':return publicTransport.runReply(await hub.createRun(args));
@@ -88,6 +90,10 @@ async function handle(action,args={},surface='hub'){
  case 'run:inspect':return publicTransport.runReply(hub.inspectRun(args));
  case 'transcript:page':return publicTransport.page(args);
  case 'mission:resultStatus':return publicTransport.resultStatus(args);
+ case 'mission:handoffs':return require('./handoff-parcels.cjs').query(hub.state,args);
+ case 'mission:reviewEvidence':return require('./review-table.cjs').query(hub.state,args);
+ case 'shelf:search':return require('./accepted-work.cjs').query(hub.state,args);
+ case 'shelf:preview':return require('./accepted-work.cjs').preview({getState:()=>hub.state,readArtifact:artifact=>hub.readVerifiedMissionResultArtifact(hub.project(args.projectId),artifact)},args);
  case 'mission:prepareMerge':return hub.merger.act(args,'prepare');
  case 'mission:submitMerge':return hub.merger.act(args,'submit');
  case 'mission:recheckMerge':return hub.merger.act(args,'recheck');
@@ -222,7 +228,7 @@ async function showCompanion(){
  })();
  try{await companionLoading;}catch(e){companion?.destroy();companion=undefined;throw e;}finally{companionLoading=undefined;}
 }
-async function createWindow(){fixtureStage('window-enter');win=new BrowserWindow({title:crewDevelopment?'Sunny HQ · Separate crew development profile':'Sunny HQ',width:1520,height:980,minWidth:1000,minHeight:700,show:!smoke&&!fixture,backgroundColor:'#f7f5ef',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),offscreen:['run-ui','playable','journey-cue','journey-motion-user','journey-motion-system'].includes(fixture?.scenario),backgroundThrottling:!smoke&&!fixture,contextIsolation:true,nodeIntegration:false,sandbox:true}});win.webContents.setWindowOpenHandler(({url})=>{if(fixture)return {action:'deny'};openUrl(url).catch(()=>{});return {action:'deny'};});win.webContents.on('will-navigate',event=>event.preventDefault());win.webContents.session.setPermissionRequestHandler((_w,_p,cb)=>cb(false));
+async function createWindow(){fixtureStage('window-enter');win=new BrowserWindow({title:crewDevelopment?'Sunny HQ · Separate crew development profile':'Sunny HQ',width:1520,height:980,minWidth:1000,minHeight:700,show:!smoke&&!fixture,backgroundColor:'#f7f5ef',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),offscreen:['run-ui','playable','journey-cue','journey-motion-user','journey-motion-system'].includes(fixture?.scenario),backgroundThrottling:fixture?.scenario==='journey-audio'||!smoke&&!fixture,contextIsolation:true,nodeIntegration:false,sandbox:true}});win.webContents.setWindowOpenHandler(({url})=>{if(fixture)return {action:'deny'};openUrl(url).catch(()=>{});return {action:'deny'};});win.webContents.on('will-navigate',event=>event.preventDefault());win.webContents.session.setPermissionRequestHandler((_w,_p,cb)=>cb(false));
  fixtureStage('window-created');watchSurface(win,'hub');
   if(crewDevelopment)win.on('page-title-updated',event=>event.preventDefault());
  require('./trusted-ipc.cjs').registerTrustedIpc({ipcMain,surfaces:()=>[win,companion],companion:()=>companion,dispatch:handle});

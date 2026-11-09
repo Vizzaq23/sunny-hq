@@ -69,7 +69,7 @@ Data lives in `%LOCALAPPDATA%\Sunny HQ`; it includes local task transcripts and 
 
 ## Development
 
-Use Node 24. This machine has a broken global npm shim; invoke the bundled npm CLI directly:
+Use Node 24.18.0 x64 for complete validation: playable acceptance verifies that exact executable's bytes. See [Windows validation and M0 evidence](docs/windows-validation.md). This machine has a broken global npm shim; invoke the bundled npm CLI directly:
 
 ```powershell
 & 'C:\Program Files\nodejs\node.exe' 'C:\Program Files\nodejs\node_modules\npm\bin\npm-cli.js' install

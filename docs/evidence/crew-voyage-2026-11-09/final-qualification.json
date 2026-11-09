@@ -1,0 +1,737 @@
+{
+  "version": 1,
+  "date": "2026-11-09",
+  "sourceCommit": "ccb702cfbdfd411372563665d06ed38c4bb34149",
+  "branch": "codex/finish-crew-voyage-20261108",
+  "sourceDirty": false,
+  "liveProviderProof": false,
+  "baseline": {
+    "passed": true,
+    "source": {
+      "commit": "ccb702cfbdfd411372563665d06ed38c4bb34149",
+      "node": "v24.18.0",
+      "platform": "win32",
+      "trackedFiles": 832,
+      "runtime": {
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "version": "24.18.0",
+        "sha256": "9a4eb5f1c29c6a2e93852ead46b999e284a6a5ca8bab4d4e241d587d025a52de",
+        "runnerSha256": "0bef86a6513470b0c4c2c794faa80c328862f9b4a9f34122cdf4f69c5cbffb6e"
+      }
+    },
+    "steps": [
+      {
+        "name": "install",
+        "passed": true,
+        "exitCode": 0,
+        "elapsedMs": 13635
+      },
+      {
+        "name": "electron-install",
+        "passed": true,
+        "exitCode": 0,
+        "elapsedMs": 1177
+      },
+      {
+        "name": "tests",
+        "passed": true,
+        "exitCode": 0,
+        "elapsedMs": 1569487
+      },
+      {
+        "name": "build",
+        "passed": true,
+        "exitCode": 0,
+        "elapsedMs": 17547
+      },
+      {
+        "name": "native",
+        "passed": true,
+        "exitCode": 0,
+        "elapsedMs": 77737
+      }
+    ],
+    "build": {
+      "appVersion": "0.11.0",
+      "buildId": "7a3fcc070574e65f36fda0efa62b667f9ef502353c05ff399779a578a12e37eb",
+      "fingerprintKind": "source-inputs-sha256",
+      "sourceCommit": "ccb702cfbdfd411372563665d06ed38c4bb34149",
+      "sourceDirty": false
+    },
+    "tests": {
+      "passed": 1794,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "native": {
+      "passed": true,
+      "hidden": true,
+      "syntheticTransport": true,
+      "liveProviderProof": false,
+      "checks": [
+        "luffy-primary-navigation",
+        "more-keyboard-and-focus",
+        "luffy-search-and-project-entry",
+        "crew-direct-specialist-profiles",
+        "recommended-skills-preserve-instructions",
+        "persistent-dismissible-errors",
+        "crew-desktop-and-compact-layout",
+        "captain-watch-streamed-requests",
+        "captain-watch-disconnect-precedence",
+        "captain-watch-tool-completion-not-done",
+        "captain-watch-phone-layout",
+        "captain-watch-request-navigation-no-authority",
+        "inbox-show-more",
+        "inbox-project-filter",
+        "quick-switch-mobile",
+        "quick-switch-stable-selection",
+        "quick-switch-dirty-guard",
+        "searchable-local-inbox",
+        "inbox-review-state",
+        "quick-switch-enter-target",
+        "quick-switch-ime",
+        "helm-user-and-system-reduced-motion",
+        "helm-sea-pause",
+        "streamed-deck-activity",
+        "snapshot-race",
+        "family-search",
+        "specialist-approval",
+        "duplicate-approval",
+        "draft-per-task",
+        "home-draft-navigation",
+        "failed-start-draft",
+        "duplicate-start",
+        "lazy-tools",
+        "folder-parent",
+        "editor-load",
+        "draft-reload",
+        "reconcile",
+        "inbox",
+        "compact-layout",
+        "island-navigation",
+        "startup-retry",
+        "pending-launch-navigation",
+        "dirty-project-switch",
+        "dirty-global-settings-navigation",
+        "workspace-draft-cas-helper",
+        "dirty-file-task-start",
+        "template-cleared-after-start",
+        "character-room-theme",
+        "room-audio-toggle",
+        "room-audio-settings",
+        "robin-obsidian-library-route",
+        "note-context-unsent-robin-review",
+        "oversized-note-boundary",
+        "all-ten-illustrated-crew-rooms",
+        "distinct-station-layouts",
+        "square-room-badge",
+        "all-rooms-200-percent-zoom",
+        "station-tabs-preserve-drafts",
+        "room-focus-keeps-draft",
+        "room-starters-unsent",
+        "room-ambience-pause",
+        "room-art-expansion",
+        "room-streamed-saved-update",
+        "recorded-crew-relay-dependencies",
+        "crew-relay-input-and-uncertainty",
+        "crew-relay-mobile-layout",
+        "room-system-reduced-motion-live",
+        "reduced-motion-illustrated-room"
+      ],
+      "screenshots": "C:\\Users\\Quintin\\Documents\\GitHub\\sunny-hq\\.sunny-dev\\voyage-bar-m4\\.sunny-dev\\pr-validation\\2026-11-09T05-28-41.703Z\\native"
+    },
+    "raw": ".sunny-dev/pr-validation/2026-11-09T05-28-41.703Z"
+  },
+  "supplementary": [
+    {
+      "flag": "voyage-bar",
+      "exitCode": 0,
+      "receipt": {
+        "passed": true,
+        "hidden": true,
+        "syntheticTransport": true,
+        "liveProviderProof": false,
+        "checks": [
+          "explicit-project-selection",
+          "brief-Escape-focus-return",
+          "review-return",
+          "approval-request",
+          "running-waiting-unknown-failed-stopped-review",
+          "provider-finished-not-accepted",
+          "compact",
+          "200-percent",
+          "reduced-motion",
+          "historical-review-disabled",
+          "missing-attempt-disabled",
+          "keyboard-action-order",
+          "keyboard-open-request",
+          "dialog-draft-focus-return",
+          "keyboard-scoped-stop",
+          "navigation-draft-return",
+          "normal-motion-information"
+        ]
+      }
+    },
+    {
+      "flag": "handoff-parcels",
+      "exitCode": 0,
+      "receipt": {
+        "passed": true,
+        "hidden": true,
+        "syntheticTransport": true,
+        "liveProviderProof": false,
+        "checks": [
+          "three-recorded-role-handoffs",
+          "exact-brief-and-attributed-result",
+          "attempt-source-and-check-receipts",
+          "refresh-no-duplicates",
+          "keyboard-disclosure",
+          "Escape-focus-draft-return",
+          "scoped-task-navigation",
+          "historical-attempt",
+          "missing-result",
+          "compact",
+          "200-percent",
+          "no-records",
+          "reduced-and-normal-motion-information"
+        ]
+      }
+    },
+    {
+      "flag": "review-table",
+      "exitCode": 0,
+      "receipt": {
+        "passed": true,
+        "hidden": true,
+        "syntheticTransport": true,
+        "liveProviderProof": false,
+        "checks": [
+          "all-original-criteria",
+          "automated-and-generated-separation",
+          "unresolved-finding",
+          "missing-evidence",
+          "no-automatic-criteria-acceptance",
+          "stale-source",
+          "mismatched-result",
+          "keyboard-refresh",
+          "compact",
+          "200-percent",
+          "reduced-motion"
+        ]
+      }
+    },
+    {
+      "flag": "accepted-work",
+      "exitCode": 0,
+      "receipt": {
+        "passed": true,
+        "hidden": true,
+        "syntheticTransport": true,
+        "liveProviderProof": false,
+        "checks": [
+          "accepted-only-entry",
+          "project-scope",
+          "metadata-search",
+          "keyboard-preview",
+          "escaped-plain-text",
+          "changed-content-not-substituted",
+          "missing-content",
+          "exact-review-focus",
+          "accepted-report-hash-guard",
+          "navigation-rebuild",
+          "compact",
+          "200-percent",
+          "toolbar-voyage-separation",
+          "storage-uncertainty",
+          "reduced-and-normal-motion"
+        ]
+      }
+    }
+  ],
+  "package": {
+    "passed": true,
+    "cases": [
+      {
+        "name": "startup-1",
+        "exitCode": 0,
+        "receipt": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "platform-launch-requested",
+          "elapsedMs": 5191,
+          "scenario": "startup"
+        }
+      },
+      {
+        "name": "renderer-crash-1",
+        "exitCode": 0,
+        "receipt": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "seed-enter",
+          "elapsedMs": 5052,
+          "scenario": "renderer-crash"
+        }
+      },
+      {
+        "name": "main-restart-1",
+        "exitCode": 0,
+        "receipt": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "acceptance-enter",
+          "elapsedMs": 6157,
+          "scenario": "main-restart"
+        }
+      },
+      {
+        "name": "worker-loss-1",
+        "exitCode": 0,
+        "receipt": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "seed-enter",
+          "elapsedMs": 4572,
+          "scenario": "worker-loss"
+        }
+      },
+      {
+        "name": "write-failure-1",
+        "exitCode": 0,
+        "receipt": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "launch-return",
+          "elapsedMs": 5000,
+          "scenario": "write-failure"
+        }
+      },
+      {
+        "name": "lost-ack-1",
+        "exitCode": 0,
+        "receipt": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "scan-exit",
+          "elapsedMs": 34983,
+          "scenario": "lost-ack"
+        }
+      },
+      {
+        "name": "pending-approval-1",
+        "exitCode": 0,
+        "receipt": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "scan-enter",
+          "elapsedMs": 4617,
+          "scenario": "pending-approval"
+        }
+      },
+      {
+        "name": "pending-check-1",
+        "exitCode": 0,
+        "receipt": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "seed-enter",
+          "elapsedMs": 4524,
+          "scenario": "pending-check"
+        }
+      },
+      {
+        "name": "normal-quit-1",
+        "exitCode": 0,
+        "receipt": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "launch-return",
+          "elapsedMs": 4753,
+          "scenario": "normal-quit"
+        }
+      },
+      {
+        "name": "ordered-control-1",
+        "exitCode": 0,
+        "receipt": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "scan-exit",
+          "elapsedMs": 11517,
+          "scenario": "ordered-control"
+        }
+      },
+      {
+        "name": "ordered-control-10",
+        "exitCode": 0,
+        "receipt": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "scan-exit",
+          "elapsedMs": 21985,
+          "scenario": "ordered-control"
+        }
+      },
+      {
+        "name": "ordered-control-30",
+        "exitCode": 0,
+        "receipt": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "scan-exit",
+          "elapsedMs": 45955,
+          "scenario": "ordered-control"
+        }
+      },
+      {
+        "name": "run-ui-1",
+        "exitCode": 0,
+        "receipt": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "recovery-enter",
+          "elapsedMs": 94913,
+          "scenario": "run-ui"
+        }
+      },
+      {
+        "name": "playable-1",
+        "exitCode": 0,
+        "receipt": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "scan-exit",
+          "elapsedMs": 15877,
+          "scenario": "playable"
+        }
+      },
+      {
+        "name": "journey-cue-1",
+        "exitCode": 0,
+        "receipt": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "window-enter",
+          "elapsedMs": 112734,
+          "scenario": "journey-cue"
+        }
+      },
+      {
+        "name": "journey-motion-user-1",
+        "exitCode": 0,
+        "receipt": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "scan-enter",
+          "elapsedMs": 27978,
+          "scenario": "journey-motion-user"
+        }
+      },
+      {
+        "name": "journey-motion-system-1",
+        "exitCode": 0,
+        "receipt": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "scan-exit",
+          "elapsedMs": 28155,
+          "scenario": "journey-motion-system"
+        }
+      },
+      {
+        "name": "journey-audio-1",
+        "exitCode": 0,
+        "receipt": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "scan-exit",
+          "elapsedMs": 30999,
+          "scenario": "journey-audio"
+        }
+      }
+    ],
+    "controls": [
+      {
+        "mib": 1,
+        "passed": true,
+        "metrics": {
+          "task:interrupt": {
+            "samples": 20,
+            "failures": 0,
+            "rttMs": {
+              "count": 20,
+              "min": 7.200000001117587,
+              "p50": 13.200000001117587,
+              "p95": 44.30000000074506,
+              "max": 66.20000000111759,
+              "raw": [
+                14.800000000745058,
+                7.200000001117587,
+                10.699999999254942,
+                30.699999999254942,
+                10.400000000372529,
+                9.599999999627471,
+                12.599999999627471,
+                8.300000000745058,
+                8.599999999627471,
+                38.59999999962747,
+                13.200000001117587,
+                11,
+                39.40000000037253,
+                13.5,
+                44.30000000074506,
+                66.20000000111759,
+                13.200000001117587,
+                33.09999999962747,
+                19.09999999962747,
+                31.40000000037253
+              ]
+            }
+          },
+          "approval:respond": {
+            "samples": 20,
+            "failures": 0,
+            "rttMs": {
+              "count": 20,
+              "min": 13.099999999627471,
+              "p50": 19.199999999254942,
+              "p95": 82.60000000149012,
+              "max": 94.69999999925494,
+              "raw": [
+                44.09999999962747,
+                14.600000001490116,
+                71.90000000037253,
+                45.80000000074506,
+                16.09999999962747,
+                13.099999999627471,
+                13.800000000745058,
+                17.600000001490116,
+                17.399999998509884,
+                81.5,
+                14.300000000745058,
+                63.40000000037253,
+                15.800000000745058,
+                67.70000000111759,
+                19.199999999254942,
+                94.69999999925494,
+                16.5,
+                21.300000000745058,
+                76.5,
+                82.60000000149012
+              ]
+            }
+          }
+        }
+      },
+      {
+        "mib": 10,
+        "passed": true,
+        "metrics": {
+          "task:interrupt": {
+            "samples": 20,
+            "failures": 0,
+            "rttMs": {
+              "count": 20,
+              "min": 29.5,
+              "p50": 38,
+              "p95": 132.59999999962747,
+              "max": 242,
+              "raw": [
+                29.800000000745058,
+                29.5,
+                39.29999999888241,
+                44.59999999962747,
+                33.09999999962747,
+                35.09999999962747,
+                30.800000000745058,
+                56,
+                90,
+                83.5,
+                92.5,
+                242,
+                132.59999999962747,
+                38,
+                91.09999999962747,
+                31.800000000745058,
+                32.80000000074506,
+                131.40000000037253,
+                31,
+                32.30000000074506
+              ]
+            }
+          },
+          "approval:respond": {
+            "samples": 20,
+            "failures": 0,
+            "rttMs": {
+              "count": 20,
+              "min": 41.90000000037253,
+              "p50": 46.09999999962747,
+              "p95": 62.30000000074506,
+              "max": 82.80000000074506,
+              "raw": [
+                41.90000000037253,
+                47.59999999962747,
+                62.30000000074506,
+                46.20000000111759,
+                43.90000000037253,
+                42.20000000111759,
+                46.09999999962747,
+                48.70000000111759,
+                82.80000000074506,
+                47.90000000037253,
+                42.80000000074506,
+                45.20000000111759,
+                46.30000000074506,
+                42.90000000037253,
+                54.40000000037253,
+                45.09999999962747,
+                44.69999999925494,
+                48.40000000037253,
+                48.100000001490116,
+                44.19999999925494
+              ]
+            }
+          }
+        }
+      },
+      {
+        "mib": 30,
+        "passed": true,
+        "metrics": {
+          "task:interrupt": {
+            "samples": 20,
+            "failures": 0,
+            "rttMs": {
+              "count": 20,
+              "min": 81.69999999925494,
+              "p50": 85.59999999962747,
+              "p95": 93.80000000074506,
+              "max": 106.09999999962747,
+              "raw": [
+                84,
+                83.19999999925494,
+                86,
+                86,
+                86,
+                86.5,
+                89.40000000037253,
+                89.70000000111759,
+                81.69999999925494,
+                93.80000000074506,
+                106.09999999962747,
+                83.5,
+                88.69999999925494,
+                92.40000000037253,
+                85.40000000037253,
+                83.80000000074506,
+                83.5,
+                83.19999999925494,
+                82.5,
+                85.59999999962747
+              ]
+            }
+          },
+          "approval:respond": {
+            "samples": 20,
+            "failures": 0,
+            "rttMs": {
+              "count": 20,
+              "min": 117.69999999925494,
+              "p50": 125.30000000074506,
+              "p95": 139.40000000037253,
+              "max": 146.2000000011176,
+              "raw": [
+                125,
+                122.5,
+                129,
+                127.19999999925494,
+                129,
+                121.5,
+                120.20000000111759,
+                119.20000000111759,
+                125.30000000074506,
+                128.59999999962747,
+                117.69999999925494,
+                119.19999999925494,
+                146.2000000011176,
+                127,
+                133.80000000074506,
+                119.5,
+                124,
+                129.19999999925494,
+                138.90000000037253,
+                139.40000000037253
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "exeSha256": "c15c8dc264ce43fb4fa026e218c14b872857f774c2791a91bb10926b14bfac67",
+    "asarSha256": "1beebcb78a8d9e90033dbf31bfae4be973de0f8361d91baf76df790a502bfc67",
+    "raw": ".sunny-dev/final-world-qualification",
+    "finishedAt": "2026-11-09T06:05:07.674Z"
+  },
+  "screenshots": [
+    {
+      "file": "final-handoffs-200-percent.png",
+      "sha256": "17e445cdc24f19f018d43cc02b1a61a8b01636125c224c279f5dc6f7bfad2e2e"
+    },
+    {
+      "file": "final-review-table-200-percent.png",
+      "sha256": "c47c16c13b5acee09d86ab9f6a3a773165da1a7b9fbfa889821d39967af6403f"
+    },
+    {
+      "file": "final-accepted-work-preview-200-percent.png",
+      "sha256": "3fc95ba6ddaf9e1e6a3bc4aaf6e2a4533b508ec717143c8b15233cd988cbee68"
+    },
+    {
+      "file": "final-world-text-200-quarters-stations.png",
+      "sha256": "d42a29859958ca5478d26c93a3d8f0532df1051c23253e48a1afad30ce2146f8"
+    }
+  ],
+  "limits": [
+    "Synthetic isolated fixtures; not live-provider acceptance.",
+    "Hosted CI failed before steps.",
+    "Stopped-profile and live-journey admission/human acceptance remain separate.",
+    "Installed daily app, production profile and release gate unchanged."
+  ]
+}

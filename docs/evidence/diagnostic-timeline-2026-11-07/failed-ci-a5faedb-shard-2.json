@@ -1,0 +1,63 @@
+{
+  "passed": false,
+  "liveProviderProof": false,
+  "output": "D:\\a\\sunny-hq\\sunny-hq\\.sunny-dev\\pr-validation\\2026-11-08T02-20-01.235Z",
+  "steps": [
+    {
+      "name": "install",
+      "passed": true,
+      "exitCode": 0,
+      "elapsedMs": 20982
+    },
+    {
+      "name": "electron-install",
+      "passed": true,
+      "exitCode": 0,
+      "elapsedMs": 3834
+    },
+    {
+      "name": "tests",
+      "passed": false,
+      "exitCode": 1,
+      "elapsedMs": 1593454
+    },
+    {
+      "name": "build",
+      "passed": true,
+      "exitCode": 0,
+      "elapsedMs": 39836
+    },
+    {
+      "name": "native",
+      "passed": true,
+      "exitCode": 0,
+      "elapsedMs": 86261
+    }
+  ],
+  "testShard": "2/2",
+  "source": {
+    "commit": "a5faedb236c43ed5bef8708355de68be5c626669",
+    "node": "v24.18.0",
+    "platform": "win32",
+    "trackedFiles": 746,
+    "runtime": {
+      "executable": "C:\\hostedtoolcache\\windows\\node\\24.18.0\\x64\\node.exe",
+      "version": "24.18.0",
+      "sha256": "9a4eb5f1c29c6a2e93852ead46b999e284a6a5ca8bab4d4e241d587d025a52de",
+      "runnerSha256": "0bef86a6513470b0c4c2c794faa80c328862f9b4a9f34122cdf4f69c5cbffb6e"
+    }
+  },
+  "build": {
+    "appVersion": "0.11.0",
+    "buildId": "bfd42a41c678c9363de3d04219ab483b2d842198be6f5ba196da691e896f7ad2",
+    "fingerprintKind": "source-inputs-sha256",
+    "sourceCommit": "a5faedb236c43ed5bef8708355de68be5c626669",
+    "sourceDirty": false
+  },
+  "native": {
+    "passed": true,
+    "hidden": true,
+    "syntheticTransport": true,
+    "liveProviderProof": false
+  }
+}

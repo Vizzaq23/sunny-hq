@@ -18,6 +18,7 @@ import {MissionBoard} from './views/MissionBoard';
 import {LibraryView,SettingsView,ToolsView} from './views/OpsViews';
 import {CrewRunPanel} from './components/CrewRunPanel';
 import {CaptainLog} from './components/CaptainLog';
+import {VoyageBar} from './components/VoyageBar';
 import {FrankyWorkshop} from './components/FrankyWorkshop';
 import {projectMission} from './missionProjection';
 import {roomRequest,crewSceneProjection} from './roomActivity';
@@ -79,6 +80,7 @@ export default function App(){
   <a className="skip-to-work" href="#sunny-main">Skip to workspace</a><Sidebar search={<QuickSwitcher tasks={snapshot.tasks} projects={snapshot.projects} onTask={taskId=>openWorkspace({taskId})} onProject={projectId=>openWorkspace({projectId,crewId:'luffy'})} onView={navigate} onOpening={()=>setMenu(false)}/>} view={view} onView={navigate} projects={snapshot.projects} tasks={snapshot.tasks} activeProjectId={activeProjectId} onProject={id=>openWorkspace({projectId:id})} open={menu} onToggle={()=>setMenu(value=>!value)}/>
   {menu?<button className="mobile-scrim" onClick={()=>setMenu(false)} aria-label="Close navigation"/>:null}
   <div className="main-shell"><Topbar menuOpen={menu} title={viewTitles[view].title} subtitle={viewTitles[view].subtitle} desktop={sunny.desktop} codexStatus={snapshot.codex.status} onMenu={()=>setMenu(true)} actions={<>{sunny.desktop?<button className="float-ship-button" onClick={()=>void invoke('companion:show').catch(()=>{})}>Ship on desktop</button>:null}{['settings','library','tools'].includes(view)&&context?<button className="workspace-return" onClick={returnToWork}>Return to work</button>:null}{topActions}</>}/>
+   <VoyageBar snapshot={snapshot} context={context} onSelect={selectContext} onOpen={taskId=>openWorkspace({taskId})} invoke={invoke}/>
    {contextError?<div className="workspace-draft-status" role="alert">{contextError}<button onClick={()=>persistContext(context)}>Save navigation again</button></div>:null}
    {snapshot.persistence?.uncertain||snapshot.persistence?.state==='uncertain'?<div className="workspace-draft-status" role="alert">Storage outcome is uncertain. Keep this window open to copy or export drafts, then restart Sunny to recover saved work.</div>:snapshot.persistence?.state==='pending'?<div className="workspace-draft-status" role="status">Saving current changes...</div>:snapshot.persistence?.state==='unsaved'?<div className="workspace-draft-status" role="alert">Sunny has unsaved changes. Keep this window open and export important drafts.</div>:null}
    <div className="continuous-content"><main id="sunny-main" tabIndex={-1} className="journey-surface">

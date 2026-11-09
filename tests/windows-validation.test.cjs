@@ -36,7 +36,7 @@ test('validation expands short TEMP paths before real workspace and fixture admi
  delete env.NODE_TEST_CONTEXT; // Launch an independent test runner, not a child harness worker.
  const result=spawnSync(process.execPath,['--test','--test-reporter=tap','tests/execution-workspaces.test.cjs'],{cwd:path.resolve(__dirname,'..'),env,encoding:'utf8',windowsHide:true,timeout:90000});
  assert.equal(result.status,0,result.stdout+'\n'+result.stderr);
- assert.match(result.stdout,/# tests 4\b/);assert.match(result.stdout,/# pass 4\b/);
+ assert.match(result.stdout,/# tests 5\b/);assert.match(result.stdout,/# pass 5\b/);
  // Admission still rejects actual junctions in the nested workspace regressions.
  const packaged=require('../desktop/packaged-acceptance.cjs'),root=env.TEMP;
  const profile=path.join(root,'profile'),output=path.join(root,'output');fs.mkdirSync(profile);fs.mkdirSync(output);

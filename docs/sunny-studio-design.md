@@ -126,3 +126,19 @@ native workflow, poster/search/draft checks at desktop/phone/200%, handoff keybo
 navigation and missing records, ship geometry at desktop/compact/phone, inspected
 screenshots and exact installed-package identity. Rollback: prior version folder
 and shortcut remain available; no schema migration or profile restoration needed.
+
+### Integration correction — existing captain-selected design
+The captain confirmed using the existing planned design from b31f959 on
+codex/sunny-hq. Integrate its full crew map, sourced wanted sheets, native profile
+dialogs, event-bound beams, ship log and saved app-wide appearance alongside the
+M1–M7 branch. The initial CSS-only crew poster reconstruction is superseded;
+retain the new home/mission framing, ship geometry/loading fix and recorded
+handoff conversation. No new poster download, recoloring or crop. Preserve the
+source attribution and rights limitations already recorded in
+wanted-poster-references.md and public/assets/wanted/sources.json.
+
+The previously installed voyage package omitted this separate branch. This
+integration is the correction; neither prior branch's tests alone qualify the
+combined app. The preliminary 7968827 suite was stopped after installation and
+partial tests, with observed owned-process cleanup; it is not a pass. Fresh
+combined-source validation and installation evidence follows below.

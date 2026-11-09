@@ -1,0 +1,20 @@
+✔ only explicit same-project Luffy delegation produces outbound signals (0.7876ms)
+✔ fresh assignments pulse once, never on duplicate, stale or recovered snapshots (0.2102ms)
+✔ only finished saved replies produce inbound cues; failure and unknown are not results (0.1276ms)
+✔ local councils use real queued assignment and ready contribution states (0.5188ms)
+✔ a metadata refresh cannot replay a finished reply with no turn ID (0.1646ms)
+✔ log preserves exact attempt and check evidence without inventing acceptance (1.0152ms)
+✔ log scopes project, record kind and every search word (0.2007ms)
+✔ external history is excluded and mutable conversation time is labelled honestly (0.1281ms)
+✔ pending approval and errors outrank finished and active status (0.5215ms)
+✔ local search combines all terms across task, project and crew without mutating input (7.7342ms)
+✔ search includes older tasks beyond the former twelve-item cutoff (0.3661ms)
+✔ bounded compass keeps the selected destination when live updates push it beyond the limit (0.896ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 303.0115

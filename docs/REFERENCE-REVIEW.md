@@ -169,3 +169,18 @@ Design leads. It documents actual page access, original adaptations and the
 unavailable Scrolltide page. No third-party components or artwork were copied.
 
 The captain requested inspection of Shueisha, VIZ chapter1, the official Straw Hat card list, the Thousand Sunny profile, Toei and DynaFont before a focused shipboard visual pass. Page access, observed design cues, the Sunny profile403, font-license provenance, before/after captures and exact validation are recorded in the [dated shipboard decision](shipboard-design-2026-11-06.md). VIZ's reader and the card list were visually inspected. Official material remains reference only; runtime reuses existing Sunny artwork and adds locally bundled OFL Bangers/Barlow, not official character art or logo fonts. No new framework or backend integration was added.
+
+
+## Crew map references — 2026-11-07
+
+See [crew map decision](crew-map-2026-11-07.md) for the requested Magic UI, Aceternity, shadcn and Paper references, page-access limits and original implementation. No third-party source or shader was copied. Captain’s Orders now includes navigation to crew rooms and pending request inspection; it still cannot authorize or execute an approval.
+
+### Crew component research follow-up — 2026-11-07
+
+See [modern component research](crew-components-research-2026-11-07.md) for the expanded comparison of Magic UI, Aceternity, Motion Primitives, shadcn/cmdk, Base UI, React Aria, Radix, Motion, Paper and WAI patterns, including upstream license links and explicit adopt/defer decisions. Original implementation only; no imported component source.
+
+### Actual linked components — 2026-11-07 clarification
+
+Captain requires the source components, not reference-only equivalents. [Upstream integration](crew-components-upstream.md) records actual Magic UI, Motion Primitives, Aceternity, shadcn/cmdk and Paper components, pinned package versions/source hashes, preserved terms and Sunny-specific accessibility/event adaptations. This supersedes the earlier decision to defer these dependencies.
+
+Wanted poster research: [manga layout and official bounty sources](wanted-poster-references.md), checked 2026-11-07.

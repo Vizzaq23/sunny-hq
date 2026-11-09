@@ -138,3 +138,26 @@ mastheads, existing crew portraits, actual specialties and real mission status.
 No new bitmap, texture, font, license or atlas crop. The existing 5x2 portrait
 sheet and 3:2 Sunny deck remain unchanged. See sunny-studio-design.md for scope
 and verification; restored identity does not change execution authority.
+
+
+## Crew wanted posters and captain panel — 2026-11-07
+
+The [crew map](crew-map-2026-11-07.md) separates Luffy’s navy/brass captain panel from equal-sized core specialist cards. Existing studio portraits retain their geometry. Original restrained CSS fibers and a small decorative sea porthole add parchment/ocean atmosphere without new assets. Beams are finite event cues; all effects respect pause and reduced motion. No atlas or room-floor changes.
+
+## Manga-inspired wanted posters — 2026-11-07
+
+Crew directory cards use an original printed-poster composition: oversized serif WANTED masthead, framed existing portrait, DEAD OR ALIVE, uppercase name and a Grand Line dossier imprint. These are decorative fiction, not work status or a claimed canon bounty. Actual status and direct controls remain below the poster heading. Luffy retains a distinct captain area with a compact poster. Existing atlas remains unchanged; portraits retain 4:5 geometry at160x200 (captain96x120). Actual PaperTexture remains behind HTML text.
+
+Wanted poster refinement (2026-11-07): full rectangular portrait plates, canonical story bounty amounts and MARINE footer replace the dossier imprint. Core art uses internal-cell CSS crops; allies use a separate generated 2x2 portrait atlas. See [reference and provenance decisions](wanted-poster-references.md).
+
+Print refinement (2026-11-07): compact portrait sheets use OFL Alfa Slab One/IM Fell English rather than Georgia, weathered paper and tighter display typography; work controls sit below the paper. Original portrait crops remain. See wanted-poster-references.md; no exact anime-font or image-replica claim.
+
+Captain poster partial refinement (2026-11-07): enlarged high-contrast Libre Bodoni lettering and full name. Gear 5 recreation rejected by image tool; existing portrait remains and is not an exact canon match. Branch SVG masks exclude entire cards so lines cannot show through transparent paper/control layers.
+
+2026-11-07 sourced captain poster: user-directed local use of a complete online Gear 5 3-billion-Berry poster replaces the prior HTML reconstruction. Preserve original proportions and pixels; no official manga-scan or redistribution-license claim. See wanted-poster-references.md for source and rights limits.
+
+2026-11-07: all nine core specialists plus Law/Ace now use unmodified sourced full posters, with no extra weathering; Vivi/Perona use explicitly non-canon crew-profile sheets. See wanted-poster-references.md and assets/wanted/sources.json. Full-poster proportions, equal core cards and direct profile controls are retained.
+
+2026-11-07 Crew appearance: optional default-dark navy board with larger 14px role/body copy, 13px setup/status text, bordered work panels and gold focus indicators. Sourced poster pixels remain unmodified. Native profile dialogs keep readable light surfaces. See crew-appearance.md for scope, renderer preference and rollback.
+
+2026-11-07 correction: dark appearance now belongs to the entire app, controlled in Settings > Experience. Shared navy surfaces cover navigation, workspaces, library, missions, island controls, profiles, logs and dialogs; Monaco follows the same choice. Artwork/poster pixels stay unchanged. This supersedes the Crew-only scope above.

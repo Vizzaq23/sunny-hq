@@ -1,0 +1,210 @@
+/* Original CSS/SVG treatment. Existing portraits and native dialogs retain their contracts. */
+.crew-map-key{display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:12px;color:#526574;margin:12px 0}
+.crew-map-key button,.captain-map-actions button{min-height:44px}
+.crew-map{position:relative;isolation:isolate}
+.crew-beams{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:-1;fill:none;stroke:#af9470;stroke-width:1.5}
+.crew-captain{position:relative;display:flex;align-items:center;gap:24px;max-width:780px;margin:0 auto 64px;padding:30px;border:2px solid #b39357;border-radius:14px;background:#182e43;color:#fff4df;box-shadow:0 8px 0 #182e4310}
+.crew-captain>.crew-directory-portrait{width:104px;height:130px;background-color:#f4ead6;mix-blend-mode:normal;border-radius:8px}
+.crew-captain h3{font-size:36px;margin:8px 0}.crew-captain p{max-width:470px;font-size:14px;line-height:1.6;color:#dfdfd8}.crew-captain .eyebrow{color:#e4c382}
+.captain-map-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}.captain-map-actions .journal-open{padding:10px 16px;color:#f5e7cc;border:1px solid #83909c;border-radius:6px}
+.crew-ocean-porthole{position:absolute;right:16px;top:16px;width:44px;height:44px;border:4px solid #ba9c66;border-radius:50%;overflow:hidden;background:linear-gradient(#a0d5df 45%,#387b89 46%);pointer-events:none}
+.voyage-ui .crew-map .core-crew-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:38px 24px;grid-auto-rows:1fr}
+.voyage-ui .crew-page .crew-card.specialist-card{display:flex;flex-direction:column;align-items:center;text-align:center;min-width:0;height:100%;border:1px solid #c8b899;border-top:4px solid var(--crew);background-color:#f6efdf;background-image:none;padding:22px;box-sizing:border-box}
+.crew-card .wanted-stamp{font-family:Bangers,sans-serif;letter-spacing:3px;color:#66533c;font-size:15px;margin-bottom:16px}
+.voyage-ui .crew-page .crew-card.specialist-card p{flex:1}.voyage-ui .crew-page .crew-card.specialist-card .journal-open{width:100%}.crew-page .crew-advanced{width:100%}
+.crew-map .crew-card{position:relative}.crew-page .crew-card .crew-number{position:absolute;right:12px;top:8px;font-size:18px}
+.profile-assignment{border:1px solid #c8b899;border-radius:8px;padding:18px;margin-bottom:24px;background:#f6efdf;color:#263c4c}.profile-assignment>.eyebrow{display:block;margin-bottom:12px}.profile-assignment details{padding:12px 0;border-bottom:1px solid #c8b899}.profile-assignment p,.ship-event-log details p{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}.profile-assignment button,.ship-event-log button{min-height:44px;text-decoration:underline}.profile-assignment>small{display:block;margin-top:12px}
+.journal-backdrop[open][data-entrance=true] .crew-journal{animation:crew-profile-open 180ms ease-out}
+@keyframes crew-profile-open{from{opacity:.5;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+.ship-event-log{background:#f6efdf;background-image:none;color:#263c4c;border:1px solid #c8b899;border-radius:12px;padding:24px;margin-top:32px}.ship-event-log>header{display:flex;justify-content:space-between;align-items:center;gap:16px}.ship-event-log h3{font-size:30px;margin:4px 0}.ship-event-log>p{font-size:13px;color:#526574;line-height:1.6}.ship-event-log label{display:grid;gap:6px;font-size:12px}.ship-event-log select{max-width:220px;min-height:40px}.ship-event-log ol{list-style:none;max-height:480px;overflow:auto;padding:0 12px 0 16px;scrollbar-gutter:stable}.ship-event-log li{position:relative;border-left:1px solid #b99c75;padding:0 0 24px 24px}.ship-event-log li:before{content:'';position:absolute;left:-5px;top:5px;width:9px;height:9px;border-radius:50%;background:#9f7242}.ship-event-log time{font-size:11px;color:#65717a}.ship-event-log summary{cursor:pointer;margin-top:6px}.ship-event-log summary span{display:block;font-size:14px;margin-top:6px;overflow-wrap:anywhere}.ship-event-log strong{font-size:13px}
+.crew-page :is(button,summary,select):focus-visible{outline:3px solid #267d94;outline-offset:4px}
+.station-content[data-room-layout=zoro],.station-brief,.captain-current{background-image:none}
+@media(max-width:1000px){.voyage-ui .crew-map .core-crew-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.crew-captain{padding:24px}.crew-captain h3{font-size:30px}}
+@media(max-width:600px){.voyage-ui .crew-map .core-crew-grid{grid-template-columns:minmax(0,1fr)}.crew-captain{flex-direction:column;align-items:flex-start;padding:22px;margin-bottom:42px}.crew-map-key,.ship-event-log>header{align-items:flex-start;flex-direction:column}.crew-beams{opacity:.6}.ship-event-log{padding:18px}.crew-captain h3{font-size:28px}}
+.reduce-motion .crew-beam-pulse,.reduce-motion .crew-ocean-porthole i,.reduce-motion .crew-journal{animation:none!important}
+@media(prefers-reduced-motion:reduce){.crew-beam-pulse,.crew-ocean-porthole i,.journal-backdrop[open] .crew-journal{animation:none!important}}
+
+.voyage-ui .crew-extra-roster .crew-grid{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:1fr}
+.station-zoro .station-content,.station-luffy .station-content{background-image:none}
+@media(max-width:1000px){.voyage-ui .crew-extra-roster .crew-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.voyage-ui .crew-extra-roster .crew-grid{grid-template-columns:minmax(0,1fr)}}
+
+.captain-map-actions .journal-open{background:transparent}.crew-page .crew-card .crew-number{width:auto;height:auto;min-width:0;border-radius:0;background:none;padding:0;line-height:1.4}.crew-map-key button{border:1px solid #9eafba;border-radius:6px;background:#fffaf0;padding:8px 14px;color:#263c4c}
+
+.profile-assignment button,.ship-event-log button{border:1px solid #b4c2c9;border-radius:6px;background:#fffaf0;color:#254c64;padding:8px 12px;text-decoration:none}.crew-captain h3,.ship-event-log h3{font-family:Bangers,sans-serif;letter-spacing:.5px}
+/* Research pass: compact hierarchy, readable evidence and restrained original texture. */
+[hidden]{display:none!important}
+.voyage-ui .crew-page .page-intro.compact{min-height:0;padding-block:12px;margin-bottom:12px}
+.voyage-ui .crew-page .page-intro h2{font-size:clamp(28px,3vw,40px);margin:6px 0}
+.crew-captain{max-width:900px;padding:22px 125px 22px 24px;gap:20px;margin-bottom:48px}
+.crew-captain h3{font-size:30px;margin:6px 0}.crew-captain p{margin:6px 0;line-height:1.5}
+.crew-captain>.crew-directory-portrait{width:88px;height:110px;flex-shrink:0}
+.captain-map-actions{margin-top:12px;gap:8px}
+.crew-ocean-porthole{width:80px;height:108px;top:50%;right:22px;transform:translateY(-50%);border-radius:42px;box-shadow:inset 0 0 12px #16374855,0 0 0 2px #ddbd8180}
+.voyage-ui .crew-page .crew-card.specialist-card{padding:18px;gap:0;background-image:none}
+.crew-card .wanted-stamp{margin-bottom:10px;font-size:13px}
+.voyage-ui .crew-page .crew-card.specialist-card h3{margin:8px 0 4px;font-size:30px}
+.voyage-ui .crew-page .crew-card.specialist-card h4{margin:4px 0;font-size:14px}
+.voyage-ui .crew-page .crew-card.specialist-card p{margin:8px 0;line-height:1.5;font-size:13px}
+.voyage-ui .crew-page .crew-card.specialist-card .crew-directory-portrait{width:72px;height:90px}
+.crew-card .journal-open{min-height:44px;margin-top:10px}
+.crew-journal>header>.crew-directory-portrait{width:64px;height:80px;flex-shrink:0}
+.crew-journal nav{flex-wrap:wrap}.crew-journal nav button{min-height:44px}
+.profile-overview-toolbar{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.profile-overview-toolbar label{display:grid;gap:6px;font-size:12px}.profile-overview-toolbar select{min-height:44px;max-width:100%}
+.profile-overview-toolbar button{display:flex;align-items:center;gap:8px;min-height:44px;padding:10px 14px;border:1px solid #bcc6c9;border-radius:6px;background:#fffaf0;color:#254c64}
+.profile-assignment h4{display:flex;align-items:center;gap:8px;margin:0;font-size:16px}
+.profile-record-note{font-size:12px;color:#526574}.profile-work-record summary{cursor:pointer}.profile-work-record summary strong{display:block;margin-top:8px;overflow-wrap:anywhere}.profile-state{font-size:12px;color:#385b68}
+.profile-work-record>small,.profile-work-record>time{display:block;margin-top:10px;font-size:11px;color:#526574}.profile-work-empty{display:grid;justify-items:center;gap:12px;text-align:center;padding:24px 12px}
+.ship-event-log,.profile-assignment,.station-zoro .station-content,.station-luffy .station-content,.station-brief,.captain-current{background-image:none}
+.ship-event-log h3{display:flex;align-items:center;gap:10px}.ship-log-tools{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:20px 0 10px}
+.ship-event-log .ship-log-search{display:flex;align-items:center;gap:8px;flex:1;min-width:180px;padding:0 12px;border:1px solid #b4c2c9;border-radius:6px;background:#fffaf0}
+.ship-log-search input{width:100%;min-width:0;min-height:44px;border:0;background:transparent;color:#263c4c}.ship-log-tools select{min-height:44px}
+.ship-log-count{font-size:12px;color:#526574;margin-bottom:16px}
+.ship-event-log li{display:flex;gap:12px;padding-left:24px}.ship-event-log li:before{display:none}.log-entry-icon{position:absolute;left:-14px;top:0;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#eee2c9;color:#765529;border:1px solid #c8b899}
+.ship-event-log li>div{min-width:0;width:100%}.ship-event-log summary{padding:4px 0;min-height:44px}.ship-event-log .log-entry-label{display:flex;flex-wrap:wrap;gap:8px;font-size:12px;color:#526574}.ship-event-log summary strong{display:block;margin-top:6px;font-size:14px}.log-record-source{display:block;font-size:11px;margin-bottom:12px;overflow-wrap:anywhere}
+.ship-event-log details button,.profile-assignment button{display:inline-flex;align-items:center;gap:8px}.ship-log-empty{text-align:center;padding:30px 12px}.ship-log-empty h4{margin:12px 0 6px}.ship-log-empty p{font-size:13px}
+.quick-switcher .command-category{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#55727c;margin-bottom:4px}
+@media(hover:hover) and (pointer:fine){.crew-card .journal-open:hover,.profile-overview-toolbar button:hover{background:#e8dcc1}}
+@media(max-width:600px){.crew-captain{padding:20px;gap:12px}.crew-ocean-porthole{top:22px;right:22px;transform:none;width:64px;height:86px}.crew-captain>.crew-directory-portrait{width:64px;height:80px}.crew-captain h3{font-size:26px}.ship-log-tools{align-items:stretch}.ship-log-tools select{max-width:none;width:100%}}
+.crew-card-state{font-size:11px;color:#526574;margin-bottom:8px;padding:3px 8px;border:1px solid #b8b5a7;border-radius:20px}.crew-card-state:is(.approval,.input,.failed,.unknown){color:#7d381e;background:#f8e0c5}.crew-card-state.working{color:#1b646b;background:#e3eeea}
+.voyage-ui .crew-map .core-crew-grid{margin-inline:14px}
+.voyage-ui .mission-brief{background-color:#fffaf0;background-image:none}
+/* Official component integration adapters; source provenance in docs/crew-components-upstream.md. */
+.crew-beams>svg{position:absolute;inset:0;pointer-events:none;overflow:visible;fill:none}
+.crew-beams .crew-beam-pulse{animation:none;stroke-dasharray:none;stroke:none}
+.crew-captain,.ship-event-log,.profile-assignment,.mission-brief,.station-content{position:relative;isolation:isolate}
+.paper-material{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none;z-index:-1;opacity:.55}
+.paper-material>div{position:absolute!important;inset:0}
+.crew-ocean-porthole{background-size:cover;background-position:center}
+.crew-ocean-porthole>div{position:absolute!important;inset:0}
+.voyage-ui .crew-page .crew-card.specialist-card>.crew-profile-trigger{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:flex-start;gap:0;width:100%;margin:0;padding:0;border:0;background:transparent;color:inherit;text-align:center;font-weight:400;white-space:normal;min-width:0}
+.crew-profile-trigger>.crew-directory-portrait{flex-shrink:0}.crew-profile-trigger>small{font-size:11px;margin-top:auto;color:#526574;line-height:1.5}
+.crew-profile-trigger .profile-open-label{width:100%;display:block;box-sizing:border-box;padding:12px 10px;margin-top:14px;min-height:44px;border:1px solid #b4c2c9;border-radius:6px;background:#edf3f5;color:#254c64;font-size:12px;font-weight:600}
+.crew-profile-trigger .wanted-stamp{display:block}.crew-profile-trigger .crew-card-state{display:block}
+.voyage-ui .crew-page .crew-card.specialist-card{isolation:isolate;min-height:450px}
+.voyage-ui .crew-page .crew-card.specialist-card p{flex:1}.crew-page .crew-card:hover{transform:none}
+.crew-page .crew-profile-trigger:focus-visible{outline:3px solid #267d94;outline-offset:6px;border-radius:8px}
+@media(hover:hover) and (pointer:fine){.crew-profile-trigger:hover .profile-open-label{background:#dce9ed}}
+.quick-switcher [data-slot=command-input-wrapper]>div{display:flex;flex-direction:row-reverse;align-items:center;gap:10px;padding:12px;border:1px solid #526b7b;border-radius:8px;background:#142c3d}
+.quick-switcher [cmdk-input]{width:100%;min-width:0;background:transparent;border:0;outline:none;color:inherit;min-height:24px;font:inherit}
+.quick-switcher [data-slot=command-input-wrapper]:focus-within{outline:2px solid #f5cb81;outline-offset:2px}
+.quick-switcher .command-check{display:none}
+.ship-event-log .aceternity-timeline{position:relative;max-height:480px;overflow:auto;scrollbar-gutter:stable}
+.ship-event-log .aceternity-timeline-list{position:relative;max-height:none;overflow:visible;padding:0;margin:0;list-style:none}
+.ship-event-log .aceternity-timeline-entry{position:relative;display:flex;align-items:flex-start;gap:20px;padding:12px 12px 28px 0;border:0;min-width:0}
+.ship-event-log .aceternity-timeline-marker{position:sticky;top:8px;display:flex;align-items:center;flex:0 0 135px;z-index:1;min-width:0}
+.ship-event-log .aceternity-timeline-dot{position:absolute;left:4px;width:24px;height:24px;border-radius:50%;background:#f6efdf;display:grid;place-items:center;border:1px solid #b99c75}
+.ship-event-log .aceternity-timeline-dot-inner{width:8px;height:8px;border-radius:50%;background:#9f7242}
+.ship-event-log .aceternity-timeline-date{font-family:inherit;font-size:12px;font-weight:600;line-height:1.5;margin:0;padding-left:40px;color:#526574;overflow-wrap:anywhere}
+.ship-event-log .aceternity-timeline-content{position:relative;flex:1;min-width:0}.ship-event-log .aceternity-timeline-date-mobile{display:none}
+.ship-event-log .aceternity-timeline-spine{position:absolute;left:16px;top:0;width:2px;pointer-events:none;z-index:-1;background:#c7b89c;mask-image:linear-gradient(to bottom,transparent,black 8%,black 95%,transparent)}
+.ship-event-log .aceternity-timeline-ink{width:2px;background:linear-gradient(to top,#aa8149,#257c85,transparent)}
+.ship-event-log .log-entry-icon{display:none}
+@media(max-width:600px){.ship-event-log .aceternity-timeline-marker{flex-basis:28px}.ship-event-log .aceternity-timeline-date{display:none}.ship-event-log .aceternity-timeline-date-mobile{display:block;font-size:13px;margin:0 0 8px;font-family:inherit}.ship-event-log .aceternity-timeline-entry{gap:12px}.voyage-ui .crew-page .crew-card.specialist-card{min-height:450px}}
+
+/* Manga-inspired printed wanted posters. Real work state stays below the fictional masthead. */
+.voyage-ui .crew-page .crew-card.specialist-card{padding:18px 20px 14px;border:1px solid #947b51;border-top:1px solid #947b51;border-radius:2px;background-color:#ebd9b3;box-shadow:inset 0 0 24px #92714030,2px 4px 0 #553b221c;min-height:650px;color:#392c20}
+.voyage-ui .crew-page .crew-card.specialist-card:before{content:'';position:absolute;inset:7px;width:auto;height:auto;border-radius:0;background:none;border:1px solid #9f835f70;pointer-events:none;z-index:-1}
+.voyage-ui .crew-page .crew-card.specialist-card:after{display:none}
+.crew-page .crew-card .crew-number{display:none}
+.crew-card.specialist-card .paper-material{opacity:.72;mix-blend-mode:multiply}
+.crew-card.specialist-card .wanted-stamp,.captain-wanted .wanted-stamp{font-family:Georgia,'Times New Roman',serif;font-weight:900;letter-spacing:.025em;line-height:1;color:#3b2a1b;font-size:clamp(46px,5vw,70px);margin:0 0 12px;display:block;width:100%;text-shadow:1px 0 currentColor,-1px 0 currentColor}
+.wanted-photo{display:flex;align-items:center;justify-content:center;width:100%;height:210px;box-sizing:border-box;overflow:hidden;border:3px double #69503a;background:linear-gradient(135deg,#b8a58140,#e8dfcc,#ab947640);box-shadow:inset 0 0 25px #58412425}
+.voyage-ui .crew-page .crew-card.specialist-card .wanted-photo .crew-directory-portrait{width:160px;height:200px;flex:none;border-radius:0;mix-blend-mode:multiply;filter:sepia(.38) saturate(.65) contrast(1.08)}
+.crew-card .wanted-decree{font-family:Georgia,'Times New Roman',serif;font-size:21px;font-weight:700;letter-spacing:.13em;line-height:1.2;margin:12px 0 3px;color:#493422}
+.voyage-ui .crew-page .crew-card.specialist-card h3{font-family:Georgia,'Times New Roman',serif;font-size:35px;font-weight:900;text-transform:uppercase;line-height:1.15;letter-spacing:.025em;margin:4px 0 10px;color:#39291d}
+.wanted-imprint{display:block;width:100%;border-top:2px solid #796143;border-bottom:1px solid #796143;padding:8px 0;margin-bottom:12px;font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:.18em;font-weight:700;color:#59432d}
+.crew-card.specialist-card .crew-card-state{margin:0 0 8px;background:#fff8e9;border-color:#9a886c;color:#493e2f;font-size:12px}
+.voyage-ui .crew-page .crew-card.specialist-card h4{font-size:12px;letter-spacing:.055em;color:#58422e;line-height:1.5}
+.voyage-ui .crew-page .crew-card.specialist-card p{font-size:12px;color:#5c503f;margin:6px 0 10px;line-height:1.5}
+.crew-card.specialist-card .crew-profile-trigger>small{font-size:11px;color:#625541}
+.crew-card.specialist-card .profile-open-label{border-color:#8e7754;background:#f8efdc;color:#453322;border-radius:2px;margin-top:12px;font-size:12px}
+.crew-card.specialist-card .crew-advanced{border-top:0;margin-top:4px;color:#5e4a33}
+.captain-wanted{flex:0 0 130px;width:130px;display:flex;align-items:center;flex-direction:column;padding:9px 8px;background:#ead7b0;border:3px double #92774d;box-shadow:2px 3px 0 #0002;color:#39291d}
+.captain-wanted .wanted-stamp{font-size:21px;margin-bottom:7px;letter-spacing:0;text-align:center}
+.crew-captain .captain-wanted .crew-directory-portrait{width:96px;height:120px;border:1px solid #876c4b;border-radius:0;filter:sepia(.38) saturate(.65);mix-blend-mode:multiply}
+.captain-wanted .wanted-decree{font:700 10px/1.3 Georgia,serif;letter-spacing:.06em;margin-top:7px}.captain-wanted strong{font:900 11px/1.5 Georgia,serif;text-align:center}
+@media(hover:hover) and (pointer:fine){.crew-card.specialist-card .crew-profile-trigger:hover .profile-open-label{background:#ead5ac}}
+@media(max-width:600px){.crew-card.specialist-card .wanted-stamp{font-size:58px}.captain-wanted{flex-basis:auto}.voyage-ui .crew-page .crew-card.specialist-card{padding-inline:18px}}
+
+/* Full rectangular portrait plates; the original circular avatar atlas stays unchanged. */
+.crew-card.specialist-card .wanted-photo{height:auto;aspect-ratio:1.3;background-repeat:no-repeat;filter:sepia(.2) saturate(.75) contrast(1.04);flex:none;border:3px double #69503a;box-shadow:none}
+.voyage-ui .crew-page .crew-card.specialist-card h3{font-size:clamp(21px,2.4vw,31px);min-height:2.3em;display:flex;align-items:center;justify-content:center;margin-bottom:0}
+.wanted-reward{display:block;width:100%;color:#39291d}
+.wanted-bounty{display:block;font:700 clamp(22px,2.4vw,32px)/1.25 Georgia,serif;letter-spacing:.02em;white-space:nowrap;margin:3px 0 7px;font-variant-numeric:tabular-nums}
+.berry-symbol{text-decoration:line-through;text-decoration-style:double}
+.wanted-reward .wanted-imprint{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:0;padding:0 0 9px;letter-spacing:.05em}
+.wanted-imprint small{font:600 9px/1.3 Georgia,serif;text-align:left}.wanted-imprint b{font:900 22px/1 Georgia,serif;letter-spacing:.08em}
+.captain-wanted{flex-basis:180px;width:180px}
+.captain-wanted .wanted-stamp{font-size:30px}
+.captain-wanted .wanted-photo{height:145px;flex:none;background-repeat:no-repeat;filter:sepia(.2) saturate(.75)}
+.captain-wanted .wanted-bounty{font-size:16px;margin:4px 0}.captain-wanted .wanted-imprint{margin:0;padding-bottom:0;border:0}.captain-wanted .wanted-imprint b{font-size:13px}.captain-wanted .wanted-imprint small{font-size:7px}
+@media(max-width:600px){.captain-wanted{flex-basis:auto}.voyage-ui .crew-page .crew-card.specialist-card h3{font-size:26px}.wanted-bounty{font-size:26px}}
+
+/* Printed poster face, with Sunny work controls beneath the sheet. */
+@font-face{font-family:'Alfa Slab One';src:url('/fonts/alfa-slab-one.ttf') format('truetype');font-display:swap}
+@font-face{font-family:'IM Fell English';src:url('/fonts/im-fell-english.ttf') format('truetype');font-display:swap}
+.voyage-ui .crew-map .core-crew-grid{grid-template-columns:repeat(3,minmax(0,1fr));max-width:1100px;margin-inline:auto;gap:30px}
+.voyage-ui .crew-page .crew-card.specialist-card{padding:0;border:0;background:transparent;box-shadow:none;min-height:0}
+.voyage-ui .crew-page .crew-card.specialist-card:before{display:none}
+.wanted-sheet{position:relative;isolation:isolate;display:block;width:100%;padding:13px 15px 9px;box-sizing:border-box;background:#dcc69c;color:#35271c;box-shadow:0 3px 5px #39271938,inset 0 0 25px #78502150;clip-path:polygon(0 .6%,8% 0,21% .3%,38% 0,56% .4%,72% 0,89% .5%,100% .2%,99.7% 23%,100% 46%,99.6% 71%,100% 99.5%,83% 100%,63% 99.6%,41% 100%,22% 99.7%,0 100%,.4% 77%,0 52%,.3% 26%)}
+.wanted-sheet:after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 0 0,#64451f25,transparent 24%),radial-gradient(ellipse at 100% 100%,#64451f30,transparent 25%),linear-gradient(89deg,transparent 48.8%,#67492810 49.5%,#fff9df28 50%,transparent 50.7%);mix-blend-mode:multiply}
+.wanted-sheet .paper-material{opacity:.48;mix-blend-mode:multiply}
+.wanted-lettering{display:block;width:100%;height:auto;overflow:visible;fill:currentColor;margin:0 0 5px}
+.wanted-lettering text{font-family:'Alfa Slab One',Georgia,serif;font-size:83px;font-weight:400}
+.crew-card.specialist-card .wanted-photo{aspect-ratio:1.32;border:1px solid #554631;filter:sepia(.48) saturate(.62) contrast(.95);mix-blend-mode:multiply}
+.crew-card.specialist-card .wanted-decree{display:block;font:400 clamp(18px,2vw,26px)/1.1 'IM Fell English',serif;letter-spacing:.055em;margin:10px 0 0}
+.voyage-ui .crew-page .crew-card.specialist-card h3{display:block;min-height:0;margin:0;width:100%;line-height:1}
+.wanted-name{display:block;width:100%;height:auto;fill:currentColor}.wanted-name text{font-family:'IM Fell English',serif;font-weight:400;font-size:41px}
+.wanted-sheet .wanted-bounty{font-family:'IM Fell English',serif;font-weight:400;font-size:clamp(24px,2.9vw,37px);line-height:1.05;letter-spacing:.015em;margin:0 0 6px}
+.berry-symbol{text-decoration:none;display:inline-block;margin-right:.15em;font-family:'IM Fell English',serif}
+.wanted-sheet .wanted-imprint{border:0;margin:0;padding:0;align-items:flex-end;gap:5px}
+.wanted-imprint small{font-family:'IM Fell English',serif;font-weight:400;font-size:6px;line-height:1.3;letter-spacing:.04em;max-width:54%}
+.wanted-imprint b{font-family:'IM Fell English',serif;font-size:26px;font-weight:400;letter-spacing:.025em}
+.wanted-work{display:flex;flex:1;flex-direction:column;align-items:center;width:100%;padding:15px 6px 0;box-sizing:border-box}
+.crew-card.specialist-card .wanted-work .crew-card-state{margin:0 0 6px}
+.voyage-ui .crew-page .crew-card.specialist-card .wanted-work h4{font-size:12px;margin:0;color:#314554}
+.voyage-ui .crew-page .crew-card.specialist-card .wanted-work p{font-size:12px;margin:7px 0;color:#526574;flex:0;line-height:1.45}
+.wanted-work>small{font-size:11px;color:#65717a;margin-top:auto}
+.crew-card.specialist-card .wanted-work .profile-open-label{background:#fffdf7;margin-top:10px;padding:10px;color:#324955;border-color:#b8b7a8}
+.crew-card.specialist-card .crew-advanced{margin-top:4px;padding-bottom:0}
+.captain-wanted{background:#dcc69c;border:0;box-shadow:inset 0 0 18px #78502150,0 3px 5px #0003;padding:10px;gap:0}
+.captain-wanted .wanted-lettering{margin-bottom:3px}.captain-wanted .wanted-photo{filter:sepia(.48) saturate(.62);height:118px;mix-blend-mode:multiply;border:1px solid #554631}
+.captain-wanted .wanted-decree,.captain-wanted strong,.captain-wanted .wanted-bounty{font-family:'IM Fell English',serif;font-weight:400}
+.captain-wanted strong{font-size:14px;line-height:1.2}.captain-wanted .wanted-decree{margin:6px 0 2px;font-size:12px}.captain-wanted .wanted-bounty{font-size:19px}.captain-wanted .wanted-imprint small{font-size:4px}.captain-wanted .wanted-imprint b{font-size:14px}
+@media(max-width:1000px){.voyage-ui .crew-map .core-crew-grid{grid-template-columns:repeat(2,minmax(0,1fr));max-width:760px}.wanted-sheet .wanted-bounty{font-size:34px}}
+@media(max-width:600px){.voyage-ui .crew-map .core-crew-grid{grid-template-columns:minmax(0,1fr);max-width:350px}.voyage-ui .crew-page .crew-card.specialist-card{padding:0}.wanted-sheet .wanted-bounty{font-size:34px}.crew-card.specialist-card .wanted-decree{font-size:24px}}
+.voyage-ui .crew-page .crew-card.specialist-card svg.wanted-lettering,.voyage-ui .crew-page .captain-wanted svg.wanted-lettering{width:100%;height:auto;max-width:none;aspect-ratio:360/94;flex:none}
+.voyage-ui .crew-page .crew-card.specialist-card svg.wanted-name{width:100%;height:auto;max-width:none;aspect-ratio:360/48;flex:none}
+.crew-profile-trigger .wanted-sheet [data-slot]{width:100%}
+.wanted-sheet,.captain-wanted{background-color:#e5d3ad}
+.crew-card.specialist-card .wanted-photo,.captain-wanted .wanted-photo{mix-blend-mode:normal;filter:sepia(.25) saturate(.72) contrast(.98)}
+
+/* Luffy reference layout: high-contrast type and a contained poster, not a badge. */
+@font-face{font-family:'Libre Bodoni';src:url('/fonts/libre-bodoni.ttf') format('truetype');font-weight:400 700;font-display:swap}
+.captain-wanted{flex-basis:240px;width:240px;padding:12px;background:#e4d0a4;isolation:isolate}
+.captain-wanted .wanted-lettering text{font-family:'Libre Bodoni',serif;font-weight:700;font-size:88px}
+.captain-wanted .wanted-photo{height:160px}
+.captain-wanted .wanted-decree{font-family:'Libre Bodoni',serif;font-weight:700;font-size:17px;letter-spacing:.08em;margin:8px 0 2px}
+.captain-poster-name{display:block;width:100%}
+.voyage-ui .crew-page .captain-wanted svg.wanted-name{display:block;width:100%;height:auto;max-width:none;aspect-ratio:360/48}
+.captain-wanted .wanted-name text{font-family:'Libre Bodoni',serif;font-weight:700}
+.captain-wanted .wanted-bounty{font-size:24px;letter-spacing:.07em;line-height:1.3;margin:2px 0 4px}
+.captain-wanted .wanted-imprint b{font-family:'Libre Bodoni',serif;font-size:23px}.captain-wanted .wanted-imprint small{font-size:5px}
+@media(max-width:600px){.captain-wanted{flex-basis:auto;width:180px;padding:9px}.captain-wanted .wanted-photo{height:120px}.captain-wanted .wanted-decree{font-size:12px}.captain-wanted .wanted-bounty{font-size:18px}.captain-wanted .wanted-imprint b{font-size:16px}.captain-wanted .wanted-imprint small{font-size:4px}}
+
+/* Complete sourced poster: retain its printed lettering, colors and aspect ratio. */
+.captain-wanted.captain-wanted-image{padding:0;background:none;box-shadow:0 3px 5px #0003}
+.captain-wanted-image img{display:block;width:100%;height:auto;max-width:100%;filter:none;object-fit:contain}
+
+/* Full sourced sheets retain every printed detail, without extra weathering. */
+.wanted-sheet.wanted-sheet-sourced{padding:0;clip-path:none;background:transparent;box-shadow:0 3px 5px #39271938;aspect-ratio:800/1171}
+.wanted-sheet-sourced:after{display:none}
+.wanted-sheet-sourced .sourced-wanted-poster{display:block;width:100%;height:100%;object-fit:contain;filter:none;border:0}
+.crew-profile-trigger .wanted-sheet .poster-accessible-title{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.crew-profile-masthead{display:block;font:32px/1.25 'IM Fell English',serif;text-align:center;margin-bottom:12px}
+.poster-unverified{display:block;font-size:13px;line-height:1.5;text-align:center;margin-block:12px}
+
+.wanted-sheet.wanted-sheet-profile{aspect-ratio:800/1171;display:flex;flex-direction:column}
+.wanted-sheet-profile .wanted-photo{flex:1;min-height:0;height:auto}

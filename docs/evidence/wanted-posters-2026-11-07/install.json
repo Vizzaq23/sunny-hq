@@ -1,0 +1,12 @@
+{
+  "destination": "C:\\Users\\Quintin\\AppData\\Local\\Programs\\Sunny HQ\\versions\\0.11.0-wanted-f054b27",
+  "verifiedFiles": 252,
+  "sourceCommit": "f054b2787aeb13f3af4b9f75c8f94044a931792f",
+  "build": {
+    "appVersion": "0.11.0",
+    "buildId": "6eb9fbfe25f6c2a1fcd79b31d193307b85e99f35c84ca7e6f34209adeb535884",
+    "fingerprintKind": "source-inputs-sha256",
+    "sourceCommit": "f054b2787aeb13f3af4b9f75c8f94044a931792f",
+    "sourceDirty": false
+  }
+}

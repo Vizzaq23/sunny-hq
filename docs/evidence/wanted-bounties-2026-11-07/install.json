@@ -1,0 +1,11 @@
+{
+  "destination": "C:\\Users\\Quintin\\AppData\\Local\\Programs\\Sunny HQ\\versions\\0.11.0-bounties-bd18603",
+  "verifiedFiles": 252,
+  "build": {
+    "appVersion": "0.11.0",
+    "buildId": "9a50b5795b92c90cf2b8f7a753c31534a3ab93d78c78f0906bf0704a1c2eb9bb",
+    "fingerprintKind": "source-inputs-sha256",
+    "sourceCommit": "bd186039f168f29a8ba62d0bbfc93319cc6f6311",
+    "sourceDirty": false
+  }
+}

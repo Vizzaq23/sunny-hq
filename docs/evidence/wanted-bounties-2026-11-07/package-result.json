@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "status": "completed",
+  "accepted": true,
+  "cleanup": "observed",
+  "lastStage": "store-reopen-enter",
+  "elapsedMs": 7202,
+  "scenario": "startup"
+}

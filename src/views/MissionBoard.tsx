@@ -1,3 +1,4 @@
+import {PaperSurface} from '../components/ShipMaterials';
 import {AcceptedResultSave} from '../components/AcceptedResultSave';
 import {CriterionEvidence} from '../components/CriterionEvidence';
 import {MissionImages} from '../components/MissionImages';
@@ -56,7 +57,7 @@ export function MissionBoard({snapshot,invoke,onOpen,focusMission,onSelectMissio
  return <section className={`page mission-board ${briefOnly?'mission-board-brief-only':''}`} aria-label="Mission board">
   <header className="page-intro"><div><span className="eyebrow">The bounty board · Captain’s orders</span><h2>Mission board</h2><p>Give the crew a clear objective. Review the evidence before calling the voyage complete.</p></div></header>
   <div className="mission-board-layout">
-   <section className="mission-brief panel"><h3>Set a course</h3>
+   <section className="mission-brief panel"><PaperSurface/><h3>Set a course</h3>
     <label>Project<select aria-label="Mission project" disabled={busy} value={project?.id??''} onChange={e=>{const id=e.target.value;setProjectId(id);if(briefOnly&&id)void updateWorkspace(invoke,{context:{projectId:id,surface:'deck',returnTo:{view:'ship',projectId:id}}}).catch(error=>setError('Project selection is unsaved: '+String(error)));}}><option value="">Choose a project</option>{snapshot.projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
     <label>Result<select aria-label="Goal result kind" disabled={busy} value={resultKind} onChange={e=>setResultKind(e.target.value as 'reply'|'playable')}><option value="reply">Reviewed reply</option><option value="playable">Playable build</option></select></label>{resultKind==='playable'?<label className="brief-descriptor">Committed playable descriptor<input aria-label="Playable descriptor path" disabled={busy} maxLength={1000} value={descriptorPath} onChange={e=>setDescriptorPath(e.target.value)} placeholder="playable.json"/></label>:null}
     <label className="brief-title">Mission title<input aria-label="Mission title" disabled={busy} maxLength={200} value={title} onChange={e=>setTitle(e.target.value)} placeholder="Build the inventory screen"/></label>

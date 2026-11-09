@@ -152,3 +152,35 @@ Reused existing crew and island artwork without changing asset bytes, licensing,
 The existing `luffy-captains-den.png` is reused as a decorative goal-panel header accent; existing ship art remains in the home header. No image, atlas or room geometry bytes changed. Official Shueisha/VIZ/Toei/card-game material was reference only; no official images or logo fonts were bundled. Existing Lucide supplies the phone-call approval icon.
 
 New local fonts are unmodified Bangers Regular and Barlow Regular/SemiBold under SIL OFL 1.1, with full notices, exact upstream links and SHA256 values in [font provenance](../fonts/README.md). These are not official One Piece fonts. DynaFont Sōgeitai, optional textures and third-party pirate artwork were not added. Runtime font loading remains local/offline. See [visual decision and evidence](../../docs/shipboard-design-2026-11-06.md).
+
+
+## Crew map treatment — 2026-11-07
+
+Existing studio CrewPortrait and crew badges are reused unchanged. The crew map, parchment fibers and decorative sea porthole are original authored SVG/CSS; no image/shader/font bytes or atlas geometry changed, and no third-party component source was copied. See [decision and references](../../docs/crew-map-2026-11-07.md).
+
+## 2026-11-07 — original parchment grain
+
+`parchment-grain.svg` is an original SVG fractal-noise material authored for Sunny's crew component research pass. No external image or shader source was copied. Static low-opacity use on posters, logs and work briefs preserves text contrast. Existing portrait atlas geometry is unchanged. See `docs/crew-components-research-2026-11-07.md` for reference and license research; the sea window is original CSS, not a vendored Paper shader.
+
+## 2026-11-07 — actual Paper shader integration
+
+The earlier `parchment-grain.svg` custom approximation is removed. `PaperTexture` and `Water` are imported from the real Apache-2.0 `@paper-design/shaders-react` package. `crew-ocean.svg` is original Sunny vector art authored as the local image input for Water and its GPU-loss still fallback; no external artwork is fetched at runtime. Existing crew portraits and atlas geometry are unchanged. Upstream source/terms and packaged notices: [actual component integration](../../docs/crew-components-upstream.md).
+
+## 2026-11-07 — wanted-poster directory
+
+Original CSS/HTML poster framing and serif typography reuse existing crew-sheet.png unchanged. No manga panels, new third-party images or fake monetary/status data are introduced. Existing PaperTexture and Motion Primitives profile components remain in use; see docs/art-bible.md.
+
+## wanted-allies.png — 2026-11-07
+Generated original portrait atlas, 1254×1254, 2 columns × 2 rows: Law, Ace / Vivi, Perona. Source: C:/Users/Quintin/.codex/generated_images/01a1b7ef-2f6d-7933-b1d7-ba8c4f8b8d3b/exec-58def0c7-c170-4adf-857c-f8c4b7e29857.png. Image-generation prompt requested full-bleed chest-up manga/anime ink portraits, sky/ocean backgrounds, warm restrained colors and no text/margins/circular masks. No commercial reference asset copied. Used only in poster frames; existing animated atlases unchanged. Main-crew replacement generation was rejected; the existing crew-sheet.png remains unchanged and is cropped via CSS to fill the rectangular frames. See docs/wanted-poster-references.md for canonical bounty data and distinctions from official poster photographs.
+
+2026-11-07 print refinement: original CSS paper edge/fold/stain treatment and SVG text layout over existing portrait art, with locally bundled OFL Alfa Slab One/IM Fell English (not official anime fonts). No new copied reference images. See public/fonts/README.md and docs/wanted-poster-references.md.
+
+
+## Sourced Gear 5 poster — 2026-11-07
+User explicitly requested using the actual online poster instead of generation. For this local build, the entire unmodified 600×878 JPEG from https://gear5world.com/cdn/shop/files/affiche_wanted_one_piece_luffy_gear_5.jpg?v=1737373110&width=600 replaces the captain HTML reconstruction. Source page: https://gear5world.com/en/products/affiche-one-piece-wanted-luffy-gear-5. SHA256: 6c5acd1ed60094787f970994f983ffd4ca5c15e29d37be63558cf6083f417ce1. This is a sourced retailer reproduction, not a verified pixel-identical manga scan or original Sunny art. No open redistribution license was found; this specific user-directed local asset exception does not authorize publication or general commercial-asset scraping. Do not publish this image as MIT/Apache/OFL or claim ownership. Official comparison: https://store.toei-anim.co.jp/shop/g/gMOVONP065224/ (sample-watermarked preview, not used); rights notice credits Eiichiro Oda/Shueisha/Fuji Television/Toei Animation.
+The image is served locally, never hotlinked; full content is preserved without cropping, recoloring, watermark removal or generated text. Descriptive alt text includes name, Gear 5 and story bounty. Captain controls, beam masks and event semantics are unchanged. Supersedes the previous missing-Gear-5-art limitation for this local build.
+
+
+## Remaining sourced crew posters — 2026-11-07
+At the captain’s explicit request to do the same for everyone, nine Straw Hat specialist sheets plus Law and Ace now use complete unmodified retailer JPEGs. Sources and SHA256 values: public/assets/wanted/sources.json. All eleven source images were visually inspected: Zoro 1,111,000,000; Nami 366,000,000; Usopp 500,000,000; Sanji 1,032,000,000; Chopper 1,000; Robin 930,000,000; Franky 394,000,000 (Sunny photograph); Brook 383,000,000 (concert design); Jinbe 1,100,000,000; Law 3,000,000,000; Ace 550,000,000 (last known). Luffy’s existing sourced image remains. These are retailer reproductions, not verified exact manga scans. No open redistribution license found; scoped user-directed local use only, no publication authorization. No generated artwork, cropping, recoloring, watermark removal, external runtime fetches or atlas changes.
+No verified canon poster was found for Vivi or Perona; their existing art is explicitly labelled CREW PROFILE / No verified canon wanted poster / Bounty not published, without pretending to be official wanted sheets. Full sheets retain equal core card dimensions and readable alt text; work controls and authoritative event masks remain. Actual PaperTexture remains on logs, mission briefs and fallback profile sheets; it no longer overlays sourced artwork.

@@ -51,11 +51,11 @@ async function check({js,wait,fill,select,click,nav,screenshot,win,localFixture}
  await fill('#luffy-objective','Preserve this unsent request.');await click('.captain-starters button');
  assert.ok((await js('document.querySelector("#luffy-objective").value')).startsWith('Preserve this unsent request.\n\n'));
  assert.equal(localFixture.lastChat(),undefined,'starter requests do not contact a model');await fill('#luffy-objective','');
- await nav('Crew');assert.equal(await js('document.querySelectorAll(".core-crew-grid>.crew-card").length'),10);
+ await nav('Crew');assert.equal(await js('document.querySelectorAll(".core-crew-grid>.crew-card").length'),9);
  await screenshot('crew-primary-roster.png');
  assert.equal(await js('document.querySelector(".crew-extra-roster").open'),false);assert.equal(await js('document.querySelectorAll(".crew-extra-roster .crew-card").length'),4);
  assert.match(await js('document.querySelector(".crew-reporter").textContent'),/Morgans.*sanitized/s);
- await js('(()=>{const card=Array.from(document.querySelectorAll(".core-crew-grid>.crew-card")).find(card=>card.querySelector("h3").textContent==="Brook");card.querySelector(".journal-open").focus();card.querySelector(".journal-open").click();})()');
+ await js('(()=>{const card=document.querySelector(".core-crew-grid>[data-crew-id=brook]");card.querySelector(".journal-open").focus();card.querySelector(".journal-open").click();})()');
  await wait('Boolean(document.querySelector(".local-crew-panel"))');
  await screenshot('crew-profile-purpose.png');
  assert.ok(await js(`Boolean(document.querySelector('[aria-label="Ask Brook"]'))`),'profile opens directly to its specialist conversation');
@@ -73,7 +73,7 @@ async function check({js,wait,fill,select,click,nav,screenshot,win,localFixture}
   await profileButton('Refresh local models');await wait('Boolean(document.querySelector(".toast.error"))');await new Promise(resolve=>setTimeout(resolve,3800));
   assert.match(await js('document.querySelector(".toast.error")?.textContent??""'),/Synthetic model catalog unavailable/,'errors remain until dismissed');
   assert.equal(await js('document.querySelector(".toast.error span").getAttribute("role")'),'alert');
-  await key('Escape');await wait('!document.querySelector(".crew-journal")');assert.equal(await js('document.activeElement.className'),'journal-open');
+  await key('Escape');await wait('!document.querySelector(".crew-journal")');assert.equal(await js('document.activeElement===document.querySelector("[data-crew-id=brook] .journal-open")'),true);
   await click('.toast.error button');await wait('!document.querySelector(".toast.error")');
  }finally{localFixture.hub.localCrew.request=request;}
  await wait('!document.querySelector(".crew-journal")');

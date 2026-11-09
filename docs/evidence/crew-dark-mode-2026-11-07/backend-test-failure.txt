@@ -1,0 +1,4 @@
+not ok 168 - genuine durable pre-start batch rejects missing readonly binding without sibling effects
+  duration_ms: 156151.5496
+  location: 'C:\\Users\\Quintin\\Documents\\GitHub\\sunny-hq\\.sunny-dev\\crew-map\\tests\\checkpoint-journey-faults.test.cjs:3:58'
+  failureType: 'testCodeFailure'

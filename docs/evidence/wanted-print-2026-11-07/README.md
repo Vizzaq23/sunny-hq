@@ -1,0 +1,11 @@
+# Printed wanted-poster refinement — 2026-11-07
+
+Installed product source b959b78 on codex/crew-map. Replaced generic Georgia with offline OFL Alfa Slab One and IM Fell English, fitted SVG masthead/name lettering, tighter printed-poster spacing, middle-dot names, bounty terminal dash and small Marine footer. Worn sheet edges, folds and toned paper are original CSS over actual PaperTexture; work UI sits below the sheet. Existing character illustrations are retained. Fonts approximate the print treatment; neither font nor portraits are claimed to be exact anime replicas. See ../../wanted-poster-references.md.
+
+Build/typecheck, Windows packaging, 12 focused event/log/navigation checks, final crew-map fixture (font availability, readable heading dimensions/no overflow, equal sizing, native profile/drafts/focus, actual beams, reduced motion and shaders), and packaged startup passed. Desktop and mobile screenshots visually reviewed. Initial broad workflow failed on its old mixed-case Brook text selector after uppercase SVG lettering was introduced. Retained failure here; selector corrected to stable data-crew-id without removing any profile assertions. Full backend suite was not rerun for this presentation-only change; its earlier 1740-test result remains historical.
+
+Installed side-by-side at LocalAppData/Programs/Sunny HQ/versions/0.11.0-print-b959b78. All 252 distribution files hash-matched; current SQLite backed up with integrity ok; prior versions retained. Desktop/Start Menu shortcut targets verified. Closed only previous bounties-bd18603 processes, launched updated app and verified its installed document URL. Native Crew navigation did not complete during user input; app left on Luffy. No mission started, gate changes, push or merge. Fixture screenshots only.
+
+The next broad run exposed the same display-text selector in the Franky helper. All crew-card identity lookups in affected fixture helpers now use data-crew-id (Brook, Franky, Chopper, and Sanji filter check); profile assertions remain intact. The failed runs are retained. These follow-up changes affect fixture code only; installed product source remains b959b78.
+
+Final broad workflow rerun: passed all 68 checks with corrected stable-ID fixture selectors, exit 0. No product changes after packaged source b959b78.

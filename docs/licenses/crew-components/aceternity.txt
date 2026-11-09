@@ -1,0 +1,30 @@
+Aceternity License — retrieved 2026-11-07 from https://ui.aceternity.com/licence
+Applies to the downloaded Timeline item at https://ui.aceternity.com/registry/timeline.json.
+This is not labelled MIT. Sunny uses it as a component of a personal end product; it is not offered as a reusable template/component product.
+
+Overview
+This agreement outlines the permissions granted by our Aceternity License for each item available for purchase or download on ui.aceternity.com. If purchasing for multiple team members, please support the creators by selecting the appropriate team size license during checkout.
+
+License Grant
+The Aceternity License provides you with an ongoing, non-exclusive, worldwide license to use the digital work (“Item”).
+
+Permitted Uses
+Create End Products: You can create unlimited end products for yourself or your clients.
+Distribution: End products may be sold, licensed, sub-licensed, or freely distributed.
+Modification: You may modify, manipulate, and combine the Item with other works to create derivative works. These resulting works are subject to this license.
+Multi-use: This license allows you to use an Item multiple times in various projects.
+
+Prohibited Uses
+Re-distribution: You cannot re-distribute the Item as a stock image or its source files, regardless of modifications.
+Marketplace Restrictions: You cannot sell, resell, or distribute the Item or derivative works on any marketplace, including ui.aceternity.com and other platforms.
+Template Creation: You cannot create themes, templates, or derivative products to sell on any marketplace.
+
+Enforcement
+Violation of these terms will be pursued to the fullest extent of the law.
+
+Sample End Products
+Commercial or personal websites; mobile apps; web apps; games; illustrations; wireframes; presentations; videos.
+
+Additional Terms
+Third-Party Components: Some Items may contain components sourced from elsewhere with different license terms, such as open source or Creative Commons licenses. These components will be identified in the Item’s description or downloaded files and will be governed by their respective licenses.
+Ownership: The author retains ownership of the Item but grants you a license under these terms. This agreement is between you and the Item’s author. ui.aceternity.com (Aceternity) is not a party to this agreement.

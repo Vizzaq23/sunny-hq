@@ -1,5 +1,27 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {setup,binding}=require('./helpers/checkpoint-journey.cjs');
+async function deliveryContext(f,producer){
+ const status=await f.status(producer);
+ if(status.context)return status.context;
+ // Closing invalidates provider sessions before the delivery poll necessarily drains.
+ const detail=JSON.stringify({status,quiescing:f.hub.quiescing,closed:f.hub.closed});
+ assert.ok(f.hub.quiescing||f.hub.closed,detail);
+ assert.equal(status.status,'rejected',detail);
+ assert.equal(status.code,'SESSION_STALE',detail);
+ assert.equal(status.effectsStarted,false,detail);
+ return null;
+}
+test('three-wave polling accepts only the actual closed-session response',async t=>{
+ const f=await require('./helpers/journey-fixture.cjs').journeyFixture(t,{checkpoint:true,threeWave:true});
+ assert.equal((await f.start()).started,true);const producer=f.turns[0];
+ assert.ok((await deliveryContext(f,producer)).run);
+ const closing=f.hub.close();
+ assert.equal(await deliveryContext(f,producer),null);await closing;
+ for(const status of [{status:'rejected',code:'OTHER',effectsStarted:false},{status:'rejected',code:'SESSION_STALE',effectsStarted:true}])
+  await assert.rejects(deliveryContext({status:async()=>status,hub:{closed:true}},producer));
+ await assert.rejects(deliveryContext({status:async()=>({status:'rejected',code:'SESSION_STALE',effectsStarted:false}),hub:{}},producer));
+});
+
 for(const mode of ['readonly binding','overlap receipt'])test('genuine durable pre-start batch rejects missing '+mode+' without sibling effects',{timeout:180000},async t=>{
  const f=await setup(t),wake=f.hub.wakeCrewScheduler.bind(f.hub);let intercepted=false,pristine,strictError,pumping;
  f.hub.wakeCrewScheduler=id=>{const run=f.hub.state.runs[0];if(!intercepted&&run.deliveries?.[0]?.productionWave?.checkpoints.length){intercepted=true;f.noSuccessors();pristine=structuredClone(run);require('../desktop/supervision-schema.cjs').validateSupervisedRun(pristine);assert.deepEqual(f.snapshot().missionBook.runs[0].deliveries[0].productionWave,pristine.deliveries[0].productionWave);const target=run.assignments.find(a=>a.id===(mode==='readonly binding'?'read-next':'compose'));if(mode==='readonly binding'){delete target.checkpointBinding;target.baseCommit=run.currentEpoch.productionWaves.original.find(a=>a.id===target.id).baseCommit;}else delete target.ownershipTransfers;assert.deepEqual(run.deliveries[0].productionWave,pristine.deliveries[0].productionWave);try{require('../desktop/supervision-schema.cjs').validateSupervisedRun(run);}catch(error){strictError=error;}pumping=f.hub.scheduler().pump(id).catch(error=>error);return;}return wake(id);};
@@ -35,7 +57,7 @@ test('ordinary three-wave wider owner hands distinct child regions through two r
  const f=await require('./helpers/journey-fixture.cjs').journeyFixture(t,{checkpoint:true,threeWave:true});assert.equal((await f.start()).started,true);const producer=f.turns[0],context=(await f.status(producer)).context;
  const make=(id,paths,deps=[],review=false)=>({id,crewId:review?'zoro':'franky',roleId:review?'reviewer':'builder',capability:review?'review':'implementation',objective:'Actual three-wave '+id,ownedPaths:paths,dependencies:deps,criteriaIds:context.criteria.map(c=>c.id),baseCommit:context.checkpoint.headCommit,state:'queued'});
  const assignments=[make('a',['src']),make('b',['src/a'],['a']),make('c',['src/b'],['a','b']),make('review-one',[],['c'],true),make('review-two',[],['c'],true)];assert.ok((await f.call(producer,'sunny_plan',{...binding(context),decision:{id:'plan',option:'Three checked waves',reason:'Retain wider ancestor ownership',dissent:[],owner:'luffy',nextAction:'Execute',reopenEvidence:'Changed source'},assignments})).assignmentIds);await f.until(()=>f.turns.length===2,60000);
- const pending=(async()=>{for(;;){const c=(await f.status(producer)).context;const out=await f.call(producer,'sunny_deliver',{...binding(c),missionId:c.mission.id,attemptId:c.mission.attemptId,producerAssignmentId:'a',result:{kind:'reply'}});if(out.code!=='STALE_REVISION'&&out.status!=='pending')return out;}})();
+ const pending=(async()=>{for(;;){const c=await deliveryContext(f,producer);if(!c)return {status:'rejected',code:'SESSION_STALE',effectsStarted:false};const out=await f.call(producer,'sunny_deliver',{...binding(c),missionId:c.mission.id,attemptId:c.mission.attemptId,producerAssignmentId:'a',result:{kind:'reply'}});if(out.code!=='STALE_REVISION'&&out.status!=='pending')return out;}})();
  const author=f.turns[1],rootA=author.request.cwd;fs.writeFileSync(path.join(rootA,'src/alpha.cjs'),'module.exports=()=>42;\n');fs.writeFileSync(path.join(rootA,'src/beta.cjs'),"module.exports=name=>'Hello '+name;\n");f.git(rootA,['add','src']);f.git(rootA,['commit','-m','Actual wider owner behavior']);await f.notify(author);
  await f.until(()=>f.hub.state.runs[0].deliveries[0].productionWave.operation||f.hub.state.runs[0].deliveries[0].productionWave.checkpoints.length===1,60000);await f.until(()=>f.hub.state.runs[0].deliveries[0].productionWave.checkpoints.length===1,60000);await f.until(()=>f.turns.length===3,60000);const first=structuredClone(f.hub.state.runs[0].deliveries[0].productionWave.checkpoints[0]),middle=f.turns[2],rootB=middle.request.cwd;assert.equal(f.git(rootB,['rev-parse','HEAD']),first.source.headCommit);assert.deepEqual(f.snapshot().missionBook.runs[0].deliveries[0].productionWave.checkpoints,[first]);const b=f.hub.state.runs[0].assignments.find(a=>a.id==='b');assert.equal(b.baseCommit,first.source.headCommit);assert.equal(b.checkpointBinding.checkpointId,first.id);assert.deepEqual(b.ownershipTransfers,[{fromAssignmentId:'a',fromWorkspaceId:first.prefix[0].workspaceId,source:first.prefix[0].source,newBase:first.source.headCommit}]);assert.equal(f.hub.state.runs[0].assignments.find(a=>a.id==='c').workspaceId,undefined);
  fs.mkdirSync(path.join(rootB,'src/a'));fs.writeFileSync(path.join(rootB,'src/a/middle.cjs'),"module.exports=()=>require('../alpha.cjs')()+1;\n");assert.equal(require(path.join(rootB,'src/a/middle.cjs'))(),43);f.git(rootB,['add','src/a']);f.git(rootB,['commit','-m','Actual narrow middle contribution']);await f.notify(middle);

@@ -9,13 +9,13 @@ test('independent Git evidence reads progress together and all settle before rej
   calls.push(args.join(' '));
   if(args[0]==='rev-parse'&&args[1]==='--show-toplevel')return root;
   if(args[0]==='ls-files'&&args[1]==='-v'){await held;return '';}
-  if(args[0]==='branch')throw failure;
+  if(args[0]==='rev-parse')throw failure;
   return '';
  };
  let settled=false;const pending=evidence.gitState(root);pending.then(()=>settled=true,()=>settled=true);
  try{
   await new Promise(resolve=>setImmediate(resolve));
-  assert.equal(calls.length,7,'all six independent reads start despite one delayed reply');
+  assert.equal(calls.length,5,'all four independent reads start despite one delayed reply');
   assert.equal(settled,false,'a failed read cannot leave another owned child pending');
   release();await assert.rejects(pending,error=>error===failure);
  }finally{release();await Promise.allSettled([pending]);}
@@ -42,6 +42,13 @@ test('Git evidence fingerprints actual dirty and untracked content',async t=>{
 });
 test('Git evidence refuses nested project roots',async t=>{
  const {root}=repo(t);fs.mkdirSync(path.join(root,'nested'));await assert.rejects(new MissionEvidence().gitState(path.join(root,'nested')),/repository root/i);
+});
+
+test('batched Git identity preserves branch and detached fingerprints including ambiguous short refs',async t=>{
+ const {root,git}=repo(t),evidence=new MissionEvidence();git('checkout','-b','crew-proof');git('tag','crew-proof');
+ const expected=branch=>require('node:crypto').createHash('sha256').update(git('rev-parse','HEAD').toString().trim()).update('\0').update(branch).update('\0').update(git('status','--porcelain=v1','-z','--untracked-files=all')).update('\0').update(git('diff','HEAD','--no-ext-diff','--no-textconv','--binary')).digest('hex');
+ const branch=await evidence.gitState(root);assert.equal(branch.branch,'crew-proof');assert.equal(branch.fingerprint,expected('crew-proof'));
+ git('checkout','--detach');const detached=await evidence.gitState(root);assert.equal(detached.branch,'(detached)');assert.equal(detached.fingerprint,expected(''));
 });
 
 test('Git evidence identifies a Windows short-path repository without accepting its child', {skip:process.platform!=='win32'},async t=>{

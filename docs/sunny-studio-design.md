@@ -142,3 +142,46 @@ integration is the correction; neither prior branch's tests alone qualify the
 combined app. The preliminary 7968827 suite was stopped after installation and
 partial tests, with observed owned-process cleanup; it is not a pass. Fresh
 combined-source validation and installation evidence follows below.
+
+### Verified combined update — 2026-11-09
+
+Application candidate `ca4b7373f02ff8aa8d1e751d781da5cf25d96d54` combines the
+captain-selected posters, crew map and appearance with M1–M7, repaired ship
+geometry/loading and selectable recorded handoff conversations. The newer
+combined build's diagnostic and acceptance dark surfaces are also preserved.
+
+[Machine evidence](evidence/wanted-2026-11-09/qualification.json) records:
+
+- Clean Node 24.18.0 locked installation and Electron installation passed.
+  The full test invocation was interrupted by a machine restart, not a reported
+  test failure. Completed files account for 1,563 top-level and 10 nested passing
+  tests. The interrupted `supervised-journey.test.cjs` and every later test file
+  were rerun in full: 229 passed, zero failed. Combined coverage is 1,802 tests;
+  this is explicitly not an uninterrupted green full-suite run. Exact log hashes
+  and the resume boundary are retained in the evidence.
+- `npm run build` passed, including TypeScript, with the exact clean candidate
+  identity. Core native workflow passed 68 checks. Studio captures (11), handoffs
+  (16), voyage (17), review (11), accepted work (15) and the crew-map fixture passed.
+- All 18 exact-package recovery/control/interface/playable/journey/motion/audio
+  scenarios passed with owned-process cleanup observed; no threshold changed.
+- Inspected final fixture screenshots show full sourced posters, aligned ship and
+  actors, speech bubbles with navigation, compact layout and enlarged text.
+  Screenshots remain local under `.sunny-dev/wanted-final-3/`; their hashes and
+  paths are recorded. They show labelled sample work, not live provider activity.
+- Installed `0.11.0-wanted-ca4b737` alongside prior versions; all 253 application
+  files matched the qualified package. Backed up 107 profile files with denied
+  writes during copying and verified hashes. Desktop and Start Menu targets were
+  reread. Native Computer Use confirmed the installed file URL, rendered Home,
+  moving crew on the repaired ship and wanted-poster Crew screen. No mission was
+  started for verification.
+
+Rollback: quit Sunny normally and point the shortcuts back to the retained
+`0.11.0-combined-1b9ca0d` executable. Do not restore old profile data over newer
+work. Local installation receipts and backup location are in
+`.sunny-dev/local-wanted-install.json`. No storage migration or authority change.
+
+The installed local-advice banner still has weak secondary-text contrast in
+dark mode; it is separate from the repaired ship geometry. Screen-reader testing,
+hosted CI, separately admitted native recovery and continuous real-provider
+release acceptance remain unverified. `LIVE_SUPERVISION_ADMITTED=false` remains
+unchanged. This update is not a production-release claim.

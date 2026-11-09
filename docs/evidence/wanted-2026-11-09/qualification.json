@@ -1,0 +1,185 @@
+{
+  "sourceCommit": "ca4b7373f02ff8aa8d1e751d781da5cf25d96d54",
+  "build": {
+    "appVersion": "0.11.0",
+    "buildId": "a404945875aeae2b94b4aadc7e1e60821ef80dbd61210a6d266cf0b755e3302f",
+    "fingerprintKind": "source-inputs-sha256",
+    "sourceCommit": "ca4b7373f02ff8aa8d1e751d781da5cf25d96d54",
+    "sourceDirty": false
+  },
+  "tests": {
+    "sourceCommit": "ca4b7373f02ff8aa8d1e751d781da5cf25d96d54",
+    "originalFullRun": "interrupted by machine restart; not a complete passing run",
+    "completedPrefixTopLevel": 1563,
+    "completedPrefixNested": 10,
+    "resumedTests": 229,
+    "totalTestsPassed": 1802,
+    "failed": 0,
+    "resumeBoundary": "supervised-journey.test.cjs rerun in full; all later test files included",
+    "priorLogSha256": "03244a9fec01dbcc130ba10ec57ac3d78d48c9e76fd84e9eb9aa45d90e9bf0b3",
+    "resumedLogSha256": "b4a4e3e697a16284e5e9728647cc4de968962673a638493fda16de1394ddb3f8"
+  },
+  "coreChecks": 68,
+  "native": [
+    {
+      "name": "studio-captures",
+      "passed": true,
+      "checks": 11
+    },
+    {
+      "name": "crew-map-only",
+      "passed": true,
+      "checks": null
+    },
+    {
+      "name": "handoff-parcels",
+      "passed": true,
+      "checks": 16
+    },
+    {
+      "name": "voyage-bar",
+      "passed": true,
+      "checks": 17
+    },
+    {
+      "name": "review-table",
+      "passed": true,
+      "checks": 11
+    },
+    {
+      "name": "accepted-work",
+      "passed": true,
+      "checks": 15
+    }
+  ],
+  "packageCases": [
+    {
+      "name": "startup-1",
+      "accepted": true,
+      "cleanup": "observed"
+    },
+    {
+      "name": "renderer-crash-1",
+      "accepted": true,
+      "cleanup": "observed"
+    },
+    {
+      "name": "main-restart-1",
+      "accepted": true,
+      "cleanup": "observed"
+    },
+    {
+      "name": "worker-loss-1",
+      "accepted": true,
+      "cleanup": "observed"
+    },
+    {
+      "name": "write-failure-1",
+      "accepted": true,
+      "cleanup": "observed"
+    },
+    {
+      "name": "lost-ack-1",
+      "accepted": true,
+      "cleanup": "observed"
+    },
+    {
+      "name": "pending-approval-1",
+      "accepted": true,
+      "cleanup": "observed"
+    },
+    {
+      "name": "pending-check-1",
+      "accepted": true,
+      "cleanup": "observed"
+    },
+    {
+      "name": "normal-quit-1",
+      "accepted": true,
+      "cleanup": "observed"
+    },
+    {
+      "name": "ordered-control-1",
+      "accepted": true,
+      "cleanup": "observed"
+    },
+    {
+      "name": "ordered-control-10",
+      "accepted": true,
+      "cleanup": "observed"
+    },
+    {
+      "name": "ordered-control-30",
+      "accepted": true,
+      "cleanup": "observed"
+    },
+    {
+      "name": "run-ui-1",
+      "accepted": true,
+      "cleanup": "observed"
+    },
+    {
+      "name": "playable-1",
+      "accepted": true,
+      "cleanup": "observed"
+    },
+    {
+      "name": "journey-cue-1",
+      "accepted": true,
+      "cleanup": "observed"
+    },
+    {
+      "name": "journey-motion-user-1",
+      "accepted": true,
+      "cleanup": "observed"
+    },
+    {
+      "name": "journey-motion-system-1",
+      "accepted": true,
+      "cleanup": "observed"
+    },
+    {
+      "name": "journey-audio-1",
+      "accepted": true,
+      "cleanup": "observed"
+    }
+  ],
+  "packageSha256": {
+    "exe": "ac3f974b2de90ea78f38d618c72abcd5dcfa8671ad834b67f374abdb4beb6aeb",
+    "asar": "7ea98f5085ad634e0806f6b7a415095e97ad25ce7f09f47121557f4355581162"
+  },
+  "installedVersion": "0.11.0-wanted-ca4b737",
+  "verifiedPackageFiles": 253,
+  "verifiedBackupFiles": 107,
+  "shortcutsVerified": true,
+  "installedVisualCheck": true,
+  "liveProviderProof": false,
+  "releaseGateChanged": false,
+  "screenshots": [
+    {
+      "path": ".sunny-dev/wanted-final-3/studio-captures/wanted-posters-desktop.png",
+      "sha256": "125be84655f677f99e148b0023114410ab9fa14ee2501186723f0b5d058c0dc5",
+      "syntheticFixture": true
+    },
+    {
+      "path": ".sunny-dev/wanted-final-3/studio-captures/sunny-deck-desktop.png",
+      "sha256": "6db8618c55e7c4ee3bdac64a55dacc1d921f4fdbe78a49c19a1957442dd1e19f",
+      "syntheticFixture": true
+    },
+    {
+      "path": ".sunny-dev/wanted-final-3/handoff-parcels/handoff-conversation-desktop.png",
+      "sha256": "8192ab59ac36b5b1d4282e5c65f0ad7bf3a2383be6c7f553da49661023d19922",
+      "syntheticFixture": true
+    },
+    {
+      "path": ".sunny-dev/wanted-final-3/studio-captures/sunny-deck-phone.png",
+      "sha256": "0d174e2af922f2643f3ed43b975e3a528a4306da729de4836c9f4b081db493c6",
+      "syntheticFixture": true
+    },
+    {
+      "path": ".sunny-dev/wanted-final-3/handoff-parcels/handoff-conversation-zoom.png",
+      "sha256": "3105f44e65b1beacb10eaf89d0fa0a96330439a2c9810fe83515b03386b21e71",
+      "syntheticFixture": true
+    }
+  ]
+}

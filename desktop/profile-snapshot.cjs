@@ -9,16 +9,16 @@ function put(target,key,value){if(key==='__proto__')Object.defineProperty(target
 function captureProfile(value){
  // Ordinary profile trees are shallow. Avoid one traversal-frame allocation per
  // message while retaining the iterative path for arbitrarily deep profiles.
- const copies=new WeakMap(),active=new WeakSet(),deep={};
+ const copies=new WeakMap(),deep={};
  function copy(value,depth){
   value=jsonDate(value);if(!object(value))return scalar(value);
   if(depth>128)throw deep;
-  if(active.has(value))throw Error('Cyclic profile');
-  if(copies.has(value))return copies.get(value);
+  const existing=copies.get(value);if(existing===null)throw Error('Cyclic profile');
+  if(existing)return existing;
   const target=Array.isArray(value)?new Array(value.length):{},propertyKeys=keys(value,false);
-  copies.set(value,target);active.add(value);
+  copies.set(value,null);
   for(const key of propertyKeys)put(target,key,copy(read(value,key),depth+1));
-  active.delete(value);return target;
+  copies.set(value,target);return target;
  }
  try{return copy(value,0);}catch(error){if(error===deep)return captureIterative(value);throw error;}
 }

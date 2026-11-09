@@ -1,0 +1,35 @@
+[
+  {
+    "name": "Windows tests and build (2/2)",
+    "annotations": [
+      {
+        "annotation_level": "failure",
+        "message": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings"
+      }
+    ],
+    "conclusion": "failure",
+    "stepCount": 0
+  },
+  {
+    "name": "Windows tests and build (1/2)",
+    "annotations": [
+      {
+        "annotation_level": "failure",
+        "message": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings"
+      }
+    ],
+    "conclusion": "failure",
+    "stepCount": 0
+  },
+  {
+    "name": "Windows tests and build",
+    "annotations": [
+      {
+        "annotation_level": "failure",
+        "message": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings"
+      }
+    ],
+    "conclusion": "failure",
+    "stepCount": 0
+  }
+]

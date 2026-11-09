@@ -1,5 +1,13 @@
 # M3 — Continuous crew workflow (2026-11-08)
 
+## Latest repair evidence — release remains blocked
+
+Fresh targeted exact-package probes are saved as [359d1ac](evidence/crew-workflow-m3-2026-11-08/repair-probes-359d1ac.json) and [99867ee](evidence/crew-workflow-m3-2026-11-08/repair-probes-99867ee.json), with hashes of raw receipts.359d1ac passed audio (68.568s) and two-build journey with restart (283.871s); its UI, playable ownership and30MiB controls failed.99867ee passed repaired UI (111.016s) and playable ownership/restart (28.014s), but30MiB approval p95 remained228.8ms (Stop157.5ms). Every targeted case had observed cleanup and zero remaining owned processes. These separate candidates do not constitute a passing final18-case matrix. Enlarged-navigation screenshot was visually inspected; labels remain whole. Both packages keep admission false;99867ee is unsigned.
+
+The queued snapshot-sharing experiment did not establish a latency fix: the measured Hub authority queue serializes storage submissions, so this optimization does not address its primary path. Remove the speculative production change; retain the new partial-image/accessor regression coverage. All41snapshot/ordered-store tests pass after removal. Fresh complete clean-checkout validation is next; the earlier cancelled dd60083 run is not a pass. Existing full df3288a evidence is historical and does not validate these repairs.
+
+Fresh [hosted run42546982692](https://github.com/Vizzaq23/sunny-hq/actions/runs/42546982692) on99867ee was refused before any steps in all three jobs. [Saved annotations](evidence/crew-workflow-m3-2026-11-08/hosting-retry-99867ee.json) still identify failed payments/spending-limit eligibility, despite the captain's reported resolution. No account change was attempted. Remaining release blockers include latency, final-source validation/package qualification, hosted CI, separately admitted stopped-profile capture and real continuous provider/human-acceptance proof. Execution gate stays closed; no M4, install, merge or announcement.
+
 ## Local release qualification — completed run, release blocked
 
 The separately packaged candidate from clean `50bb8c432d1dc87004ab23af41a516a0bb5f2670` completed the local matrix: **12 accepted, 6 failed, all 18 with observed cleanup and zero remaining owned processes**. This is a failed release qualification, not completion of M3. The execution gate remains closed in both source and the actual archive. No M4 work, installation, daily-profile change, provider connection, test weakening or application-code change was made during this qualification.

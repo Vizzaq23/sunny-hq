@@ -6,18 +6,6 @@ const reasons=new Set(['workspace','dispatch','mission','check-intent','publicat
 const sha=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
 function failure(code,message,identity={}){return Object.assign(new Error(message),{code,...identity});}
 function deferred(){let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};}
-function captureQueuedImage(base,image,generation){
- const proto=Object.getPrototypeOf(image);
- if(!ArrayBuffer.isView(image)&&proto!==Object.prototype&&proto!==null)throw Error('Unsupported profile object');
- const merged={...base};
- for(const key of Object.keys(image)){
-  const descriptor=Object.getOwnPropertyDescriptor(image,key);
-  if(!descriptor||!Object.hasOwn(descriptor,'value'))throw Error('Profile accessors are not supported');
-  Object.defineProperty(merged,key,{value:descriptor.value,enumerable:true,writable:true,configurable:true});
- }
- // Capture only changed branches; apply owns and seals them before returning.
- return applyProfileUpdate(base,diffProfile(base,merged,{baseGeneration:generation}),{generation});
-}
 async function openOrderedStore(options){
  if(!options||!['sqlite','json'].includes(options.kind)||typeof options.file!=='string'||!path.isAbsolute(options.file)||typeof options.backupDir!=='string'||!path.isAbsolute(options.backupDir))throw Error('Invalid ordered storage options');
  const timeoutMs=options.timeoutMs===undefined?30000:options.timeoutMs;
@@ -76,7 +64,7 @@ async function openOrderedStore(options){
   if(waiting&&waiting.reason!==null)return Promise.reject(failure('STORE_SATURATED','Ordered storage waiting image is occupied by a required barrier'));
   // Capture primitive strings without copying their bytes; all objects are owned. Waiting images need
   // their own snapshot now because the caller can mutate before later dispatch.
-  let captured;try{if(image===null||typeof image!=='object'||Array.isArray(image))throw Error('Invalid profile image');captured=current?captureQueuedImage(lastSubmitted,image,sequence):image;}catch(error){return Promise.reject(error);}
+  let captured;try{if(image===null||typeof image!=='object'||Array.isArray(image))throw Error('Invalid profile image');captured=current?captureProfile(image):image;}catch(error){return Promise.reject(error);}
   const entry={...deferred(),image:captured,reason};
   if(waiting)waiting.reject(failure('CHECKPOINT_SUPERSEDED','Background checkpoint superseded before persistence'));
   if(current)waiting=entry;else dispatch(entry);return entry.promise;

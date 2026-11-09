@@ -135,7 +135,7 @@ function Find-OwnedDescendants([int]$RootId,[datetime]$RootStart){
   }
  }
  foreach($nodeOwner in $nodeOwners){
-  if($Scenario -ne 'journey-cue'){continue}
+  if($Scenario -notin @('journey-cue','playable')){continue}
   $verified=Join-Path $Out ($nodeOwner.receiptName+'-verified.json')
   if(Test-Path -LiteralPath $verified){continue}
   $record=$ownedRecords[[int]$nodeOwner.pid]

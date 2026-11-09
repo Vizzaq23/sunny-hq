@@ -1,6 +1,7 @@
 import {useEffect,useState} from 'react';
 import type {HandoffExcerpt,HandoffReport} from '../shared';
-import {CREW} from '../data';
+import {CREW,CREW_BY_ID} from '../data';
+import {CrewPortrait} from './Chrome';
 import './handoff-parcels.css';
 
 type Invoke=<T=unknown>(action:string,args?:unknown)=>Promise<T>;
@@ -8,6 +9,23 @@ function Payload({value}:{value:HandoffExcerpt|null}){
  return value?<><p className="handoff-payload">{value.text}</p>{value.limited?<p className="muted">Preview shortened. Open the recorded task for retained context.</p>:null}</>:<p className="muted">Not recorded</p>;
 }
 function crewName(id:string|undefined){return CREW.find(crew=>crew.id===id)?.name??id??'Not recorded';}
+function HandoffConversation({report,onOpen}:{report:HandoffReport;onOpen:(taskId:string)=>void}){
+ const [selected,setSelected]=useState('');
+ const index=Math.max(0,report.parcels.findIndex(parcel=>parcel.id===selected));
+ const parcel=report.parcels[index];
+ if(!parcel)return null;
+ const from=parcel.from?CREW_BY_ID.get(parcel.from.crewId):undefined,to=parcel.to?CREW_BY_ID.get(parcel.to.crewId):undefined;
+ return <section className="crew-conversation" aria-label="Crew handoff conversation">
+  <header><span className="eyebrow">On deck · Recorded exchange</span><h3>Pass it to the crew.</h3><p>Step through saved results and briefs. These are recorded excerpts, not a live chat.</p></header>
+  <nav className="relay-chapters" aria-label="Choose a recorded handoff">{report.parcels.map((item,i)=><button key={item.id} type="button" aria-pressed={item.id===parcel.id} onClick={()=>setSelected(item.id)}>{i+1}. {crewName(item.from?.crewId)} → {crewName(item.to?.crewId)}</button>)}</nav>
+  <div className="relay-scene" aria-live="polite" aria-atomic="true">
+   <article className="relay-speaker relay-from"><div className="relay-portrait">{from?<CrewPortrait crew={from}/>:<span className="relay-unknown">?</span>}<strong>{crewName(parcel.from?.crewId)}</strong></div><div className="relay-bubble"><span className="eyebrow">Recorded result</span><Payload value={parcel.result}/>{parcel.result?<small>{parcel.result.attribution}</small>:null}</div></article>
+   <div className="relay-pass" aria-hidden="true">↓ &nbsp; HANDOFF &nbsp; ↓</div>
+   <article className="relay-speaker relay-to"><div className="relay-portrait">{to?<CrewPortrait crew={to}/>:<span className="relay-unknown">?</span>}<strong>{crewName(parcel.to?.crewId)}</strong></div><div className="relay-bubble"><span className="eyebrow">{parcel.brief?.source==='recipient-message'?'Recorded recipient message':'Recorded assignment brief'}</span><Payload value={parcel.brief}/><small>Recorded task status: {parcel.to?.status??'Not recorded'}</small></div></article>
+  </div>
+  <footer><button type="button" disabled={index===0} onClick={()=>setSelected(report.parcels[index-1].id)}>← Previous handoff</button><span>{index+1} / {report.parcels.length}</span><button type="button" disabled={index===report.parcels.length-1} onClick={()=>setSelected(report.parcels[index+1].id)}>Next handoff →</button>{parcel.to?<button type="button" onClick={()=>onOpen(parcel.to!.id)}>Open {crewName(parcel.to.crewId)}’s work</button>:null}</footer>
+ </section>;
+}
 export function HandoffParcels({projectId,missionId,attemptId,revision,invoke,onOpen}:{projectId:string;missionId:string;attemptId:string;revision:number;invoke:Invoke;onOpen:(taskId:string)=>void}){
  const [result,setResult]=useState<{key:string;report?:HandoffReport;error?:string}>(),[refresh,setRefresh]=useState(0);
  const key=JSON.stringify([projectId,missionId,attemptId,revision,refresh]);
@@ -17,6 +35,7 @@ export function HandoffParcels({projectId,missionId,attemptId,revision,invoke,on
   {!current?<p role="status">Loading recorded handoffs…</p>:current.error?<p role="alert">Handoffs unavailable: {current.error}</p>:report?<>
    <p className="handoff-identity">{report.historical?'Historical attempt':'Current attempt'} · {report.attemptId} · mission revision {report.revision}{report.runRevision!==null?` · run revision ${report.runRevision}`:''}</p>
    <p className="muted">{report.coverage}</p>{report.limited?<p role="status">Some retained records exceed this view’s display limit.</p>:null}
+   {report.parcels.length?<HandoffConversation key={report.attemptId} report={report} onOpen={onOpen}/>:null}
    {report.requestedChanges?<section><h3>Changes requested for this attempt</h3><Payload value={report.requestedChanges}/></section>:null}
    {report.parcels.length?<ol className="handoff-list">{report.parcels.map(parcel=><li key={parcel.id}><details className="handoff-parcel"><summary><strong>{crewName(parcel.from?.crewId)} → {crewName(parcel.to?.crewId)}</strong><span>{parcel.to?.status??'Recipient not recorded'}</span></summary><div className="handoff-detail">
     <p>{parcel.basis}</p><p className="muted">Source task: {parcel.from?.id??'Not recorded'} · Recipient task: {parcel.to?.id??'Not recorded'}{parcel.assignmentId?` · Assignment: ${parcel.assignmentId}`:''}</p>

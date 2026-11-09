@@ -95,3 +95,34 @@ Revert this focused presentation commit (or remove the studio import and revert
 the listed component changes). No database restore or migration is needed.
 Fixture checks can remain independently. No merge, push or installed-app update
 has been performed as part of this work.
+
+## Wanted posters, ship alignment and recorded conversations — 2026-11-09
+
+Captain explicitly requested the planned wanted-poster identity, repaired Sunny
+ship scene, interactive visual handoffs, screenshots and installation. The
+renderer now adds parchment crew posters with large existing portraits, ink
+mastheads, red profile actions and mission notices. Home uses the complete Sunny
+illustration on warm sail-paper; sea-green navigation and logbook framing unify
+the screens. No invented bounty amounts or status stamps imply completed work.
+
+M5 adds a selectable conversation presentation above the retained detailed
+receipts. Each chapter shows the predecessor's recorded result and recipient's
+recorded message/assignment with their crew portraits. Next/previous and chapter
+buttons work by keyboard; no autoplay, generated dialogue, provider call or
+synthetic progress is introduced. Missing payloads remain explicitly unavailable.
+The existing task navigation, draft guards, evidence and acceptance remain intact.
+
+Ship diagnosis: the Helm board combined viewport-derived width with max-height,
+which could break its 3:2 ratio. The contained image then letterboxed while
+percentage-positioned crew still used the wider board. Fit the board to the
+scene's actual width and height in the original 3:2 ratio. Both layers keep the
+same rectangle. Show the original ship-deck asset while the transparent texture
+loads; previously the image had no source during that interval. No bitmap,
+atlas coordinates, route nodes or companion geometry changes. The native fixture
+now waits for loaded ship art and asserts shared layer bounds and aspect ratio.
+
+Validation pending on this candidate. Required: clean Windows full suite/build,
+native workflow, poster/search/draft checks at desktop/phone/200%, handoff keyboard
+navigation and missing records, ship geometry at desktop/compact/phone, inspected
+screenshots and exact installed-package identity. Rollback: prior version folder
+and shortcut remain available; no schema migration or profile restoration needed.

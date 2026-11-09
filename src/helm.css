@@ -60,3 +60,8 @@
  .voyage-ui.continuous-shell>.sidebar .main-nav>button{flex:0 0 auto;width:auto;max-width:none}
  .voyage-ui.continuous-shell>.sidebar .main-nav>button>span{white-space:nowrap;overflow-wrap:normal}
 }
+/* Fit the same 3:2 rectangle for deck art and crew. A max-height on a wider
+   board letterboxes the image without moving its percentage-based actors. */
+.helm-scene{container-type:size}
+.helm-scene .compact-ship .ship-board{width:min(100cqw,150cqh);height:auto;min-width:0;max-height:none;aspect-ratio:3/2;flex:none}
+@media(max-width:900px){.helm-scene{container-type:inline-size;flex:none}.helm-scene .compact-ship{height:auto}.helm-scene .compact-ship .ship-board{width:100%;height:auto}}

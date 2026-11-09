@@ -37,7 +37,11 @@ async function check({js,wait,fill,select,click,nav,screenshot,win,state,emit,to
   await wait('Boolean(document.querySelector(".crew-page .projects-empty"))');
   await click('.crew-page .projects-empty button');
   assert.equal(await js('document.querySelectorAll(".core-crew-grid>.crew-card").length'),10);
+  await js('document.getElementById("sunny-main").scrollTo({top:0,behavior:"instant"})');
+  assert.ok(await js('Array.from(document.querySelectorAll(".wanted-heading")).every(e=>e.scrollWidth<=e.clientWidth)'), 'wanted mastheads fit their posters');
   await screenshot('studio-crew-desktop.png');
+  await js('document.querySelector(".core-crew-grid").scrollIntoView({block:"start",behavior:"instant"})');await screenshot('wanted-posters-desktop.png');
+  win.webContents.setZoomFactor(2);await wait('innerWidth<800');assert.ok(await js('document.documentElement.scrollWidth<=innerWidth&&Array.from(document.querySelectorAll(".wanted-heading")).every(e=>e.scrollWidth<=e.clientWidth)'));await screenshot('wanted-posters-zoom.png');win.webContents.setZoomFactor(1);await wait('innerWidth>1000');
   await js('document.querySelector(".core-crew-grid>.crew-card:last-child").scrollIntoView({block:"end",behavior:"instant"})');
   await screenshot('studio-crew-second-row.png');
   win.setSize(390,844);await wait('innerWidth<400');
@@ -64,6 +68,7 @@ async function check({js,wait,fill,select,click,nav,screenshot,win,state,emit,to
    await screenshot('studio-'+name.toLowerCase()+'-phone.png');
    win.setSize(1440,1050);await wait('innerWidth>1000');
   }
+  await nav('The Sunny');for(const [width,height,label] of [[1440,1050,'desktop'],[1000,700,'compact'],[390,844,'phone']]){win.setSize(width,height);await wait(`innerWidth<=${width}`);await require('./ship-scene-smoke.cjs').check({js,wait});await screenshot('sunny-deck-'+label+'.png');}win.setSize(1440,1050);await wait('innerWidth>1000');
   await nav('Home');assert.equal(await js('document.querySelector("#luffy-objective").value'),'Keep this design review draft.');
   win.webContents.setZoomFactor(2);await wait('innerWidth<800');
   assert.ok(await js('document.documentElement.scrollWidth<=innerWidth'),'home fits 200 percent zoom');

@@ -175,3 +175,11 @@ The current Luffy-first home, captain's watch, crew roster, ten rooms and captai
 ## World sizing below the voyage bar — 2026-11-09
 
 The island viewport now uses the actual journey-surface height and remains pannable. Quarters and Franky’s workshop preserve full 3:2 artwork while fitting beneath persistent navigation; enlarged quarters text retains enough canvas width and scrolls instead of crushing labels. Existing sprites, foot anchors, world state and motion controls are unchanged. See [qualification and retained failures](crew-voyage-qualification-2026-11-09.md).
+
+### Crew conversation and ship fit — 2026-11-09
+Recorded handoffs can be stepped through as portrait-and-speech-bubble exchanges.
+Bubbles quote retained predecessor results and recipient briefs with source
+labels; they are not invented dialogue or proof of live communication. Details
+retain source and check receipts. Helm's deck and crew layers share one fitted
+3:2 rectangle so characters stay aligned to the ship artwork. See
+[sunny-studio-design.md](sunny-studio-design.md) for the implementation decision.

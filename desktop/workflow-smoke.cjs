@@ -89,7 +89,7 @@ app.whenReady().then(async()=>{
   throw lastError;
  };
  try{
-  await win.loadFile(path.join(root,process.argv.includes('--shipboard-baseline')?'.sunny-dev/baseline-dist':'dist','index.html'));await wait('Boolean(document.querySelector(".local-captain"))');await nav('The Sunny');await wait('Boolean(document.querySelector(".helm-workspace"))');await screenshot('command-deck.png');
+  await win.loadFile(path.join(root,process.argv.includes('--shipboard-baseline')?'.sunny-dev/baseline-dist':'dist','index.html'));await wait('Boolean(document.querySelector(".local-captain"))');await nav('The Sunny');await wait('Boolean(document.querySelector(".helm-workspace"))');await wait('Boolean(document.querySelector(".ship-art img")?.complete&&document.querySelector(".ship-art img")?.naturalWidth)');await require('./ship-scene-smoke.cjs').check({js,wait});await screenshot('command-deck.png');
   if(process.argv.includes('--accepted-work')){const result=await require('./accepted-work-smoke.cjs').check({js,wait,select,fill,click,nav,screenshot,win,state,emit,projection});fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result));console.log('SUNNY_ACCEPTED_WORK '+JSON.stringify(result));return;}
   if(process.argv.includes('--review-table')){const result=await require('./review-table-smoke.cjs').check({js,wait,select,click,screenshot,win,state,emit});fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result));console.log('SUNNY_REVIEW_TABLE '+JSON.stringify(result));return;}
   if(process.argv.includes('--handoff-parcels')){const result=await require('./handoff-parcels-smoke.cjs').check({js,wait,fill,select,click,nav,screenshot,win,state,emit});fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result));console.log('SUNNY_HANDOFFS '+JSON.stringify(result));return;}
@@ -99,7 +99,7 @@ app.whenReady().then(async()=>{
   if(process.argv.includes('--diagnostics-captures'))return;
   if(process.argv.includes('--studio-captures')){
    await require('./studio-ui-smoke.cjs').check({js,wait,fill,select,click,nav,screenshot,win,state,emit,toolLaunches});
-   fs.writeFileSync(path.join(output,'studio-result.json'),JSON.stringify({passed:true,syntheticTransport:true,liveProviderProof:false,checks:['crew-specialty-search-and-reset','tool-search-and-reset','tool-launch-selected-project','home-draft-preservation','desktop-laptop-phone-layout','supporting-destination-layouts','home-200-percent-zoom','user-and-system-reduced-motion','local-ship-art-loaded']}));
+   fs.writeFileSync(path.join(output,'studio-result.json'),JSON.stringify({passed:true,syntheticTransport:true,liveProviderProof:false,checks:['crew-specialty-search-and-reset','tool-search-and-reset','tool-launch-selected-project','home-draft-preservation','desktop-laptop-phone-layout','supporting-destination-layouts','home-200-percent-zoom','user-and-system-reduced-motion','local-ship-art-loaded','ship-and-crew-aligned-at-three-sizes','wanted-posters-fit-at-200-percent']}));
    return;
   }
   if(process.argv.includes('--shipboard-captures')){

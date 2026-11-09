@@ -23,3 +23,5 @@ import './shipboard.css';
 import './components/local-crew.css';
 import './views/projects.css';
 import './studio.css';
+
+import './wanted-posters.css';

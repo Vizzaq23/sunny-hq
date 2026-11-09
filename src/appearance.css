@@ -66,3 +66,6 @@ html[data-appearance=dark] .voyage-ui .captain-hero-art{background:#f5e7c9;borde
 html[data-appearance=dark] :is(.criterion-row,.shelf-entry pre){background:#102238;color:#e6eef8;border-color:#7892ab}
 html[data-appearance=dark] .voyage-ui.continuous-shell .topbar{background:#172b42;border-color:#526c84}
 html[data-appearance=dark] .voyage-ui .projects-heading{background-color:#172b42}
+/* Preserve the newer combined build's diagnostic and acceptance appearance. */
+html[data-appearance=dark] :is(.ship-diagnostics,.diagnostic-coverage,.mission-review,.mission-acceptance,.mission-criteria,.mission-deliverables,.mission-merge-control,.mission-pr-body){background:#172b42!important;color:#e6eef8!important;border-color:#526c84!important}
+html[data-appearance=dark] :is(.voyage-summary span,.shelf-entry span,.diagnostic-coverage){color:#c9d8e8!important}

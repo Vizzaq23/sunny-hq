@@ -1,4 +1,5 @@
 /* Shared night palette. Artwork, canvases and embedded previews retain their own colors. */
+html[data-appearance=dark] .local-crew-live{background:#172b42;color:#e6eef8;border-color:#7892ab}
 html[data-appearance=dark]{color-scheme:dark;background:#0b1625;color:#e6eef8;--ink:#e6eef8;--muted:#bdcede;--ivory:#0b1625;--paper:#172b42;--line:#526c84;--teal:#93d8db;--coral:#f5ac98;--gold:#f1d397}
 html[data-appearance=dark] .app-shell{--studio-ink:#e6eef8;--studio-muted:#bdcede;--studio-paper:#172b42;--studio-canvas:#0b1625;--studio-line:#526c84;--studio-blue:#b8defa;--studio-red:#dc7c74;--quarters-ink:#e6eef8;--quarters-muted:#bdcede;--quarters-paper:#172b42;--quarters-line:#526c84}
 html[data-appearance=dark] :is(body,.loading-deck,.main-shell,.journey-surface,.main-panel,.workbench,.workbench-body,.work-content,.page){background-color:#0b1625;color:#e6eef8}

@@ -27,8 +27,10 @@ test('owned check cancellation acknowledgment does not imply process exit',async
 });
 function repo(t){
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-evidence-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
- const git=(...args)=>execFileSync('git',args,{cwd:root,windowsHide:true,stdio:'pipe'});
- git('init');git('config','user.email','fixture@example.invalid');git('config','user.name','Sunny fixture');
+ // Identity belongs to this fixture command, not the repository config file.
+ // Avoid consecutive config-file rewrites, which Windows denied during setup.
+ const git=(...args)=>execFileSync('git',['-c','user.email=fixture@example.invalid','-c','user.name=Sunny fixture',...args],{cwd:root,windowsHide:true,stdio:'pipe'});
+ git('init');
  fs.writeFileSync(path.join(root,'package.json'),JSON.stringify({scripts:{test:'node check.cjs',build:'node -e "process.exit(1)"'}}));
  fs.writeFileSync(path.join(root,'check.cjs'),'process.exit(0)');git('add','.');git('commit','-m','fixture');return {root,git};
 }

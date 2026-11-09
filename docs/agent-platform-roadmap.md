@@ -104,6 +104,8 @@ Acceptance criteria:
 
 ### M5 — Visible handoff parcels (part 3)
 
+2026-11-08 implementation: local commit b978883, 83 focused regressions and 13 hidden native checks passed. See [M5 implementation and evidence](handoff-parcels-m5.md). Full combined verification and M3 prerequisite qualification remain pending.
+
 Present recorded transitions as compact parcels referencing sender/recipient roles, attempt/revision, bounded brief and actual changed files/check receipts. Link existing detail views instead of duplicating transcripts.
 
 Acceptance criteria:
@@ -115,6 +117,8 @@ Acceptance criteria:
 - Parcels work without animation and with keyboard/screen-reader access. Opening and returning preserves voyage context.
 
 ### M6 — Zoro's review table (part 4)
+
+2026-11-08 implementation: local commit a952863, 78 focused regressions and 11 hidden native checks passed. See [M6 implementation and evidence](review-table-m6.md). Captain acceptance remains explicit; full combined verification and prerequisites remain pending.
 
 Map every original criterion to the reviewed attempt's file/source revision, check receipt, reviewer observation and unresolved issue. Reuse acceptance/revision guards in `desktop/missions.cjs` and existing result binding.
 
@@ -128,6 +132,8 @@ Acceptance criteria:
 - Native fixtures cover missing/failing/stale evidence and unresolved issues, plus keyboard access, compact layout and 200% zoom.
 
 ### M7 — Robin's accepted-work shelf (part 5)
+
+2026-11-08 implementation: read-only hash-bound shelf implemented without a storage migration; 29 focused tests and 13 hidden native checks passed. See [M7 snapshot contract and evidence](accepted-work-m7.md). It verifies retained accepted bytes and reports changed/missing content; it does not create an independent byte archive. Full combined verification and prerequisites remain pending.
 
 Index only captain-accepted results, searchable and grouped by project, using existing durable acceptance/result references and integrity hashes. The shelf index is rebuildable, not an independent acceptance database.
 

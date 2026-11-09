@@ -15,7 +15,8 @@ import {requestMissionResultStatus} from '../useMissionResultStatus';
 import './mission-board.css';
 type Invoke=<T=unknown>(action:string,args?:unknown)=>Promise<T>;
 const labels:Record<string,string>={DRAFT:'Draft',RUNNING:'Running',NEEDS_USER:'Needs your attention',WAITING_FOR_REVIEW:'Ready for review',FAILED:'Failed',CANCELLED:'Stopped',BLOCKED:'Blocked',COMPLETE:'Complete'};
-export function MissionBoard({snapshot,invoke,onOpen,focusMission,onSelectMission,briefOnly=false}:{snapshot:Snapshot;invoke:Invoke;onOpen:(taskId:string,selection?:{projectId:string;missionId:string;attemptId:string})=>void;focusMission?:{id:string;sequence:number};onSelectMission?:(mission:Mission)=>void;briefOnly?:boolean}){
+export function MissionBoard({snapshot,invoke,onOpen,focusMission,onSelectMission,focusDecision,briefOnly=false}:{snapshot:Snapshot;invoke:Invoke;onOpen:(taskId:string,selection?:{projectId:string;missionId:string;attemptId:string})=>void;focusMission?:{id:string;sequence:number};focusDecision?:{id:string;sequence:number};onSelectMission?:(mission:Mission)=>void;briefOnly?:boolean}){
+ useEffect(()=>{if(focusDecision){const timer=requestAnimationFrame(()=>{const target=document.getElementById('captain-review-'+focusDecision.id);target?.scrollIntoView({block:'center'});target?.focus({preventScroll:true});});return()=>cancelAnimationFrame(timer);}},[focusDecision]);
  const [projectId,setProjectId]=useState(snapshot.workspace?.context?.projectId??'');
  const brief=useWorkspaceDraft('brief:'+projectId,{kind:'brief',projectId,title:'',text:'',criteria:[],completionBoundary:'review'},snapshot.workspace,invoke);
  const title=brief.draft.title??'',objective=brief.draft.text,criteria=(brief.draft.criteria??[]).join('\n'),boundary=brief.draft.completionBoundary??'review';
@@ -88,7 +89,7 @@ export function MissionBoard({snapshot,invoke,onOpen,focusMission,onSelectMissio
      </section>
      </details>
      <CriterionEvidence mission={selected} invoke={invoke} onOpen={onOpen}/>
-     {selected.reviewDecisions?.length?<section aria-label="Captain review history"><h4>Captain review history</h4>{selected.reviewDecisions.map(d=><p key={d.id}>{d.decision} · {d.note||'Criteria accepted'} · {new Date(d.time).toLocaleString()}</p>)}</section>:null}{selected.status==='COMPLETE'?<AcceptedResultSave onOpen={onOpen} mission={selected} snapshot={snapshot} invoke={invoke}/>:null}
+     {selected.reviewDecisions?.length?<section aria-label="Captain review history"><h4>Captain review history</h4>{selected.reviewDecisions.map(d=><p id={'captain-review-'+d.id} tabIndex={-1} key={d.id}>{d.decision} · {d.note||'Criteria accepted'} · {new Date(d.time).toLocaleString()}</p>)}</section>:null}{selected.status==='COMPLETE'?<AcceptedResultSave onOpen={onOpen} mission={selected} snapshot={snapshot} invoke={invoke}/>:null}
      {selected.status==='WAITING_FOR_REVIEW'?<MissionAcceptance key={`acceptance:${selected.id}:${selected.revision}`} mission={selected} busy={busy||storageOutcomeUncertain(snapshot)||selectedResultStatus?.available!==true||Boolean(selected.checkExecution)||!selected.selectedResult||selected.selectedResult.attemptId!==selected.activeAttemptId} onAccept={checks=>run(async()=>{await invoke('mission:accept',{missionId:selected.id,revision:selected.revision,resultId:selected.selectedResult?.id,resultSha256:selected.selectedResult?.ref.sha256,criteria:checks});})}/>:<ul>{selected.acceptanceCriteria.map((c,i)=><li key={i}>{c}</li>)}</ul>}
      <details><summary>Mission history</summary><ol>{selected.events.slice(-15).reverse().map(event=><li key={event.id}>{event.type.replaceAll('_',' ').toLowerCase()} · {new Date(event.time).toLocaleString()}</li>)}</ol></details>
     </article>:null}

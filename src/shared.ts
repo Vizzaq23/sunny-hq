@@ -25,6 +25,9 @@ export interface HandoffReport {
  version:1;projectId:string;missionId:string;attemptId:string;revision:number;runRevision:number|null;historical:boolean;requestedChanges:HandoffExcerpt|null;
  parcels:HandoffParcel[];evidence:{id:string;kind:'git'|'check';commit:string|null;fingerprint:string|null;recordedAt:number|null;paths:string[];limited:boolean;script:string|null;status:string|null;exitCode:number|null;durationMs:number|null}[];limited:boolean;coverage:string;
 }
+export interface AcceptedWorkEntry {projectId:string;missionId:string;title:string;revision:number;attemptId:string;acceptanceId:string;acceptedAt:number;resultId:string;resultSha256:string;kind:'reply'|'deliverable'|'playable';decisionId:string|null;recovery:boolean;}
+export interface AcceptedWorkPage {projectId:string;entries:AcceptedWorkEntry[];total:number;nextOffset:number|null;excluded:number;limited:boolean;scanned:number;}
+export interface AcceptedWorkPreview extends AcceptedWorkEntry {status:'verified'|'changed'|'unavailable';preview:string|null;sourceCommit:string|null;reason:string;}
 export interface CriterionEvidenceReport {
  projectId:string;missionId:string;attemptId:string;revision:number;historical:boolean;resultId:string|null;resultSha256:string|null;source:{commit:string|null;fingerprint:string|null}|null;evidenceBound:boolean;limited:boolean;
  rows:{index:number;criterion:string;criterionId:string|null;limited:boolean;

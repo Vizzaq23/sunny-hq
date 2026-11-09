@@ -26,6 +26,8 @@ const localFixture=require('./local-crew-smoke.cjs').fixture(state,emit);
 const toolLaunches=[];
 let diagnosticCopy;
 ipcMain.handle('sunny:invoke',async(_event,action,args)=>{
+ if(action==='shelf:search')return require('./accepted-work.cjs').query(state,args);
+ if(action==='shelf:preview')return require('./accepted-work.cjs').preview({getState:()=>state},args);
  if(action==='mission:handoffs')return require('./handoff-parcels.cjs').query(state,args);
  if(action==='mission:reviewEvidence')return require('./review-table.cjs').query(state,args);
  if(action==='mission:resultStatus')return {...await require('./mission-result-status.cjs').getMissionResultStatus({getState:()=>state},args),epoch:projection.epoch};
@@ -88,6 +90,7 @@ app.whenReady().then(async()=>{
  };
  try{
   await win.loadFile(path.join(root,process.argv.includes('--shipboard-baseline')?'.sunny-dev/baseline-dist':'dist','index.html'));await wait('Boolean(document.querySelector(".local-captain"))');await nav('The Sunny');await wait('Boolean(document.querySelector(".helm-workspace"))');await screenshot('command-deck.png');
+  if(process.argv.includes('--accepted-work')){const result=await require('./accepted-work-smoke.cjs').check({js,wait,select,fill,click,nav,screenshot,win,state,emit});fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result));console.log('SUNNY_ACCEPTED_WORK '+JSON.stringify(result));return;}
   if(process.argv.includes('--review-table')){const result=await require('./review-table-smoke.cjs').check({js,wait,select,click,screenshot,win,state,emit});fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result));console.log('SUNNY_REVIEW_TABLE '+JSON.stringify(result));return;}
   if(process.argv.includes('--handoff-parcels')){const result=await require('./handoff-parcels-smoke.cjs').check({js,wait,fill,select,click,nav,screenshot,win,state,emit});fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result));console.log('SUNNY_HANDOFFS '+JSON.stringify(result));return;}
   if(process.argv.includes('--voyage-bar')){const result=await require('./voyage-bar-smoke.cjs').check({js,wait,fill,select,click,nav,screenshot,win,state,emit});fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result));console.log('SUNNY_VOYAGE '+JSON.stringify(result));return;}

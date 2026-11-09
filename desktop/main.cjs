@@ -92,6 +92,8 @@ async function handle(action,args={},surface='hub'){
  case 'mission:resultStatus':return publicTransport.resultStatus(args);
  case 'mission:handoffs':return require('./handoff-parcels.cjs').query(hub.state,args);
  case 'mission:reviewEvidence':return require('./review-table.cjs').query(hub.state,args);
+ case 'shelf:search':return require('./accepted-work.cjs').query(hub.state,args);
+ case 'shelf:preview':return require('./accepted-work.cjs').preview({getState:()=>hub.state,readArtifact:artifact=>hub.readVerifiedMissionResultArtifact(hub.project(args.projectId),artifact)},args);
  case 'mission:prepareMerge':return hub.merger.act(args,'prepare');
  case 'mission:submitMerge':return hub.merger.act(args,'submit');
  case 'mission:recheckMerge':return hub.merger.act(args,'recheck');

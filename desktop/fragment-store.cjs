@@ -14,7 +14,7 @@ function readProfile(db){
 async function makeBackup(db,backupDir,expected){
  fs.mkdirSync(backupDir,{recursive:true});if(!fs.lstatSync(backupDir).isDirectory()||fs.lstatSync(backupDir).isSymbolicLink())throw Error('Invalid backup directory');const file=path.join(fs.realpathSync(backupDir),'pre-fragments-'+Date.now()+'-'+randomUUID()+'.sqlite');await backup(db,file);const copy=new DatabaseSync(file,{readOnly:true});try{if(readProfile(copy).raw!==expected.raw)throw Error('Migration backup state mismatch');}finally{copy.close();}const receipt={path:file,sha256:sha(fs.readFileSync(file)),sourceFormat:expected.format};const fd=fs.openSync(file+'.receipt.json','wx',0o600);try{fs.writeFileSync(fd,JSON.stringify(receipt));fs.fsyncSync(fd);}finally{fs.closeSync(fd);}return receipt;
 }
-async function openFragmentStore({file,backupDir}){
+async function openFragmentStore({file,backupDir,latencyProbe=false}){
  if(!path.isAbsolute(file)||!path.isAbsolute(backupDir))throw Error('Absolute profile and backup paths required');let initial={format:'legacy',value:{},raw:undefined,generation:0};
  if(fs.existsSync(file)){const reader=new DatabaseSync(file,{readOnly:true});try{initial=readProfile(reader);if(initial.format==='legacy')await makeBackup(reader,backupDir,initial);}finally{reader.close();}}
  fs.mkdirSync(path.dirname(file),{recursive:true});const db=new DatabaseSync(file);let current=sealProfileSnapshot(captureProfile(initial.value)),encoding=encodeProfile(current),generation=initial.generation,closed=false,pending=false;
@@ -32,7 +32,7 @@ async function openFragmentStore({file,backupDir}){
   }else if(readProfile(db).stateSha256!==initial.stateSha256)throw Error('Profile changed during open');
   return {durability,get generation(){return generation;},load:()=>captureProfile(current),prepare(candidate){
    if(closed||pending)throw Error('Profile store closed or preparation pending');validateProfile(candidate);const next=encodeProfile(candidate,encoding),expected=generation;pending=true;let consumed=false;
-   return {stateSha256:next.stateSha256,commit(){if(closed||consumed)throw Error('Consumed profile preparation');consumed=true;db.exec('BEGIN IMMEDIATE');try{const m=db.prepare('SELECT generation,state_sha256 FROM profile_meta WHERE id=1').get();if(m.generation!==expected||m.state_sha256!==encoding.stateSha256)throw Error('Profile generation changed');write(next,expected+1,new Set(encoding.layout));db.exec('COMMIT');current=candidate;encoding=next;generation=expected+1;}catch(error){db.exec('ROLLBACK');throw error;}finally{pending=false;}}};
+   return {stateSha256:next.stateSha256,commit(){if(closed||consumed)throw Error('Consumed profile preparation');consumed=true;const start=latencyProbe?performance.now():0;db.exec('BEGIN IMMEDIATE');try{const m=db.prepare('SELECT generation,state_sha256 FROM profile_meta WHERE id=1').get();if(m.generation!==expected||m.state_sha256!==encoding.stateSha256)throw Error('Profile generation changed');const begin=latencyProbe?performance.now():0;write(next,expected+1,new Set(encoding.layout));const written=latencyProbe?performance.now():0;db.exec('COMMIT');current=candidate;encoding=next;generation=expected+1;if(latencyProbe)return {beginMs:begin-start,writeMs:written-begin,flushMs:performance.now()-written};}catch(error){db.exec('ROLLBACK');throw error;}finally{pending=false;}}};
   },close(){if(!closed){closed=true;db.close();}}};
  }catch(error){db.close();throw error;}
 }

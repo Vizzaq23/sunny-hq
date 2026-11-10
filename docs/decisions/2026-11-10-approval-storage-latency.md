@@ -25,3 +25,23 @@ migration or backup-format change. Reverting the focused optimization restores
 the previous algorithm; existing profiles remain compatible. Tests cover exact
 bytes, shared/retired fragments, index use, restart and crash transaction points.
 Final performance and package evidence will be recorded after validation.
+
+## Outcome: unresolved, no installation
+
+[Diagnostic evidence](../evidence/approval-latency-2026-11-10/diagnostics.json)
+retains all five trials. Indexed deletion alone still failed at287.2ms p95.
+Additional timing diagnostics recorded208.3ms and215.6ms p95. One slow commit
+spent about0.31ms updating rows but185.97ms inside SQLite COMMIT; other spikes
+occurred below the auto-checkpoint threshold. This isolates the blocking stage,
+not the underlying OS/filesystem cause. It does not establish faulty hardware.
+A 256-page automatic-checkpoint experiment worsened p95 to364.5ms and was
+reverted. Default checkpoint configuration and WAL/FULL remain unchanged.
+
+The indexed-delete correctness/complexity improvement and optional timing probe
+remain on the draft branch; they are not claimed as a latency repair. The final
+92 focused storage, crash, ordered-capture and approval-boundary tests passed.
+The installed smooth48ba1a0 package remains untouched. No full package acceptance
+or production-ready claim. Next investigation must explain durable COMMIT stalls
+or design a measured optimization that preserves required pre-dispatch and
+post-response receipts; neither threshold relaxation nor a lucky passing rerun
+is an acceptable completion criterion.

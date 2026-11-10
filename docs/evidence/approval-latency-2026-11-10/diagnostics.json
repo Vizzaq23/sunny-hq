@@ -1,0 +1,114 @@
+{
+  "status": "unresolved-not-installed",
+  "cases": [
+    {
+      "path": ".sunny-dev\\ordered-control-check\\2026-11-10T05-47-00-620Z-30MiB\\result.json",
+      "sha256": "7639c7f4063901937cfdb300034442eb6ba436902900226ce84b1ffeb1b3f948",
+      "passed": true,
+      "source": "a4f53dfee36221d799dbff4a8236200b4ff08265",
+      "sourceDigest": "3a8ac65f8bff73f17b1238600e15d53ec0868b1aad0aaa633974b8edfd053924",
+      "approvalP95Ms": 170.39999999850988,
+      "failedAssertions": [],
+      "cleanup": {
+        "runtimeRetainedPath": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-ordered-control-kBdHOb",
+        "userDataRetainedPath": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-ordered-control-kBdHOb\\electron-profile",
+        "runtimeRetained": true,
+        "windowsDestroyed": true,
+        "orderedStoreClosed": true,
+        "readonlyWorkersTerminated": 0,
+        "readonlyWorkersRemaining": 0
+      },
+      "diagnosticOnly": true
+    },
+    {
+      "path": ".sunny-dev\\ordered-control-check\\2026-11-10T05-48-36-592Z-30MiB\\result.json",
+      "sha256": "ae6c0e1a5fd0b0eafab9b4e2999552de0acd1a34b9fec34b4db7be0957323f90",
+      "passed": false,
+      "source": "a4f53dfee36221d799dbff4a8236200b4ff08265",
+      "sourceDigest": "0ca87936b1f9d079f5ed6504083a1b2aed07ef49bb5b006a59536988d94ee731",
+      "approvalP95Ms": 287.19999999552965,
+      "failedAssertions": [
+        "approval:respond unchanged p95 RTT <200ms"
+      ],
+      "cleanup": {
+        "runtimeRetainedPath": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-ordered-control-Oa2DbM",
+        "userDataRetainedPath": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-ordered-control-Oa2DbM\\electron-profile",
+        "runtimeRetained": true,
+        "windowsDestroyed": true,
+        "orderedStoreClosed": true,
+        "readonlyWorkersTerminated": 0,
+        "readonlyWorkersRemaining": 0
+      },
+      "diagnosticOnly": true
+    },
+    {
+      "path": ".sunny-dev\\ordered-control-check\\2026-11-10T05-49-50-787Z-30MiB\\result.json",
+      "sha256": "29d84528db2f53f51b7d2cce70fa5bab984078743d8be699ee3a84bb569a4631",
+      "passed": false,
+      "source": "ae6b51a49b61f35ac52ab5dd1d03d01c41f90fd2",
+      "sourceDigest": "cbd0b5c6a98c89061843bb4204fa2361451e1ef0fcd6a47c98f31b1182f15059",
+      "approvalP95Ms": 208.29999999701977,
+      "failedAssertions": [
+        "approval:respond unchanged p95 RTT <200ms"
+      ],
+      "cleanup": {
+        "runtimeRetainedPath": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-ordered-control-BUk0NF",
+        "userDataRetainedPath": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-ordered-control-BUk0NF\\electron-profile",
+        "runtimeRetained": true,
+        "windowsDestroyed": true,
+        "orderedStoreClosed": true,
+        "readonlyWorkersTerminated": 0,
+        "readonlyWorkersRemaining": 0
+      },
+      "diagnosticOnly": true
+    },
+    {
+      "path": ".sunny-dev\\ordered-control-check\\2026-11-10T05-51-24-005Z-30MiB\\result.json",
+      "sha256": "cabc343172c5019ab61ea5e4e88aa687bcd55ef4672cee624536ffb60bd42813",
+      "passed": false,
+      "source": "ae6b51a49b61f35ac52ab5dd1d03d01c41f90fd2",
+      "sourceDigest": "006ab6acdcd6e4e659004713851c84b9d8a34c49f9592fb3e98deb7a767ff14b",
+      "approvalP95Ms": 215.60000000149012,
+      "failedAssertions": [
+        "approval:respond unchanged p95 RTT <200ms"
+      ],
+      "cleanup": {
+        "runtimeRetainedPath": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-ordered-control-nD5p50",
+        "userDataRetainedPath": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-ordered-control-nD5p50\\electron-profile",
+        "runtimeRetained": true,
+        "windowsDestroyed": true,
+        "orderedStoreClosed": true,
+        "readonlyWorkersTerminated": 0,
+        "readonlyWorkersRemaining": 0
+      },
+      "diagnosticOnly": true
+    },
+    {
+      "path": ".sunny-dev\\ordered-control-check\\2026-11-10T05-53-14-170Z-30MiB\\result.json",
+      "sha256": "20be4c006a4f4b9b7cd3dee6b68c5a220ca6d279436a50fa3883dfa2e32cfd84",
+      "passed": false,
+      "source": "ae6b51a49b61f35ac52ab5dd1d03d01c41f90fd2",
+      "sourceDigest": "f9c46cc60ab463d4b01824d14ad0c9272b53586bad44732d8cca367b10712f59",
+      "approvalP95Ms": 364.5,
+      "failedAssertions": [
+        "approval:respond unchanged p95 RTT <200ms"
+      ],
+      "cleanup": {
+        "runtimeRetainedPath": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-ordered-control-ODzC6F",
+        "userDataRetainedPath": "C:\\Users\\Quintin\\AppData\\Local\\Temp\\sunny-ordered-control-ODzC6F\\electron-profile",
+        "runtimeRetained": true,
+        "windowsDestroyed": true,
+        "orderedStoreClosed": true,
+        "readonlyWorkersTerminated": 0,
+        "readonlyWorkersRemaining": 0
+      },
+      "diagnosticOnly": true
+    }
+  ],
+  "focusedTests": 92,
+  "focusedPass": 92,
+  "thresholdMs": 200,
+  "installedVersion": "0.11.0-smooth-48ba1a0",
+  "rejectedExperiment": "256-page auto-checkpoint; default restored",
+  "liveProviderProof": false
+}

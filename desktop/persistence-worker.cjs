@@ -40,9 +40,9 @@ async function boot(){
  try{
   preflightExistingProfile(workerData.kind,workerData.file);
   if(workerData.kind==='sqlite'){
-   raw=await require('./fragment-store.cjs').openFragmentStore({file:workerData.file,backupDir:path.join(workerData.backupDir,'storage-format')});durability=raw.durability;
+   raw=await require('./fragment-store.cjs').openFragmentStore({file:workerData.file,backupDir:path.join(workerData.backupDir,'storage-format'),latencyProbe:workerData.latencyProbe===true});durability=raw.durability;
    const initialized=require('./mission-profile.cjs').initializeMissionProfileStore(raw,workerData.backupDir);let receipt=initialized.receipt;
-   store={load:()=>captureProfile(initialized.current),prepareOwned(candidate){if(receipt)require('./mission-profile.cjs').upgradeMissionProfile(initialized.saved,receipt);const prepared=raw.prepare(candidate);return {stateSha256:prepared.stateSha256,commit(){prepared.commit();receipt=null;}};},close:()=>raw.close()};
+   store={load:()=>captureProfile(initialized.current),prepareOwned(candidate){if(receipt)require('./mission-profile.cjs').upgradeMissionProfile(initialized.saved,receipt);const prepared=raw.prepare(candidate);return {stateSha256:prepared.stateSha256,commit(){const timing=prepared.commit();receipt=null;return timing;}};},close:()=>raw.close()};
   }else if(workerData.kind==='json'){const backend=durableJsonStore(workerData.file);raw=backend.raw;store=prepareWorkerMissionProfileStore(raw,workerData.backupDir,backend.writeCompact);}else throw Error('Invalid persistence storage kind');
   current=sealProfileSnapshot(captureProfile(store.load()));
   post({type:'ready',image:current,recovery:store.recovery,durability,runtime:{electron:process.versions.electron,node:process.versions.node,executable:process.execPath,threadId:require('node:worker_threads').threadId,entry:__filename}});
@@ -50,7 +50,7 @@ async function boot(){
 }
 parentPort.on('message',message=>{
  if(ended)return;let writeStarted=false;
- const started=performance.now(),probe=workerData.latencyProbe===true?{}:null;
+ const probe=workerData.latencyProbe===true?{}:null,started=probe?performance.now():0;
  try{
   if(!message||message.epoch!==epoch)throw Error('Invalid private persistence epoch');
   if(message.type==='close'){store.close();store=null;raw=null;post({type:'closed'});finish();return;}
@@ -60,7 +60,7 @@ parentPort.on('message',message=>{
   if(inspectMissionProfile(candidate).mode!=='v3')throw Error('Unsupported or invalid mission profile. Preserve the saved data for recovery and use a compatible Sunny version.');
   const prepared=store.prepareOwned(candidate),stateSha256=prepared.stateSha256||createHash('sha256').update(prepared.compact).digest('hex');
   if(probe)probe.prepareMs=performance.now()-started;
-  post({type:'prepared',sequence:message.sequence,stateSha256});writeStarted=true;prepared.commit();current=candidate;lastSequence=message.sequence;
+  post({type:'prepared',sequence:message.sequence,stateSha256});writeStarted=true;const storageTiming=prepared.commit();if(probe&&storageTiming)probe.storage=storageTiming;current=candidate;lastSequence=message.sequence;
   if(probe)probe.commitMs=performance.now()-started-probe.prepareMs;
   post({type:'committed',sequence:lastSequence,receipt:{epoch,sequence:lastSequence,stateSha256,durableAt:Date.now()},...(probe?{probe}:{})});
  }catch(error){post({type:'failed',sequence:message?.sequence,error:error.message,uncertain:writeStarted});finish();}

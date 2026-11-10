@@ -1,6 +1,6 @@
 # Sunny and island focal-point implementation plan
 
-Date: 2026-11-09. Status: implementation authorized and first combined implementation complete; clean final qualification and local installation pending.
+Date: 2026-11-09. Status: implemented and installed locally at cacdfa7; full clean tests/build and native UI checks passed. Three exact-package timing checks remain unresolved; full package qualification is not complete.
 Inspected source: `48a2fe4` on `codex/finish-crew-voyage-20261108`.
 
 ## Intended experience

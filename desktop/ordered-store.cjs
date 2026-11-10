@@ -1,7 +1,7 @@
 const path=require('node:path');
 const {randomUUID}=require('node:crypto');
 const {Worker}=require('node:worker_threads');
-const {captureProfile,sealProfileSnapshot,diffProfile,applyProfileUpdate}=require('./profile-snapshot.cjs');
+const {captureProfile,sealProfileSnapshot,isSealedProfile,diffProfile,applyProfileUpdate}=require('./profile-snapshot.cjs');
 const reasons=new Set(['workspace','dispatch','mission','check-intent','publication-intent','acceptance','reservation-release','cue','shutdown']);
 const sha=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
 function failure(code,message,identity={}){return Object.assign(new Error(message),{code,...identity});}
@@ -26,7 +26,7 @@ async function openOrderedStore(options){
  function uncertain(message){return failure('COMMIT_UNCERTAIN','Storage outcome is uncertain: '+message,{epoch,sequence:current?.sequence});}
  function arm(stage){stopTimer();timer=setTimeout(()=>fail(current?uncertain(stage+' timed out'):failure('WORKER_TIMEOUT','Persistence worker '+stage+' timed out')),timeoutMs);}
  function send(message){try{worker.postMessage(message);}catch(error){fail(current?uncertain(error.message):error);}}
- function dispatch(entry){current=entry;entry.sequence=++sequence;arm('commit');try{const image={...lastSubmitted,...entry.image},update=diffProfile(lastSubmitted,image,{baseGeneration:entry.sequence-1});lastSubmitted=applyProfileUpdate(lastSubmitted,update,{generation:entry.sequence-1});send({type:'commit',epoch,sequence:entry.sequence,update,reason:entry.reason});entry.image=null;}catch(error){fail(uncertain(error.message));}}
+ function dispatch(entry){current=entry;entry.sequence=++sequence;arm('commit');try{const image={...lastSubmitted,...entry.image},update=diffProfile(lastSubmitted,image,{baseGeneration:entry.sequence-1});lastSubmitted=isSealedProfile(entry.image)?sealProfileSnapshot(image):applyProfileUpdate(lastSubmitted,update,{generation:entry.sequence-1});send({type:'commit',epoch,sequence:entry.sequence,update,reason:entry.reason});entry.image=null;}catch(error){fail(uncertain(error.message));}}
  function onMessage(message){
   if(terminal||closed)return;
   if(!message||message.epoch!==epoch)return fail(current?uncertain('invalid worker receipt epoch'):failure('WORKER_PROTOCOL','Invalid worker epoch'));
@@ -64,7 +64,7 @@ async function openOrderedStore(options){
   if(waiting&&waiting.reason!==null)return Promise.reject(failure('STORE_SATURATED','Ordered storage waiting image is occupied by a required barrier'));
   // Capture primitive strings without copying their bytes; all objects are owned. Waiting images need
   // their own snapshot now because the caller can mutate before later dispatch.
-  let captured;try{if(image===null||typeof image!=='object'||Array.isArray(image))throw Error('Invalid profile image');captured=current?captureProfile(image):image;}catch(error){return Promise.reject(error);}
+  let captured;try{if(image===null||typeof image!=='object'||Array.isArray(image))throw Error('Invalid profile image');captured=current&&!isSealedProfile(image)?captureProfile(image):image;}catch(error){return Promise.reject(error);}
   const entry={...deferred(),image:captured,reason};
   if(waiting)waiting.reject(failure('CHECKPOINT_SUPERSEDED','Background checkpoint superseded before persistence'));
   if(current)waiting=entry;else dispatch(entry);return entry.promise;

@@ -10,6 +10,15 @@ const {openOrderedStore}=require('../desktop/ordered-store.cjs');
 const {emptyWorkspace}=require('../desktop/mission-profile.cjs');
 const image=text=>({projects:[],tasks:[{id:'task',messages:[{id:'reply',text}]}],opaque:{nested:{text:'\u822a\u6d77 \ud83d\udc33'}},missionBook:{version:3,runs:[],missions:[],workspace:emptyWorkspace()}});
 const digest=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
+for(const kind of ['sqlite','json'])test('shared immutable submissions retain exact queued receipts and later live edits '+kind,async t=>{
+ const {captureSharedProfile}=require('../desktop/profile-snapshot.cjs'),f=fixture(t,kind),held=gate(f),store=await open(f,{workerFactory:held.factory});
+ const live=image('first'),first=captureSharedProfile(live),a=store.barrier(first,'dispatch');
+ live.tasks[0].messages[0].text='second';const second=captureSharedProfile(live,first),b=store.barrier(second,'mission');
+ live.opaque.nested.text='later edit';await held.committed;held.release();
+ assert.equal((await a).stateSha256,digest(first));assert.equal((await b).stateSha256,digest(second));
+ const third=captureSharedProfile(live,second);assert.equal((await store.barrier(third,'mission')).stateSha256,digest(third));
+ await store.close();assert.deepEqual((await open(f)).load(),live);
+});
 function fixture(t,kind='sqlite'){
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-capture-')),workers=[],stores=[];
  t.after(async()=>{await Promise.allSettled(workers.map(worker=>worker.terminate()));await Promise.allSettled(stores.map(store=>store.close()));fs.rmSync(dir,{recursive:true,force:true});});

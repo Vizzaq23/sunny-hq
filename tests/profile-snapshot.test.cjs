@@ -1,5 +1,31 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const {captureProfile,sealProfileSnapshot,isSealedProfile,diffProfile,applyProfileUpdate}=require('../desktop/profile-snapshot.cjs');
+const {captureSharedProfile}=require('../desktop/profile-snapshot.cjs');
+test('shared capture detects unversioned edits while reusing only unchanged sealed branches',()=>{
+ const source={tasks:[{messages:[{text:'old'},{text:'retained'}]}],opaque:{keep:1}};
+ const first=captureSharedProfile(source);source.tasks[0].messages[0].text='new';
+ const next=captureSharedProfile(source,first);
+ assert.deepEqual(next,captureProfile(source));assert.equal(first.tasks[0].messages[0].text,'old');
+ assert.equal(next.tasks[0].messages[1],first.tasks[0].messages[1]);assert.equal(next.opaque,first.opaque);
+ assert.notEqual(next.tasks,first.tasks);assert.ok(Object.isFrozen(next.tasks[0]));
+ assert.equal(captureSharedProfile(source,next),next);
+ source.opaque.keep=2;assert.equal(next.opaque.keep,1);assert.equal(captureSharedProfile(source,next).opaque.keep,2);
+});
+test('shared capture preserves aliases, sparse arrays, key order and deep fallback',()=>{
+ const shared={text:'same'},source={left:shared,right:shared,array:[,undefined,NaN,-0],date:new Date(0)};
+ let first=captureSharedProfile(source);assert.equal(first.left,first.right);assert.deepEqual(first,captureProfile(source));
+ delete source.left;source.left=shared;source.array.push(3);const next=captureSharedProfile(source,first);
+ assert.equal(JSON.stringify(next),JSON.stringify(captureProfile(source)));assert.equal(next.left,next.right);assert.equal(0 in next.array,false);
+ let cursor=source;for(let i=0;i<180;i++)cursor=cursor.child={};cursor.alias=shared;
+ const deep=captureSharedProfile(source,next);assert.deepEqual(deep,captureProfile(source));assert.ok(isSealedProfile(deep));
+});
+test('shared capture never trusts mutable previous images or invokes accessors',()=>{
+ const source={nested:{value:1}},previous=captureProfile(source),captured=captureSharedProfile(source,previous);
+ assert.notEqual(captured.nested,previous.nested);previous.nested.value=2;assert.equal(captured.nested.value,1);
+ let invoked=false;Object.defineProperty(source.nested,'value',{enumerable:true,get(){invoked=true;return 1;}});
+ assert.throws(()=>captureSharedProfile(source,captured),/accessor/);assert.equal(invoked,false);
+ const cycle={};cycle.child=cycle;assert.throws(()=>captureSharedProfile(cycle),/Cyclic/);
+});
 test('capture isolates in-place unversioned edits, aliases and sparse arrays',()=>{
  const shared={text:'original'},source={tasks:[{messages:[shared]}],alias:shared,array:[,undefined,NaN,-0]};const copy=captureProfile(source);shared.text='changed';source.array.push(1);assert.equal(copy.tasks[0].messages[0].text,'original');assert.equal(copy.alias,copy.tasks[0].messages[0]);assert.equal(copy.array.length,4);assert.equal(0 in copy.array,false);assert.ok(Number.isNaN(copy.array[2]));assert.ok(Object.is(copy.array[3],-0));
 });

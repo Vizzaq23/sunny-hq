@@ -29,6 +29,26 @@ function captureIterative(value){
  while(stack.length){const frame=stack.at(-1);if(frame.index===frame.keys.length){active.delete(frame.source);stack.pop();continue;}const key=frame.keys[frame.index++],child=jsonDate(read(frame.source,key));if(!object(child)){put(frame.target,key,scalar(child));continue;}if(active.has(child))throw Error('Cyclic profile');if(copies.has(child)){put(frame.target,key,copies.get(child));continue;}const childKeys=keys(child,false),target=Array.isArray(child)?new Array(child.length):{};put(frame.target,key,target);copies.set(child,target);active.add(child);stack.push({source:child,target,keys:childKeys,index:0});}
  return root;
 }
+// Compare every live field; reuse only privately sealed, equal snapshot branches.
+// This is a value comparison cache, never a dirty-generation/identity shortcut.
+function captureSharedProfile(value,previous){
+ const copies=new WeakMap(),deep={};
+ function copy(value,prior,depth){
+  value=jsonDate(value);if(!object(value))return scalar(value);
+  if(depth>128)throw deep;
+  const existing=copies.get(value);if(existing===null)throw Error('Cyclic profile');if(existing)return existing;
+  const array=Array.isArray(value),propertyKeys=keys(value,false);
+  const reusable=object(prior)&&sealed.has(prior)&&Array.isArray(prior)===array&&(!array||prior.length===value.length);
+  const priorKeys=reusable?Object.keys(prior):[];
+  let equal=reusable&&priorKeys.length===propertyKeys.length&&priorKeys.every((key,i)=>key===propertyKeys[i]);
+  const children=[];copies.set(value,null);
+  for(const key of propertyKeys){const child=copy(read(value,key),reusable&&own(prior,key)?prior[key]:undefined,depth+1);children.push(child);if(!reusable||!own(prior,key)||!Object.is(child,prior[key]))equal=false;}
+  let result=prior;
+  if(!equal){result=array?new Array(value.length):{};for(let i=0;i<propertyKeys.length;i++)put(result,propertyKeys[i],children[i]);}
+  copies.set(value,result);return result;
+ }
+ try{return sealProfileSnapshot(copy(value,previous,0));}catch(error){if(error===deep)return sealProfileSnapshot(captureProfile(value));throw error;}
+}
 function sealProfileSnapshot(value){
  if(!object(value))return scalar(value);if(sealed.has(value))return value;
  // Validate before freezing so a failed seal never publishes partially owned data.
@@ -64,4 +84,4 @@ function applyProfileUpdate(base,update,{generation:currentGeneration}){
  }
  return sealProfileSnapshot(candidate);
 }
-module.exports={captureProfile,sealProfileSnapshot,isSealedProfile,diffProfile,applyProfileUpdate,MAX_PATCH_BYTES};
+module.exports={captureProfile,captureSharedProfile,sealProfileSnapshot,isSealedProfile,diffProfile,applyProfileUpdate,MAX_PATCH_BYTES};

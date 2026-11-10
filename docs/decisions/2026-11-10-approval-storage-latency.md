@@ -47,3 +47,30 @@ post-response receipts; neither threshold relaxation nor a lucky passing rerun
 is an acceptable completion criterion.
 
 Final clean source58517a6 passed locked installation, build/typecheck and hidden native workflow. Local full-suite run was stopped incomplete (owned validator/process tree observed absent); hosted full validation42765100281 remains in progress at this checkpoint. No full-suite pass is claimed for this candidate.
+
+## Shared immutable capture follow-up
+
+The next candidate reduces synchronous work around the mandatory receipts.
+`captureSharedProfile` traverses every live field and validates descriptors,
+compares it to a privately sealed prior snapshot, and reuses only equal branches.
+It never assumes mutable object identity or dirty-generation tracking implies no
+change. Cycles/accessors remain rejected; sparse arrays, key order, aliases,
+opaque data and deep fallback retain the existing capture semantics.
+
+Background saves, approval-intent preparation and durable task outcomes use this
+capture. Intent and mission mutations copy their affected branches; live intent
+objects are not frozen. Ordered storage retains the privately sealed submitted
+image as its comparison base, avoiding a second complete-history comparison on
+subsequent saves. Mutable callers retain the original capture path. Sequence,
+prepared/committed hash binding, uncertain-state failure, both approval receipts,
+WAL/FULL and default checkpoints remain unchanged. This is memory ownership and
+CPU optimization; no schema or migration changes. Revert these focused changes
+to roll back; saved profile bytes remain compatible.
+
+Exploratory frozen30MiB batch in
+`.sunny-dev/ordered-control-check/2026-11-10T06-04-53-885Z-30MiB`
+passed all assertions: approval p95=124.5ms, max=133.3ms, unchanged <200ms gate.
+Store synchronous handoff dropped from about15-20ms to0.1-0.2ms per save in the
+trace. This is exploratory evidence; final clean build/package qualification
+is still required. Initial edit with a missing helper return failed tests and
+was repaired before this batch; failed logs are retained in `.sunny-dev`.

@@ -28,10 +28,24 @@
 .relay-actor{display:flex;flex-direction:column;align-items:center;gap:8px;position:relative}.relay-actor>strong{background:#153b42;color:#fff8df;padding:4px 12px;border-radius:5px;font:22px Bangers,Georgia,serif}.relay-actor .crew-directory-portrait{width:76px;height:95px;filter:drop-shadow(0 5px 4px #17262d80)}
 .relay-short-bubble{background:#fff9e9;color:#403120;border:2px solid #816540;border-radius:12px;padding:10px;font-size:13px;max-width:210px;text-align:center}
 .relay-parcel-icon{font-size:42px;color:#fff3c5;text-shadow:0 3px 5px #192e35;text-align:center}.relay-replay{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);white-space:nowrap;background:#fff5dc;color:#44331e;border:1px solid #8a693a;border-radius:6px;padding:8px 14px}.relay-replay-note{font-size:12px;color:#654c30}
-@media(prefers-reduced-motion:no-preference){.voyage-ui:not(.reduce-motion) .relay-deck[data-playing=true] .relay-parcel-icon{animation:relay-parcel 1.6s ease-in-out both}.voyage-ui:not(.reduce-motion) .relay-deck[data-playing=true] .relay-sender{animation:relay-face 1.6s ease-in-out}.voyage-ui:not(.reduce-motion) .relay-deck[data-playing=true] .relay-recipient{animation:relay-face 1.6s ease-in-out reverse}}
-@keyframes relay-parcel{0%{transform:translateX(-90px) rotate(-12deg)}50%{transform:translateY(-25px)}100%{transform:translateX(90px) rotate(12deg)}}
-@keyframes relay-face{0%,100%{transform:none}40%{transform:translateX(7px) rotate(3deg)}}
 @media(max-width:520px){.relay-deck{padding-inline:8px;grid-template-columns:minmax(0,1fr) 30px minmax(0,1fr)}.relay-short-bubble{font-size:12px;padding:7px}.relay-actor>strong{font-size:19px}.relay-parcel-icon{font-size:30px}}
 @media(prefers-reduced-motion:no-preference){.voyage-ui:not(.reduce-motion) .relay-bubble{animation:relay-speak 180ms ease-out}}
 @keyframes relay-speak{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 @media(max-width:650px){.crew-conversation{padding:14px}.relay-scene{padding:12px}.relay-speaker{grid-template-columns:60px minmax(0,1fr);gap:12px}.relay-portrait .crew-directory-portrait{width:56px;height:70px}.relay-portrait>strong{font-size:20px}.relay-to{grid-template-columns:minmax(0,1fr) 60px}.relay-bubble{padding:12px}.relay-bubble .handoff-payload{font-size:14px}.crew-conversation>footer button{flex:1 1 140px}}
+/* Recorded communication: stable controls, readable speakers and bounded replay. */
+.relay-deck{container-type:inline-size;min-height:390px;padding:54px 18px 80px;grid-template-columns:minmax(0,1fr) 38px minmax(0,1fr);align-items:start;scroll-margin-top:80px}
+.relay-actor{min-width:0;gap:10px}.relay-actor .crew-directory-portrait{border:2px solid transparent;transition:box-shadow 220ms ease,border-color 220ms ease}
+.relay-short-bubble{position:relative;width:100%;box-sizing:border-box;min-height:112px;max-width:260px;text-align:left;line-height:1.5;box-shadow:0 5px 12px #072b3528}
+.relay-bubble-label{display:block;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#684b29;margin-bottom:7px}
+.relay-deck[data-phase=sender] .relay-sender .crew-directory-portrait,.relay-deck[data-phase=recipient] .relay-recipient .crew-directory-portrait{border-color:#ffd67b;box-shadow:0 0 0 4px #ffd67b30}
+.relay-deck[data-phase=sender] .relay-sender .relay-short-bubble,.relay-deck[data-phase=recipient] .relay-recipient .relay-short-bubble{border-color:#b97817;box-shadow:0 0 0 3px #ffd67b50}
+.relay-parcel-icon{align-self:center;position:relative;z-index:2;font-size:32px}
+.relay-replay-controls{position:absolute;bottom:14px;left:12px;right:12px;display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.relay-replay-controls .relay-replay{position:static;transform:none;white-space:normal}.relay-stop{min-height:40px;border-radius:6px;padding:8px 12px}
+.relay-beats{display:flex;justify-content:space-between;gap:6px;padding:0;list-style:none;margin:10px 0;font-size:12px}.relay-beats li{flex:1;text-align:center;border:1px solid #a88c61;border-radius:20px;padding:7px 4px;background:#fff5df;color:#46331e}.relay-beats li[data-active=true]{background:#ffe0a0;border-color:#8a5917;font-weight:700}
+html[data-appearance=dark] .relay-beats li{background:#20394f;color:#edf3fc;border-color:#7892ab}html[data-appearance=dark] .relay-beats li[data-active=true]{background:#ffe0a0;color:#382b18;border-color:#ffe0a0}
+.harbor-detail:has(.crew-conversation){width:min(660px,calc(100% - 32px))}
+@media(prefers-reduced-motion:no-preference){.voyage-ui:not(.reduce-motion) .relay-deck[data-playing=true] .relay-parcel-icon{animation:relay-parcel 3.3s cubic-bezier(.4,0,.2,1) both}.voyage-ui:not(.reduce-motion) .relay-deck[data-playing=true] .relay-actor{animation:none}}
+@keyframes relay-parcel{0%,27%{transform:translateX(clamp(-110px,-17cqw,-40px)) scale(.85);opacity:.55}40%{transform:translateY(-24px) scale(1.05);opacity:1}52%,85%{transform:translateX(clamp(40px,17cqw,110px)) scale(.85);opacity:1}100%{transform:translateX(clamp(40px,17cqw,110px)) scale(.7);opacity:0}}
+@media(prefers-reduced-motion:reduce){.relay-actor .crew-directory-portrait{transition:none}}.reduce-motion .relay-actor .crew-directory-portrait{transition:none}
+@media(max-width:520px){.relay-deck{padding-inline:10px;grid-template-columns:minmax(0,1fr) 22px minmax(0,1fr)}.relay-short-bubble{min-height:150px}.relay-actor .crew-directory-portrait{width:60px;height:76px}.relay-parcel-icon{font-size:25px}.relay-beats{font-size:11px}}

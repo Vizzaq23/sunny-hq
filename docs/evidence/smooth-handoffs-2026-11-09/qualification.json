@@ -1,0 +1,273 @@
+{
+  "date": "2026-11-09",
+  "scope": "Recorded communication polish; full package timing qualification remains deferred",
+  "sourceCommit": "48ba1a04aacba68b4761e0de0b1b5851dd16c3b3",
+  "build": {
+    "appVersion": "0.11.0",
+    "buildId": "5bf4a6b521e85f5ac98f74a971cd7cc35ccbaeaa79b0ef597e10163c7230aef2",
+    "fingerprintKind": "source-inputs-sha256",
+    "sourceCommit": "48ba1a04aacba68b4761e0de0b1b5851dd16c3b3",
+    "sourceDirty": false
+  },
+  "hosted": {
+    "runId": 42732645830,
+    "status": "completed",
+    "conclusion": "success",
+    "sourceCommit": "48ba1a04aacba68b4761e0de0b1b5851dd16c3b3",
+    "url": "https://github.com/Vizzaq23/sunny-hq/actions/runs/42732645830"
+  },
+  "native": [
+    {
+      "flag": "full",
+      "exitCode": 0,
+      "receipt": {
+        "passed": true,
+        "hidden": true,
+        "syntheticTransport": true,
+        "liveProviderProof": false
+      }
+    },
+    {
+      "flag": "harbor-only",
+      "exitCode": 0,
+      "receipt": {
+        "passed": true,
+        "syntheticTransport": true,
+        "liveProviderProof": false,
+        "checks": [
+          "geometry-desktop",
+          "geometry-compact",
+          "geometry-phone",
+          "station-panel-focus",
+          "wanted-escape-focus",
+          "exact-project-navigation",
+          "island-return-focus",
+          "captain-access",
+          "light-text-contrast",
+          "dark-text-contrast",
+          "pause-control",
+          "explicit-recorded-replay-normal-reduced",
+          "removed-project-preserved",
+          "missing-art-keeps-controls",
+          "system-reduced-motion",
+          "empty-destination"
+        ],
+        "renderObservation": {
+          "existingDeckFrames": {
+            "samples": 40,
+            "medianMs": 16.699999999999818,
+            "p95Ms": 16.700000000000273
+          },
+          "harborFrames": {
+            "samples": 40,
+            "medianMs": 16.69999999999891,
+            "p95Ms": 16.700000000000728
+          },
+          "note": "Same fixture and renderer; observational frame timing, not live performance or a new acceptance threshold."
+        }
+      }
+    },
+    {
+      "flag": "studio-captures",
+      "exitCode": 0,
+      "receipt": {
+        "passed": true,
+        "syntheticTransport": true,
+        "liveProviderProof": false,
+        "checks": [
+          "crew-specialty-search-and-reset",
+          "tool-search-and-reset",
+          "tool-launch-selected-project",
+          "home-draft-preservation",
+          "desktop-laptop-phone-layout",
+          "supporting-destination-layouts",
+          "home-200-percent-zoom",
+          "user-and-system-reduced-motion",
+          "local-ship-art-loaded",
+          "ship-and-crew-aligned-at-three-sizes",
+          "wanted-posters-fit-at-200-percent"
+        ]
+      }
+    },
+    {
+      "flag": "voyage-bar",
+      "exitCode": 0,
+      "receipt": {
+        "passed": true,
+        "hidden": true,
+        "syntheticTransport": true,
+        "liveProviderProof": false,
+        "checks": [
+          "explicit-project-selection",
+          "brief-Escape-focus-return",
+          "review-return",
+          "approval-request",
+          "running-waiting-unknown-failed-stopped-review",
+          "provider-finished-not-accepted",
+          "compact",
+          "200-percent",
+          "reduced-motion",
+          "historical-review-disabled",
+          "missing-attempt-disabled",
+          "keyboard-action-order",
+          "keyboard-open-request",
+          "dialog-draft-focus-return",
+          "keyboard-scoped-stop",
+          "navigation-draft-return",
+          "normal-motion-information"
+        ]
+      }
+    },
+    {
+      "flag": "handoff-parcels",
+      "exitCode": 0,
+      "receipt": {
+        "passed": true,
+        "hidden": true,
+        "syntheticTransport": true,
+        "liveProviderProof": false,
+        "checks": [
+          "interactive-recorded-conversation",
+          "keyboard-next-handoff",
+          "chapter-selection",
+          "three-recorded-role-handoffs",
+          "exact-brief-and-attributed-result",
+          "attempt-source-and-check-receipts",
+          "refresh-no-duplicates",
+          "keyboard-disclosure",
+          "Escape-focus-draft-return",
+          "scoped-task-navigation",
+          "historical-attempt",
+          "missing-result",
+          "compact",
+          "200-percent",
+          "no-records",
+          "reduced-and-normal-motion-information"
+        ]
+      }
+    },
+    {
+      "flag": "review-table",
+      "exitCode": 0,
+      "receipt": {
+        "passed": true,
+        "hidden": true,
+        "syntheticTransport": true,
+        "liveProviderProof": false,
+        "checks": [
+          "all-original-criteria",
+          "automated-and-generated-separation",
+          "unresolved-finding",
+          "missing-evidence",
+          "no-automatic-criteria-acceptance",
+          "stale-source",
+          "mismatched-result",
+          "keyboard-refresh",
+          "compact",
+          "200-percent",
+          "reduced-motion"
+        ]
+      }
+    },
+    {
+      "flag": "accepted-work",
+      "exitCode": 0,
+      "receipt": {
+        "passed": true,
+        "hidden": true,
+        "syntheticTransport": true,
+        "liveProviderProof": false,
+        "checks": [
+          "accepted-only-entry",
+          "project-scope",
+          "metadata-search",
+          "keyboard-preview",
+          "escaped-plain-text",
+          "changed-content-not-substituted",
+          "missing-content",
+          "exact-review-focus",
+          "accepted-report-hash-guard",
+          "navigation-rebuild",
+          "compact",
+          "200-percent",
+          "toolbar-voyage-separation",
+          "storage-uncertainty",
+          "reduced-and-normal-motion"
+        ]
+      }
+    }
+  ],
+  "packageCases": [
+    {
+      "name": "startup-1",
+      "exitCode": 0,
+      "receipt": {
+        "version": 1,
+        "status": "completed",
+        "accepted": true,
+        "cleanup": "observed",
+        "lastStage": "acceptance-enter",
+        "elapsedMs": 6735,
+        "scenario": "startup"
+      }
+    }
+  ],
+  "installation": {
+    "date": "2026-11-10T02:12:02.4483097Z",
+    "sourceCommit": "48ba1a04aacba68b4761e0de0b1b5851dd16c3b3",
+    "installTarget": "C:\\Users\\Quintin\\AppData\\Local\\Programs\\Sunny HQ\\versions\\0.11.0-smooth-48ba1a0",
+    "previousTarget": "C:\\Users\\Quintin\\AppData\\Local\\Programs\\Sunny HQ\\versions\\0.11.0-harbor-cacdfa7\\Sunny HQ.exe",
+    "backupRoot": "C:\\Users\\Quintin\\AppData\\Local\\Sunny HQ Backups\\20261109-211157-before-smooth",
+    "profileFilesVerified": 71,
+    "packageFilesVerified": 253,
+    "exeSha256": "9033d40b961cec366613585ebd4a4bc05c0416a1afbf7d9efe0c5cf22993f153",
+    "asarSha256": "647af73390a38c81f882c4eb56926a91f17e14fa36dae0e3a071f6f2909cf8d5",
+    "shortcutVerified": true,
+    "launched": false,
+    "releaseGateChanged": false,
+    "desktopShortcutUpdated": true,
+    "fullPackageQualification": false,
+    "deferredPackageTimingChecks": [
+      "run-ui",
+      "journey-cue",
+      "ordered-control30"
+    ],
+    "installationScope": "UI polish update; earlier package timing checks remain deferred. App left closed."
+  },
+  "screenshots": [
+    {
+      "path": ".sunny-dev/smooth-handoff-final-2/native-harbor-only/harbor-handoff-motion.png",
+      "sha256": "621b988838957874b379a8900adec6cb22a0a8e4c99496a6ba7e151e11b11118",
+      "syntheticFixture": true
+    },
+    {
+      "path": ".sunny-dev/smooth-handoff-final-2/native-harbor-only/harbor-handoff-reduced.png",
+      "sha256": "d0ab75f33547b494de07ab12f715723a377803df8961504269923038615334ff",
+      "syntheticFixture": true
+    },
+    {
+      "path": ".sunny-dev/smooth-handoff-final-2/native-harbor-only/harbor-dark.png",
+      "sha256": "ff796fa92b0d3db35b028703d4275297bedcf6ef12cec1cc79f89c0f7cf3c086",
+      "syntheticFixture": true
+    }
+  ],
+  "focusedTests": {
+    "tests": 17,
+    "pass": 17,
+    "fail": 0,
+    "log": ".sunny-dev/smooth-handoff-tests.log",
+    "sha256": "b7c8b321dfce2431b265a6f9535b44eebef06d5d1fcede027fd02b2027615c55"
+  },
+  "localFullRun": {
+    "status": "stopped incomplete to avoid competing with game; replaced by complete hosted validation of same commit",
+    "path": ".sunny-dev/pr-validation/2026-11-10T00-59-57.756Z"
+  },
+  "fullPackageQualification": false,
+  "deferredPackageChecks": [
+    "run-ui",
+    "journey-cue",
+    "ordered-control30"
+  ],
+  "liveProviderProof": false,
+  "releaseGateChanged": false
+}

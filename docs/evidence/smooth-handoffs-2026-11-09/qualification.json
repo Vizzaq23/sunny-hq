@@ -1,6 +1,6 @@
 {
   "date": "2026-11-09",
-  "scope": "Recorded communication polish; full package timing qualification remains deferred",
+  "scope": "Recorded communication polish installed; approval-response performance remains below qualification target",
   "sourceCommit": "48ba1a04aacba68b4761e0de0b1b5851dd16c3b3",
   "build": {
     "appVersion": "0.11.0",
@@ -263,11 +263,71 @@
     "path": ".sunny-dev/pr-validation/2026-11-10T00-59-57.756Z"
   },
   "fullPackageQualification": false,
-  "deferredPackageChecks": [
-    "run-ui",
-    "journey-cue",
-    "ordered-control30"
-  ],
+  "deferredPackageChecks": [],
   "liveProviderProof": false,
-  "releaseGateChanged": false
+  "releaseGateChanged": false,
+  "postInstallChecks": {
+    "sourceCommit": "48ba1a04aacba68b4761e0de0b1b5851dd16c3b3",
+    "installedTarget": "C:\\Users\\Quintin\\AppData\\Local\\Programs\\Sunny HQ\\versions\\0.11.0-smooth-48ba1a0",
+    "passed": false,
+    "cases": [
+      {
+        "name": "run-ui-1",
+        "exitCode": 0,
+        "receipt": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "acceptance-exit",
+          "elapsedMs": 116089,
+          "scenario": "run-ui"
+        }
+      },
+      {
+        "name": "journey-cue-1",
+        "exitCode": 0,
+        "receipt": {
+          "version": 1,
+          "status": "completed",
+          "accepted": true,
+          "cleanup": "observed",
+          "lastStage": "acceptance-enter",
+          "elapsedMs": 115795,
+          "scenario": "journey-cue"
+        }
+      },
+      {
+        "name": "ordered-control-30",
+        "exitCode": 1,
+        "receipt": {
+          "version": 1,
+          "status": "failed",
+          "accepted": false,
+          "cleanup": "observed",
+          "lastStage": "scan-exit",
+          "elapsedMs": 44893
+        }
+      }
+    ],
+    "startedAt": "2026-11-10T03:11:53.297Z",
+    "stage": "finished"
+  },
+  "remainingFailure": {
+    "scenario": "ordered-control30",
+    "assertion": "approval:respond p95 RTT <200ms",
+    "p95Ms": 292.2,
+    "maxMs": 400.7,
+    "gameClosed": true,
+    "thresholdUnchanged": true
+  },
+  "installedVisualInspection": {
+    "version": "0.11.0-smooth-48ba1a0",
+    "actualDailyProfile": true,
+    "sourceUrlVerified": true,
+    "selectedProjectHasNoRecordedMissions": true,
+    "realMissionStarted": false,
+    "captureDirectory": ".sunny-dev/smooth-installed-captures",
+    "appLeftOpen": true
+  }
 }

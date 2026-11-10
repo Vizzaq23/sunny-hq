@@ -110,5 +110,18 @@
   "thresholdMs": 200,
   "installedVersion": "0.11.0-smooth-48ba1a0",
   "rejectedExperiment": "256-page auto-checkpoint; default restored",
-  "liveProviderProof": false
+  "liveProviderProof": false,
+  "verification": {
+    "sourceCommit": "58517a6e268e41673c8bc1ced95e5da97360f705",
+    "cleanInstall": true,
+    "buildTypecheck": true,
+    "nativeWorkflowPassed": true,
+    "nativeReceipt": ".sunny-dev/approval-final-native/result.json",
+    "focusedTests": 92,
+    "focusedPass": 92,
+    "localFullSuite": "stopped incomplete; duplicate hosted run retained",
+    "hostedRun": 42765100281,
+    "hostedStatus": "in_progress when checked",
+    "installedChanged": false
+  }
 }

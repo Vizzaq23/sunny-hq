@@ -21,7 +21,11 @@ async function openFragmentStore({file,backupDir}){
  try{
   db.exec('PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL');const durability={journalMode:db.prepare('PRAGMA journal_mode').get().journal_mode,synchronous:db.prepare('PRAGMA synchronous').get().synchronous};if(durability.journalMode!=='wal'||durability.synchronous!==2)throw Error('WAL/FULL required');
   function write(candidateEncoding,nextGeneration,known=new Set()){
-   const insert=db.prepare('INSERT INTO profile_fragments(id,value) VALUES(?,?) ON CONFLICT(id) DO NOTHING');for(const f of candidateEncoding.fragments)if(!known.has(f.id))insert.run(f.id,f.bytes.toString('utf8'));const layout=JSON.stringify(candidateEncoding.layout);db.prepare('INSERT INTO profile_meta VALUES(1,1,?,?,?) ON CONFLICT(id) DO UPDATE SET generation=excluded.generation,state_sha256=excluded.state_sha256,layout=excluded.layout').run(nextGeneration,candidateEncoding.stateSha256,layout);db.prepare('DELETE FROM profile_fragments WHERE id NOT IN (SELECT value FROM json_each(?))').run(layout);
+   const insert=db.prepare('INSERT INTO profile_fragments(id,value) VALUES(?,?) ON CONFLICT(id) DO NOTHING');for(const f of candidateEncoding.fragments)if(!known.has(f.id))insert.run(f.id,f.bytes.toString('utf8'));const layout=JSON.stringify(candidateEncoding.layout);db.prepare('INSERT INTO profile_meta VALUES(1,1,?,?,?) ON CONFLICT(id) DO UPDATE SET generation=excluded.generation,state_sha256=excluded.state_sha256,layout=excluded.layout').run(nextGeneration,candidateEncoding.stateSha256,layout);
+   // The validated prior layout owns every row. Delete only retired fragment IDs
+   // through the primary-key index instead of scanning the full history table.
+   const retained=new Set(candidateEncoding.layout),remove=db.prepare('DELETE FROM profile_fragments WHERE id=?');
+   for(const id of known)if(!retained.has(id))remove.run(id);
   }
   if(initial.format==='legacy'){
    db.exec('BEGIN IMMEDIATE');try{if(readProfile(db).raw!==initial.raw)throw Error('Profile changed after backup');db.exec(SQL.meta);db.exec(SQL.fragments);write(encoding,generation);if(definition(db,'state'))db.exec('DROP TABLE state');db.exec(SQL.view);if(db.prepare('SELECT value FROM state WHERE id=1').get().value!==JSON.stringify(initial.value))throw Error('Migration byte mismatch');db.exec('COMMIT');}catch(error){db.exec('ROLLBACK');throw error;}

@@ -1,6 +1,23 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path'),{DatabaseSync}=require('node:sqlite'),{createHash}=require('node:crypto');
 const {openFragmentStore}=require('../desktop/fragment-store.cjs');const {emptyWorkspace}=require('../desktop/mission-profile.cjs');const {sealProfileSnapshot,captureProfile}=require('../desktop/profile-snapshot.cjs');
 const state=()=>({tasks:[],opaque:{text:'🐳',keep:[1,2]},missionBook:{version:3,missions:[],runs:[],workspace:emptyWorkspace()}});
+test('retiring fragments uses indexed deletes and preserves shared history after reopen',async t=>{
+ const f=fixture(t),store=await openFragmentStore(f),first=state();
+ first.history=Array.from({length:100},(_,i)=>({text:String(i)+'x'.repeat(40000)}));
+ store.prepare(sealProfileSnapshot(captureProfile(first))).commit();
+ const reader=new DatabaseSync(f.file,{readOnly:true}),prior=new Set(reader.prepare('SELECT id FROM profile_fragments').all().map(row=>row.id));
+ const original=DatabaseSync.prototype.prepare,deletes=[];
+ try{
+  DatabaseSync.prototype.prepare=function(sql){const statement=original.call(this,sql);if(sql.startsWith('DELETE FROM profile_fragments')){const plan=original.call(this,'EXPLAIN QUERY PLAN '+sql).all(null);assert.ok(plan.some(row=>/SEARCH profile_fragments USING INDEX/.test(row.detail)),JSON.stringify(plan));const run=statement.run;statement.run=function(...args){deletes.push(...args);return run.apply(this,args);};}return statement;};
+  const next=store.load();next.history.splice(0,1);next.opaque.text='updated';
+  store.prepare(sealProfileSnapshot(captureProfile(next))).commit();
+  assert.equal(read(f.file),JSON.stringify(next));
+  const retained=new Set(reader.prepare('SELECT id FROM profile_fragments').all().map(row=>row.id));
+  assert.deepEqual(new Set(deletes),new Set([...prior].filter(id=>!retained.has(id))));
+  assert.ok(deletes.length>0&&deletes.length<prior.size/2);
+ }finally{DatabaseSync.prototype.prepare=original;reader.close();await store.close();}
+ const reopened=await openFragmentStore(f);try{assert.equal(reopened.load().history.length,99);assert.equal(reopened.load().history[0].text,first.history[1].text);}finally{await reopened.close();}
+});
 function fixture(t){const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-fragment-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));return {file:path.join(dir,'sunny.sqlite'),backupDir:path.join(dir,'backups')};}
 function read(file){const db=new DatabaseSync(file,{readOnly:true});try{return db.prepare('SELECT value FROM state WHERE id=1').get().value;}finally{db.close();}}
 test('legacy WAL migration preserves exact state, verified backup and rejects legacy writes',async t=>{const f=fixture(t),original=state(),db=new DatabaseSync(f.file);db.exec('PRAGMA journal_mode=WAL; CREATE TABLE state(id INTEGER PRIMARY KEY,value TEXT)');db.prepare('INSERT INTO state VALUES(1,?)').run(JSON.stringify(original));const store=await openFragmentStore(f);try{assert.deepEqual(store.load(),original);assert.equal(read(f.file),JSON.stringify(original));assert.equal(store.durability.synchronous,2);assert.equal(store.durability.journalMode,'wal');const receipts=fs.readdirSync(f.backupDir).filter(p=>p.endsWith('.receipt.json'));assert.equal(receipts.length,1);const receipt=JSON.parse(fs.readFileSync(path.join(f.backupDir,receipts[0])));assert.equal(createHash('sha256').update(fs.readFileSync(receipt.path)).digest('hex'),receipt.sha256);assert.equal(read(receipt.path),JSON.stringify(original));assert.throws(()=>db.prepare('UPDATE state SET value=? WHERE id=1').run('{}'),/view/);}finally{await store.close();db.close();}});

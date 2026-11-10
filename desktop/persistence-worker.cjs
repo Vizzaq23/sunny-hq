@@ -50,6 +50,7 @@ async function boot(){
 }
 parentPort.on('message',message=>{
  if(ended)return;let writeStarted=false;
+ const started=performance.now(),probe=workerData.latencyProbe===true?{}:null;
  try{
   if(!message||message.epoch!==epoch)throw Error('Invalid private persistence epoch');
   if(message.type==='close'){store.close();store=null;raw=null;post({type:'closed'});finish();return;}
@@ -58,8 +59,10 @@ parentPort.on('message',message=>{
   if(candidate===null||typeof candidate!=='object'||Array.isArray(candidate))throw Error('Invalid submitted profile image');
   if(inspectMissionProfile(candidate).mode!=='v3')throw Error('Unsupported or invalid mission profile. Preserve the saved data for recovery and use a compatible Sunny version.');
   const prepared=store.prepareOwned(candidate),stateSha256=prepared.stateSha256||createHash('sha256').update(prepared.compact).digest('hex');
+  if(probe)probe.prepareMs=performance.now()-started;
   post({type:'prepared',sequence:message.sequence,stateSha256});writeStarted=true;prepared.commit();current=candidate;lastSequence=message.sequence;
-  post({type:'committed',sequence:lastSequence,receipt:{epoch,sequence:lastSequence,stateSha256,durableAt:Date.now()}});
+  if(probe)probe.commitMs=performance.now()-started-probe.prepareMs;
+  post({type:'committed',sequence:lastSequence,receipt:{epoch,sequence:lastSequence,stateSha256,durableAt:Date.now()},...(probe?{probe}:{})});
  }catch(error){post({type:'failed',sequence:message?.sequence,error:error.message,uncertain:writeStarted});finish();}
 });
 void boot();

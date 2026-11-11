@@ -1,0 +1,210 @@
+{
+  "candidate": "38e33006135acbd44d6ccb5d14c976610b23cdbc",
+  "installedVersion": "0.11.0-smooth-48ba1a0",
+  "installed": false,
+  "testCoverage": {
+    "mode": "segmented-full-suite",
+    "totalPassingTests": 1799,
+    "totalFiles": 198,
+    "earlierChecks": 621,
+    "resumedChecks": 1178,
+    "onlyChangedTest": "tests/latency-probe.test.cjs",
+    "originalFailedRun": ".sunny-dev/approval-qualified-96d7b01-restart/full-tests.log"
+  },
+  "build": {
+    "appVersion": "0.11.0",
+    "buildId": "63dc971c178ea65990accddba1a7035c270c051d563c5c0dd8c38df6d0c1e7d1",
+    "fingerprintKind": "source-inputs-sha256",
+    "sourceCommit": "38e33006135acbd44d6ccb5d14c976610b23cdbc",
+    "sourceDirty": false
+  },
+  "native": {
+    "passed": true,
+    "hidden": true,
+    "syntheticTransport": true,
+    "liveProviderProof": false
+  },
+  "package": {
+    "exe": "C:\\Users\\Quintin\\Documents\\GitHub\\sunny-hq\\.sunny-dev\\voyage-bar-m4\\.sunny-dev\\approval-qualified-38e3300\\package\\win-unpacked\\Sunny HQ.exe",
+    "asar": "C:\\Users\\Quintin\\Documents\\GitHub\\sunny-hq\\.sunny-dev\\voyage-bar-m4\\.sunny-dev\\approval-qualified-38e3300\\package\\win-unpacked\\resources\\app.asar"
+  },
+  "packageCases": [
+    {
+      "name": "ordered-control-1",
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "scan-exit",
+      "elapsedMs": 13702,
+      "scenario": "ordered-control"
+    },
+    {
+      "name": "ordered-control-10",
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "scan-exit",
+      "elapsedMs": 25447,
+      "scenario": "ordered-control"
+    },
+    {
+      "name": "startup-1",
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "platform-launch-requested",
+      "elapsedMs": 5911,
+      "scenario": "startup"
+    },
+    {
+      "name": "main-restart-1",
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "acceptance-enter",
+      "elapsedMs": 8100,
+      "scenario": "main-restart"
+    },
+    {
+      "name": "worker-loss-1",
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "platform-launch-requested",
+      "elapsedMs": 5780,
+      "scenario": "worker-loss"
+    },
+    {
+      "name": "write-failure-1",
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "acceptance-enter",
+      "elapsedMs": 6046,
+      "scenario": "write-failure"
+    },
+    {
+      "name": "lost-ack-1",
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "scan-exit",
+      "elapsedMs": 35655,
+      "scenario": "lost-ack"
+    },
+    {
+      "name": "pending-approval-1",
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "platform-launch-requested",
+      "elapsedMs": 5805,
+      "scenario": "pending-approval"
+    },
+    {
+      "name": "pending-check-1",
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "platform-launch-requested",
+      "elapsedMs": 5835,
+      "scenario": "pending-check"
+    },
+    {
+      "name": "normal-quit-1",
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "platform-launch-requested",
+      "elapsedMs": 5773,
+      "scenario": "normal-quit"
+    },
+    {
+      "name": "run-ui-1-after-restart",
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "acceptance-enter",
+      "elapsedMs": 113460,
+      "scenario": "run-ui"
+    },
+    {
+      "name": "journey-cue-1",
+      "version": 1,
+      "status": "completed",
+      "accepted": true,
+      "cleanup": "observed",
+      "lastStage": "acceptance-enter",
+      "elapsedMs": 104034,
+      "scenario": "journey-cue"
+    },
+    {
+      "name": "ordered-control-30-stability-1",
+      "version": 1,
+      "status": "failed",
+      "accepted": false,
+      "cleanup": "observed",
+      "lastStage": "scan-exit",
+      "elapsedMs": 44902
+    }
+  ],
+  "firstTiming": {
+    "file": ".sunny-dev/approval-qualified-38e3300/ordered-control-30/out/result.json",
+    "passed": false,
+    "interruptP95": 211.70000000018626,
+    "approvalP95": 182.5,
+    "failed": [
+      "task:interrupt unchanged p95 RTT <200ms"
+    ]
+  },
+  "stabilityTiming": {
+    "file": ".sunny-dev/approval-qualified-38e3300/ordered-control-30-stability-1/out/result.json",
+    "passed": false,
+    "interruptP95": 275,
+    "approvalP95": 216.5,
+    "failed": [
+      "task:interrupt unchanged p95 RTT <200ms",
+      "approval:respond unchanged p95 RTT <200ms"
+    ]
+  },
+  "checkpointExperiment": {
+    "file": ".sunny-dev/ordered-control-check/2026-11-11T04-44-35-080Z-30MiB/result.json",
+    "passed": false,
+    "interruptP95": 240.70000000006985,
+    "approvalP95": 97.69999999995343,
+    "failed": [
+      "task:interrupt unchanged p95 RTT <200ms"
+    ],
+    "accepted": false,
+    "reverted": true,
+    "description": "Isolated diagnostic with automatic checkpoint deferred; WAL/FULL retained. Interrupt still failed; original settings restored."
+  },
+  "captureExperiment": {
+    "file": ".sunny-dev/capture-comparison.json",
+    "accepted": false,
+    "reverted": true,
+    "description": "Lazy allocation/cached sealed keys was slower; reverted."
+  },
+  "pending": [
+    "Reliable <200ms p95 for both packaged controls",
+    "Install only after qualified timing",
+    "Installed latency-build screenshots",
+    "Hosted validation and broader live-provider release proof"
+  ],
+  "notes": [
+    "Three planned fixed stability trials stopped on first failure; no cherry-picked passing retry.",
+    "Windows restarts interrupted earlier runs; completed receipts retained.",
+    "No daily profile changes or installation performed."
+  ]
+}

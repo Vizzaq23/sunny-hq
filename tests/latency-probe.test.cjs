@@ -40,12 +40,14 @@ test('queue probe records skipped and failed stages and cannot alter outcomes',a
  assert.ok(records.every(r=>Object.values(r).every(Number.isFinite)));
  const receipt=await queue.run('mission',async()=>({image:{}}));assert.equal(receipt.sequence,1);assert.equal(records[2].sequence,1);assert.ok(records[2].submission>=records[2].validation);
 });
-test('retired worker v1 summary is absent and exact receipt is preserved',async t=>{
+test('optional fragment worker timing preserves exact receipt and ignores observer failure',async t=>{
  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-probe-'));t.after(()=>fs.rmSync(directory,{recursive:true,force:true}));
  const image={tasks:[],projects:[],missionBook:{version:3,runs:[],missions:[],workspace:emptyWorkspace()}};
  for(const enabled of [false,true]){
   const records=[];const store=await openOrderedStore({kind:'sqlite',file:path.join(directory,enabled+'.sqlite'),backupDir:path.join(directory,'backups'),latencyProbe:enabled,observeCommit:r=>{records.push(r);throw Error('observer');}});
-  const receipt=await store.barrier(image,'mission');assert.deepEqual(Object.keys(receipt).sort(),['durableAt','epoch','sequence','stateSha256']);assert.equal(records.length,0);
+  t.after(()=>store.close().catch(()=>{}));
+  const receipt=await store.barrier(image,'mission');assert.deepEqual(Object.keys(receipt).sort(),['durableAt','epoch','sequence','stateSha256']);assert.equal(records.length,enabled?1:0);
+  if(enabled){const record=records[0];assert.deepEqual(Object.keys(record).sort(),['commitMs','prepareMs','sequence','storage']);assert.equal(record.sequence,receipt.sequence);assert.deepEqual(Object.keys(record.storage).sort(),['beginMs','flushMs','writeMs']);for(const value of [record.prepareMs,record.commitMs,...Object.values(record.storage)])assert.ok(Number.isFinite(value)&&value>=0);}
   await store.close();
   const raw=new SqliteStore(path.join(directory,enabled+'.sqlite'));assert.deepEqual(raw.load(),image);raw.close();
  }

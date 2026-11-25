@@ -31,6 +31,8 @@ Keep CommonJS desktop and strict TypeScript renderer conventions. Use small name
 
 Use Node 24. Run `npm ci` in a clean checkout, `npm test`, and `npm run build` (includes `tsc --noEmit`). On this machine use the direct npm CLI path documented in README if the shim fails. Run focused security/recovery regressions for changed behavior and the fixture Electron workflow check for UI changes. There is currently no configured lint or formatting command; do not report one as passed. Never disable tests, hide failures or alter behavior merely to make CI pass. Distinguish pre-existing failures, environment failures and introduced failures.
 
+For pending-approval recovery changes, run `npm run validate:approval-replay -- <redacted-observation.json>` with an observation matching the schema in `scripts/replay-pending-approval.cjs`. Check that a stale approval cannot be answered after disconnect and that a fresh request receives at most one decision. The replay uses in-memory transport and storage. Report live-provider behavior separately when observed.
+
 ## Security and authority
 
 - Keep Electron `contextIsolation: true`, `sandbox: true`, `nodeIntegration: false`; remote/local preview pages receive no Sunny bridge.
